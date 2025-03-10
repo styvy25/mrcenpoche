@@ -27,7 +27,12 @@ export interface Badge {
   level: "bronze" | "argent" | "or" | "platine";
   earnedAt?: Date;
   progress?: number;
+  unlocked?: boolean;
+  colorClass?: string;
+  dateUnlocked?: Date;
 }
+
+export type BadgeProps = Badge;
 
 export interface QuizResult {
   score: number;
@@ -35,6 +40,8 @@ export interface QuizResult {
   correctAnswers: number[];
   earnedBadge?: Badge;
   date: Date;
+  totalQuestions?: number;
+  unlockedBadges?: Badge[];
 }
 
 export interface Appointment {

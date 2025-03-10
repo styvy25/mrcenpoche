@@ -1,6 +1,8 @@
 
+"use client";
+
 import * as React from "react";
-import { useMediaQuery } from "@/hooks/use-mobile";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 
@@ -34,7 +36,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
       data-active={cardCount !== 0}
     >
       <div className="relative size-full">
-        {cards.toReversed().map(({ href, title, summary, image }, idx) => (
+        {cards.map(({ href, title, summary, image }, idx) => (
           <div
             key={href}
             className={cn(
@@ -76,12 +78,12 @@ export function News({ articles }: { articles: NewsArticle[] }) {
         </div>
         {showCompleted && !cardCount && (
           <div
-            className="animate-fade-in absolute inset-0 flex size-full flex-col items-center justify-center gap-3"
+            className="animate-slide-up-fade absolute inset-0 flex size-full flex-col items-center justify-center gap-3 [animation-duration:1s]"
             style={{ "--offset": "10px" } as React.CSSProperties}
           >
-            <div className="animate-fade-in absolute inset-0 rounded-lg border border-neutral-300" />
+            <div className="animate-fade-in absolute inset-0 rounded-lg border border-neutral-300 [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]" />
             <AnimatedLogo className="w-1/3" />
-            <span className="animate-fade-in text-xs font-medium text-muted-foreground">
+            <span className="animate-fade-in text-xs font-medium text-muted-foreground [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]">
               You're all caught up!
             </span>
           </div>
@@ -108,7 +110,7 @@ function NewsCard({
   href?: string;
   active?: boolean;
 }) {
-  const { isMobile } = useMediaQuery();
+  const isMobile = window.innerWidth < 640;
 
   const ref = React.useRef<HTMLDivElement>(null);
   const drag = React.useRef<{
@@ -248,16 +250,15 @@ function NewsCard({
         >
           <div className="flex items-center justify-between pt-3 text-xs">
             <a
-              href={href || "#"}
+              href={href || "https://dub.co"}
               target="_blank"
-              rel="noopener noreferrer"
               className="font-medium text-muted-foreground hover:text-foreground transition-colors duration-75"
             >
               Read more
             </a>
             <button
               type="button"
-              onClick={() => onDismiss?.()}
+              onClick={dismiss}
               className="text-muted-foreground hover:text-foreground transition-colors duration-75"
             >
               Dismiss
