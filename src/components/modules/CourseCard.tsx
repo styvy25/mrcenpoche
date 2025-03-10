@@ -25,7 +25,7 @@ const CourseCard = ({
   isCompleted
 }: CourseCardProps) => {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow w-full">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow w-full cursor-pointer">
       <div className={`h-2 ${
         level === "Débutant" ? "bg-mrc-green" :
         level === "Intermédiaire" ? "bg-mrc-blue" :
@@ -64,7 +64,7 @@ const CourseCard = ({
         </div>
       </CardContent>
       <CardFooter className="pt-2 flex justify-between">
-        <Button variant="outline" size="sm" className="text-xs">
+        <Button variant="outline" size="sm" className="text-xs" onClick={(e) => e.stopPropagation()}>
           {isCompleted ? 
             <CheckCircle className="h-4 w-4 mr-1 text-green-500" /> :
             <BookOpen className="h-4 w-4 mr-1" />
@@ -72,7 +72,7 @@ const CourseCard = ({
           {isCompleted ? "Revoir" : "Continuer"}
         </Button>
         {isPdfAvailable && (
-          <Button variant="outline" size="sm" className="text-xs">
+          <Button variant="outline" size="sm" className="text-xs" onClick={(e) => e.stopPropagation()}>
             <Download className="h-4 w-4 mr-1" />
             Support PDF
           </Button>

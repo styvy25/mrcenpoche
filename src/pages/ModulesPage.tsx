@@ -1,8 +1,14 @@
 
+import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import CoursesGrid from "@/components/modules/CoursesGrid";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BookOpen, Award, ArrowUpRight } from "lucide-react";
 
 const ModulesPage = () => {
+  const [activeCategory, setActiveCategory] = useState("all");
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
@@ -42,11 +48,46 @@ const ModulesPage = () => {
           </div>
         </div>
         
-        <div>
-          <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
+        <div className="mb-6 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
             Tous les modules
           </h2>
-          <CoursesGrid />
+          <div className="flex space-x-2">
+            <Button variant="outline" size="sm" className="hidden md:flex">
+              <Award className="h-4 w-4 mr-1" />
+              Mes certifications
+            </Button>
+            <Button variant="outline" size="sm" className="hidden md:flex">
+              <BookOpen className="h-4 w-4 mr-1" />
+              Modules suggérés
+            </Button>
+          </div>
+        </div>
+        
+        <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-6">
+          <TabsList>
+            <TabsTrigger value="all">Tous</TabsTrigger>
+            <TabsTrigger value="beginner">Débutant</TabsTrigger>
+            <TabsTrigger value="intermediate">Intermédiaire</TabsTrigger>
+            <TabsTrigger value="advanced">Avancé</TabsTrigger>
+            <TabsTrigger value="completed">Complétés</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
+        <CoursesGrid />
+        
+        <div className="mt-12 bg-mrc-blue/10 rounded-lg p-6 flex flex-col md:flex-row items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-mrc-blue mb-2">Besoin d'aide pour votre formation ?</h3>
+            <p className="text-gray-600 max-w-2xl">
+              Notre équipe de formateurs est disponible pour vous guider dans votre parcours d'apprentissage. 
+              N'hésitez pas à les contacter pour toute question ou clarification.
+            </p>
+          </div>
+          <Button className="mt-4 md:mt-0 bg-mrc-blue hover:bg-blue-700">
+            Contacter un formateur
+            <ArrowUpRight className="ml-1 h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
