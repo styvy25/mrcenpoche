@@ -4,16 +4,18 @@ import { Button } from "@/components/ui/button";
 import { QuizResult as QuizResultType } from "./types";
 import { Award, RotateCcw, Share2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 interface QuizResultProps {
-  result: QuizResultType;
+  score: number;
+  totalQuestions: number;
+  categoryName: string;
   onRestart: () => void;
+  result: QuizResultType;
 }
 
-const QuizResult = ({ result, onRestart }: QuizResultProps) => {
+const QuizResult = ({ result, onRestart, categoryName }: QuizResultProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {

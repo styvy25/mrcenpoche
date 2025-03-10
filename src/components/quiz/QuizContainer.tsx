@@ -1,16 +1,9 @@
 
 import React from "react";
-import { QuizQuestion } from "./types";
-import QuizQuestionComponent from "./QuizQuestion";
-import QuizResult from "./QuizResult";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle } from "lucide-react";
-
-interface Category {
-  label: string;
-  questions: QuizQuestion[];
-}
+import { Category } from "./types";
+import QuestionScreen from "./QuestionScreen";
+import ResultsScreen from "./ResultsScreen";
+import { calculateEarnedBadges } from "./badgeUtils";
 
 interface QuizContainerProps {
   categories: Category[];
@@ -24,33 +17,21 @@ interface QuizContainerState {
   currentCategory: Category | undefined;
 }
 
-interface BadgeProps {
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-}
-
-const BadgesDisplay = ({ badges }: { badges: BadgeProps[] }) => (
-  <div className="flex flex-wrap justify-center gap-4">
-    {badges.map((badge, index) => (
-      <div key={index} className="flex flex-col items-center">
-        {badge.icon}
-        <Badge className="mt-2">{badge.name}</Badge>
-        <p className="text-sm text-gray-500">{badge.description}</p>
-      </div>
-    ))}
-  </div>
-);
-
 class QuizContainer extends React.Component<QuizContainerProps, QuizContainerState> {
   constructor(props: QuizContainerProps) {
     super(props);
+    
+    // Find the first category with questions
+    const initialCategory = props.categories.find(cat => 
+      cat.questions && cat.questions.length > 0
+    ) || props.categories[0];
+    
     this.state = {
-      currentCategoryIndex: 0,
+      currentCategoryIndex: props.categories.indexOf(initialCategory),
       currentQuestionIndex: 0,
       selectedAnswers: [],
       quizResults: null,
-      currentCategory: props.categories[0],
+      currentCategory: initialCategory,
     };
   }
 
@@ -129,129 +110,21 @@ class QuizContainer extends React.Component<QuizContainerProps, QuizContainerSta
     });
   };
 
-  calculateEarnedBadges = (score: number): BadgeProps[] => {
-    const percentage = (score / this.state.currentCategory!.questions.length) * 100;
-    const badges: BadgeProps[] = [];
-
-    if (percentage >= 50) {
-      badges.push({
-        name: "Apprenti Militant",
-        description: "Connaissances de base acquises",
-        icon: <CheckCircle className="h-6 w-6 text-green-500" />,
-      });
-    }
-
-    if (percentage >= 75) {
-      badges.push({
-        name: "Militant Engagé",
-        description: "Bonne compréhension des enjeux",
-        icon: <CheckCircle className="h-6 w-6 text-blue-500" />,
-      });
-    }
-
-    if (percentage === 100) {
-      badges.push({
-        name: "Expert MRC",
-        description: "Maîtrise parfaite du sujet",
-        icon: <CheckCircle className="h-6 w-6 text-mrc-red" />,
-      });
-    }
-
-    return badges;
-  };
-
-  renderQuestionScreen() {
-    const { currentQuestionIndex, selectedAnswers, currentCategoryIndex } = this.state;
+  render() {
+    const { quizResults, currentQuestionIndex, selectedAnswers, currentCategoryIndex } = this.state;
     const currentCategory = this.props.categories[currentCategoryIndex];
 
-    if (!currentCategory) {
-      console.error("No current category found");
-      return null;
+    if (!currentCategory || !currentCategory.questions || currentCategory.questions.length === 0) {
+      return (
+        <div className="p-8 text-center">
+          <h2 className="text-xl font-semibold text-mrc-blue mb-4">Aucune question disponible</h2>
+          <p className="text-gray-600">Veuillez sélectionner une autre catégorie ou réessayer plus tard.</p>
+        </div>
+      );
     }
 
     const currentQuestion = currentCategory.questions[currentQuestionIndex];
-
-    if (!currentQuestion) {
-      console.error("No current question found");
-      return null;
-    }
-
-    const isLastQuestion =
-      currentQuestionIndex === currentCategory.questions.length - 1;
-
-    return (
-      <div className="flex flex-col items-center">
-        <QuizQuestionComponent
-          question={currentQuestion}
-          onAnswer={this.handleAnswer}
-          selectedAnswer={selectedAnswers[currentQuestionIndex]}
-        />
-        <div className="mt-6">
-          {!isLastQuestion ? (
-            <Button onClick={this.nextQuestion} disabled={selectedAnswers[currentQuestionIndex] === undefined}>
-              Question Suivante
-            </Button>
-          ) : (
-            <Button onClick={this.calculateResults} disabled={selectedAnswers[currentQuestionIndex] === undefined}>
-              Voir les résultats
-            </Button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  renderResultsScreen() {
-    const { quizResults, currentCategory } = this.state;
-    
-    if (!quizResults || !currentCategory) return null;
-    
-    const earnedBadges = this.calculateEarnedBadges(quizResults.score);
-    
-    return (
-      <div className="flex flex-col items-center">
-        <QuizResult 
-          score={quizResults.score}
-          totalQuestions={currentCategory.questions.length}
-          categoryName={currentCategory.label || ""}
-          onRestart={this.restartQuiz}
-          result={{
-            score: (quizResults.score / currentCategory.questions.length) * 100,
-            correctAnswers: quizResults.score,
-            totalQuestions: currentCategory.questions.length,
-            unlockedBadges: [],
-            date: new Date().toISOString() // Ajout de la date manquante
-          }}
-        >
-          Félicitations pour avoir terminé ce quiz !
-        </QuizResult>
-        
-        {earnedBadges.length > 0 && (
-          <div className="mt-8 text-center">
-            <h3 className="text-xl font-bold mb-4 text-mrc-blue">Badges débloqués</h3>
-            <BadgesDisplay badges={earnedBadges} />
-          </div>
-        )}
-        
-        <div className="mt-8 w-full max-w-2xl">
-          <h3 className="text-xl font-bold mb-4 text-mrc-blue">Revue des questions</h3>
-          {currentCategory.questions.map((question, index) => (
-            <div key={index} className="mb-6 bg-white p-4 rounded-lg shadow">
-              <QuizQuestionComponent
-                question={question}
-                onAnswer={() => {}}
-                selectedAnswer={this.state.selectedAnswers[index]}
-                showFeedback={true}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  render() {
-    const { quizResults } = this.state;
+    const isLastQuestion = currentQuestionIndex === currentCategory.questions.length - 1;
 
     return (
       <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
@@ -260,7 +133,26 @@ class QuizContainer extends React.Component<QuizContainerProps, QuizContainerSta
           <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
             <h1 className="text-2xl font-bold text-gray-900 text-center">Quiz de Formation MRC</h1>
             <div className="mt-8">
-              {quizResults ? this.renderResultsScreen() : this.renderQuestionScreen()}
+              {quizResults ? (
+                <ResultsScreen
+                  score={quizResults.score}
+                  totalQuestions={currentCategory.questions.length}
+                  categoryName={currentCategory.label || currentCategory.name || ""}
+                  selectedAnswers={selectedAnswers}
+                  questions={currentCategory.questions}
+                  onRestart={this.restartQuiz}
+                  earnedBadges={calculateEarnedBadges(quizResults.score, currentCategory.questions.length)}
+                />
+              ) : (
+                <QuestionScreen
+                  currentQuestion={currentQuestion}
+                  onAnswer={this.handleAnswer}
+                  selectedAnswer={selectedAnswers[currentQuestionIndex]}
+                  isLastQuestion={isLastQuestion}
+                  onNextQuestion={this.nextQuestion}
+                  onCalculateResults={this.calculateResults}
+                />
+              )}
             </div>
           </div>
         </div>

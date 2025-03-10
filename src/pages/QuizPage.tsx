@@ -5,11 +5,21 @@ import QuizContainer from "@/components/quiz/QuizContainer";
 import BadgesDisplay from "@/components/quiz/BadgesDisplay";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Book, Medal, Trophy } from "lucide-react";
+import { Book, Medal } from "lucide-react";
 import { quizData } from "@/components/quiz/quizData";
+import { Category } from "@/components/quiz/types";
 
 const QuizPage = () => {
   const [activeTab, setActiveTab] = useState("quiz");
+
+  // Convert quizData.categories to match Category interface
+  const categories: Category[] = quizData.categories.map((category: any) => ({
+    label: category.name,
+    id: category.id,
+    name: category.name,
+    color: category.color,
+    questions: quizData.quizQuestions?.filter(q => q.category === category.id) || []
+  }));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-mrc-blue/5 to-mrc-yellow/10">
@@ -42,7 +52,7 @@ const QuizPage = () => {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="quiz" className="p-1">
-            <QuizContainer categories={quizData.categories} />
+            <QuizContainer categories={categories} />
           </TabsContent>
           <TabsContent value="badges" className="p-1">
             <BadgesDisplay />

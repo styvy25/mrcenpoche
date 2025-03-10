@@ -101,7 +101,8 @@ export const quizData = {
     { id: "traditions", name: "Traditions", color: "bg-mrc-yellow" },
     { id: "politique", name: "Politique", color: "bg-mrc-green" },
     { id: "geographie", name: "Géographie", color: "bg-purple-500" }
-  ]
+  ],
+  quizQuestions: quizQuestions
 };
 
 export const getQuizQuestions = async (): Promise<QuizQuestion[]> => {

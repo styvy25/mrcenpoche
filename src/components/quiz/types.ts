@@ -30,3 +30,17 @@ export interface QuizResult {
   unlockedBadges: Badge[];
   date: string;
 }
+
+export interface Category {
+  id?: string;
+  label: string;
+  questions: QuizQuestion[];
+  name?: string;
+  color?: string;
+}
+
+export interface BadgeProps {
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+}
