@@ -18,7 +18,7 @@ export interface Badge {
   category: "culture" | "histoire" | "traditions" | "politique" | "geographie";
   level: "bronze" | "argent" | "or";
   unlocked: boolean;
-  dateUnlocked?: Date;
+  dateUnlocked?: string;
   colorClass: string;
   imageUrl?: string;
 }
@@ -28,5 +28,5 @@ export interface QuizResult {
   totalQuestions: number;
   score: number;
   unlockedBadges: Badge[];
-  date: Date;
+  date: string;
 }

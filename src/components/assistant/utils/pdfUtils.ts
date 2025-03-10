@@ -1,6 +1,7 @@
 
 import { Message } from "../types/message";
 import { useToast } from "@/components/ui/use-toast";
+import { jsPDF } from "jspdf";
 
 export function usePdfGenerator() {
   const { toast } = useToast();
@@ -21,23 +22,68 @@ export function usePdfGenerator() {
       title: "PDF en cours de génération",
       description: "Votre document sera " + (isMobile ? "ouvert" : "téléchargé") + " dans quelques instants.",
     });
+
+    // Create PDF document
+    const doc = new jsPDF();
     
-    let content = "Conversation avec l'Assistant Styvy237\n\n";
+    // Add title
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Conversation avec l'Assistant Styvy237", 20, 20);
+    
+    // Set normal font for content
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    
+    let yPosition = 30;
+    
+    // Add each message
     messages.forEach(msg => {
       const roleLabel = msg.role === 'user' ? 'Vous' : 'Assistant';
       const timestamp = new Date(msg.timestamp).toLocaleString();
-      content += `${roleLabel} (${timestamp}):\n${msg.content}\n\n`;
+      
+      // If not enough space for new message on page, add new page
+      if (yPosition > 270) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      // Add header (role and timestamp)
+      doc.setFont("helvetica", "bold");
+      doc.text(`${roleLabel} (${timestamp}):`, 20, yPosition);
+      yPosition += 7;
+      
+      // Add message content
+      doc.setFont("helvetica", "normal");
+      
+      // Split long message text into multiple lines
+      const contentLines = doc.splitTextToSize(msg.content, 170);
+      
+      contentLines.forEach(line => {
+        doc.text(line, 20, yPosition);
+        yPosition += 5;
+        
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+      });
+      
+      // Add spacing between messages
+      yPosition += 5;
     });
     
+    // Get the PDF as data URI
+    const pdfOutput = doc.output('datauristring');
+    
+    // Create a link to download or open the PDF
     setTimeout(() => {
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      
+      // Create an invisible link element
       const link = document.createElement('a');
-      link.href = url;
+      link.href = pdfOutput;
       
       if (!isMobile) {
-        link.setAttribute('download', `conversation-${new Date().toISOString().slice(0, 10)}.txt`);
+        link.setAttribute('download', `conversation-${new Date().toISOString().slice(0, 10)}.pdf`);
       } else {
         link.setAttribute('target', '_blank');
       }
@@ -46,8 +92,6 @@ export function usePdfGenerator() {
       link.click();
       document.body.removeChild(link);
       
-      URL.revokeObjectURL(url);
-      
       toast({
         title: "Exportation réussie",
         description: isMobile ? 
@@ -55,7 +99,7 @@ export function usePdfGenerator() {
           "Votre conversation a été téléchargée.",
         variant: "default",
       });
-    }, 2000);
+    }, 1000);
   };
 
   return { generatePDF };
