@@ -1,14 +1,10 @@
-import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
-import ModuleDetail from "@/components/modules/ModuleDetail";
-import ModuleQuiz from "@/components/modules/ModuleQuiz";
-import { useToast } from "@/components/ui/use-toast";
-import { getModuleQuiz } from "@/components/modules/moduleQuizData";
 import ModulesTabs from "@/components/modules/ModulesTabs";
-import ModulesHomeView from "@/components/modules/ModulesHomeView";
 import ModuleProgressView from "@/components/modules/ModuleProgressView";
 import ModuleChallengeView from "@/components/modules/ModuleChallengeView";
 import ModuleChatView from "@/components/modules/ModuleChatView";
+import ModuleContent from "@/components/modules/ModuleContent";
+import { useModuleState } from "@/hooks/useModuleState";
 
 const demoModule = {
   id: 1,
@@ -62,101 +58,36 @@ const demoModule = {
 };
 
 const ModulesPage = () => {
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [activeTab, setActiveTab] = useState("modules");
-  const [selectedModule, setSelectedModule] = useState<typeof demoModule | null>(null);
-  const [showChat, setShowChat] = useState(false);
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [showChallenge, setShowChallenge] = useState(false);
-  const [currentQuizModule, setCurrentQuizModule] = useState("");
-  const { toast } = useToast();
+  const {
+    activeTab,
+    setActiveTab,
+    selectedModule,
+    showQuiz,
+    showChallenge,
+    showChat,
+    currentQuizModule,
+    handleModuleSelect,
+    handleBackToModules,
+    handleStartQuiz,
+    handleQuizComplete,
+    handleChallengeComplete,
+    handleChallengeClick,
+    handleChatClick
+  } = useModuleState();
 
-  const handleModuleSelect = (module: typeof demoModule) => {
-    setSelectedModule(module);
-    setShowQuiz(false);
-    setShowChat(false);
-    setShowChallenge(false);
-  };
-
-  const handleBackToModules = () => {
-    setSelectedModule(null);
-    setShowQuiz(false);
-  };
-
-  const handleStartQuiz = (moduleId: string) => {
-    setCurrentQuizModule(moduleId);
-    setShowQuiz(true);
-    setShowChat(false);
-    setShowChallenge(false);
-  };
-
-  const handleQuizComplete = (score: number, totalQuestions: number) => {
-    const percentage = Math.round((score / totalQuestions) * 100);
-    toast({
-      title: "Quiz terminé !",
-      description: `Vous avez obtenu ${score}/${totalQuestions} (${percentage}%)`,
-    });
-  };
-
-  const handleChallengeComplete = () => {
-    setShowChallenge(false);
-    toast({
-      title: "Défi quotidien complété !",
-      description: "Revenez demain pour un nouveau défi.",
-    });
-  };
-
-  const handleChallengeClick = () => {
-    setShowChallenge(true);
-    setActiveTab("challenge");
-  };
-
-  const handleChatClick = () => {
-    setShowChat(true);
-    setActiveTab("chat");
-  };
-
-  const renderModulesContent = () => {
-    if (selectedModule) {
-      if (showQuiz) {
-        return (
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={handleBackToModules} 
-              className="mb-4"
-            >
-              ← Retour au module
-            </Button>
-            <h2 className="text-2xl font-bold mb-6 text-center">
-              Quiz: {getModuleQuiz(currentQuizModule)?.title}
-            </h2>
-            <ModuleQuiz 
-              moduleId={currentQuizModule}
-              questions={getModuleQuiz(currentQuizModule)?.questions || []}
-              onComplete={handleQuizComplete}
-            />
-          </div>
-        );
-      } else {
-        return (
-          <ModuleDetail 
-            module={selectedModule} 
-            onBack={handleBackToModules} 
-          />
-        );
-      }
-    } else {
-      return (
-        <ModulesHomeView 
-          onChallengeClick={handleChallengeClick}
-          onChatClick={handleChatClick}
-          onStartQuiz={handleStartQuiz}
-          onChallengeComplete={handleChallengeComplete}
-        />
-      );
-    }
-  };
+  const renderModulesContent = () => (
+    <ModuleContent
+      selectedModule={selectedModule}
+      showQuiz={showQuiz}
+      currentQuizModule={currentQuizModule}
+      onBackToModules={handleBackToModules}
+      onQuizComplete={handleQuizComplete}
+      onChallengeClick={handleChallengeClick}
+      onChatClick={handleChatClick}
+      onStartQuiz={handleStartQuiz}
+      onChallengeComplete={handleChallengeComplete}
+    />
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -176,6 +107,3 @@ const ModulesPage = () => {
 };
 
 export default ModulesPage;
-
-import { Button } from "@/components/ui/button";
-import { moduleQuizzes } from "@/components/modules/moduleQuizData";

@@ -1,40 +1,49 @@
 
-import { ReactNode } from "react";
+import { LucideIcon } from "lucide-react";
 
 export interface QuizQuestion {
   id: number;
   question: string;
-  choices: string[];
+  options: string[];
   correctAnswer: number;
-  explanation?: string;
+  explanation: string;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  label?: string;
+export interface QuizSection {
+  title: string;
+  description?: string;
   questions: QuizQuestion[];
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string;
+  sections: QuizSection[];
+  difficulty: "easy" | "medium" | "hard";
+  timeLimit?: number; // in minutes
+}
+
+export interface BadgeIconType {
+  icon: LucideIcon;
+  className: string;
 }
 
 export interface BadgeProps {
   id: string;
   name: string;
   description: string;
-  icon: ReactNode;
-  condition: (score: number, total: number) => boolean;
+  icon: BadgeIconType;
+  condition: (score: number, totalQuestions: number) => boolean;
+  earnedAt?: Date;
 }
 
-export type Badge = {
-  id: string;
-  name: string;
-  description: string;
-  unlockedAt: Date;
-};
-
 export interface QuizResult {
+  id: string;
+  quizId: string;
   score: number;
-  correctAnswers: number;
   totalQuestions: number;
-  unlockedBadges: Badge[];
-  date: Date;
+  timeTaken: number; // in seconds
+  earnedBadges: string[];
+  completedAt: Date;
 }
