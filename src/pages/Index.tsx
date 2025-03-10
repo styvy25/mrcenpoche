@@ -29,7 +29,7 @@ const Index = () => {
         <FeatureSection />
         
         {/* Nouvelle section de quiz culturel */}
-        <section className="py-16 bg-gradient-to-br from-mrc-blue/5 to-mrc-yellow/10">
+        <section className="bg-gradient-to-br from-mrc-blue/5 to-mrc-yellow/10 py-0 px-0 mx-[4px]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
               <Badge className="mb-2 bg-mrc-blue text-white px-3 py-1 text-xs uppercase tracking-wider">
