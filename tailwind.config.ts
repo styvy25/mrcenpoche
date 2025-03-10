@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -26,11 +25,12 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				mrc: {
-					blue: '#1E88E5',
-					red: '#EA384C',
-					green: '#4CAF50',
+					blue: '#005BAA',
+					red: '#E30016',
+					green: '#009A44',
+					yellow: '#FCD116',
 					white: '#FFFFFF',
-					dark: '#333333',
+					dark: '#222222',
 				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
@@ -117,6 +117,10 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out',
 				'float': 'float 3s ease-in-out infinite'
+			},
+			backgroundImage: {
+				'gradient-mrc': 'linear-gradient(90deg, #005BAA 0%, #E30016 100%)',
+				'gradient-cameroon': 'linear-gradient(90deg, #009A44 0%, #FCD116 50%, #E30016 100%)'
 			}
 		}
 	},
