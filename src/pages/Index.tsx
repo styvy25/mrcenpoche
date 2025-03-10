@@ -155,7 +155,7 @@ const Index = () => {
             
             {/* Drapeau camerounais stylisé en arrière-plan */}
             <div className="absolute left-0 right-0 bottom-0 h-1.5 flex opacity-50 overflow-hidden">
-              <div className="w-1/3 bg-mrc-green"></div>
+              <div className="w-1/3 bg-mrc-green mx-0 my-0 py-[9px]"></div>
               <div className="w-1/3 bg-mrc-red"></div>
               <div className="w-1/3 bg-mrc-yellow"></div>
             </div>
