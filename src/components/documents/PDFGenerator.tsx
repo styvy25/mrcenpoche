@@ -6,7 +6,7 @@ import PDFPreview from "./PDFPreview";
 import ModuleSelector from "./ModuleSelector";
 import PDFContent from "./PDFContent";
 import PDFActions from "./PDFActions";
-import { MODULE_PDF_URLS, MODULE_NAMES, checkIsMobile, downloadPDF } from "./pdfUtils";
+import { MODULE_PDF_URLS, MODULE_NAMES, MODULE_DESCRIPTIONS, checkIsMobile, downloadPDF } from "./pdfUtils";
 
 const PDFGenerator = () => {
   const [selectedModule, setSelectedModule] = useState("");
@@ -81,6 +81,16 @@ const PDFGenerator = () => {
             selectedModule={selectedModule} 
             setSelectedModule={setSelectedModule} 
           />
+          
+          {selectedModule && (
+            <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20 mb-4">
+              <h3 className="text-sm font-medium text-mrc-blue mb-2">À propos de ce module</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                {MODULE_DESCRIPTIONS[selectedModule as keyof typeof MODULE_DESCRIPTIONS]}
+              </p>
+            </div>
+          )}
+          
           <PDFContent />
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row gap-3 w-full">
