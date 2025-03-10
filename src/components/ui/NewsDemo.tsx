@@ -1,5 +1,5 @@
 
-import { News, type NewsArticle } from "@/components/ui/News";
+import { News, type NewsArticle } from "@/components/ui/sidebar-news";
 
 const DEMO_ARTICLES: NewsArticle[] = [
   {
