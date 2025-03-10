@@ -36,3 +36,29 @@ export interface QuizResult {
   earnedBadge?: Badge;
   date: Date;
 }
+
+export interface Appointment {
+  id: string;
+  userId?: string;
+  title: string;
+  description: string;
+  type: "private" | "public";
+  date: Date;
+  duration: number; // in minutes
+  status: "pending" | "confirmed" | "completed" | "cancelled";
+  participantsCount?: number;
+  maxParticipants?: number;
+  location?: string;
+  isVirtual: boolean;
+  link?: string;
+}
+
+export interface AppointmentRequest {
+  name: string;
+  email: string;
+  phone?: string;
+  type: "private" | "public";
+  preferredDate: Date;
+  topic: string;
+  message?: string;
+}

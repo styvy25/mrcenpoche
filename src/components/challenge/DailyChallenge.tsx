@@ -3,9 +3,12 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Award, CheckCircle, Clock, RefreshCw } from "lucide-react";
+import { Calendar, Award, CheckCircle, Clock, RefreshCw, Calendar as CalendarIcon, Video } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import AppointmentScheduler from "./AppointmentScheduler";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Challenge {
   id: string;
@@ -68,12 +71,18 @@ const challenges: Challenge[] = [
   }
 ];
 
-const DailyChallenge = () => {
+interface DailyChallengeProps {
+  onComplete?: () => void;
+}
+
+const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
   const [dailyChallenge, setDailyChallenge] = useState<Challenge | null>(null);
   const [streakCount, setStreakCount] = useState<number>(0);
   const [totalPoints, setTotalPoints] = useState<number>(0);
   const [nextRefresh, setNextRefresh] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showScheduler, setShowScheduler] = useState<boolean>(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Load challenge from localStorage or generate a new one
@@ -154,7 +163,10 @@ const DailyChallenge = () => {
     localStorage.setItem('dailyChallenge', JSON.stringify(updatedChallenge));
     
     // Simulate starting the challenge (in a real app, navigate to the challenge)
-    alert(`Challenge "${dailyChallenge.title}" commencé!`);
+    toast({
+      title: "Défi commencé",
+      description: `Vous avez commencé le défi "${dailyChallenge.title}"`,
+    });
   };
 
   const completeChallenge = () => {
@@ -172,6 +184,13 @@ const DailyChallenge = () => {
     localStorage.setItem('dailyChallenge', JSON.stringify(completedChallenge));
     localStorage.setItem('challengeStreak', newStreak.toString());
     localStorage.setItem('challengePoints', newPoints.toString());
+    
+    toast({
+      title: "Défi complété !",
+      description: `Félicitations ! Vous avez gagné ${dailyChallenge.points} points.`,
+    });
+    
+    if (onComplete) onComplete();
   };
 
   const formatTimeRemaining = () => {
@@ -214,91 +233,123 @@ const DailyChallenge = () => {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-xl font-bold text-mrc-blue flex items-center gap-2">
-              <Calendar className="h-5 w-5" /> Défi Quotidien
-            </CardTitle>
-            <CardDescription>
-              Complétez ce défi pour gagner des points et maintenir votre série
-            </CardDescription>
-          </div>
-          <div className="flex flex-col items-end">
-            <Badge variant="outline" className="flex gap-1 mb-1">
-              <RefreshCw className="h-3 w-3" /> Nouveau dans {formatTimeRemaining()}
-            </Badge>
-            <div className="flex gap-2">
-              <Badge variant="secondary" className="flex gap-1">
-                <Award className="h-3 w-3" /> {totalPoints} pts
-              </Badge>
-              <Badge className="bg-mrc-blue flex gap-1">
-                <CheckCircle className="h-3 w-3" /> Série: {streakCount}j
-              </Badge>
+    <>
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-xl font-bold text-mrc-blue flex items-center gap-2">
+                <Calendar className="h-5 w-5" /> Défi Quotidien
+              </CardTitle>
+              <CardDescription>
+                Complétez ce défi pour gagner des points et maintenir votre série
+              </CardDescription>
             </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {dailyChallenge ? (
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-              <h3 className="text-lg font-semibold">{dailyChallenge.title}</h3>
+            <div className="flex flex-col items-end">
+              <Badge variant="outline" className="flex gap-1 mb-1">
+                <RefreshCw className="h-3 w-3" /> Nouveau dans {formatTimeRemaining()}
+              </Badge>
               <div className="flex gap-2">
-                <Badge className={getDifficultyColor(dailyChallenge.difficulty)}>
-                  {dailyChallenge.difficulty}
+                <Badge variant="secondary" className="flex gap-1">
+                  <Award className="h-3 w-3" /> {totalPoints} pts
                 </Badge>
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> {dailyChallenge.estimatedTime} min
+                <Badge className="bg-mrc-blue flex gap-1">
+                  <CheckCircle className="h-3 w-3" /> Série: {streakCount}j
                 </Badge>
               </div>
             </div>
-            
-            <p className="text-gray-600 dark:text-gray-300">{dailyChallenge.description}</p>
-            
-            <div className="flex items-center gap-4">
-              <div className="font-bold text-lg text-mrc-blue">+{dailyChallenge.points} pts</div>
-              <Separator orientation="vertical" className="h-6" />
-              <Badge variant="outline" className="capitalize">
-                {dailyChallenge.type}
-              </Badge>
-            </div>
-            
-            {dailyChallenge.progress !== undefined && (
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span>Progression</span>
-                  <span>{dailyChallenge.progress}%</span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {dailyChallenge ? (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <h3 className="text-lg font-semibold">{dailyChallenge.title}</h3>
+                <div className="flex gap-2">
+                  <Badge className={getDifficultyColor(dailyChallenge.difficulty)}>
+                    {dailyChallenge.difficulty}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> {dailyChallenge.estimatedTime} min
+                  </Badge>
                 </div>
-                <Progress value={dailyChallenge.progress} className="h-2" />
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="p-8 text-center">
-            <p className="text-gray-500">Aucun défi disponible aujourd'hui.</p>
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="flex justify-between pt-2">
-        {dailyChallenge && !dailyChallenge.completed ? (
-          dailyChallenge.progress && dailyChallenge.progress > 0 ? (
-            <Button onClick={completeChallenge} className="w-full bg-mrc-blue hover:bg-blue-700">
-              Terminer le défi
-            </Button>
+              
+              <p className="text-gray-600 dark:text-gray-300">{dailyChallenge.description}</p>
+              
+              <div className="flex items-center gap-4">
+                <div className="font-bold text-lg text-mrc-blue">+{dailyChallenge.points} pts</div>
+                <Separator orientation="vertical" className="h-6" />
+                <Badge variant="outline" className="capitalize">
+                  {dailyChallenge.type}
+                </Badge>
+              </div>
+              
+              {dailyChallenge.progress !== undefined && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span>Progression</span>
+                    <span>{dailyChallenge.progress}%</span>
+                  </div>
+                  <Progress value={dailyChallenge.progress} className="h-2" />
+                </div>
+              )}
+            </div>
           ) : (
-            <Button onClick={startChallenge} className="w-full bg-mrc-blue hover:bg-blue-700">
-              Commencer le défi
+            <div className="p-8 text-center">
+              <p className="text-gray-500">Aucun défi disponible aujourd'hui.</p>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex flex-col gap-3">
+          {dailyChallenge && !dailyChallenge.completed ? (
+            <>
+              {dailyChallenge.progress && dailyChallenge.progress > 0 ? (
+                <Button onClick={completeChallenge} className="w-full bg-mrc-blue hover:bg-blue-700">
+                  Terminer le défi
+                </Button>
+              ) : (
+                <Button onClick={startChallenge} className="w-full bg-mrc-blue hover:bg-blue-700">
+                  Commencer le défi
+                </Button>
+              )}
+            </>
+          ) : (
+            <Button disabled className="w-full">
+              Défi complété
             </Button>
-          )
-        ) : (
-          <Button disabled className="w-full">
-            Défi complété
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
+          )}
+          
+          <Dialog open={showScheduler} onOpenChange={setShowScheduler}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                <span>Réserver une formation avec Styvy-237</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[900px] p-0">
+              <AppointmentScheduler onClose={() => setShowScheduler(false)} />
+            </DialogContent>
+          </Dialog>
+          
+          <div className="w-full flex flex-col gap-2 mt-3 pt-3 border-t border-gray-100">
+            <p className="text-xs text-gray-500 text-center">Sessions publiques disponibles</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" className="text-xs h-14 flex flex-col items-center justify-center">
+                <Video className="h-4 w-4 mb-1" />
+                <span>Formation Mobilisation</span>
+                <span className="text-[10px] text-gray-500">Demain, 15h</span>
+              </Button>
+              <Button variant="outline" size="sm" className="text-xs h-14 flex flex-col items-center justify-center">
+                <Video className="h-4 w-4 mb-1" />
+                <span>Histoire du MRC</span>
+                <span className="text-[10px] text-gray-500">Jeudi, 18h</span>
+              </Button>
+            </div>
+          </div>
+        </CardFooter>
+      </Card>
+    </>
   );
 };
 
