@@ -8,7 +8,9 @@ import Index from "./pages/Index";
 import ModulesPage from "./pages/ModulesPage";
 import AssistantPage from "./pages/AssistantPage";
 import DocumentsPage from "./pages/DocumentsPage";
+import QuizPage from "./pages/QuizPage";
 import NotFound from "./pages/NotFound";
+import "./quiz.css";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,7 @@ const App = () => (
           <Route path="/modules" element={<ModulesPage />} />
           <Route path="/assistant" element={<AssistantPage />} />
           <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/quiz" element={<QuizPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

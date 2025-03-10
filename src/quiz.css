@@ -1,0 +1,21 @@
+
+/* Confetti Animation */
+@keyframes fall {
+  0% {
+    top: -10%;
+    transform: translateY(0) rotate(0);
+  }
+  100% {
+    top: 100%;
+    transform: translateY(0) rotate(360deg);
+  }
+}
+
+.confetti {
+  position: absolute;
+  animation: fall linear;
+}
+
+.confetti-container {
+  z-index: 10;
+}
