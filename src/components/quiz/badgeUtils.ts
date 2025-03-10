@@ -1,61 +1,52 @@
 
+import { Trophy, Medal, Award, BookCheck, Brain, Star } from "lucide-react";
 import { BadgeProps } from "./types";
-import { CheckCircle, Award, Medal, Image, BookOpen, MapPin } from "lucide-react";
-import React from "react";
+
+export const badges: BadgeProps[] = [
+  {
+    id: "perfect-score",
+    name: "Score parfait",
+    description: "Obtenir 100% à un quiz",
+    icon: <Trophy className="h-8 w-8 text-yellow-500" />,
+    condition: (score, total) => score === total,
+  },
+  {
+    id: "advanced",
+    name: "Niveau avancé",
+    description: "Obtenir plus de 90% à un quiz difficile",
+    icon: <Medal className="h-8 w-8 text-blue-500" />,
+    condition: (score, total) => (score / total) > 0.9,
+  },
+  {
+    id: "strong-start",
+    name: "Bon début",
+    description: "Obtenir plus de 80% à votre premier quiz",
+    icon: <Award className="h-8 w-8 text-green-500" />,
+    condition: (score, total) => (score / total) > 0.8,
+  },
+  {
+    id: "fast-learner",
+    name: "Apprentissage rapide",
+    description: "Terminer un quiz en moins de 2 minutes avec un bon score",
+    icon: <BookCheck className="h-8 w-8 text-purple-500" />,
+    condition: (score, total) => (score / total) > 0.7,
+  },
+  {
+    id: "knowledge-master",
+    name: "Maître du savoir",
+    description: "Obtenir plus de 85% sur 5 quiz différents",
+    icon: <Brain className="h-8 w-8 text-indigo-500" />,
+    condition: (score, total) => (score / total) > 0.85,
+  },
+  {
+    id: "perfect-memory",
+    name: "Mémoire parfaite",
+    description: "Répondre correctement à toutes les questions de mémoire",
+    icon: <Star className="h-8 w-8 text-amber-500" />,
+    condition: (score, total) => score >= total - 1,
+  },
+];
 
 export const calculateEarnedBadges = (score: number, totalQuestions: number): BadgeProps[] => {
-  const percentage = (score / totalQuestions) * 100;
-  const badges: BadgeProps[] = [];
-
-  // Basic badges based on score percentage
-  if (percentage >= 50) {
-    badges.push({
-      name: "Apprenti Militant",
-      description: "Connaissances de base acquises",
-      icon: React.createElement(CheckCircle, { className: "h-6 w-6 text-green-500" }),
-    });
-  }
-
-  if (percentage >= 75) {
-    badges.push({
-      name: "Militant Engagé",
-      description: "Bonne compréhension des enjeux",
-      icon: React.createElement(Award, { className: "h-6 w-6 text-blue-500" }),
-    });
-  }
-
-  if (percentage === 100) {
-    badges.push({
-      name: "Expert MRC",
-      description: "Maîtrise parfaite du sujet",
-      icon: React.createElement(Medal, { className: "h-6 w-6 text-mrc-red" }),
-    });
-  }
-
-  // Add specific badges based on score and total questions
-  if (score >= 5 && totalQuestions >= 10) {
-    badges.push({
-      name: "Explorateur Culturel",
-      description: "Découverte approfondie de la culture camerounaise",
-      icon: React.createElement(Image, { className: "h-6 w-6 text-purple-500" }),
-    });
-  }
-
-  if (score >= 8 && totalQuestions >= 15) {
-    badges.push({
-      name: "Savant Géographe",
-      description: "Excellente connaissance du territoire camerounais",
-      icon: React.createElement(MapPin, { className: "h-6 w-6 text-yellow-500" }),
-    });
-  }
-
-  if (score >= 15 && totalQuestions >= 20) {
-    badges.push({
-      name: "Érudit National",
-      description: "Maîtrise exceptionnelle de l'histoire et des traditions",
-      icon: React.createElement(BookOpen, { className: "h-6 w-6 text-mrc-green" }),
-    });
-  }
-
-  return badges;
+  return badges.filter(badge => badge.condition(score, totalQuestions));
 };

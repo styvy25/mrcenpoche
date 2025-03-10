@@ -3,7 +3,7 @@ import React from "react";
 import QuizResult from "./QuizResult";
 import QuizQuestionComponent from "./QuizQuestion";
 import QuizBadgesDisplay from "./QuizBadgesDisplay";
-import { BadgeProps, Category, QuizQuestion } from "./types";
+import { BadgeProps, QuizQuestion } from "./types";
 
 interface ResultsScreenProps {
   score: number;
@@ -36,7 +36,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           correctAnswers: score,
           totalQuestions: totalQuestions,
           unlockedBadges: [],
-          date: new Date().toISOString()
+          date: new Date()
         }}
       />
       
