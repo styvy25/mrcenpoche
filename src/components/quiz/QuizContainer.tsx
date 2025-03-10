@@ -1,3 +1,4 @@
+
 import React from "react";
 import { QuizQuestion } from "./types";
 import QuizQuestionComponent from "./QuizQuestion";
@@ -218,7 +219,8 @@ class QuizContainer extends React.Component<QuizContainerProps, QuizContainerSta
             score: (quizResults.score / currentCategory.questions.length) * 100,
             correctAnswers: quizResults.score,
             totalQuestions: currentCategory.questions.length,
-            unlockedBadges: []
+            unlockedBadges: [],
+            date: new Date().toISOString() // Ajout de la date manquante
           }}
         >
           Félicitations pour avoir terminé ce quiz !

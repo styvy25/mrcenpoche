@@ -6,6 +6,7 @@ import BadgesDisplay from "@/components/quiz/BadgesDisplay";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Book, Medal, Trophy } from "lucide-react";
+import { quizData } from "@/components/quiz/quizData";
 
 const QuizPage = () => {
   const [activeTab, setActiveTab] = useState("quiz");
@@ -41,7 +42,7 @@ const QuizPage = () => {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="quiz" className="p-1">
-            <QuizContainer />
+            <QuizContainer categories={quizData.categories} />
           </TabsContent>
           <TabsContent value="badges" className="p-1">
             <BadgesDisplay />

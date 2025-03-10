@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, BookOpen, Check, Download, PlayCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, Download, PlayCircle, Lock, CheckCircle } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import PDFPreview from "../documents/PDFPreview";
 
 interface Lesson {
   id: number;
@@ -13,6 +15,8 @@ interface Lesson {
   duration: string;
   isCompleted: boolean;
   videoUrl?: string;
+  content?: string;
+  isLocked?: boolean;
 }
 
 interface Module {
@@ -27,6 +31,7 @@ interface Module {
   overview: string;
   lessons: Lesson[];
   quizLink?: string;
+  pdfUrl?: string;
 }
 
 interface ModuleDetailProps {
@@ -37,9 +42,20 @@ interface ModuleDetailProps {
 const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleLessonClick = (lesson: Lesson) => {
+    if (lesson.isLocked) {
+      toast({
+        title: "Contenu verrouillé",
+        description: "Veuillez compléter les leçons précédentes pour débloquer ce contenu.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setActiveLesson(lesson);
     setActiveTab("content");
   };
@@ -47,6 +63,28 @@ const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
   const handleTakeQuiz = () => {
     if (module.quizLink) {
       navigate(module.quizLink);
+    }
+  };
+  
+  const handleMarkLessonComplete = (lessonId: number) => {
+    toast({
+      title: "Leçon terminée",
+      description: "Votre progression a été enregistrée.",
+    });
+    // Dans une vraie application, nous mettrions à jour l'état ou enverrions une requête à l'API
+  };
+  
+  const handleOpenPdf = () => {
+    if (module.isPdfAvailable) {
+      if (module.pdfUrl) {
+        setShowPdfPreview(true);
+      } else {
+        toast({
+          title: "PDF non disponible",
+          description: "Le PDF pour ce module n'est pas encore disponible.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -116,17 +154,21 @@ const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
                   <div 
                     key={lesson.id}
                     onClick={() => handleLessonClick(lesson)}
-                    className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer flex justify-between items-center"
+                    className={`p-3 border rounded-lg hover:bg-gray-50 cursor-pointer flex justify-between items-center ${lesson.isLocked ? 'opacity-70' : ''}`}
                   >
                     <div className="flex items-center">
-                      <PlayCircle className="h-4 w-4 mr-2 text-mrc-blue" />
+                      {lesson.isLocked ? (
+                        <Lock className="h-4 w-4 mr-2 text-gray-400" />
+                      ) : (
+                        <PlayCircle className="h-4 w-4 mr-2 text-mrc-blue" />
+                      )}
                       <span>{lesson.title}</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <span className="text-xs text-gray-500">{lesson.duration}</span>
-                      {lesson.isCompleted && (
-                        <Check className="h-4 w-4 text-green-500" />
-                      )}
+                      {lesson.isCompleted ? (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      ) : null}
                     </div>
                   </div>
                 ))}
@@ -155,8 +197,27 @@ const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
                     </div>
                   )}
                   <div className="prose prose-sm max-w-none">
-                    <p>Contenu de la leçon {activeLesson.title}...</p>
+                    {activeLesson.content ? (
+                      <p>{activeLesson.content}</p>
+                    ) : (
+                      <p>Contenu de la leçon {activeLesson.title}...</p>
+                    )}
                   </div>
+                  
+                  <Button
+                    onClick={() => handleMarkLessonComplete(activeLesson.id)}
+                    disabled={activeLesson.isCompleted}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {activeLesson.isCompleted ? (
+                      <>
+                        <Check className="h-4 w-4 mr-1" />
+                        Terminé
+                      </>
+                    ) : (
+                      "Marquer comme terminé"
+                    )}
+                  </Button>
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -168,18 +229,42 @@ const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
           </Tabs>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              toast({
+                title: module.isCompleted ? "Module déjà terminé" : "Module marqué comme terminé",
+                description: module.isCompleted ? "Vous avez déjà terminé ce module." : "Votre progression a été enregistrée.",
+              });
+            }}
+            disabled={module.isCompleted}
+          >
             <BookOpen className="h-4 w-4 mr-1" />
-            Marquer comme terminé
+            {module.isCompleted ? "Terminé" : "Marquer comme terminé"}
           </Button>
+          
           {module.isPdfAvailable && (
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleOpenPdf}
+            >
               <Download className="h-4 w-4 mr-1" />
               Support PDF
             </Button>
           )}
         </CardFooter>
       </Card>
+
+      {/* Aperçu PDF */}
+      {showPdfPreview && module.pdfUrl && (
+        <PDFPreview 
+          pdfUrl={module.pdfUrl} 
+          onClose={() => setShowPdfPreview(false)} 
+          moduleName={module.title} 
+        />
+      )}
     </div>
   );
 };

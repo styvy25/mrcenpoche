@@ -4,7 +4,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 // Configure PDF.js worker
@@ -19,10 +19,15 @@ interface PDFPreviewProps {
 const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
+  const [scale, setScale] = useState(1.0);
   const { toast } = useToast();
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
+    toast({
+      title: "PDF chargé avec succès",
+      description: `Document de ${numPages} pages chargé et prêt à être consulté.`,
+    });
   }
 
   const handlePrevPage = () => {
@@ -33,6 +38,14 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
     if (numPages) {
       setPageNumber(prevPageNumber => Math.min(prevPageNumber + 1, numPages));
     }
+  };
+
+  const handleZoomIn = () => {
+    setScale(prevScale => Math.min(prevScale + 0.2, 2.5));
+  };
+
+  const handleZoomOut = () => {
+    setScale(prevScale => Math.max(prevScale - 0.2, 0.5));
   };
 
   const handleDownload = () => {
@@ -69,15 +82,15 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] flex flex-col">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Aperçu du PDF - {moduleName}</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
+        <div className="p-4 border-b flex justify-between items-center bg-mrc-blue/10">
+          <h3 className="text-lg font-semibold text-mrc-blue">Aperçu du PDF - {moduleName}</h3>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
         
-        <div className="flex-1 overflow-auto p-4 flex items-center justify-center">
+        <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-100">
           <Document
             file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -88,27 +101,56 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
             }
             error={
               <div className="text-center p-4 text-red-500">
-                Le chargement du PDF a échoué. Veuillez réessayer.
+                <p className="text-lg font-bold mb-2">Erreur de chargement</p>
+                <p className="mb-4">Le chargement du PDF a échoué. Veuillez réessayer.</p>
+                <Button className="bg-mrc-blue hover:bg-blue-700" onClick={() => window.location.reload()}>
+                  Recharger la page
+                </Button>
               </div>
             }
           >
             <Page 
               pageNumber={pageNumber} 
-              scale={1.0}
+              scale={scale}
               renderTextLayer={true}
               renderAnnotationLayer={true}
-              className="shadow-lg"
+              className="shadow-lg bg-white"
             />
           </Document>
         </div>
         
-        <div className="p-4 border-t flex justify-between items-center">
-          <div className="flex items-center">
+        <div className="p-4 border-t flex flex-wrap justify-between items-center gap-2 bg-mrc-blue/10">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={handleZoomOut}
+              disabled={scale <= 0.5}
+              className="bg-white"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="mx-2 text-sm">
+              {Math.round(scale * 100)}%
+            </span>
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={handleZoomIn}
+              disabled={scale >= 2.5}
+              className="bg-white"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
               size="icon" 
               onClick={handlePrevPage} 
               disabled={pageNumber <= 1}
+              className="bg-white"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -120,6 +162,7 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
               size="icon" 
               onClick={handleNextPage} 
               disabled={!numPages || pageNumber >= numPages}
+              className="bg-white"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
