@@ -1,10 +1,10 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Send, Download, Bot, User } from "lucide-react";
+import { Send, Download, Bot, User, Key } from "lucide-react";
+import { APIKeyForm } from "../settings/APIKeyForm";
 
 interface Message {
   role: "assistant" | "user";
@@ -35,8 +35,19 @@ const AIChat = () => {
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
     if (!input.trim()) return;
+    
+    const apiKeys = localStorage.getItem("api_keys");
+    if (!apiKeys) {
+      toast({
+        title: "Configuration requise",
+        description: "Veuillez d'abord configurer vos clés API.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { perplexity } = JSON.parse(apiKeys);
     
     const userMessage: Message = {
       role: "user",
@@ -47,40 +58,52 @@ const AIChat = () => {
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
-    
-    // Simulate AI response after a delay
-    setTimeout(() => {
-      let response: Message;
-      
-      if (input.toLowerCase().includes("pdf") || input.toLowerCase().includes("document")) {
-        response = {
-          role: "assistant",
-          content: "Je peux vous aider à générer un PDF sur les modules de formation que vous avez suivis. Cliquez sur le bouton de téléchargement pour obtenir votre support de formation personnalisé.",
-          timestamp: new Date()
-        };
-      } else if (input.toLowerCase().includes("module") || input.toLowerCase().includes("formation")) {
-        response = {
-          role: "assistant",
-          content: "Le MRC propose plusieurs modules de formation, notamment sur l'historique du parti, les stratégies de mobilisation, les enjeux politiques au Cameroun, et les techniques de communication politique. Quel sujet vous intéresse particulièrement?",
-          timestamp: new Date()
-        };
-      } else if (input.toLowerCase().includes("mrc") || input.toLowerCase().includes("parti")) {
-        response = {
-          role: "assistant",
-          content: "Le Mouvement pour la Renaissance du Cameroun (MRC) est un parti politique camerounais fondé en 2012. Il prône la démocratie, la bonne gouvernance et la modernisation du Cameroun à travers des réformes institutionnelles profondes.",
-          timestamp: new Date()
-        };
-      } else {
-        response = {
-          role: "assistant",
-          content: "Merci pour votre question. En tant qu'assistant de formation pour le MRC, je peux vous aider sur les thèmes relatifs à l'histoire du parti, ses valeurs, ses propositions politiques, et les techniques de mobilisation. N'hésitez pas à me poser des questions spécifiques sur ces sujets.",
-          timestamp: new Date()
-        };
+
+    try {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${perplexity}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: 'Tu es Styvy237, un assistant spécialisé dans la formation politique du MRC (Mouvement pour la Renaissance du Cameroun). Tu dois être précis, concis et professionnel dans tes réponses.'
+            },
+            {
+              role: 'user',
+              content: input
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 1000,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur API');
       }
-      
-      setMessages(prev => [...prev, response]);
+
+      const data = await response.json();
+      const aiMessage: Message = {
+        role: "assistant",
+        content: data.choices[0].message.content,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la communication avec l'assistant.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleGeneratePDF = () => {
@@ -100,8 +123,14 @@ const AIChat = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gray-50 dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden">
-      <div className="bg-mrc-blue text-white p-4">
+    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg shadow-lg overflow-hidden">
+      {!localStorage.getItem("api_keys") && (
+        <div className="p-4">
+          <APIKeyForm />
+        </div>
+      )}
+      
+      <div className="bg-mrc-blue text-white p-4 backdrop-blur-lg border-b border-white/10">
         <h2 className="text-xl font-bold flex items-center">
           <Bot className="mr-2" /> Assistant IA Styvy237
         </h2>
