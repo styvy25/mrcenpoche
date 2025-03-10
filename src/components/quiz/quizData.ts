@@ -1,7 +1,7 @@
 
 import { QuizQuestion } from "./types";
 
-const quizQuestions: QuizQuestion[] = [
+export const quizQuestions: QuizQuestion[] = [
   {
     id: 1,
     question: "Quelle est la capitale politique du Cameroun ?",

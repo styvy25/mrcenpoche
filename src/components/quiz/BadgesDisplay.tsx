@@ -1,96 +1,34 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Award, Lock, Medal, Trophy } from "lucide-react";
 import { Badge as BadgeType } from "./types";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-// Définition des badges disponibles
-const availableBadges: BadgeType[] = [
-  {
-    id: "culture-bronze",
-    name: "Expert en Culture Camerounaise",
-    description: "Obtenu en réussissant un quiz avec un score d'au moins 70%",
-    icon: "award",
-    category: "culture",
-    level: "bronze",
-    unlocked: false,
-    colorClass: "bg-amber-700"
-  },
-  {
-    id: "culture-argent",
-    name: "Maître des Traditions",
-    description: "Obtenu en réussissant un quiz avec un score d'au moins 85%",
-    icon: "medal",
-    category: "culture",
-    level: "argent",
-    unlocked: false,
-    colorClass: "bg-gray-400"
-  },
-  {
-    id: "culture-or",
-    name: "Sage du Cameroun",
-    description: "Obtenu en réussissant un quiz avec un score parfait de 100%",
-    icon: "trophy",
-    category: "culture",
-    level: "or",
-    unlocked: false,
-    colorClass: "bg-yellow-500"
-  },
-  {
-    id: "histoire-bronze",
-    name: "Apprenti Historien",
-    description: "Connaissez l'histoire fondamentale du Cameroun",
-    icon: "award",
-    category: "histoire",
-    level: "bronze",
-    unlocked: false,
-    colorClass: "bg-amber-700"
-  },
-  {
-    id: "traditions-bronze",
-    name: "Gardien des Traditions",
-    description: "Maîtrisez les traditions camerounaises de base",
-    icon: "award", 
-    category: "traditions",
-    level: "bronze",
-    unlocked: false,
-    colorClass: "bg-amber-700"
-  },
-  {
-    id: "politique-bronze",
-    name: "Citoyen Engagé",
-    description: "Comprenez les bases de la politique camerounaise",
-    icon: "award",
-    category: "politique",
-    level: "bronze",
-    unlocked: false,
-    colorClass: "bg-amber-700"
-  }
-];
+interface BadgesDisplayProps {
+  badges?: BadgeType[];
+}
 
-const BadgesDisplay = () => {
-  const [badges, setBadges] = useState<BadgeType[]>([]);
+const BadgesDisplay = ({ badges: propBadges }: BadgesDisplayProps = {}) => {
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [badges, setBadges] = useState<BadgeType[]>([]);
 
-  useEffect(() => {
-    // Load unlocked badges from localStorage
-    try {
-      const savedBadges = JSON.parse(localStorage.getItem("unlockedBadges") || "[]");
-      
-      // Merge saved unlocked badges with all available badges
-      const mergedBadges = availableBadges.map(badge => {
-        const found = savedBadges.find((saved: BadgeType) => saved.id === badge.id);
-        return found ? { ...badge, ...found } : badge;
-      });
-      
-      setBadges(mergedBadges);
-    } catch (error) {
-      console.error("Failed to load badges:", error);
-      setBadges(availableBadges);
+  // Use prop badges if provided, otherwise use badges from localStorage
+  useState(() => {
+    if (propBadges && propBadges.length > 0) {
+      setBadges(propBadges);
+    } else {
+      try {
+        const savedBadges = localStorage.getItem("quiz_badges");
+        if (savedBadges) {
+          setBadges(JSON.parse(savedBadges));
+        }
+      } catch (error) {
+        console.error("Failed to load badges:", error);
+      }
     }
-  }, []);
+  });
 
   const filteredBadges = activeCategory === "all" 
     ? badges 
@@ -98,7 +36,7 @@ const BadgesDisplay = () => {
 
   const unlockedCount = badges.filter(badge => badge.unlocked).length;
   const totalCount = badges.length;
-  const progressPercentage = (unlockedCount / totalCount) * 100;
+  const progressPercentage = totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0;
 
   const renderBadgeIcon = (badge: BadgeType) => {
     switch (badge.level) {
@@ -157,9 +95,9 @@ const BadgesDisplay = () => {
                       : "border-gray-200 opacity-75"
                   )}
                 >
-                  <CardHeader className="pb-2">
+                  <div className="pb-2 p-4">
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-base">{badge.name}</CardTitle>
+                      <h3 className="text-base font-semibold">{badge.name}</h3>
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         badge.level === 'or' 
                           ? 'bg-yellow-100 text-yellow-800' 
@@ -174,9 +112,9 @@ const BadgesDisplay = () => {
                             : 'Bronze'}
                       </span>
                     </div>
-                    <CardDescription>{badge.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
+                    <p className="text-sm text-gray-500">{badge.description}</p>
+                  </div>
+                  <div className="pt-0 p-4 border-t border-gray-100">
                     <div className="flex items-center">
                       <div className={cn(
                         "w-12 h-12 rounded-full flex items-center justify-center mr-3 text-white",
@@ -201,7 +139,7 @@ const BadgesDisplay = () => {
                         )}
                       </div>
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
               ))
             ) : (

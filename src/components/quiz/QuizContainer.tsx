@@ -1,13 +1,14 @@
+
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import QuizQuestion from "./QuizQuestion";
-import QuizResultDisplay from "./QuizResult";
-import { quizQuestions } from "./quizData";
+import QuizResult from "./QuizResult";
+import { getQuizQuestions } from "./quizData";
 import { Badge as BadgeType, QuizQuestion as QuizQuestionType, QuizResult as QuizResultType } from "./types";
 import BadgesDisplay from "./BadgesDisplay";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 // Confetti animation
 const createConfetti = () => {
@@ -27,7 +28,7 @@ const createConfetti = () => {
     confetti.style.height = Math.random() * 10 + 5 + "px";
     confetti.style.transformOrigin = "center";
     confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-    confetti.style.opacity = Math.random() + 0.5;
+    confetti.style.opacity = (Math.random() + 0.5).toString();
     confetti.style.animationDuration = Math.random() * 3 + 2 + "s";
     
     confettiContainer.appendChild(confetti);
@@ -50,7 +51,26 @@ const QuizContainer = () => {
   const [quizStarted, setQuizStarted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filteredQuestions, setFilteredQuestions] = useState<QuizQuestionType[]>([]);
-  const { toast } = useToast();
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestionType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load quiz questions
+  useEffect(() => {
+    const loadQuestions = async () => {
+      setIsLoading(true);
+      try {
+        const questions = await getQuizQuestions();
+        setQuizQuestions(questions);
+      } catch (err) {
+        console.error("Failed to load quiz questions:", err);
+        toast.error("Impossible de charger les questions du quiz");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadQuestions();
+  }, []);
 
   // Load badges from localStorage on component mount
   useEffect(() => {
@@ -241,7 +261,7 @@ const QuizContainer = () => {
     } else {
       setFilteredQuestions([]);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, quizQuestions]);
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
@@ -357,6 +377,14 @@ const QuizContainer = () => {
     ? Math.round(((currentQuestionIndex) / filteredQuestions.length) * 100)
     : 0;
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mrc-blue"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <div className="confetti-container fixed inset-0 pointer-events-none"></div>
@@ -372,7 +400,7 @@ const QuizContainer = () => {
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {categories.map(category => (
+                {categories.map((category) => (
                   <button
                     key={category}
                     onClick={() => handleCategorySelect(category)}
@@ -428,9 +456,9 @@ const QuizContainer = () => {
           )}
         </div>
       ) : showResult && result ? (
-        <QuizResultDisplay
+        <QuizResult
           result={result}
-          onReset={resetQuiz}
+          onRestart={resetQuiz}
         />
       ) : (
         <div className="space-y-6">
