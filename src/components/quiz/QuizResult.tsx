@@ -1,10 +1,10 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QuizResult as QuizResultType } from "./types";
 import { Award, RotateCcw, Share2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 interface QuizResultProps {

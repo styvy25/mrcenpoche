@@ -1,6 +1,6 @@
 
-import React from "react";
-import { Category } from "./types";
+import React, { useState, useEffect } from "react";
+import { Category, QuizQuestion } from "./types";
 import QuestionScreen from "./QuestionScreen";
 import ResultsScreen from "./ResultsScreen";
 import { calculateEarnedBadges } from "./badgeUtils";
@@ -9,86 +9,68 @@ interface QuizContainerProps {
   categories: Category[];
 }
 
-interface QuizContainerState {
-  currentCategoryIndex: number;
-  currentQuestionIndex: number;
-  selectedAnswers: (number | undefined)[];
-  quizResults: { score: number } | null;
-  currentCategory: Category | undefined;
-}
+const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
+  // Find the first category with questions
+  const initialCategory = categories.find(cat => 
+    cat.questions && cat.questions.length > 0
+  ) || categories[0];
+  
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(categories.indexOf(initialCategory));
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<(number | undefined)[]>([]);
+  const [quizResults, setQuizResults] = useState<{ score: number } | null>(null);
+  const [currentCategory, setCurrentCategory] = useState<Category | undefined>(initialCategory);
 
-class QuizContainer extends React.Component<QuizContainerProps, QuizContainerState> {
-  constructor(props: QuizContainerProps) {
-    super(props);
-    
-    // Find the first category with questions
-    const initialCategory = props.categories.find(cat => 
-      cat.questions && cat.questions.length > 0
-    ) || props.categories[0];
-    
-    this.state = {
-      currentCategoryIndex: props.categories.indexOf(initialCategory),
-      currentQuestionIndex: 0,
-      selectedAnswers: [],
-      quizResults: null,
-      currentCategory: initialCategory,
-    };
-  }
-
-  handleAnswer = (answerIndex: number) => {
-    const { currentQuestionIndex, currentCategoryIndex } = this.state;
-    const currentCategory = this.props.categories[currentCategoryIndex];
-
+  // Validate that we have a valid category
+  useEffect(() => {
     if (!currentCategory) {
+      setCurrentCategory(initialCategory);
+    }
+  }, [currentCategory, initialCategory]);
+
+  const handleAnswer = (answerIndex: number) => {
+    const category = categories[currentCategoryIndex];
+
+    if (!category) {
       console.error("No current category found");
       return;
     }
 
-    const currentQuestion = currentCategory.questions[currentQuestionIndex];
+    const question = category.questions[currentQuestionIndex];
 
-    if (!currentQuestion) {
+    if (!question) {
       console.error("No current question found");
       return;
     }
 
-    this.setState(
-      (prevState) => {
-        const updatedAnswers = [...prevState.selectedAnswers];
-        updatedAnswers[prevState.currentQuestionIndex] = answerIndex;
+    // Update the selected answers
+    const updatedAnswers = [...selectedAnswers];
+    updatedAnswers[currentQuestionIndex] = answerIndex;
+    setSelectedAnswers(updatedAnswers);
 
-        return {
-          selectedAnswers: updatedAnswers,
-        };
-      },
-      () => {
-        const isLastQuestion =
-          currentQuestionIndex === currentCategory.questions.length - 1;
+    // Check if this is the last question
+    const isLastQuestion = currentQuestionIndex === category.questions.length - 1;
 
-        if (isLastQuestion) {
-          this.calculateResults();
-        } else {
-          this.nextQuestion();
-        }
-      }
-    );
+    if (isLastQuestion) {
+      calculateResults();
+    } else {
+      nextQuestion();
+    }
   };
 
-  nextQuestion = () => {
-    this.setState((prevState) => ({
-      currentQuestionIndex: prevState.currentQuestionIndex + 1,
-    }));
+  const nextQuestion = () => {
+    setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
 
-  calculateResults = () => {
-    const { selectedAnswers, currentCategoryIndex } = this.state;
-    const currentCategory = this.props.categories[currentCategoryIndex];
+  const calculateResults = () => {
+    const category = categories[currentCategoryIndex];
 
-    if (!currentCategory) {
+    if (!category) {
       console.error("No current category found");
       return;
     }
 
-    const questions = currentCategory.questions;
+    const questions = category.questions;
     let score = 0;
 
     questions.forEach((question, index) => {
@@ -97,68 +79,60 @@ class QuizContainer extends React.Component<QuizContainerProps, QuizContainerSta
       }
     });
 
-    this.setState({
-      quizResults: { score: score },
-    });
+    setQuizResults({ score: score });
   };
 
-  restartQuiz = () => {
-    this.setState({
-      currentQuestionIndex: 0,
-      selectedAnswers: [],
-      quizResults: null,
-    });
+  const restartQuiz = () => {
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers([]);
+    setQuizResults(null);
   };
 
-  render() {
-    const { quizResults, currentQuestionIndex, selectedAnswers, currentCategoryIndex } = this.state;
-    const currentCategory = this.props.categories[currentCategoryIndex];
-
-    if (!currentCategory || !currentCategory.questions || currentCategory.questions.length === 0) {
-      return (
-        <div className="p-8 text-center">
-          <h2 className="text-xl font-semibold text-mrc-blue mb-4">Aucune question disponible</h2>
-          <p className="text-gray-600">Veuillez sélectionner une autre catégorie ou réessayer plus tard.</p>
-        </div>
-      );
-    }
-
-    const currentQuestion = currentCategory.questions[currentQuestionIndex];
-    const isLastQuestion = currentQuestionIndex === currentCategory.questions.length - 1;
-
+  // If no category with questions is found
+  if (!currentCategory || !currentCategory.questions || currentCategory.questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
-        <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-          <div className="absolute inset-0 bg-gradient-to-r from-mrc-green to-mrc-blue shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
-          <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
-            <h1 className="text-2xl font-bold text-gray-900 text-center">Quiz de Formation MRC</h1>
-            <div className="mt-8">
-              {quizResults ? (
-                <ResultsScreen
-                  score={quizResults.score}
-                  totalQuestions={currentCategory.questions.length}
-                  categoryName={currentCategory.label || currentCategory.name || ""}
-                  selectedAnswers={selectedAnswers}
-                  questions={currentCategory.questions}
-                  onRestart={this.restartQuiz}
-                  earnedBadges={calculateEarnedBadges(quizResults.score, currentCategory.questions.length)}
-                />
-              ) : (
-                <QuestionScreen
-                  currentQuestion={currentQuestion}
-                  onAnswer={this.handleAnswer}
-                  selectedAnswer={selectedAnswers[currentQuestionIndex]}
-                  isLastQuestion={isLastQuestion}
-                  onNextQuestion={this.nextQuestion}
-                  onCalculateResults={this.calculateResults}
-                />
-              )}
-            </div>
-          </div>
-        </div>
+      <div className="p-8 text-center">
+        <h2 className="text-xl font-semibold text-mrc-blue mb-4">Aucune question disponible</h2>
+        <p className="text-gray-600">Veuillez sélectionner une autre catégorie ou réessayer plus tard.</p>
       </div>
     );
   }
-}
+
+  const currentQuestion = currentCategory.questions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === currentCategory.questions.length - 1;
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
+      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-r from-mrc-green to-mrc-blue shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
+        <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
+          <h1 className="text-2xl font-bold text-gray-900 text-center">Quiz de Formation MRC</h1>
+          <div className="mt-8">
+            {quizResults ? (
+              <ResultsScreen
+                score={quizResults.score}
+                totalQuestions={currentCategory.questions.length}
+                categoryName={currentCategory.label || currentCategory.name || ""}
+                selectedAnswers={selectedAnswers}
+                questions={currentCategory.questions}
+                onRestart={restartQuiz}
+                earnedBadges={calculateEarnedBadges(quizResults.score, currentCategory.questions.length)}
+              />
+            ) : (
+              <QuestionScreen
+                currentQuestion={currentQuestion}
+                onAnswer={handleAnswer}
+                selectedAnswer={selectedAnswers[currentQuestionIndex]}
+                isLastQuestion={isLastQuestion}
+                onNextQuestion={nextQuestion}
+                onCalculateResults={calculateResults}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default QuizContainer;

@@ -1,6 +1,6 @@
 
 import { BadgeProps } from "./types";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Award, Medal } from "lucide-react";
 import React from "react";
 
 export const calculateEarnedBadges = (score: number, totalQuestions: number): BadgeProps[] => {

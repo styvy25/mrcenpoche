@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Award, Lock, Medal, Trophy } from "lucide-react";
 import { Badge as BadgeType } from "./types";
@@ -14,8 +14,8 @@ const BadgesDisplay = ({ badges: propBadges }: BadgesDisplayProps = {}) => {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [badges, setBadges] = useState<BadgeType[]>([]);
 
-  // Use prop badges if provided, otherwise use badges from localStorage
-  useState(() => {
+  // Load badges from props or localStorage on component mount
+  useEffect(() => {
     if (propBadges && propBadges.length > 0) {
       setBadges(propBadges);
     } else {
@@ -28,7 +28,7 @@ const BadgesDisplay = ({ badges: propBadges }: BadgesDisplayProps = {}) => {
         console.error("Failed to load badges:", error);
       }
     }
-  });
+  }, [propBadges]);
 
   const filteredBadges = activeCategory === "all" 
     ? badges 
