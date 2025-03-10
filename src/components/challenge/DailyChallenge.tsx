@@ -1,216 +1,300 @@
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import { Calendar, Check, Lightbulb, Timer } from "lucide-react";
-import { getPerplexityResponse } from "@/components/assistant/services/perplexityService";
 import { Badge } from "@/components/ui/badge";
+import { Calendar, Award, CheckCircle, Clock, RefreshCw } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 
-interface DailyChallengeProps {
-  onComplete: () => void;
+interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  type: "quiz" | "reading" | "video" | "practice";
+  difficulty: "facile" | "moyen" | "difficile";
+  estimatedTime: number; // in minutes
+  completed?: boolean;
+  progress?: number;
 }
 
-// Tableau de défis quotidiens
-const challengePrompts = [
-  "Expliquez comment vous présenteriez le programme économique du MRC à un groupe d'entrepreneurs locaux.",
-  "Proposez une stratégie pour mobiliser les jeunes de votre quartier autour des idées du MRC.",
-  "Comment expliqueriez-vous l'importance de la participation électorale à un citoyen désabusé par la politique ?",
-  "Décrivez trois actions concrètes que vous pourriez mettre en place pour promouvoir la transparence dans votre communauté.",
-  "Comment répondriez-vous à quelqu'un qui affirme que tous les partis politiques sont identiques ?",
-  "Proposez une stratégie de communication pour expliquer les réformes électorales défendues par le MRC.",
-  "Comment pourriez-vous organiser un débat constructif entre partisans de différents partis politiques ?",
+// Array of possible daily challenges
+const challenges: Challenge[] = [
+  {
+    id: "challenge_1",
+    title: "Quiz sur l'Histoire du MRC",
+    description: "Complétez un quiz de 5 questions sur l'histoire et les valeurs fondamentales du MRC.",
+    points: 20,
+    type: "quiz",
+    difficulty: "facile",
+    estimatedTime: 5
+  },
+  {
+    id: "challenge_2",
+    title: "Techniques de Communication",
+    description: "Étudiez les principes de base de la communication politique efficace.",
+    points: 15,
+    type: "reading",
+    difficulty: "moyen",
+    estimatedTime: 10
+  },
+  {
+    id: "challenge_3",
+    title: "Mobilisation Communautaire",
+    description: "Apprenez les méthodes de mobilisation citoyenne à travers une vidéo explicative.",
+    points: 25,
+    type: "video",
+    difficulty: "moyen",
+    estimatedTime: 8
+  },
+  {
+    id: "challenge_4",
+    title: "Analyse des Enjeux Politiques",
+    description: "Analysez un enjeu politique majeur au Cameroun et proposez des solutions.",
+    points: 30,
+    type: "practice",
+    difficulty: "difficile",
+    estimatedTime: 15
+  },
+  {
+    id: "challenge_5",
+    title: "Organisation de Campagne",
+    description: "Découvrez les bases de l'organisation d'une campagne politique efficace.",
+    points: 20,
+    type: "reading",
+    difficulty: "moyen",
+    estimatedTime: 12
+  }
 ];
 
-const DailyChallenge: React.FC<DailyChallengeProps> = ({ onComplete }) => {
-  const [challenge, setChallenge] = useState<string>("");
-  const [response, setResponse] = useState<string>("");
-  const [feedback, setFeedback] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isEvaluating, setIsEvaluating] = useState<boolean>(false);
-  const [isCompleted, setIsCompleted] = useState<boolean>(false);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const { toast } = useToast();
+const DailyChallenge = () => {
+  const [dailyChallenge, setDailyChallenge] = useState<Challenge | null>(null);
+  const [streakCount, setStreakCount] = useState<number>(0);
+  const [totalPoints, setTotalPoints] = useState<number>(0);
+  const [nextRefresh, setNextRefresh] = useState<Date>(new Date());
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Sélectionner un défi aléatoire ou basé sur le jour
-    const today = new Date();
-    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
-    const challengeIndex = dayOfYear % challengePrompts.length;
-    setChallenge(challengePrompts[challengeIndex]);
+    // Load challenge from localStorage or generate a new one
+    const loadOrCreateChallenge = () => {
+      setIsLoading(true);
+      
+      try {
+        const storedChallenge = localStorage.getItem('dailyChallenge');
+        const storedDate = localStorage.getItem('dailyChallengeDate');
+        const storedStreak = localStorage.getItem('challengeStreak');
+        const storedPoints = localStorage.getItem('challengePoints');
+        
+        const today = new Date().toDateString();
 
-    // Vérifier si le défi a déjà été complété aujourd'hui
-    const lastCompletedDate = localStorage.getItem('lastDailyChallengeDate');
-    if (lastCompletedDate === today.toDateString()) {
-      setIsCompleted(true);
-      const savedFeedback = localStorage.getItem('lastChallengeFeedback');
-      if (savedFeedback) {
-        setFeedback(savedFeedback);
+        if (storedChallenge && storedDate === today) {
+          // Use the stored challenge for today
+          setDailyChallenge(JSON.parse(storedChallenge));
+          setStreakCount(storedStreak ? parseInt(storedStreak) : 0);
+          setTotalPoints(storedPoints ? parseInt(storedPoints) : 0);
+        } else {
+          // Generate a new challenge
+          const randomIndex = Math.floor(Math.random() * challenges.length);
+          const newChallenge = { ...challenges[randomIndex], progress: 0 };
+          
+          setDailyChallenge(newChallenge);
+          
+          // Reset streak if more than a day has passed
+          if (storedDate && new Date(storedDate).getTime() < new Date(today).getTime() - 86400000) {
+            setStreakCount(0);
+          } else {
+            setStreakCount(storedStreak ? parseInt(storedStreak) : 0);
+          }
+          
+          setTotalPoints(storedPoints ? parseInt(storedPoints) : 0);
+          
+          // Save the new challenge
+          localStorage.setItem('dailyChallenge', JSON.stringify(newChallenge));
+          localStorage.setItem('dailyChallengeDate', today);
+          localStorage.setItem('challengeStreak', streakCount.toString());
+          localStorage.setItem('challengePoints', totalPoints.toString());
+        }
+        
+        // Calculate next refresh time (midnight)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        setNextRefresh(tomorrow);
+      } catch (error) {
+        console.error("Error loading challenge:", error);
+        // Fallback to a default challenge
+        setDailyChallenge(challenges[0]);
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      // Initialiser le minuteur pour 5 minutes (300 secondes)
-      setTimeRemaining(600);
-    }
+    };
+
+    loadOrCreateChallenge();
+    
+    // Set up timer to check for refresh
+    const intervalId = setInterval(() => {
+      const now = new Date();
+      const storedDate = localStorage.getItem('dailyChallengeDate');
+      
+      if (storedDate !== now.toDateString()) {
+        loadOrCreateChallenge();
+      }
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(intervalId);
   }, []);
 
-  useEffect(() => {
-    // Minuteur pour le défi
-    let timer: NodeJS.Timeout;
-    if (timeRemaining > 0 && !isCompleted) {
-      timer = setInterval(() => {
-        setTimeRemaining(prev => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [timeRemaining, isCompleted]);
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  const startChallenge = () => {
+    if (!dailyChallenge) return;
+    
+    const updatedChallenge = { ...dailyChallenge, progress: 20 };
+    setDailyChallenge(updatedChallenge);
+    
+    localStorage.setItem('dailyChallenge', JSON.stringify(updatedChallenge));
+    
+    // Simulate starting the challenge (in a real app, navigate to the challenge)
+    alert(`Challenge "${dailyChallenge.title}" commencé!`);
   };
 
-  const handleSubmit = async () => {
-    if (response.length < 50) {
-      toast({
-        title: "Réponse trop courte",
-        description: "Veuillez élaborer davantage votre réponse (minimum 50 caractères).",
-        variant: "destructive",
-      });
-      return;
-    }
+  const completeChallenge = () => {
+    if (!dailyChallenge) return;
+    
+    const newStreak = streakCount + 1;
+    const newPoints = totalPoints + dailyChallenge.points;
+    
+    const completedChallenge = { ...dailyChallenge, completed: true, progress: 100 };
+    
+    setDailyChallenge(completedChallenge);
+    setStreakCount(newStreak);
+    setTotalPoints(newPoints);
+    
+    localStorage.setItem('dailyChallenge', JSON.stringify(completedChallenge));
+    localStorage.setItem('challengeStreak', newStreak.toString());
+    localStorage.setItem('challengePoints', newPoints.toString());
+  };
 
-    setIsSubmitting(true);
-    try {
-      const apiKeys = localStorage.getItem("api_keys");
-      if (!apiKeys) {
-        toast({
-          title: "Clé API requise",
-          description: "Veuillez configurer votre clé API Perplexity dans les paramètres.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
+  const formatTimeRemaining = () => {
+    const now = new Date();
+    const diffMs = nextRefresh.getTime() - now.getTime();
+    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${diffHrs}h ${diffMins}m`;
+  };
 
-      const { perplexity } = JSON.parse(apiKeys);
-      if (!perplexity) {
-        toast({
-          title: "Clé API Perplexity manquante",
-          description: "Veuillez configurer votre clé API Perplexity dans les paramètres.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      setIsEvaluating(true);
-      const evaluationPrompt = `
-        Évalue la réponse suivante à ce défi politique: "${challenge}"
-        
-        Réponse de l'utilisateur: "${response}"
-        
-        Donne une évaluation constructive en français en 3-4 phrases. Note les points forts et suggère des améliorations.
-        Sois encourageant mais critique. Évalue la clarté, la pertinence et la persuasion politique.
-      `;
-
-      const evaluationResponse = await getPerplexityResponse(perplexity, evaluationPrompt);
-      setFeedback(evaluationResponse);
-      setIsCompleted(true);
-      
-      // Sauvegarder le résultat
-      localStorage.setItem('lastDailyChallengeDate', new Date().toDateString());
-      localStorage.setItem('lastChallengeFeedback', evaluationResponse);
-      
-      toast({
-        title: "Défi complété",
-        description: "Votre réponse a été évaluée avec succès.",
-      });
-      
-      onComplete();
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'évaluation de votre réponse.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-      setIsEvaluating(false);
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case "facile": return "bg-green-500";
+      case "moyen": return "bg-yellow-500";
+      case "difficile": return "bg-red-500";
+      default: return "bg-blue-500";
     }
   };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "quiz": return <i className="fas fa-question-circle"></i>;
+      case "reading": return <i className="fas fa-book"></i>;
+      case "video": return <i className="fas fa-video"></i>;
+      case "practice": return <i className="fas fa-hands"></i>;
+      default: return <i className="fas fa-star"></i>;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full h-[400px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-mrc-blue"></div>
+          <p className="text-sm text-gray-500">Chargement du défi quotidien...</p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <div className="flex justify-between items-center">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-yellow-500" />
-              Défi quotidien
+            <CardTitle className="text-xl font-bold text-mrc-blue flex items-center gap-2">
+              <Calendar className="h-5 w-5" /> Défi Quotidien
             </CardTitle>
             <CardDescription>
-              Développez vos compétences politiques avec un défi quotidien
+              Complétez ce défi pour gagner des points et maintenir votre série
             </CardDescription>
           </div>
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-          </Badge>
+          <div className="flex flex-col items-end">
+            <Badge variant="outline" className="flex gap-1 mb-1">
+              <RefreshCw className="h-3 w-3" /> Nouveau dans {formatTimeRemaining()}
+            </Badge>
+            <div className="flex gap-2">
+              <Badge variant="secondary" className="flex gap-1">
+                <Award className="h-3 w-3" /> {totalPoints} pts
+              </Badge>
+              <Badge className="bg-mrc-blue flex gap-1">
+                <CheckCircle className="h-3 w-3" /> Série: {streakCount}j
+              </Badge>
+            </div>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-            <h3 className="font-medium mb-2">Votre défi d'aujourd'hui:</h3>
-            <p className="text-gray-700">{challenge}</p>
-          </div>
-
-          {!isCompleted ? (
-            <>
-              <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
-                <span>Temps restant: {formatTime(timeRemaining)}</span>
-                <span className="flex items-center gap-1">
-                  <Timer className="h-3 w-3" />
-                  10 minutes maximum recommandées
-                </span>
-              </div>
-              <Textarea
-                placeholder="Écrivez votre réponse ici..."
-                value={response}
-                onChange={(e) => setResponse(e.target.value)}
-                className="min-h-[150px]"
-                disabled={isSubmitting || isEvaluating}
-              />
-            </>
-          ) : (
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-              <div className="flex items-center gap-2 mb-2">
-                <Check className="h-5 w-5 text-green-500" />
-                <h3 className="font-medium">Défi complété</h3>
-              </div>
-              <p className="text-gray-700 mb-4">{response}</p>
-              <div className="bg-white p-3 rounded border border-gray-100">
-                <h4 className="text-sm font-medium mb-1">Évaluation:</h4>
-                <p className="text-sm text-gray-600">{feedback}</p>
+        {dailyChallenge ? (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+              <h3 className="text-lg font-semibold">{dailyChallenge.title}</h3>
+              <div className="flex gap-2">
+                <Badge className={getDifficultyColor(dailyChallenge.difficulty)}>
+                  {dailyChallenge.difficulty}
+                </Badge>
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> {dailyChallenge.estimatedTime} min
+                </Badge>
               </div>
             </div>
-          )}
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-end">
-        {!isCompleted ? (
-          <Button
-            onClick={handleSubmit}
-            disabled={response.length < 50 || isSubmitting || isEvaluating || timeRemaining === 0}
-            className="bg-mrc-blue"
-          >
-            {isSubmitting || isEvaluating ? "Évaluation en cours..." : "Soumettre votre réponse"}
-          </Button>
+            
+            <p className="text-gray-600 dark:text-gray-300">{dailyChallenge.description}</p>
+            
+            <div className="flex items-center gap-4">
+              <div className="font-bold text-lg text-mrc-blue">+{dailyChallenge.points} pts</div>
+              <Separator orientation="vertical" className="h-6" />
+              <Badge variant="outline" className="capitalize">
+                {dailyChallenge.type}
+              </Badge>
+            </div>
+            
+            {dailyChallenge.progress !== undefined && (
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span>Progression</span>
+                  <span>{dailyChallenge.progress}%</span>
+                </div>
+                <Progress value={dailyChallenge.progress} className="h-2" />
+              </div>
+            )}
+          </div>
         ) : (
-          <Button onClick={onComplete} className="bg-green-600">
-            Retour au tableau de bord
+          <div className="p-8 text-center">
+            <p className="text-gray-500">Aucun défi disponible aujourd'hui.</p>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter className="flex justify-between pt-2">
+        {dailyChallenge && !dailyChallenge.completed ? (
+          dailyChallenge.progress && dailyChallenge.progress > 0 ? (
+            <Button onClick={completeChallenge} className="w-full bg-mrc-blue hover:bg-blue-700">
+              Terminer le défi
+            </Button>
+          ) : (
+            <Button onClick={startChallenge} className="w-full bg-mrc-blue hover:bg-blue-700">
+              Commencer le défi
+            </Button>
+          )
+        ) : (
+          <Button disabled className="w-full">
+            Défi complété
           </Button>
         )}
       </CardFooter>

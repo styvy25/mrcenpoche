@@ -1,235 +1,143 @@
+import React, { useRef, useEffect, useState } from "react";
 
-// @ts-ignore
-function n(e) {
-  // @ts-ignore
-  this.init(e || {});
-}
-n.prototype = {
-  // @ts-ignore
-  init: function (e) {
-    // @ts-ignore
-    this.phase = e.phase || 0;
-    // @ts-ignore
-    this.offset = e.offset || 0;
-    // @ts-ignore
-    this.frequency = e.frequency || 0.001;
-    // @ts-ignore
-    this.amplitude = e.amplitude || 1;
-  },
-  update: function () {
-    return (
-      // @ts-ignore
-      (this.phase += this.frequency),
-      // @ts-ignore
-      (e = this.offset + Math.sin(this.phase) * this.amplitude)
-    );
-  },
-  value: function () {
-    return e;
-  },
-};
-
-// @ts-ignore
-function Line(e) {
-  // @ts-ignore
-  this.init(e || {});
+interface CanvasProps {
+  width?: number;
+  height?: number;
+  className?: string;
+  onDraw?: (data: string) => void;
 }
 
-Line.prototype = {
-  // @ts-ignore
-  init: function (e) {
-    // @ts-ignore
-    this.spring = e.spring + 0.1 * Math.random() - 0.05;
-    // @ts-ignore
-    this.friction = E.friction + 0.01 * Math.random() - 0.005;
-    // @ts-ignore
-    this.nodes = [];
-    for (var t, n = 0; n < E.size; n++) {
-      t = new Node();
-      // @ts-ignore
-      t.x = pos.x;
-      // @ts-ignore
-      t.y = pos.y;
-      // @ts-ignore
-      this.nodes.push(t);
+interface Position {
+  x: number;
+  y: number;
+}
+
+const Canvas: React.FC<CanvasProps> = ({
+  width = 400,
+  height = 400,
+  className = "",
+  onDraw,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+  const [lastPosition, setLastPosition] = useState<Position | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    // Set up the canvas
+    context.strokeStyle = "black";
+    context.lineWidth = 2;
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    
+    setCtx(context);
+
+    // Clear canvas initially
+    context.fillStyle = "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }, []);
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    setIsDrawing(true);
+    
+    const position = getPosition(e);
+    setLastPosition(position);
+    
+    if (ctx) {
+      ctx.beginPath();
+      ctx.moveTo(position.x, position.y);
     }
-  },
-  update: function () {
-    // @ts-ignore
-    let e = this.spring,
-      // @ts-ignore
-      t = this.nodes[0];
-    // @ts-ignore
-    t.vx += (pos.x - t.x) * e;
-    // @ts-ignore
-    t.vy += (pos.y - t.y) * e;
-    // @ts-ignore
-    for (var n, i = 0, a = this.nodes.length; i < a; i++)
-      // @ts-ignore
-      (t = this.nodes[i]),
-        0 < i &&
-          // @ts-ignore
-          ((n = this.nodes[i - 1]),
-          (t.vx += (n.x - t.x) * e),
-          (t.vy += (n.y - t.y) * e),
-          (t.vx += n.vx * E.dampening),
-          (t.vy += n.vy * E.dampening)),
-        // @ts-ignore
-        (t.vx *= this.friction),
-        // @ts-ignore
-        (t.vy *= this.friction),
-        (t.x += t.vx),
-        (t.y += t.vy),
-        (e *= E.tension);
-  },
-  draw: function () {
-    let e,
-      t,
-      // @ts-ignore
-      n = this.nodes[0].x,
-      // @ts-ignore
-      i = this.nodes[0].y;
-    // @ts-ignore
-    ctx.beginPath();
-    // @ts-ignore
-    ctx.moveTo(n, i);
-    // @ts-ignore
-    for (var a = 1, o = this.nodes.length - 2; a < o; a++) {
-      // @ts-ignore
-      e = this.nodes[a];
-      // @ts-ignore
-      t = this.nodes[a + 1];
-      n = 0.5 * (e.x + t.x);
-      i = 0.5 * (e.y + t.y);
-      // @ts-ignore
-      ctx.quadraticCurveTo(e.x, e.y, n, i);
-    }
-    // @ts-ignore
-    e = this.nodes[a];
-    // @ts-ignore
-    t = this.nodes[a + 1];
-    // @ts-ignore
-    ctx.quadraticCurveTo(e.x, e.y, t.x, t.y);
-    // @ts-ignore
-    ctx.stroke();
-    // @ts-ignore
-    ctx.closePath();
-  },
-};
-
-// @ts-ignore
-function onMousemove(e) {
-  function o() {
-    lines = [];
-    for (let e = 0; e < E.trails; e++)
-      lines.push(new Line({ spring: 0.45 + (e / E.trails) * 0.025 }));
-  }
-  // @ts-ignore
-  function c(e) {
-    e.touches
-      ? // @ts-ignore
-        ((pos.x = e.touches[0].pageX), (pos.y = e.touches[0].pageY))
-      : // @ts-ignore
-        ((pos.x = e.clientX), (pos.y = e.clientY)),
-      e.preventDefault();
-  }
-  // @ts-ignore
-  function l(e) {
-    // @ts-ignore
-    1 == e.touches.length &&
-      ((pos.x = e.touches[0].pageX), (pos.y = e.touches[0].pageY));
-  }
-  document.removeEventListener("mousemove", onMousemove),
-    document.removeEventListener("touchstart", onMousemove),
-    document.addEventListener("mousemove", c),
-    document.addEventListener("touchmove", c),
-    document.addEventListener("touchstart", l),
-    c(e),
-    o(),
-    render();
-}
-
-function render() {
-  // @ts-ignore
-  if (ctx.running) {
-    // @ts-ignore
-    ctx.globalCompositeOperation = "source-over";
-    // @ts-ignore
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    // @ts-ignore
-    ctx.globalCompositeOperation = "lighter";
-    // @ts-ignore
-    ctx.strokeStyle = "hsla(" + Math.round(f.update()) + ",100%,50%,0.025)";
-    // @ts-ignore
-    ctx.lineWidth = 10;
-    for (var e, t = 0; t < E.trails; t++) {
-      // @ts-ignore
-      (e = lines[t]).update();
-      e.draw();
-    }
-    // @ts-ignore
-    ctx.frame++;
-    window.requestAnimationFrame(render);
-  }
-}
-
-function resizeCanvas() {
-  // @ts-ignore
-  ctx.canvas.width = window.innerWidth - 20;
-  // @ts-ignore
-  ctx.canvas.height = window.innerHeight;
-}
-
-// @ts-ignore
-var ctx,
-  // @ts-ignore
-  f,
-  e = 0,
-  // Define pos with x and y properties to fix the type error
-  pos: { x: number; y: number } = { x: 0, y: 0 },
-  // @ts-ignore
-  lines = [],
-  E = {
-    debug: true,
-    friction: 0.5,
-    trails: 80,
-    size: 50,
-    dampening: 0.025,
-    tension: 0.99,
   };
-function Node() {
-  this.x = 0;
-  this.y = 0;
-  this.vy = 0;
-  this.vx = 0;
-}
 
-export const renderCanvas = function () {
-  // @ts-ignore
-  ctx = document.getElementById("canvas").getContext("2d");
-  ctx.running = true;
-  ctx.frame = 1;
-  f = new n({
-    phase: Math.random() * 2 * Math.PI,
-    amplitude: 85,
-    frequency: 0.0015,
-    offset: 285,
-  });
-  document.addEventListener("mousemove", onMousemove);
-  document.addEventListener("touchstart", onMousemove);
-  document.body.addEventListener("orientationchange", resizeCanvas);
-  window.addEventListener("resize", resizeCanvas);
-  window.addEventListener("focus", () => {
-    // @ts-ignore
-    if (!ctx.running) {
-      // @ts-ignore
-      ctx.running = true;
-      render();
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !ctx || !lastPosition) return;
+    
+    const position = getPosition(e);
+    
+    ctx.lineTo(position.x, position.y);
+    ctx.stroke();
+    
+    setLastPosition(position);
+  };
+
+  const stopDrawing = () => {
+    if (isDrawing && ctx) {
+      ctx.closePath();
+      
+      // If onDraw callback is provided, send the canvas data
+      if (onDraw && canvasRef.current) {
+        const dataUrl = canvasRef.current.toDataURL("image/png");
+        onDraw(dataUrl);
+      }
     }
-  });
-  window.addEventListener("blur", () => {
-    // @ts-ignore
-    ctx.running = true;
-  });
-  resizeCanvas();
+    
+    setIsDrawing(false);
+    setLastPosition(null);
+  };
+
+  const getPosition = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>): Position => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    
+    const rect = canvas.getBoundingClientRect();
+    
+    if ('touches' in e) {
+      // Touch event
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    } else {
+      // Mouse event
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+  };
+
+  const clearCanvas = () => {
+    if (!ctx || !canvasRef.current) return;
+    
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    
+    // If onDraw callback is provided, send the empty canvas data
+    if (onDraw && canvasRef.current) {
+      const dataUrl = canvasRef.current.toDataURL("image/png");
+      onDraw(dataUrl);
+    }
+  };
+
+  return (
+    <div className="canvas-container">
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        className={`border border-gray-300 rounded-md ${className}`}
+        onMouseDown={startDrawing}
+        onMouseMove={draw}
+        onMouseUp={stopDrawing}
+        onMouseLeave={stopDrawing}
+        onTouchStart={startDrawing}
+        onTouchMove={draw}
+        onTouchEnd={stopDrawing}
+      />
+      <button
+        onClick={clearCanvas}
+        className="mt-2 px-3 py-1 bg-gray-200 rounded-md text-sm"
+      >
+        Effacer
+      </button>
+    </div>
+  );
 };
+
+export default Canvas;

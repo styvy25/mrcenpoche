@@ -1,106 +1,106 @@
 
-import { Message } from "../types/message";
-import { useToast } from "@/components/ui/use-toast";
 import { jsPDF } from "jspdf";
+import { Message } from "../types/message";
 
-export function usePdfGenerator() {
-  const { toast } = useToast();
-
+export const usePdfGenerator = () => {
   const generatePDF = (messages: Message[]) => {
-    if (messages.length <= 1) {
-      toast({
-        title: "Pas de contenu à exporter",
-        description: "Veuillez d'abord avoir une conversation avec l'assistant.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    toast({
-      title: "PDF en cours de génération",
-      description: "Votre document sera " + (isMobile ? "ouvert" : "téléchargé") + " dans quelques instants.",
-    });
-
-    // Create PDF document
+    // Create a new PDF document
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const contentWidth = pageWidth - 2 * margin;
     
     // Add title
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text("Conversation avec l'Assistant Styvy237", 20, 20);
+    doc.setFontSize(20);
+    doc.setTextColor(31, 87, 164); // MRC blue
+    doc.text("Conversation avec Styvy237", pageWidth / 2, margin, { align: "center" });
     
-    // Set normal font for content
+    // Add date
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100);
+    const today = new Date().toLocaleDateString('fr-FR');
+    doc.text(`Généré le ${today}`, pageWidth / 2, margin + 7, { align: "center" });
     
-    let yPosition = 30;
+    // Add line
+    doc.setDrawColor(200);
+    doc.line(margin, margin + 10, pageWidth - margin, margin + 10);
     
-    // Add each message
-    messages.forEach(msg => {
-      const roleLabel = msg.role === 'user' ? 'Vous' : 'Assistant';
-      const timestamp = new Date(msg.timestamp).toLocaleString();
-      
-      // If not enough space for new message on page, add new page
-      if (yPosition > 270) {
-        doc.addPage();
-        yPosition = 20;
+    let y = margin + 20;
+    const lineHeight = 5;
+    
+    // Add messages
+    doc.setFontSize(11);
+    
+    messages.forEach((message, index) => {
+      if (index === 0 && message.role === 'assistant' && message.content === "Bonjour, je suis Styvy237, votre assistant IA pour la formation MRC. Comment puis-je vous aider aujourd'hui?") {
+        // Skip the initial greeting message
+        return;
       }
       
-      // Add header (role and timestamp)
-      doc.setFont("helvetica", "bold");
-      doc.text(`${roleLabel} (${timestamp}):`, 20, yPosition);
-      yPosition += 7;
+      const isAssistant = message.role === "assistant";
+      const messageHeader = isAssistant ? "Assistant Styvy237" : "Vous";
+      const messageDate = message.timestamp.toLocaleDateString('fr-FR') + ' ' + 
+                          message.timestamp.toLocaleTimeString('fr-FR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit'
+                          });
+      
+      // Set colors based on role
+      if (isAssistant) {
+        doc.setTextColor(31, 87, 164); // MRC blue for assistant
+      } else {
+        doc.setTextColor(46, 125, 50); // Green for user
+      }
+      
+      // Add message header
+      doc.setFont(undefined, 'bold');
+      doc.text(`${messageHeader} (${messageDate})`, margin, y);
+      doc.setFont(undefined, 'normal');
+      
+      y += lineHeight + 2;
       
       // Add message content
-      doc.setFont("helvetica", "normal");
+      doc.setTextColor(60);
       
-      // Split long message text into multiple lines
-      const contentLines = doc.splitTextToSize(msg.content, 170);
+      // Split long text into multiple lines
+      const contentLines = doc.splitTextToSize(message.content, contentWidth);
       
-      contentLines.forEach(line => {
-        doc.text(line, 20, yPosition);
-        yPosition += 5;
-        
-        if (yPosition > 270) {
-          doc.addPage();
-          yPosition = 20;
-        }
-      });
-      
-      // Add spacing between messages
-      yPosition += 5;
-    });
-    
-    // Get the PDF as data URI
-    const pdfOutput = doc.output('datauristring');
-    
-    // Create a link to download or open the PDF
-    setTimeout(() => {
-      // Create an invisible link element
-      const link = document.createElement('a');
-      link.href = pdfOutput;
-      
-      if (!isMobile) {
-        link.setAttribute('download', `conversation-${new Date().toISOString().slice(0, 10)}.pdf`);
-      } else {
-        link.setAttribute('target', '_blank');
+      // Check if we need a new page
+      if (y + contentLines.length * lineHeight > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        y = margin;
       }
       
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Add message content
+      doc.text(contentLines, margin, y);
       
-      toast({
-        title: "Exportation réussie",
-        description: isMobile ? 
-          "Votre conversation a été ouverte. Utilisez l'option de téléchargement de votre navigateur." :
-          "Votre conversation a été téléchargée.",
-        variant: "default",
-      });
-    }, 1000);
+      // Update y position for next message
+      y += contentLines.length * lineHeight + 10;
+      
+      // Add separator line except for the last message
+      if (index < messages.length - 1) {
+        doc.setDrawColor(230);
+        doc.line(margin, y - 5, pageWidth - margin, y - 5);
+      }
+    });
+    
+    // Add footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(
+        `MRC LearnScape - Page ${i} sur ${pageCount}`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: "center" }
+      );
+    }
+    
+    // Save the PDF
+    doc.save("Conversation-Styvy237.pdf");
   };
 
   return { generatePDF };
-}
+};

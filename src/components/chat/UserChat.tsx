@@ -1,301 +1,251 @@
 
-import React, { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useRef, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/components/ui/use-toast";
-import { MessageCircle, Send, Users } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Send, Users, Clock } from "lucide-react";
 
 interface Message {
   id: string;
-  userId: string;
-  userName: string;
-  userRole: string;
-  userAvatar?: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar?: string;
   content: string;
   timestamp: Date;
 }
 
-interface ChatUser {
+interface User {
   id: string;
   name: string;
-  role: string;
   avatar?: string;
   isOnline: boolean;
   lastSeen?: Date;
 }
 
-// Utilisateurs fictifs pour la démo
-const demoUsers: ChatUser[] = [
-  { id: "user1", name: "Jean Kamto", role: "Militant", avatar: "", isOnline: true },
-  { id: "user2", name: "Marie Ngo", role: "Cadre", avatar: "", isOnline: true },
-  { id: "user3", name: "Paul Mbarga", role: "Sympathisant", avatar: "", isOnline: false, lastSeen: new Date(Date.now() - 25 * 60000) },
-  { id: "user4", name: "Sophie Ateba", role: "Formatrice", avatar: "", isOnline: true },
-  { id: "user5", name: "Robert Tabi", role: "Militant", avatar: "", isOnline: false, lastSeen: new Date(Date.now() - 120 * 60000) },
+// Dummy data for demonstration
+const CURRENT_USER_ID = "user_1";
+const dummyUsers: User[] = [
+  { id: "user_1", name: "Vous", avatar: "/lovable-uploads/0a7e7325-0ab5-4f67-b830-1e1b22984ac8.png", isOnline: true },
+  { id: "user_2", name: "Thierry Kamto", avatar: "/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png", isOnline: true },
+  { id: "user_3", name: "Marie Ngoh", avatar: "/lovable-uploads/e326c83f-f666-44e5-9da1-72639a1027e0.png", isOnline: false, lastSeen: new Date(Date.now() - 25 * 60 * 1000) },
+  { id: "user_4", name: "Paul Biya", isOnline: true },
+  { id: "user_5", name: "Kamto Maurice", isOnline: false, lastSeen: new Date(Date.now() - 120 * 60 * 1000) },
 ];
 
-// Messages fictifs pour la démo
 const initialMessages: Message[] = [
   {
-    id: "msg1",
-    userId: "user1",
-    userName: "Jean Kamto",
-    userRole: "Militant",
-    content: "Bonjour à tous ! Quelqu'un peut me donner des conseils pour organiser une réunion de sensibilisation dans mon quartier ?",
-    timestamp: new Date(Date.now() - 45 * 60000)
+    id: "msg_1",
+    senderId: "user_2",
+    senderName: "Thierry Kamto",
+    senderAvatar: "/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png",
+    content: "Salut! Comment avancez-vous avec les modules de formation?",
+    timestamp: new Date(Date.now() - 35 * 60 * 1000)
   },
   {
-    id: "msg2",
-    userId: "user4",
-    userName: "Sophie Ateba",
-    userRole: "Formatrice",
-    content: "Bonjour Jean ! Je recommande de commencer par identifier un lieu accessible à tous et de préparer des supports visuels simples. N'oublie pas d'inviter personnellement les leaders communautaires.",
-    timestamp: new Date(Date.now() - 40 * 60000)
+    id: "msg_2",
+    senderId: "user_1",
+    senderName: "Vous",
+    senderAvatar: "/lovable-uploads/0a7e7325-0ab5-4f67-b830-1e1b22984ac8.png",
+    content: "Ça avance bien! J'ai terminé le module sur l'histoire du MRC. Je trouve le contenu très intéressant.",
+    timestamp: new Date(Date.now() - 34 * 60 * 1000)
   },
   {
-    id: "msg3",
-    userId: "user2",
-    userName: "Marie Ngo",
-    userRole: "Cadre",
-    content: "Aussi, prépare quelques questions pour stimuler la discussion. C'est important que les participants se sentent écoutés.",
-    timestamp: new Date(Date.now() - 35 * 60000)
+    id: "msg_3",
+    senderId: "user_3",
+    senderName: "Marie Ngoh",
+    senderAvatar: "/lovable-uploads/e326c83f-f666-44e5-9da1-72639a1027e0.png",
+    content: "J'ai eu quelques difficultés avec le quiz de communication politique. Les questions sont assez techniques!",
+    timestamp: new Date(Date.now() - 28 * 60 * 1000)
   },
   {
-    id: "msg4",
-    userId: "user1",
-    userName: "Jean Kamto",
-    userRole: "Militant",
-    content: "Merci beaucoup pour ces conseils ! Je vais commencer à organiser ça pour la semaine prochaine.",
-    timestamp: new Date(Date.now() - 30 * 60000)
-  },
+    id: "msg_4",
+    senderId: "user_2",
+    senderName: "Thierry Kamto",
+    senderAvatar: "/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png",
+    content: "C'est vrai que ce module est plus complexe. N'hésitez pas à utiliser l'assistant AI pour des explications supplémentaires!",
+    timestamp: new Date(Date.now() - 20 * 60 * 1000)
+  }
 ];
 
-const UserChat: React.FC = () => {
+const UserChat = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [newMessage, setNewMessage] = useState<string>("");
-  const [activeUsers, setActiveUsers] = useState<ChatUser[]>(demoUsers);
-  const [currentUser, setCurrentUser] = useState<ChatUser>({
-    id: "currentUser",
-    name: "Vous",
-    role: "Militant",
-    isOnline: true,
-  });
+  const [newMessage, setNewMessage] = useState("");
+  const [activeUsers, setActiveUsers] = useState<User[]>(dummyUsers);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
-    // Scroll to bottom whenever messages change
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollToBottom();
   }, [messages]);
 
-  const formatTimestamp = (date: Date) => {
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const formatDate = (date: Date) => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    if (date >= today) {
-      return "Aujourd'hui";
-    } else if (date >= yesterday) {
-      return "Hier";
-    } else {
-      return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-    }
-  };
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() === "") return;
-    
-    const newMsg: Message = {
-      id: `msg${messages.length + 1}`,
-      userId: currentUser.id,
-      userName: currentUser.name,
-      userRole: currentUser.role,
-      userAvatar: currentUser.avatar,
-      content: newMessage.trim(),
+    const message: Message = {
+      id: `msg_${Date.now()}`,
+      senderId: CURRENT_USER_ID,
+      senderName: "Vous",
+      senderAvatar: dummyUsers.find(u => u.id === CURRENT_USER_ID)?.avatar,
+      content: newMessage,
       timestamp: new Date()
     };
-    
-    setMessages([...messages, newMsg]);
+
+    setMessages([...messages, message]);
     setNewMessage("");
-    
-    // Simuler une réponse après quelques secondes
-    setTimeout(() => {
-      const responseMsg: Message = {
-        id: `msg${messages.length + 2}`,
-        userId: "user4",
-        userName: "Sophie Ateba",
-        userRole: "Formatrice",
-        content: "C'est une excellente initiative ! N'hésitez pas à consulter les modules de formation sur la communication politique pour plus d'idées.",
-        timestamp: new Date()
-      };
-      
-      setMessages(prevMessages => [...prevMessages, responseMsg]);
-    }, 8000);
+
+    // Simulate response (for demo)
+    if (messages.length % 3 === 0) {
+      setTimeout(() => {
+        const responderId = activeUsers.filter(u => u.id !== CURRENT_USER_ID && u.isOnline)[
+          Math.floor(Math.random() * (activeUsers.filter(u => u.id !== CURRENT_USER_ID && u.isOnline).length))
+        ].id;
+        
+        const responder = activeUsers.find(u => u.id === responderId);
+        
+        const response: Message = {
+          id: `msg_${Date.now() + 1}`,
+          senderId: responderId,
+          senderName: responder?.name || "Utilisateur",
+          senderAvatar: responder?.avatar,
+          content: "Merci pour votre message. Continuons cette discussion sur les modules de formation du MRC!",
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, response]);
+      }, 1500);
+    }
   };
 
-  const groupMessagesByDate = () => {
-    const groups: { date: string; messages: Message[] }[] = [];
-    let currentDate = "";
-    let currentGroup: Message[] = [];
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatLastSeen = (date?: Date) => {
+    if (!date) return "il y a longtemps";
     
-    messages.forEach(message => {
-      const messageDate = formatDate(message.timestamp);
-      
-      if (messageDate !== currentDate) {
-        if (currentGroup.length > 0) {
-          groups.push({ date: currentDate, messages: currentGroup });
-        }
-        currentDate = messageDate;
-        currentGroup = [message];
-      } else {
-        currentGroup.push(message);
-      }
-    });
+    const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
     
-    if (currentGroup.length > 0) {
-      groups.push({ date: currentDate, messages: currentGroup });
-    }
-    
-    return groups;
+    if (minutes < 60) return `il y a ${minutes} min`;
+    if (minutes < 24 * 60) return `il y a ${Math.floor(minutes / 60)} h`;
+    return `il y a ${Math.floor(minutes / (60 * 24))} j`;
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
-      <div className="lg:col-span-3">
-        <Card className="h-full flex flex-col">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-mrc-blue" />
-              Chat communautaire MRC
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-grow overflow-hidden">
-            <ScrollArea className="h-[60vh]">
-              {groupMessagesByDate().map((group, groupIndex) => (
-                <div key={groupIndex} className="mb-6">
-                  <div className="flex justify-center mb-4">
-                    <Badge variant="outline" className="bg-gray-50">
-                      {group.date}
-                    </Badge>
-                  </div>
-                  
-                  {group.messages.map((msg, index) => (
-                    <div 
-                      key={msg.id}
-                      className={`flex mb-4 ${msg.userId === currentUser.id ? 'justify-end' : 'justify-start'}`}
-                    >
-                      {msg.userId !== currentUser.id && (
-                        <Avatar className="h-8 w-8 mr-2">
-                          <AvatarImage src={msg.userAvatar} />
-                          <AvatarFallback className="bg-mrc-blue text-white">
-                            {msg.userName.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[calc(100vh-12rem)]">
+      <Card className="md:col-span-3 flex flex-col h-full">
+        <CardHeader className="pb-3 pt-4">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Users size={20} className="text-mrc-blue" />
+            Discussion entre apprenants
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col h-full p-0">
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-4">
+              {messages.map((message) => (
+                <div 
+                  key={message.id} 
+                  className={`flex ${message.senderId === CURRENT_USER_ID ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`flex gap-2 max-w-[80%] ${message.senderId === CURRENT_USER_ID ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      {message.senderAvatar ? (
+                        <AvatarImage src={message.senderAvatar} alt={message.senderName} />
+                      ) : (
+                        <AvatarFallback className="bg-mrc-blue text-white">
+                          {message.senderName.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
                       )}
-                      
-                      <div className={`max-w-[80%] ${msg.userId === currentUser.id ? 'bg-mrc-blue text-white' : 'bg-gray-100'} rounded-lg px-4 py-2`}>
-                        {msg.userId !== currentUser.id && (
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-semibold text-sm">{msg.userName}</span>
-                            <Badge variant="outline" className="text-xs bg-white/10 ml-2">
-                              {msg.userRole}
-                            </Badge>
-                          </div>
-                        )}
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                        <div className={`text-xs mt-1 text-right ${msg.userId === currentUser.id ? 'text-white/70' : 'text-gray-500'}`}>
-                          {formatTimestamp(msg.timestamp)}
-                        </div>
+                    </Avatar>
+                    <div className={`rounded-lg px-3 py-2 text-sm ${
+                      message.senderId === CURRENT_USER_ID
+                        ? 'bg-mrc-blue text-white'
+                        : 'bg-gray-100 dark:bg-gray-800'
+                    }`}>
+                      <div className="font-medium text-xs mb-1">
+                        {message.senderId !== CURRENT_USER_ID ? message.senderName : 'Vous'}
                       </div>
-                      
-                      {msg.userId === currentUser.id && (
-                        <Avatar className="h-8 w-8 ml-2">
-                          <AvatarImage src={currentUser.avatar} />
-                          <AvatarFallback className="bg-green-600 text-white">
-                            {currentUser.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
+                      <p>{message.content}</p>
+                      <div className="text-xs opacity-70 mt-1 text-right">
+                        {formatTime(message.timestamp)}
+                      </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               ))}
               <div ref={messagesEndRef} />
-            </ScrollArea>
-          </CardContent>
-          <CardFooter className="pt-0">
-            <div className="flex w-full gap-2">
+            </div>
+          </ScrollArea>
+          <div className="p-4 border-t">
+            <form onSubmit={handleSendMessage} className="flex gap-2">
               <Input
-                placeholder="Écrivez votre message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                className="flex-grow"
+                placeholder="Écrivez votre message..."
+                className="flex-1"
               />
               <Button 
-                onClick={handleSendMessage} 
-                disabled={newMessage.trim() === ""}
-                className="bg-mrc-blue"
+                type="submit" 
+                size="icon"
+                disabled={!newMessage.trim()}
+                className="bg-mrc-blue hover:bg-blue-700"
               >
-                <Send className="h-4 w-4" />
+                <Send size={18} />
               </Button>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
-      
-      <div className="hidden lg:block">
-        <Card className="h-full">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-mrc-blue" />
-              Membres en ligne
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[60vh]">
-              <div className="space-y-4">
-                {activeUsers.map(user => (
-                  <div key={user.id} className="flex items-center gap-3">
-                    <div className="relative">
-                      <Avatar>
-                        <AvatarImage src={user.avatar} />
+            </form>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="h-full hidden md:flex flex-col">
+        <CardHeader className="pb-3 pt-4">
+          <CardTitle className="text-lg">Utilisateurs actifs</CardTitle>
+        </CardHeader>
+        <CardContent className="px-2">
+          <ScrollArea className="h-full">
+            <div className="space-y-2 px-2">
+              {activeUsers.map((user) => (
+                <div key={user.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                  <div className="relative">
+                    <Avatar>
+                      {user.avatar ? (
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                      ) : (
                         <AvatarFallback className="bg-mrc-blue text-white">
                           {user.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
-                      </Avatar>
-                      {user.isOnline && (
-                        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-1 ring-white"></span>
                       )}
-                    </div>
-                    <div className="flex-grow">
-                      <p className="text-sm font-medium">{user.name}</p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {user.role}
-                        </Badge>
-                        {!user.isOnline && user.lastSeen && (
-                          <p className="text-xs text-gray-500">
-                            Vu il y a {Math.round((Date.now() - user.lastSeen.getTime()) / 60000)} min
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                    </Avatar>
+                    <span 
+                      className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-gray-800 ${
+                        user.isOnline ? 'bg-green-500' : 'bg-gray-400'
+                      }`}
+                    ></span>
                   </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="font-medium text-sm truncate">
+                      {user.name}
+                      {user.id === CURRENT_USER_ID && " (Vous)"}
+                    </p>
+                    {!user.isOnline && user.lastSeen && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                        <Clock size={12} className="mr-1" />
+                        Vu {formatLastSeen(user.lastSeen)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 };

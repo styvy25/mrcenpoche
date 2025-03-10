@@ -25,6 +25,79 @@ export const MODULE_DESCRIPTIONS = {
   campagne: "Développez les compétences nécessaires pour organiser et gérer une campagne politique réussie. Ce module couvre la planification stratégique, la gestion des ressources et la mobilisation des électeurs."
 };
 
+export const MODULE_CONTENT = {
+  histoire: [
+    {
+      title: "Fondation et Origines",
+      content: "Le Mouvement pour la Renaissance du Cameroun (MRC) a été fondé en 2012 par Maurice Kamto et d'autres personnalités politiques et de la société civile camerounaise. Né dans un contexte de désir de renouveau politique, le MRC s'est rapidement positionné comme une alternative aux partis traditionnels."
+    },
+    {
+      title: "Vision et Mission",
+      content: "Le MRC prône une vision de modernisation et de développement inclusif du Cameroun, basée sur les principes de bonne gouvernance, de respect de l'État de droit et de justice sociale. Sa mission est de construire un Cameroun où chaque citoyen peut contribuer et bénéficier équitablement du développement national."
+    },
+    {
+      title: "Valeurs Fondamentales",
+      content: "Les valeurs centrales du MRC incluent l'intégrité, la transparence, la responsabilité, l'inclusion et le patriotisme. Le parti met l'accent sur le respect des droits humains, la démocratie participative et la lutte contre la corruption."
+    }
+  ],
+  mobilisation: [
+    {
+      title: "Stratégies de Terrain",
+      content: "Les stratégies de mobilisation efficaces incluent l'organisation de cellules locales, la formation de coordinateurs de terrain et l'établissement de réseaux de militants actifs. Ces approches permettent une présence constante et visible dans les communautés."
+    },
+    {
+      title: "Communication avec les Citoyens",
+      content: "Une mobilisation réussie repose sur une communication claire et adaptée aux différentes audiences. Cela implique l'utilisation de messages simples et percutants, la traduction dans les langues locales et l'adaptation aux contextes culturels spécifiques."
+    },
+    {
+      title: "Organisation d'Événements",
+      content: "Les rassemblements publics, les forums communautaires et les caravanes de sensibilisation sont des outils puissants pour mobiliser le soutien populaire. Ces événements doivent être soigneusement planifiés pour maximiser leur impact et assurer la sécurité des participants."
+    }
+  ],
+  communication: [
+    {
+      title: "Principes de Communication Politique",
+      content: "Une communication politique efficace repose sur la clarté, la cohérence et la crédibilité. Les messages doivent être simples mais puissants, adaptés à l'audience visée et soutenus par des faits vérifiables."
+    },
+    {
+      title: "Gestion des Médias",
+      content: "Les relations avec les médias traditionnels restent essentielles malgré l'essor du numérique. Il est crucial de cultiver des relations professionnelles avec les journalistes, de préparer soigneusement les interviews et de maîtriser l'art des communiqués de presse."
+    },
+    {
+      title: "Stratégies Numériques",
+      content: "Dans l'ère digitale, une présence en ligne forte est indispensable. Cela inclut l'utilisation stratégique des réseaux sociaux, la création de contenu viral et l'engagement direct avec les citoyens via les plateformes numériques."
+    }
+  ],
+  enjeux: [
+    {
+      title: "Gouvernance et État de Droit",
+      content: "Le renforcement des institutions démocratiques, la réforme du système judiciaire et la lutte contre la corruption sont des enjeux majeurs pour assurer une gouvernance transparente et équitable au Cameroun."
+    },
+    {
+      title: "Développement Économique",
+      content: "Les défis économiques incluent la diversification de l'économie, la création d'emplois pour les jeunes, l'amélioration des infrastructures et la réduction des disparités régionales en matière de développement."
+    },
+    {
+      title: "Cohésion Sociale et Nationale",
+      content: "Dans un pays caractérisé par sa diversité ethnique, linguistique et culturelle, la promotion de l'unité nationale tout en respectant les particularités régionales constitue un défi constant qui nécessite des politiques inclusives et équitables."
+    }
+  ],
+  campagne: [
+    {
+      title: "Planification Stratégique",
+      content: "Une campagne politique réussie commence par une planification minutieuse qui définit les objectifs, identifie les ressources nécessaires et établit un calendrier réaliste des activités. Cette phase inclut l'analyse du terrain politique et l'identification des messages clés."
+    },
+    {
+      title: "Mobilisation des Ressources",
+      content: "La gestion efficace des ressources humaines, financières et logistiques est cruciale pour soutenir les activités de campagne. Cela implique le recrutement et la formation des volontaires, la collecte de fonds et l'organisation logistique."
+    },
+    {
+      title: "Engagement des Électeurs",
+      content: "Les techniques pour engager les électeurs comprennent le porte-à-porte, les réunions communautaires, les débats publics et l'utilisation des médias sociaux. L'objectif est d'établir une connexion personnelle avec les citoyens et de les convaincre de soutenir votre candidat ou parti."
+    }
+  ]
+};
+
 export const checkIsMobile = (): boolean => {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 };
@@ -48,4 +121,17 @@ export const downloadPDF = (pdfUrl: string, fileName: string): void => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+// Function to generate a PDF filename based on module and user
+export const generatePDFFilename = (moduleName: string, username?: string): string => {
+  const dateStr = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+  const userStr = username ? `-${username}` : '';
+  
+  return `MRC-Formation-${moduleName.replace(/\s+/g, '-')}${userStr}-${dateStr}.pdf`;
+};
+
+// Function to get content for a specific module
+export const getModuleContent = (moduleId: string) => {
+  return MODULE_CONTENT[moduleId as keyof typeof MODULE_CONTENT] || [];
 };
