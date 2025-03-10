@@ -5,7 +5,7 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   explanation: string;
-  category: "culture" | "histoire" | "traditions" | "politique" | "geographie";
+  category: "culture" | "histoire" | "traditions" | "politique" | "geographie" | "mobilisation" | "communication" | "enjeux" | "campagne";
   difficulty: "facile" | "moyen" | "difficile";
   imageSrc?: string;
 }
@@ -15,7 +15,7 @@ export interface Badge {
   name: string;
   description: string;
   icon: string;
-  category: "culture" | "histoire" | "traditions" | "politique" | "geographie";
+  category: "culture" | "histoire" | "traditions" | "politique" | "geographie" | "mobilisation" | "communication" | "enjeux" | "campagne";
   level: "bronze" | "argent" | "or";
   unlocked: boolean;
   dateUnlocked?: string;

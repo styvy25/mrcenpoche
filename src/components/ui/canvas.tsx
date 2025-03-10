@@ -185,7 +185,8 @@ var ctx,
   // @ts-ignore
   f,
   e = 0,
-  pos = {},
+  // Define pos with x and y properties to fix the type error
+  pos: { x: number; y: number } = { x: 0, y: 0 },
   // @ts-ignore
   lines = [],
   E = {
