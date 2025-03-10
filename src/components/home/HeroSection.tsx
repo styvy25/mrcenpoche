@@ -28,7 +28,7 @@ const HeroSection = () => {
               </Link>
             </div>
           </div>
-          <div className="">
+          <div className="py-[93px] px-[240px] mx-[240px]">
             <div className="relative mx-auto w-full rounded-lg shadow-lg lg:max-w-md">
               <div className="relative block w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
                 <img className="w-full" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIHN0b3AtY29sb3I9IiMxRTg4RTUiIG9mZnNldD0iMCUiLz48c3RvcCBzdG9wLWNvbG9yPSIjMUQ0RUQ4IiBvZmZzZXQ9IjEwMCUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9InVybCgjYSkiIGQ9Ik0wIDBoNTAwdjMwMEgweiIvPjxjaXJjbGUgc3Ryb2tlPSIjRkZGIiBzdHJva2Utd2lkdGg9IjE1IiBjeD0iMjUwIiBjeT0iMTUwIiByPSI5MCIgb3BhY2l0eT0iLjkiLz48cmVjdCBmaWxsPSIjRUEzODRDIiB4PSIxMjUiIHk9IjEzNSIgd2lkdGg9IjI1MCIgaGVpZ2h0PSIzMCIvPjxyZWN0IGZpbGw9IiM0Q0FGNTAiIHg9IjIzNSIgeT0iMjUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIyNTAiLz48L2c+PC9zdmc+" alt="MRC LearnScape" />
