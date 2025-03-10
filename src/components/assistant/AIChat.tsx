@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { APIKeyForm } from "../settings/APIKeyForm";
@@ -80,7 +79,6 @@ const AIChat = () => {
     try {
       const videoInfo = await getVideoInfo(youtube, videoId);
       
-      // Ajouter un message système pour indiquer l'analyse de la vidéo
       const systemMessage: Message = {
         role: "assistant",
         content: `Analyse de la vidéo: "${videoInfo.title}"\n\nJe suis en train d'examiner le contenu de cette vidéo...`,
@@ -88,7 +86,6 @@ const AIChat = () => {
       };
       setMessages(prev => [...prev, systemMessage]);
 
-      // Demander à Perplexity d'analyser le contenu de la vidéo
       const prompt = `Analyse cette vidéo YouTube du MRC intitulée "${videoInfo.title}". 
                      Description: ${videoInfo.description}
                      ${videoInfo.transcript ? `Transcription: ${videoInfo.transcript}` : ''}
@@ -146,12 +143,10 @@ const AIChat = () => {
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Vérifier si la demande concerne des vidéos YouTube
     const youtubeKeywords = ["vidéo", "video", "youtube", "regarder", "voir", "discours", "interview", "conférence", "média"];
     const hasYoutubeIntent = youtubeKeywords.some(keyword => input.toLowerCase().includes(keyword.toLowerCase()));
     
     if (hasYoutubeIntent && youtube) {
-      // Extraire des termes de recherche potentiels
       const searchTerms = input.replace(/vidéo|video|youtube|regarder|voir|discours|interview|conférence|média/gi, '').trim();
       await handleYouTubeSearch(searchTerms || "MRC Cameroun");
     }
@@ -178,19 +173,56 @@ const AIChat = () => {
   };
 
   const handleGeneratePDF = () => {
+    if (messages.length <= 1) {
+      toast({
+        title: "Pas de contenu à exporter",
+        description: "Veuillez d'abord avoir une conversation avec l'assistant.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
     toast({
       title: "PDF en cours de génération",
-      description: "Votre document sera téléchargé automatiquement dans quelques instants.",
+      description: "Votre document sera " + (isMobile ? "ouvert" : "téléchargé") + " dans quelques instants.",
     });
     
-    // Simulate PDF generation
+    let content = "Conversation avec l'Assistant Styvy237\n\n";
+    messages.forEach(msg => {
+      const roleLabel = msg.role === 'user' ? 'Vous' : 'Assistant';
+      const timestamp = new Date(msg.timestamp).toLocaleString();
+      content += `${roleLabel} (${timestamp}):\n${msg.content}\n\n`;
+    });
+    
     setTimeout(() => {
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      
+      if (!isMobile) {
+        link.setAttribute('download', `conversation-${new Date().toISOString().slice(0, 10)}.txt`);
+      } else {
+        link.setAttribute('target', '_blank');
+      }
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
+      
       toast({
-        title: "PDF généré avec succès",
-        description: "Votre document a été téléchargé.",
+        title: "Exportation réussie",
+        description: isMobile ? 
+          "Votre conversation a été ouverte. Utilisez l'option de téléchargement de votre navigateur." :
+          "Votre conversation a été téléchargée.",
         variant: "default",
       });
-    }, 3000);
+    }, 2000);
   };
 
   return (
