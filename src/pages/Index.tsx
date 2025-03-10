@@ -1,4 +1,3 @@
-
 import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/home/HeroSection";
 import FeatureSection from "@/components/home/FeatureSection";
@@ -8,30 +7,24 @@ import { ChevronUp, Brain, Award, BookOpen, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-
 const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
-
   useEffect(() => {
     const checkScroll = () => {
       setShowScrollTop(window.scrollY > 500);
     };
-
     window.addEventListener("scroll", checkScroll);
     return () => window.removeEventListener("scroll", checkScroll);
   }, []);
-
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
       behavior: "smooth"
     });
   };
-
-  return (
-    <div className="min-h-screen">
+  return <div className="min-h-screen">
       <Navbar />
-      <main className="pt-16">
+      <main className="pt-16 bg-[#0d0d0d]/0">
         <HeroSection />
         <FeatureSection />
         
@@ -170,18 +163,9 @@ const Index = () => {
         </div>
       </footer>
 
-      {showScrollTop && (
-        <Button
-          variant="outline"
-          size="icon"
-          className="fixed bottom-8 right-8 rounded-full bg-mrc-blue text-white hover:bg-blue-700 shadow-lg z-50"
-          onClick={scrollToTop}
-        >
+      {showScrollTop && <Button variant="outline" size="icon" className="fixed bottom-8 right-8 rounded-full bg-mrc-blue text-white hover:bg-blue-700 shadow-lg z-50" onClick={scrollToTop}>
           <ChevronUp className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
-  );
+        </Button>}
+    </div>;
 };
-
 export default Index;
