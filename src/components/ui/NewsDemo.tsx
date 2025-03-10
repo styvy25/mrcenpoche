@@ -1,26 +1,26 @@
 
-import { News, type NewsArticle } from "./News";
+import { News, type NewsArticle } from "@/components/ui/News";
 
 const DEMO_ARTICLES: NewsArticle[] = [
   {
-    href: "https://dub.co/changelog/regions-support",
-    title: "Regions support in analytics",
-    summary: "You can now filter your analytics by regions",
-    image: "https://assets.dub.co/changelog/regions-support.png",
+    href: "https://example.com/news/1",
+    title: "Formations politiques disponibles",
+    summary: "Découvrez les nouvelles formations disponibles pour les militants",
+    image: "https://assets.example.com/news/formations.jpg",
   },
   {
-    href: "https://dub.co/blog/soc2",
-    title: "Dub is now SOC 2 Type II Compliant",
+    href: "https://example.com/news/2",
+    title: "Mise à jour des modules de formation",
     summary:
-      "We're excited to announce that Dub has successfully completed a SOC 2 Type II audit to further demonstrate our commitment to security.",
-    image: "https://assets.dub.co/blog/soc2.jpg",
+      "Nous avons amélioré nos modules de formation avec de nouveaux contenus interactifs.",
+    image: "https://assets.example.com/news/modules.jpg",
   },
   {
-    href: "https://dub.co/changelog/utm-templates",
-    title: "UTM Templates",
+    href: "https://example.com/news/3",
+    title: "Nouveaux badges de progression",
     summary:
-      "You can now create UTM templates to streamline UTM campaign management across your team.",
-    image: "https://assets.dub.co/changelog/utm-templates.jpg",
+      "Gagnez des badges en complétant vos modules de formation pour suivre votre progression.",
+    image: "https://assets.example.com/news/badges.jpg",
   },
 ];
 

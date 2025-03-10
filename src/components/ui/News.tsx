@@ -1,8 +1,6 @@
 
-"use client";
-
 import * as React from "react";
-import { useMediaQuery } from "@/hooks/use-mobile";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 
@@ -36,7 +34,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
       data-active={cardCount !== 0}
     >
       <div className="relative size-full">
-        {cards.toReversed().map(({ href, title, summary, image }, idx) => (
+        {cards.slice().reverse().map(({ href, title, summary, image }, idx) => (
           <div
             key={href}
             className={cn(
@@ -110,7 +108,7 @@ function NewsCard({
   href?: string;
   active?: boolean;
 }) {
-  const isMobile = window.innerWidth < 768;
+  const { isMobile } = useMediaQuery();
 
   const ref = React.useRef<HTMLDivElement>(null);
   const drag = React.useRef<{
@@ -237,7 +235,7 @@ function NewsCard({
             <img
               src={image}
               alt=""
-              className="rounded object-cover object-center w-full h-full"
+              className="absolute inset-0 h-full w-full rounded object-cover object-center"
               draggable={false}
             />
           )}

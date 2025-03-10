@@ -200,11 +200,10 @@ class QuizContainer extends React.Component<QuizContainerProps, QuizContainerSta
     );
   }
 
-  // Fix the error by removing the 'title' property and using children instead
   renderResultsScreen() {
-    const { quizResults, selectedAnswers, questions, restartQuiz, currentCategory } = this.state;
+    const { quizResults, currentCategory } = this.state;
     
-    if (!quizResults) return null;
+    if (!quizResults || !currentCategory) return null;
     
     const earnedBadges = this.calculateEarnedBadges(quizResults.score);
     
@@ -212,11 +211,16 @@ class QuizContainer extends React.Component<QuizContainerProps, QuizContainerSta
       <div className="flex flex-col items-center">
         <QuizResult 
           score={quizResults.score}
-          totalQuestions={questions.length}
-          categoryName={currentCategory?.label || ""}
-          onRestart={restartQuiz}
+          totalQuestions={currentCategory.questions.length}
+          categoryName={currentCategory.label || ""}
+          onRestart={this.restartQuiz}
+          result={{
+            score: (quizResults.score / currentCategory.questions.length) * 100,
+            correctAnswers: quizResults.score,
+            totalQuestions: currentCategory.questions.length,
+            unlockedBadges: []
+          }}
         >
-          {/* Use children prop instead of title */}
           Félicitations pour avoir terminé ce quiz !
         </QuizResult>
         
@@ -229,12 +233,12 @@ class QuizContainer extends React.Component<QuizContainerProps, QuizContainerSta
         
         <div className="mt-8 w-full max-w-2xl">
           <h3 className="text-xl font-bold mb-4 text-mrc-blue">Revue des questions</h3>
-          {questions.map((question, index) => (
+          {currentCategory.questions.map((question, index) => (
             <div key={index} className="mb-6 bg-white p-4 rounded-lg shadow">
               <QuizQuestionComponent
                 question={question}
                 onAnswer={() => {}}
-                selectedAnswer={selectedAnswers[index]}
+                selectedAnswer={this.state.selectedAnswers[index]}
                 showFeedback={true}
               />
             </div>
