@@ -4,13 +4,24 @@
  */
 
 // Re-export types
-export type { VideoInfo, YouTubeVideo } from './types';
+export * from './types';
 
 // Re-export search functionality
-export { searchMRCVideos } from './searchService';
+export { searchMRCVideos, isOnline, getVideoDetails } from './searchService';
 
 // Re-export video info functionality
-export { getVideoInfo } from './videoInfoService';
+export { getVideoInfo, getVideoTranscript } from './videoInfoService';
 
 // Re-export cache utilities
-export { refreshYouTubeCache, clearYouTubeCache } from './cacheUtilities';
+export { 
+  refreshYouTubeCache, 
+  clearYouTubeCache, 
+  testYouTubeApiKey 
+} from './cacheUtilities';
+
+// Re-export cache manager functions
+export {
+  retrieveVideoInfoFromCache,
+  cacheVideoInfo,
+  refreshCache
+} from './cacheManager';

@@ -26,3 +26,18 @@ export interface YouTubeSearchParams {
   channelId?: string;
 }
 
+// Error types for better error handling
+export enum YouTubeErrorType {
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  API_ERROR = 'API_ERROR',
+  QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
+  INVALID_API_KEY = 'INVALID_API_KEY',
+  CACHE_ERROR = 'CACHE_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+}
+
+export interface YouTubeError {
+  type: YouTubeErrorType;
+  message: string;
+  originalError?: any;
+}

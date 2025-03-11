@@ -1,5 +1,5 @@
 
-import { YouTubeVideo, VideoInfo } from './types';
+import { YouTubeVideo, VideoInfo, YouTubeErrorType } from './types';
 
 // Cache for video searches and information
 let videoSearchCache: Record<string, YouTubeVideo[]> = {};
@@ -36,10 +36,35 @@ export const cacheVideoInfo = (videoId: string, info: VideoInfo): void => {
 };
 
 /**
+ * Refresh cache by clearing it
+ * This will force new API calls to update data
+ */
+export const refreshCache = async (apiKey: string): Promise<void> => {
+  clearCache();
+  console.log("YouTube cache refreshed");
+};
+
+/**
  * Clear all YouTube caches
  */
 export const clearCache = (): void => {
   videoSearchCache = {};
   videoInfoCache = {};
   console.log("YouTube cache cleared");
+};
+
+/**
+ * Retrieve video info from cache if available
+ */
+export const retrieveVideoInfoFromCache = async (videoId: string): Promise<VideoInfo | null> => {
+  try {
+    return getCachedVideoInfo(videoId);
+  } catch (error) {
+    console.error("Error retrieving from cache:", error);
+    throw {
+      type: YouTubeErrorType.CACHE_ERROR,
+      message: "Erreur lors de la récupération des données du cache",
+      originalError: error
+    };
+  }
 };

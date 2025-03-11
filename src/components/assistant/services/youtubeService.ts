@@ -3,35 +3,71 @@
  * Service pour interagir avec l'API YouTube
  */
 
-import { searchVideos, getVideoDetails } from "./youtube/searchService";
 import { 
-  cacheVideoInfo, 
+  searchMRCVideos, 
+  getVideoInfo as getVideoInfoDirect,
+  getVideoDetails,
+  getVideoTranscript,
   retrieveVideoInfoFromCache,
-  refreshCache
-} from "./youtube/cacheManager";
-import { getVideoTranscript } from "./youtube/videoInfoService";
-import { VideoInfo, YouTubeVideo } from "./youtube/types";
+  cacheVideoInfo,
+  refreshCache,
+  YouTubeVideo, 
+  VideoInfo,
+  isOnline,
+  YouTubeErrorType
+} from "./youtube";
 
 // Re-export everything from the youtube module
 export * from './youtube';
 
 /**
- * Recherche des vidéos du MRC sur YouTube
+ * Recherche des vidéos du MRC sur YouTube avec gestion d'erreurs améliorée
  */
 export const searchMRCVideos = async (apiKey: string, query: string): Promise<YouTubeVideo[]> => {
   try {
-    return await searchVideos(apiKey, query);
-  } catch (error) {
+    // Check if online
+    if (!isOnline()) {
+      console.log("Device is offline. Using fallback videos.");
+      return (await import("./youtube")).searchMRCVideos(apiKey, query);
+    }
+
+    return await (await import("./youtube")).searchMRCVideos(apiKey, query);
+  } catch (error: any) {
     console.error("Error searching MRC videos:", error);
+    
+    // Handle specific error types
+    if (error.type) {
+      switch (error.type) {
+        case YouTubeErrorType.NETWORK_ERROR:
+          console.log("Network error, falling back to offline content");
+          // Attempt to get offline content
+          return (await import("./youtube/offlineData")).offlineVideos;
+        default:
+          // For other errors, return empty array
+          return [];
+      }
+    }
+    
     return [];
   }
 };
 
 /**
  * Récupère les informations d'une vidéo (title, description, transcript)
+ * avec gestion d'erreurs améliorée
  */
 export const getVideoInfo = async (apiKey: string, videoId: string): Promise<VideoInfo> => {
   try {
+    // Check if online
+    if (!isOnline()) {
+      console.log("Device is offline. Using fallback video info.");
+      return {
+        title: "Contenu MRC (Mode hors-ligne)",
+        description: "Ce contenu est disponible en mode hors-ligne. Connectez-vous à Internet pour accéder à plus de contenu.",
+        transcript: "Transcription non disponible en mode hors-ligne. Veuillez vous connecter à Internet pour accéder aux transcriptions."
+      };
+    }
+
     // Check cache first
     const cachedInfo = await retrieveVideoInfoFromCache(videoId);
     if (cachedInfo) {
@@ -52,8 +88,39 @@ export const getVideoInfo = async (apiKey: string, videoId: string): Promise<Vid
     await cacheVideoInfo(videoId, videoInfo);
     
     return videoInfo;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error getting video info:", error);
+    
+    // Handle specific error types for better user experience
+    if (error.type) {
+      switch (error.type) {
+        case YouTubeErrorType.NETWORK_ERROR:
+          return {
+            title: "Mode hors-ligne",
+            description: "Vous êtes actuellement hors-ligne. Reconnectez-vous pour accéder à cette vidéo.",
+            transcript: "Transcription non disponible en mode hors-ligne."
+          };
+        case YouTubeErrorType.QUOTA_EXCEEDED:
+          return {
+            title: "Quota API dépassé",
+            description: "Le quota quotidien pour l'API YouTube a été dépassé. Veuillez réessayer plus tard.",
+            transcript: "Transcription non disponible."
+          };
+        case YouTubeErrorType.INVALID_API_KEY:
+          return {
+            title: "Clé API invalide",
+            description: "La clé API YouTube utilisée est invalide. Veuillez vérifier vos paramètres.",
+            transcript: "Transcription non disponible."
+          };
+        default:
+          return {
+            title: "Erreur de chargement",
+            description: "Une erreur s'est produite lors du chargement des informations de la vidéo.",
+            transcript: "Transcription non disponible suite à une erreur."
+          };
+      }
+    }
+    
     return {
       title: "Video information unavailable",
       description: "Could not retrieve video details"
@@ -62,10 +129,16 @@ export const getVideoInfo = async (apiKey: string, videoId: string): Promise<Vid
 };
 
 /**
- * Rafraîchit le cache YouTube
+ * Rafraîchit le cache YouTube avec gestion d'erreurs améliorée
  */
 export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
   try {
+    // Check connection status first
+    if (!isOnline()) {
+      console.log("Cannot refresh cache while offline");
+      return false;
+    }
+    
     await refreshCache(apiKey);
     return true;
   } catch (error) {
