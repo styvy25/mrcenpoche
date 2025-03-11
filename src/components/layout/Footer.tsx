@@ -23,7 +23,7 @@ const Footer = () => {
                 <Github className="h-5 w-5" />
                 <span className="sr-only">Github</span>
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="mailto:styvysam1@yahoo.fr" className="text-gray-400 hover:text-white transition-colors">
                 <Mail className="h-5 w-5" />
                 <span className="sr-only">Mail</span>
               </a>
@@ -67,13 +67,13 @@ const Footer = () => {
               <p className="mb-2">Mouvement pour la Renaissance du Cameroun</p>
               <p className="mb-2">Yaoundé, Cameroun</p>
               <p className="mb-2">
-                <a href="mailto:contact@mrc-learnscape.cm" className="hover:text-white transition-colors">
-                  contact@mrc-learnscape.cm
+                <a href="mailto:styvysam1@yahoo.fr" className="hover:text-white transition-colors">
+                  styvysam1@yahoo.fr
                 </a>
               </p>
               <p>
-                <a href="tel:+237xxxxxxxx" className="hover:text-white transition-colors">
-                  +237 XX XX XX XX
+                <a href="tel:+4915566334864" className="hover:text-white transition-colors">
+                  +49 155 66334864
                 </a>
               </p>
             </address>
@@ -84,6 +84,17 @@ const Footer = () => {
           <p className="text-sm text-center text-gray-400">
             &copy; {currentYear} MRC LearnScape. Tous droits réservés.
           </p>
+          <div className="mt-4 flex justify-center space-x-6 text-sm">
+            <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
+              Conditions d'utilisation
+            </Link>
+            <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
+              Politique de confidentialité
+            </Link>
+            <Link to="/legal" className="text-gray-400 hover:text-white transition-colors">
+              Mentions légales
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

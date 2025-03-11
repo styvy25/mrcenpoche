@@ -1,6 +1,4 @@
 
-// Original file content plus the addition of startTime and endTime properties
-
 export interface QuizResult {
   correctAnswers: number;
   totalQuestions: number;
@@ -54,4 +52,43 @@ export interface Category {
   color: string;
   icon: string;
   description: string;
+}
+
+// Extended types for the quiz functionality
+export interface QuizQuestion {
+  id: string;
+  text: string;
+  question: string; // The actual question text
+  answers: Answer[];
+  correctAnswer: string; // ID of the correct answer
+  explanation?: string;
+  category?: string;
+  difficulty?: string;
+  imageSrc?: string;
+}
+
+export interface BadgeProps {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  threshold: number;
+  category: string;
+  icon?: string;
+  earnedAt?: Date;
+  condition?: (result: QuizResult) => boolean;
+}
+
+export interface AppointmentRequest {
+  title: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  participant?: {
+    name: string;
+    email: string;
+    phone?: string;
+  };
 }

@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sun, Moon, Newspaper } from "lucide-react";
+import { Menu, X, Sun, Moon, Newspaper, Settings } from "lucide-react";
+import { MenuContainer, MenuItem } from "@/components/ui/fluid-menu";
 
 interface NavbarProps {
   navEndElement?: React.ReactNode;
@@ -55,6 +56,42 @@ const Navbar = ({ navEndElement }: NavbarProps) => {
             </Button>
             {navEndElement}
           </div>
+          
+          {/* Fluid Menu - Visible on all screens */}
+          <div className="fixed bottom-6 right-6 z-50">
+            <MenuContainer>
+              <MenuItem 
+                icon={
+                  <div className="relative w-6 h-6">
+                    <div className="absolute inset-0 transition-all duration-300 ease-in-out origin-center opacity-100 scale-100 rotate-0 [div[data-expanded=true]_&]:opacity-0 [div[data-expanded=true]_&]:scale-0 [div[data-expanded=true]_&]:rotate-180">
+                      <Menu className="h-6 w-6" strokeWidth={1.5} />
+                    </div>
+                    <div className="absolute inset-0 transition-all duration-300 ease-in-out origin-center opacity-0 scale-0 -rotate-180 [div[data-expanded=true]_&]:opacity-100 [div[data-expanded=true]_&]:scale-100 [div[data-expanded=true]_&]:rotate-0">
+                      <X className="h-6 w-6" strokeWidth={1.5} />
+                    </div>
+                  </div>
+                } 
+              />
+              <MenuItem 
+                icon={<Link to="/"><span className="text-gray-600 dark:text-gray-300">Accueil</span></Link>}
+              />
+              <MenuItem 
+                icon={<Link to="/modules"><span className="text-gray-600 dark:text-gray-300">Modules</span></Link>} 
+              />
+              <MenuItem 
+                icon={<Link to="/assistant"><span className="text-gray-600 dark:text-gray-300">Assistant</span></Link>} 
+              />
+              <MenuItem 
+                icon={<Link to="/quiz"><span className="text-gray-600 dark:text-gray-300">Quiz</span></Link>} 
+              />
+              <MenuItem 
+                icon={<Settings className="h-6 w-6" onClick={() => {
+                  // Navigate to settings or open a settings modal
+                }} />} 
+              />
+            </MenuContainer>
+          </div>
+          
           <div className="-mr-2 flex items-center sm:hidden">
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
