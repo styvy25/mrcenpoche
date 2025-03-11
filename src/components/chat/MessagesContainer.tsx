@@ -30,16 +30,22 @@ const MessagesContainer = ({ messages, currentUserId, formatTime }: MessagesCont
   };
 
   return (
-    <ScrollArea className="flex-1 p-4">
-      <div className="space-y-4">
-        {messages.map((message) => (
-          <ChatMessage 
-            key={message.id}
-            message={message}
-            currentUserId={currentUserId}
-            formatTime={formatTime}
-          />
-        ))}
+    <ScrollArea className="flex-1 p-2 sm:p-4">
+      <div className="space-y-3">
+        {messages.length === 0 ? (
+          <div className="flex h-full items-center justify-center p-6 text-center text-gray-400">
+            <p>Aucun message. Commencez la conversation!</p>
+          </div>
+        ) : (
+          messages.map((message) => (
+            <ChatMessage 
+              key={message.id}
+              message={message}
+              currentUserId={currentUserId}
+              formatTime={formatTime}
+            />
+          ))
+        )}
         <div ref={messagesEndRef} />
       </div>
     </ScrollArea>
