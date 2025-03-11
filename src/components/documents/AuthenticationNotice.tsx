@@ -3,9 +3,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { AlertTriangle, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/components/auth/AuthContext";
 
 const AuthenticationNotice = () => {
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
 
   const handleShare = (platform: string) => {
     const url = window.location.href;
@@ -47,6 +49,11 @@ const AuthenticationNotice = () => {
       window.open(shareUrl, '_blank', 'noopener,noreferrer');
     }
   };
+
+  // If user is authenticated, we shouldn't render this component at all
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <Card className="w-full">
