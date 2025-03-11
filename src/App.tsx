@@ -10,6 +10,10 @@ import ModuleQuizPage from "./pages/ModuleQuizPage";
 import AuthPage from "./pages/AuthPage";
 import PaymentPage from "./pages/PaymentPage";
 import NewsPage from "./pages/NewsPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import LegalNoticesPage from "./pages/LegalNoticesPage";
+import CourseCreationPage from "./pages/CourseCreationPage";
 import { Toaster } from "./components/ui/toaster";
 
 function App() {
@@ -26,6 +30,10 @@ function App() {
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/legal-notices" element={<LegalNoticesPage />} />
+        <Route path="/courses/create" element={<CourseCreationPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

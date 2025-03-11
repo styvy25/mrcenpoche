@@ -71,17 +71,17 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4 text-mrc-blue">Légal</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="#" className="text-gray-400 hover:text-white transition-colors">
+                <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
                   Conditions d'utilisation
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-400 hover:text-white transition-colors">
+                <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
                   Politique de confidentialité
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-400 hover:text-white transition-colors">
+                <Link to="/legal-notices" className="text-gray-400 hover:text-white transition-colors">
                   Mentions légales
                 </Link>
               </li>
@@ -99,16 +99,15 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-mrc-blue">Contact</h3>
             <address className="text-sm text-gray-400 not-italic">
-              <p className="mb-2">Mouvement pour la Renaissance du Cameroun</p>
               <p className="mb-2">Yaoundé, Cameroun</p>
               <p className="mb-2">
-                <a href="mailto:contact@mrc-learnscape.com" className="hover:text-white transition-colors">
-                  contact@mrc-learnscape.com
+                <a href="mailto:styvysam1@yahoo.fr" className="hover:text-white transition-colors">
+                  styvysam1@yahoo.fr
                 </a>
               </p>
-              <p>
-                <a href="tel:+237123456789" className="hover:text-white transition-colors">
-                  +237 123 456 789
+              <p className="mb-2">
+                <a href="tel:+4915566334864" className="hover:text-white transition-colors">
+                  +49 155 66334864
                 </a>
               </p>
             </address>
