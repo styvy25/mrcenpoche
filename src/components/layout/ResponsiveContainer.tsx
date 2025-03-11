@@ -5,16 +5,18 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 interface ResponsiveContainerProps {
   children: React.ReactNode;
   className?: string;
+  fullWidth?: boolean;
 }
 
-const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({ 
+export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({ 
   children, 
-  className = ""
+  className = "",
+  fullWidth = false
 }) => {
   const { isMobile } = useMediaQuery("(max-width: 640px)");
   
   return (
-    <div className={`w-full px-4 ${isMobile ? 'py-2' : 'py-4 px-6'} ${className}`}>
+    <div className={`${fullWidth ? 'w-full' : 'max-w-7xl mx-auto'} ${isMobile ? 'px-3 py-3' : 'px-6 py-4'} ${className}`}>
       {children}
     </div>
   );

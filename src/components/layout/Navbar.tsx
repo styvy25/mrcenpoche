@@ -4,7 +4,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Sun, Moon } from "lucide-react";
 
-const Navbar = () => {
+interface NavbarProps {
+  navEndElement?: React.ReactNode;
+}
+
+const Navbar = ({ navEndElement }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -19,7 +23,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <span className="font-bold text-xl text-mrc-blue">MRC LearnScape</span>
+              <span className="font-bold text-xl text-mrc-blue">MRC en Poche</span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link to="/" className="border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
@@ -45,7 +49,7 @@ const Navbar = () => {
             >
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
-            <Button className="bg-mrc-blue hover:bg-blue-700 text-white">Connexion</Button>
+            {navEndElement}
           </div>
           <div className="-mr-2 flex items-center sm:hidden">
             <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
@@ -79,7 +83,7 @@ const Navbar = () => {
               >
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
-              <Button className="bg-mrc-blue hover:bg-blue-700 text-white">Connexion</Button>
+              {navEndElement}
             </div>
           </div>
         </div>

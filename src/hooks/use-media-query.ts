@@ -8,11 +8,18 @@ export function useMediaQuery(query: string = "(max-width: 768px)"): { isMobile:
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(query);
+    
     const handleResize = () => {
       setIsMobile(mediaQuery.matches);
     };
 
+    // Initial check
+    handleResize();
+    
+    // Add event listener
     mediaQuery.addEventListener('change', handleResize);
+    
+    // Clean up
     return () => mediaQuery.removeEventListener('change', handleResize);
   }, [query]);
 

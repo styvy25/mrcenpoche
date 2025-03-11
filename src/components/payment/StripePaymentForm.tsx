@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { CreditCard, Calendar, User, Lock } from 'lucide-react';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface PaymentFormProps {
   amount: number;
@@ -21,6 +22,7 @@ const StripePaymentForm: React.FC<PaymentFormProps> = ({
   onCancel
 }) => {
   const { toast } = useToast();
+  const { isMobile } = useMediaQuery("(max-width: 640px)");
   const [isLoading, setIsLoading] = useState(false);
   const [cardDetails, setCardDetails] = useState({
     cardNumber: '',
@@ -31,6 +33,25 @@ const StripePaymentForm: React.FC<PaymentFormProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Format card number with spaces
+    if (name === 'cardNumber') {
+      const formattedValue = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+      setCardDetails(prev => ({ ...prev, [name]: formattedValue }));
+      return;
+    }
+    
+    // Format expiry date with slash
+    if (name === 'cardExpiry') {
+      const cleaned = value.replace(/\D/g, '');
+      let formatted = cleaned;
+      if (cleaned.length > 2) {
+        formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
+      }
+      setCardDetails(prev => ({ ...prev, [name]: formatted }));
+      return;
+    }
+    
     setCardDetails(prev => ({ ...prev, [name]: value }));
   };
 
@@ -61,13 +82,13 @@ const StripePaymentForm: React.FC<PaymentFormProps> = ({
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
+      <CardHeader className={isMobile ? 'p-4' : 'p-6'}>
         <CardTitle>Paiement Sécurisé</CardTitle>
         <CardDescription>
           Montant à payer: {amount} {currency}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className={isMobile ? 'p-4' : 'p-6'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="cardName">Nom sur la carte</Label>
@@ -95,6 +116,7 @@ const StripePaymentForm: React.FC<PaymentFormProps> = ({
                 value={cardDetails.cardNumber}
                 onChange={handleChange}
                 className="pl-10"
+                maxLength={19}
                 required
               />
               <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -112,6 +134,7 @@ const StripePaymentForm: React.FC<PaymentFormProps> = ({
                   value={cardDetails.cardExpiry}
                   onChange={handleChange}
                   className="pl-10"
+                  maxLength={5}
                   required
                 />
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -128,6 +151,7 @@ const StripePaymentForm: React.FC<PaymentFormProps> = ({
                   value={cardDetails.cardCvc}
                   onChange={handleChange}
                   className="pl-10"
+                  maxLength={3}
                   required
                 />
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -136,11 +160,11 @@ const StripePaymentForm: React.FC<PaymentFormProps> = ({
           </div>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-between">
+      <CardFooter className={`flex justify-between ${isMobile ? 'p-4' : 'p-6'}`}>
         <Button variant="outline" onClick={onCancel} disabled={isLoading}>
           Annuler
         </Button>
-        <Button onClick={handleSubmit} disabled={isLoading}>
+        <Button onClick={handleSubmit} disabled={isLoading} className="bg-mrc-blue hover:bg-blue-700">
           {isLoading ? "Traitement..." : "Payer"}
         </Button>
       </CardFooter>

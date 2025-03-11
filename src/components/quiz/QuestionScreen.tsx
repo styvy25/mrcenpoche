@@ -35,7 +35,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
 
   return (
     <div className="flex flex-col items-center space-y-4">
-      <div className={`w-full transition-all duration-300 ${isMobile ? 'p-0' : 'p-2'}`}>
+      <div className={`w-full transition-all duration-300 ${isMobile ? 'px-2' : 'p-4'}`}>
         <QuizQuestionComponent
           question={currentQuestion}
           onAnswer={onAnswer}
@@ -44,11 +44,11 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
       </div>
       
       {selectedAnswer !== undefined && (
-        <div className={`mt-6 transition-all duration-300 transform ${animateButton ? 'scale-in' : 'opacity-0 scale-95'}`}>
+        <div className={`mt-4 md:mt-6 transition-all duration-300 transform ${animateButton ? 'scale-in' : 'opacity-0 scale-95'}`}>
           {!isLastQuestion ? (
             <Button 
               onClick={onNextQuestion} 
-              className="bg-mrc-blue hover:bg-blue-700 transition-colors flex items-center gap-2 px-6"
+              className="bg-mrc-blue hover:bg-blue-700 transition-colors flex items-center gap-2 px-4 md:px-6"
               size={isMobile ? "default" : "lg"}
             >
               <span>Question Suivante</span>
@@ -57,7 +57,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
           ) : (
             <Button 
               onClick={onCalculateResults}
-              className="bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2 px-6"
+              className="bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2 px-4 md:px-6"
               size={isMobile ? "default" : "lg"}
             >
               <span>Voir les résultats</span>
