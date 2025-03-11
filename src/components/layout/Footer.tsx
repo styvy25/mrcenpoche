@@ -15,11 +15,11 @@ const Footer = () => {
               Plateforme d'apprentissage immersive pour les militants du MRC avec assistance IA personnalisée.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://twitter.com/Mrc_Cameroun" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                 <Github className="h-5 w-5" />
                 <span className="sr-only">Github</span>
               </a>
@@ -82,7 +82,10 @@ const Footer = () => {
         
         <div className="mt-8 pt-8 border-t border-gray-800">
           <p className="text-sm text-center text-gray-400">
-            &copy; {currentYear} MRC LearnScape. Tous droits réservés.
+            &copy; {currentYear} MRC LearnScape. Tous droits réservés. 
+            <a href="https://mrcparty.net" target="_blank" rel="noopener noreferrer" className="ml-2 text-mrc-blue hover:underline">
+              Source: mrcparty.net
+            </a>
           </p>
           <div className="mt-4 flex justify-center space-x-6 text-sm">
             <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
