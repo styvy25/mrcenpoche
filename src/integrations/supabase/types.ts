@@ -274,6 +274,36 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys_config: {
+        Row: {
+          created_at: string | null
+          id: string
+          perplexity_key: string | null
+          stripe_key: string | null
+          updated_at: string | null
+          user_id: string
+          youtube_key: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          perplexity_key?: string | null
+          stripe_key?: string | null
+          updated_at?: string | null
+          user_id: string
+          youtube_key?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          perplexity_key?: string | null
+          stripe_key?: string | null
+          updated_at?: string | null
+          user_id?: string
+          youtube_key?: string | null
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           created_at: string | null

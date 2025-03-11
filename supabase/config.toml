@@ -1,1 +1,14 @@
+
 project_id = "ppdcwerrsmnngmmdgrcp"
+
+[api]
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[[api.cors.origins]]
+origin = "http://localhost:3000"
+
+[[api.cors.origins]]
+origin = "http://localhost:5173" # For Vite
