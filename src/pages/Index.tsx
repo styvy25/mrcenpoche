@@ -1,171 +1,133 @@
-import Navbar from "@/components/layout/Navbar";
+
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import HeroSection from "@/components/home/HeroSection";
 import FeatureSection from "@/components/home/FeatureSection";
 import PricingSection from "@/components/home/PricingSection";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ChevronUp, Brain, Award, BookOpen, MapPin } from "lucide-react";
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
-const Index = () => {
-  const [showScrollTop, setShowScrollTop] = useState(false);
-  useEffect(() => {
-    const checkScroll = () => {
-      setShowScrollTop(window.scrollY > 500);
-    };
-    window.addEventListener("scroll", checkScroll);
-    return () => window.removeEventListener("scroll", checkScroll);
-  }, []);
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-  };
-  return <div className="min-h-screen">
-      <Navbar />
-      <main className="pt-16 bg-[#0d0d0d]/0">
-        <HeroSection />
-        <FeatureSection />
-        
-        {/* Nouvelle section de quiz culturel */}
-        <section className="bg-gradient-to-br from-mrc-blue/5 to-mrc-yellow/10 py-0 px-0 mx-[4px]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-10">
-              <Badge className="mb-2 bg-mrc-blue text-white px-3 py-1 text-xs uppercase tracking-wider">
-                Nouveau
-              </Badge>
-              <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl mb-4">
-                Quiz Culturel Camerounais
-              </h2>
-              <p className="mt-3 max-w-2xl mx-auto text-lg text-gray-500">
-                Testez vos connaissances sur la culture, l'histoire et les traditions du Cameroun,
-                et gagnez des badges culturels exclusifs.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
-                <div className="p-5 flex flex-col h-full">
-                  <div className="flex items-center justify-center w-12 h-12 bg-blue-100 text-mrc-blue rounded-full mb-4">
-                    <Brain className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Questions Variées</h3>
-                  <p className="text-gray-600 flex-grow">
-                    Explorez une variété de questions sur la culture, l'histoire et les traditions camerounaises.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
-                <div className="p-5 flex flex-col h-full">
-                  <div className="flex items-center justify-center w-12 h-12 bg-red-100 text-mrc-red rounded-full mb-4">
-                    <Award className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Badges Culturels</h3>
-                  <p className="text-gray-600 flex-grow">
-                    Collectionnez des badges pour chaque niveau de connaissance atteint.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
-                <div className="p-5 flex flex-col h-full">
-                  <div className="flex items-center justify-center w-12 h-12 bg-green-100 text-mrc-green rounded-full mb-4">
-                    <BookOpen className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Apprentissage Ludique</h3>
-                  <p className="text-gray-600 flex-grow">
-                    Découvrez des anecdotes fascinantes et des explications détaillées pour chaque réponse.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <Link to="/quiz">
-                <Button className="bg-gradient-to-r from-mrc-blue to-blue-600 text-white hover:opacity-90 transition-opacity px-8 py-6 h-auto text-lg shadow-lg hover:shadow-xl">
-                  Participer au Quiz
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
-        
-        <PricingSection />
-      </main>
-      
-      <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <span className="w-8 h-8 flex items-center justify-center bg-mrc-blue text-white rounded-md mr-2">
-                  MRC
-                </span>
-                LearnScape
-              </h3>
-              <p className="text-gray-400 text-sm">
-                Plateforme d'apprentissage immersive pour les militants du MRC avec assistance IA personnalisée.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Liens rapides</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link to="/" className="hover:text-white transition-colors">Accueil</Link></li>
-                <li><Link to="/modules" className="hover:text-white transition-colors">Modules</Link></li>
-                <li><Link to="/assistant" className="hover:text-white transition-colors">Assistant IA</Link></li>
-                <li><Link to="/documents" className="hover:text-white transition-colors">Documents</Link></li>
-                <li><Link to="/quiz" className="hover:text-white transition-colors">Quiz Culturel</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Légal</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Conditions d'utilisation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Politique de confidentialité</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Mentions légales</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Contact</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li className="flex items-start">
-                  <MapPin className="h-4 w-4 mr-2 mt-0.5 text-mrc-red" />
-                  <span>Yaoundé, Cameroun</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-4 w-4 mr-2 text-mrc-blue" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                  </svg>
-                  <span>contact@mrc-learnscape.com</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-4 w-4 mr-2 text-mrc-green" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                  </svg>
-                  <span>+237 123 456 789</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-            <p className="relative z-10">© 2023 MRC LearnScape. Tous droits réservés.</p>
-            
-            {/* Drapeau camerounais stylisé en arrière-plan */}
-            <div className="absolute left-0 right-0 bottom-0 h-1.5 flex opacity-50 overflow-hidden">
-              <div className="w-1/3 bg-mrc-green mx-0 my-0 py-[9px]"></div>
-              <div className="w-1/3 bg-mrc-red"></div>
-              <div className="w-1/3 bg-mrc-yellow"></div>
-            </div>
-          </div>
-        </div>
-      </footer>
+import { BookOpen, FileText, BookMarked, News } from "lucide-react";
+import { MOCK_COURSES, COURSE_CATEGORIES } from "@/services/courseService";
+import { initializeLocalStorage } from "@/utils/localStorageUtils";
 
-      {showScrollTop && <Button variant="outline" size="icon" className="fixed bottom-8 right-8 rounded-full bg-mrc-blue text-white hover:bg-blue-700 shadow-lg z-50" onClick={scrollToTop}>
-          <ChevronUp className="h-4 w-4" />
-        </Button>}
-    </div>;
+const Home = () => {
+  const navigate = useNavigate();
+  
+  // Initialize localStorage with default data
+  useEffect(() => {
+    initializeLocalStorage(MOCK_COURSES, COURSE_CATEGORIES);
+  }, []);
+  
+  return (
+    <div className="overflow-hidden">
+      <HeroSection />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 className="text-3xl font-bold text-center mb-10 text-gray-900 dark:text-white">
+          Ressources de Formation
+        </h2>
+        
+        <Tabs defaultValue="courses" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="courses" className="flex items-center justify-center">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Cours
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="flex items-center justify-center">
+              <FileText className="h-4 w-4 mr-2" />
+              Documents
+            </TabsTrigger>
+            <TabsTrigger value="news" className="flex items-center justify-center">
+              <News className="h-4 w-4 mr-2" />
+              Actualités
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="courses" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="col-span-full md:col-span-1 bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                <h3 className="text-xl font-semibold mb-4 flex items-center">
+                  <BookMarked className="h-5 w-5 mr-2 text-mrc-blue" />
+                  Nos cours
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Explorez nos cours éducatifs sur la politique camerounaise et le MRC,
+                  conçus pour vous aider à mieux comprendre les enjeux et les positions du parti.
+                </p>
+                <ul className="space-y-2 mb-6">
+                  {COURSE_CATEGORIES.slice(0, 4).map(category => (
+                    <li key={category.id} className="flex items-start">
+                      <div className="h-5 w-5 text-green-500 mr-2 flex-shrink-0">
+                        <svg viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span>{category.name}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button onClick={() => navigate("/courses")} className="w-full">
+                  Voir tous les cours
+                </Button>
+              </div>
+              
+              <div className="col-span-full md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {MOCK_COURSES.slice(0, 4).map(course => (
+                  <div key={course.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow">
+                    <h4 className="font-semibold text-lg mb-2">{course.title}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                      {course.description}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <div className="text-xs text-gray-500">
+                        {new Date(course.lastUpdated).toLocaleDateString('fr-FR')}
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigate(`/courses`)}
+                      >
+                        Voir
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="documents" className="text-center py-8">
+            <div className="max-w-md mx-auto">
+              <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Documents et ressources</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Accédez à notre bibliothèque de documents, PDFs et ressources sur la politique camerounaise.
+              </p>
+              <Button onClick={() => navigate("/documents")}>
+                Explorer les documents
+              </Button>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="news" className="text-center py-8">
+            <div className="max-w-md mx-auto">
+              <News className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Actualités politiques</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Restez informé avec les dernières nouvelles et analyses politiques du Cameroun et du MRC.
+              </p>
+              <Button onClick={() => navigate("/news")}>
+                Voir les actualités
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+      
+      <FeatureSection />
+      <PricingSection />
+    </div>
+  );
 };
-export default Index;
+
+export default Home;
