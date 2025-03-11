@@ -9,56 +9,11 @@ import { Calendar, Users, Video, MapPin, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import AppointmentScheduler from "./AppointmentScheduler";
 import { Appointment } from "../quiz/types";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { UPCOMING_APPOINTMENTS } from "./appointment/appointmentData";
 
-// Example upcoming events data
-const UPCOMING_EVENTS: Appointment[] = [
-  {
-    id: "evt-1",
-    title: "Formation sur les techniques de mobilisation",
-    description: "Atelier pour apprendre à mobiliser efficacement dans votre localité",
-    type: "public",
-    date: new Date(new Date().setDate(new Date().getDate() + 1)),
-    startTime: new Date(new Date().setDate(new Date().getDate() + 1)),
-    endTime: new Date(new Date().setHours(new Date().getHours() + 2)),
-    duration: 120,
-    status: "confirmed",
-    participantsCount: 12,
-    maxParticipants: 25,
-    isVirtual: true,
-    link: "https://meet.google.com/abc-defg-hij"
-  },
-  {
-    id: "evt-2",
-    title: "Principes fondamentaux du MRC",
-    description: "Une introduction complète à l'idéologie et aux valeurs du MRC",
-    type: "public",
-    date: new Date(new Date().setDate(new Date().getDate() + 3)),
-    startTime: new Date(new Date().setDate(new Date().getDate() + 3)),
-    endTime: new Date(new Date().setDate(new Date().getDate() + 3)),
-    duration: 90,
-    status: "confirmed",
-    participantsCount: 8,
-    maxParticipants: 30,
-    isVirtual: false,
-    location: "Siège MRC, Yaoundé"
-  },
-  {
-    id: "evt-3",
-    title: "Stratégies de communication politique",
-    description: "Comment communiquer efficacement les idées du MRC",
-    type: "public",
-    date: new Date(new Date().setDate(new Date().getDate() + 5)),
-    startTime: new Date(new Date().setDate(new Date().getDate() + 5)),
-    endTime: new Date(new Date().setDate(new Date().getDate() + 5)),
-    duration: 60,
-    status: "confirmed",
-    participantsCount: 15,
-    maxParticipants: 20,
-    isVirtual: true,
-    link: "https://zoom.us/j/123456789"
-  }
-];
+// Renamed to avoid conflict with the imported constant
+const UPCOMING_EVENTS = UPCOMING_APPOINTMENTS;
 
 const UpcomingEventsWidget = () => {
   const [showScheduler, setShowScheduler] = useState(false);

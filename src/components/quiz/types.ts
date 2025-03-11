@@ -88,9 +88,9 @@ export interface Appointment {
   title: string;
   description: string;
   type?: string;
-  date?: Date;
-  startTime?: Date;
-  endTime?: Date;
+  date: Date;
+  startTime: Date;
+  endTime: Date;
   duration?: number;
   status?: string;
   participantsCount?: number;
