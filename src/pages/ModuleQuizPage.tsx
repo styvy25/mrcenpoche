@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import MainLayout from "@/components/layout/MainLayout";
+import MainLayout from "../components/layout/MainLayout";
 import QuizContent from "@/components/modules/QuizContent";
 import QuizGrid from "@/components/modules/QuizGrid";
 import { useToast } from "@/components/ui/use-toast";

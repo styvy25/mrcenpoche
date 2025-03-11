@@ -10,7 +10,6 @@ import ModuleQuizPage from "./pages/ModuleQuizPage";
 import AuthPage from "./pages/AuthPage";
 import PaymentPage from "./pages/PaymentPage";
 import { Toaster } from "./components/ui/toaster";
-import MainLayout from "./components/layout/MainLayout";
 
 function App() {
   return (

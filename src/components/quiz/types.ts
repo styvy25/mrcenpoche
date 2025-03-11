@@ -68,32 +68,34 @@ export interface BadgesDisplayProps {
 
 // Appointment types for challenge features
 export interface AppointmentRequest {
-  id: string;
-  userId: string;
-  requestType: string;
-  status: string;
-  requestDate: Date;
-  details: string;
+  id?: string;
+  userId?: string;
+  requestType?: string;
+  status?: string;
+  requestDate?: Date;
+  details?: string;
   name?: string;
   email?: string;
   phone?: string;
+  preferredDate?: Date;
   topic?: string;
   message?: string;
+  type?: "private" | "public";
 }
 
 export interface Appointment {
   id: string;
   title: string;
-  startTime: Date;
-  endTime: Date;
+  description: string;
   type?: string;
-  location?: string;
-  description?: string;
   date?: Date;
-  isVirtual?: boolean;
-  link?: string;
-  participantsCount?: number;
-  maxParticipants?: number;
+  startTime?: Date;
+  endTime?: Date;
   duration?: number;
   status?: string;
+  participantsCount?: number;
+  maxParticipants?: number;
+  isVirtual?: boolean;
+  link?: string;
+  location?: string;
 }

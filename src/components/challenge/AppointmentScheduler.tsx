@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -32,6 +31,8 @@ const UPCOMING_APPOINTMENTS: Appointment[] = [
     description: "Atelier pour apprendre à mobiliser efficacement dans votre localité",
     type: "public",
     date: new Date(new Date().setDate(new Date().getDate() + 3)),
+    startTime: new Date(new Date().setDate(new Date().getDate() + 3)),
+    endTime: new Date(new Date().setDate(new Date().getDate() + 3)),
     duration: 120,
     status: "confirmed",
     participantsCount: 12,
@@ -45,6 +46,8 @@ const UPCOMING_APPOINTMENTS: Appointment[] = [
     description: "Une introduction complète à l'idéologie et aux valeurs du MRC",
     type: "public",
     date: new Date(new Date().setDate(new Date().getDate() + 5)),
+    startTime: new Date(new Date().setDate(new Date().getDate() + 5)),
+    endTime: new Date(new Date().setDate(new Date().getDate() + 5)),
     duration: 90,
     status: "confirmed",
     participantsCount: 8,
@@ -58,6 +61,8 @@ const UPCOMING_APPOINTMENTS: Appointment[] = [
     description: "Comment communiquer efficacement les idées du MRC",
     type: "public",
     date: new Date(new Date().setDate(new Date().getDate() + 7)),
+    startTime: new Date(new Date().setDate(new Date().getDate() + 7)),
+    endTime: new Date(new Date().setDate(new Date().getDate() + 7)),
     duration: 60,
     status: "confirmed",
     participantsCount: 15,
@@ -79,7 +84,6 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
     name: "",
     email: "",
     phone: "",
-    type: "private",
     preferredDate: new Date(),
     topic: "",
     message: ""
@@ -96,7 +100,7 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
 
   const handleAppointmentTypeChange = (value: "private" | "public") => {
     setAppointmentType(value);
-    setFormData(prev => ({ ...prev, type: value }));
+    setFormData(prev => ({ ...prev, requestType: value }));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -111,16 +115,13 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Here you would typically send the data to your backend
     console.log("Appointment request:", formData);
     
-    // Show success message
     toast({
       title: "Demande envoyée !",
       description: "Votre demande de rendez-vous a été enregistrée. Styvy-237 vous contactera bientôt.",
     });
     
-    // Move to confirmation step
     setStep("confirmation");
   };
 
