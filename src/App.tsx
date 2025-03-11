@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ModuleQuizPage from "./pages/ModuleQuizPage";
 import AuthPage from "./pages/AuthPage";
 import PaymentPage from "./pages/PaymentPage";
+import NewsPage from "./pages/NewsPage";
 import { Toaster } from "./components/ui/toaster";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="/modules/quiz" element={<ModuleQuizPage />} />
         <Route path="/modules/quiz/:moduleId" element={<ModuleQuizPage />} />
         <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/news" element={<NewsPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
