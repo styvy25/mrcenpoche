@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import ModuleActionButtons from './ModuleActionButtons';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 interface ModuleLessonContentProps {
@@ -292,6 +295,21 @@ const getLessonContent = (moduleId: string, lessonId: string | null): { title: s
 const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({ moduleId, lessonId }) => {
   const { toast } = useToast();
   const { title, content } = getLessonContent(moduleId, lessonId);
+  const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Effet pour animer les éléments du contenu lors du chargement
+  useEffect(() => {
+    if (contentRef.current && lessonId) {
+      const elements = contentRef.current.querySelectorAll('h2, h3, p, ul, ol, blockquote');
+      
+      elements.forEach((element, index) => {
+        // Ajouter une classe pour l'animation
+        element.classList.add('editorial-fade-in');
+        // Ajouter un délai croissant pour chaque élément
+        (element as HTMLElement).style.animationDelay = `${index * 0.1}s`;
+      });
+    }
+  }, [lessonId, content]);
   
   const handleBookmark = () => {
     toast({
@@ -330,7 +348,7 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({ moduleId, les
   };
   
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6 transition-colors duration-300">
       {!lessonId ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
@@ -339,8 +357,9 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({ moduleId, les
         </div>
       ) : (
         <>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">{title}</h2>
+          <h2 className="text-2xl font-bold text-mrc-blue dark:text-blue-400 mb-6 pb-2 border-b border-gray-200 dark:border-gray-800">{title}</h2>
           <div 
+            ref={contentRef}
             className="prose dark:prose-invert max-w-none"
             dangerouslySetInnerHTML={{ __html: content }} 
           />
