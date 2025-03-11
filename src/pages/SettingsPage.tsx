@@ -1,13 +1,15 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Bell, AlertCircle } from "lucide-react";
+import APIKeyManager from "@/components/settings/APIKeyManager";
+import AppearanceSection from "@/components/settings/sections/AppearanceSection";
+import AccountSection from "@/components/settings/sections/AccountSection";
+import { Bell, Key, Palette, UserCircle, AlertCircle } from "lucide-react";
+import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import APIKeyManager from "@/components/settings/APIKeyManager";
 
 const SettingsPage = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
@@ -34,16 +36,28 @@ const SettingsPage = () => {
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-2">Paramètres</h1>
         <p className="text-gray-500 dark:text-gray-400">
-          Gérez vos paramètres et préférences d'application.
+          Gérez vos paramètres et préférences d'application
         </p>
       </div>
 
       <Tabs defaultValue="api-keys" className="w-full">
         <TabsList className="mb-4 flex flex-wrap">
-          <TabsTrigger value="api-keys">Clés API</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="account">Compte</TabsTrigger>
-          <TabsTrigger value="appearance">Apparence</TabsTrigger>
+          <TabsTrigger value="api-keys" className="flex items-center gap-2">
+            <Key className="h-4 w-4" />
+            Clés API
+          </TabsTrigger>
+          <TabsTrigger value="account" className="flex items-center gap-2">
+            <UserCircle className="h-4 w-4" />
+            Compte
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger value="appearance" className="flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            Apparence
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="api-keys">
@@ -52,7 +66,6 @@ const SettingsPage = () => {
               <h2 className="text-xl font-semibold">Configuration des API</h2>
             </div>
             <Separator className="my-2" />
-
             <APIKeyManager />
 
             <Card>
@@ -93,6 +106,10 @@ const SettingsPage = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="account">
+          <AccountSection />
         </TabsContent>
 
         <TabsContent value="notifications">
@@ -164,36 +181,8 @@ const SettingsPage = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="account">
-          <Card>
-            <CardHeader>
-              <CardTitle>Compte</CardTitle>
-              <CardDescription>
-                Paramètres de votre compte.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">
-                Les paramètres du compte seront disponibles prochainement.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="appearance">
-          <Card>
-            <CardHeader>
-              <CardTitle>Apparence</CardTitle>
-              <CardDescription>
-                Personnalisez l'apparence de l'application.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">
-                Les paramètres d'apparence seront disponibles prochainement.
-              </p>
-            </CardContent>
-          </Card>
+          <AppearanceSection />
         </TabsContent>
       </Tabs>
     </div>
