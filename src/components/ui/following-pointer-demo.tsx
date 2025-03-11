@@ -1,7 +1,28 @@
 
 import React from "react";
-import Image from "next/image";
 import { FollowerPointerCard } from "@/components/ui/following-pointer";
+
+// Custom Image component to replace Next.js Image
+const Image = ({ src, alt, className, width, height }: { 
+  src: string; 
+  alt: string; 
+  className?: string; 
+  width?: string | number;
+  height?: string | number;
+  layout?: string;
+  objectFit?: string;
+}) => (
+  <img 
+    src={src} 
+    alt={alt} 
+    className={className} 
+    style={{ 
+      width: width ? `${width}px` : '100%', 
+      height: height ? `${height}px` : 'auto',
+      objectFit: 'cover'
+    }} 
+  />
+);
 
 export function FollowingPointerDemo() {
   return (
@@ -19,9 +40,7 @@ export function FollowingPointerDemo() {
             <Image
               src={'https://ui.aceternity.com/_next/image?url=%2Fdemo%2Fthumbnail.png&w=3840&q=75'}
               alt="thumbnail"
-              layout="fill"
-              objectFit="cover"
-              className={`group-hover:scale-95 group-hover:rounded-2xl transform object-cover transition duration-200 `}
+              className="group-hover:scale-95 group-hover:rounded-2xl transform object-cover transition duration-200"
             />
           </div>
           <div className="p-4">
@@ -65,9 +84,9 @@ const TitleComponent = ({
   <div className="flex space-x-2 items-center">
     <Image
       src={avatar}
-      height={20}
-      width={20}
       alt="thumbnail"
+      width={20}
+      height={20}
       className="rounded-full border-2 border-white"
     />
     <p>{title}</p>
