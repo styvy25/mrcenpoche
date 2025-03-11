@@ -10,6 +10,7 @@ import QuizPage from "./pages/QuizPage";
 import MatchGame from "./components/quiz/matches/MatchGame";
 import MatchResults from "./components/quiz/matches/MatchResults";
 import Index from './pages/Index';
+import PaymentPage from './pages/PaymentPage';
 
 // Initialize Stripe
 const stripePromise = loadStripe('pk_test_placeholder');
@@ -76,6 +77,7 @@ function App() {
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/quiz-match/:matchId" element={<MatchGame />} />
               <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
+              <Route path="/payment" element={<PaymentPage />} />
             </Routes>
           </Router>
         </Elements>
