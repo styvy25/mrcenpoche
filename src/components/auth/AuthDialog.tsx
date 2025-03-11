@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/custom-dialog";
-import { User, LogIn } from "lucide-react";
+import { User, LogIn, Shield } from "lucide-react";
 
 interface AuthUser {
   id: string;
@@ -23,6 +23,7 @@ interface AuthUser {
   password: string;
   avatar?: string;
   createdAt: string;
+  lastLogin?: string;
 }
 
 interface AuthState {
@@ -30,10 +31,28 @@ interface AuthState {
   user: AuthUser | null;
 }
 
+interface AuthContextType {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  login: (email: string, password: string, remember: boolean) => boolean;
+  register: (username: string, email: string, password: string) => boolean;
+  logout: () => void;
+  updateLastLogin: () => void;
+}
+
 const LOCAL_STORAGE_AUTH_KEY = "mrc_learnscape_auth";
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Custom hook pour la gestion de l'authentification
 export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     user: null,
@@ -42,16 +61,30 @@ export const useAuth = () => {
 
   // Vérifier si l'utilisateur est déjà connecté au chargement
   useEffect(() => {
-    const storedAuth = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
-    if (storedAuth) {
-      try {
-        const parsedAuth = JSON.parse(storedAuth);
-        setAuthState(parsedAuth);
-      } catch (error) {
-        console.error("Failed to parse auth data:", error);
-        localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+    const checkAuth = () => {
+      const storedAuth = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY) || 
+                        sessionStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
+      
+      if (storedAuth) {
+        try {
+          const parsedAuth = JSON.parse(storedAuth);
+          setAuthState(parsedAuth);
+        } catch (error) {
+          console.error("Failed to parse auth data:", error);
+          localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+          sessionStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+        }
       }
-    }
+    };
+    
+    checkAuth();
+    
+    // Vérifier l'authentification quand la fenêtre gagne le focus
+    window.addEventListener('focus', checkAuth);
+    
+    return () => {
+      window.removeEventListener('focus', checkAuth);
+    };
   }, []);
 
   const login = (email: string, password: string, remember: boolean = false) => {
@@ -68,9 +101,21 @@ export const useAuth = () => {
     const user = users.find(u => u.email === email && u.password === password);
     
     if (user) {
+      // Update last login time
+      const updatedUser = {
+        ...user,
+        lastLogin: new Date().toISOString()
+      };
+      
+      // Update user in storage
+      const updatedUsers = users.map(u => 
+        u.id === updatedUser.id ? updatedUser : u
+      );
+      localStorage.setItem("mrc_learnscape_users", JSON.stringify(updatedUsers));
+      
       const newAuthState = {
         isAuthenticated: true,
-        user,
+        user: updatedUser,
       };
       
       setAuthState(newAuthState);
@@ -127,6 +172,7 @@ export const useAuth = () => {
       email,
       password,
       createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
     };
     
     // Ajouter l'utilisateur et sauvegarder
@@ -164,14 +210,60 @@ export const useAuth = () => {
       description: "À bientôt !",
     });
   };
-
-  return {
-    user: authState.user,
-    isAuthenticated: authState.isAuthenticated,
-    login,
-    register,
-    logout
+  
+  const updateLastLogin = () => {
+    if (authState.user) {
+      // Update last login time
+      const updatedUser = {
+        ...authState.user,
+        lastLogin: new Date().toISOString()
+      };
+      
+      // Update user in local storage
+      const storedUsers = localStorage.getItem("mrc_learnscape_users") || "[]";
+      let users: AuthUser[] = [];
+      
+      try {
+        users = JSON.parse(storedUsers);
+        const updatedUsers = users.map(u => 
+          u.id === updatedUser.id ? updatedUser : u
+        );
+        localStorage.setItem("mrc_learnscape_users", JSON.stringify(updatedUsers));
+        
+        // Update auth state
+        const newAuthState = {
+          isAuthenticated: true,
+          user: updatedUser,
+        };
+        
+        setAuthState(newAuthState);
+        
+        // Update in local/session storage
+        if (localStorage.getItem(LOCAL_STORAGE_AUTH_KEY)) {
+          localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(newAuthState));
+        } else if (sessionStorage.getItem(LOCAL_STORAGE_AUTH_KEY)) {
+          sessionStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(newAuthState));
+        }
+      } catch (error) {
+        console.error("Failed to update last login:", error);
+      }
+    }
   };
+
+  return (
+    <AuthContext.Provider 
+      value={{ 
+        user: authState.user, 
+        isAuthenticated: authState.isAuthenticated,
+        login,
+        register,
+        logout,
+        updateLastLogin
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 // Composant de dialogue d'authentification
@@ -211,8 +303,9 @@ const AuthDialog = () => {
     return (
       <div className="flex items-center gap-2">
         <span className="text-sm hidden md:inline-block">{user?.username}</span>
-        <Button variant="outline" size="sm" onClick={logout}>
-          Déconnexion
+        <Button variant="outline" size="sm" onClick={logout} className="flex items-center gap-1">
+          <Shield className="h-3.5 w-3.5" />
+          <span className="hidden md:inline-block">Déconnexion</span>
         </Button>
       </div>
     );
@@ -221,8 +314,8 @@ const AuthDialog = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <LogIn className="h-4 w-4 mr-2" />
+        <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <LogIn className="h-3.5 w-3.5" />
           <span className="hidden md:inline-block">Connexion</span>
         </Button>
       </DialogTrigger>
