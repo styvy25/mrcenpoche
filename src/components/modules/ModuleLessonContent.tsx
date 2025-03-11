@@ -5,15 +5,29 @@ import { getLessonContent } from './utils/lessonContentUtil';
 import LessonEmptyState from './LessonEmptyState';
 import LessonContent from './LessonContent';
 import LessonActionButtons from './LessonActionButtons';
+import { Lesson } from "./types";
 
 interface ModuleLessonContentProps {
-  moduleId: string;
-  lessonId: string | null;
+  moduleId?: string;
+  lessonId?: string | null;
+  activeLesson?: Lesson | null;
+  onMarkComplete?: (lessonId: number) => void;
 }
 
-const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({ moduleId, lessonId }) => {
+const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({ 
+  moduleId, 
+  lessonId, 
+  activeLesson, 
+  onMarkComplete 
+}) => {
   const { toast } = useToast();
-  const { title, content } = getLessonContent(moduleId, lessonId);
+  const contentInfo = moduleId && lessonId 
+    ? getLessonContent(moduleId, lessonId)
+    : activeLesson 
+      ? { title: activeLesson.title, content: activeLesson.content }
+      : { title: "", content: "" };
+  
+  const { title, content } = contentInfo;
   
   const handleBookmark = () => {
     toast({
@@ -29,6 +43,10 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({ moduleId, les
       description: `Félicitations ! Vous avez terminé la leçon "${title}".`,
       variant: "default"
     });
+    
+    if (onMarkComplete && activeLesson) {
+      onMarkComplete(Number(activeLesson.id));
+    }
   };
   
   const handleShare = () => {
@@ -53,7 +71,7 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({ moduleId, les
   
   return (
     <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6 transition-colors duration-300">
-      {!lessonId ? (
+      {!lessonId && !activeLesson ? (
         <LessonEmptyState title={title} content={content} />
       ) : (
         <>

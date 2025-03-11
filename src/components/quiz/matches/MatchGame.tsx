@@ -26,11 +26,11 @@ const MatchGame: React.FC = () => {
   useEffect(() => {
     if (!matchId) return;
     
-    const match = getMatch(matchId);
-    if (match) {
-      setMatch(match);
-      // Pour simplifier, on prend le premier participant (qui est le créateur)
-      setParticipant(match.participants[0]);
+    const fetchedMatch = getMatch(matchId);
+    if (fetchedMatch) {
+      setMatch(fetchedMatch);
+      // For simplicity, take the first participant (who is the creator)
+      setParticipant(fetchedMatch.participants[0]);
     } else {
       toast.error("Match introuvable");
       navigate("/quiz");
@@ -54,9 +54,9 @@ const MatchGame: React.FC = () => {
       setShowScoreAnimation(false);
     }, 1500);
     
-    if (participant) {
+    if (participant && matchId) {
       const updatedMatch = updateScore(
-        matchId!, 
+        matchId, 
         participant.id, 
         earnedPoints,
         isCorrect
@@ -64,7 +64,7 @@ const MatchGame: React.FC = () => {
       
       if (updatedMatch) {
         setMatch(updatedMatch);
-        // Mettre à jour le participant actuel
+        // Update the current participant
         const updatedParticipant = updatedMatch.participants.find(p => p.id === participant.id);
         if (updatedParticipant) {
           setParticipant(updatedParticipant);
@@ -79,10 +79,10 @@ const MatchGame: React.FC = () => {
     if (currentQuestionIndex < (match?.questions.length || 0) - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Fin du jeu
-      if (match) {
-        completeMatch(match.id);
-        navigate(`/quiz-match/${match.id}/results`);
+      // End of game
+      if (match && matchId) {
+        completeMatch(matchId);
+        navigate(`/quiz-match/${matchId}/results`);
       }
     }
   };

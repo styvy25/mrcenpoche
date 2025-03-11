@@ -5,5 +5,4 @@ export { generateCourseContent } from './perplexityCourse';
 export { searchYouTubeVideos } from './perplexityYoutube';
 
 // Export types
-import type { CourseContent } from './perplexity/types';
-export type { CourseContent };
+export type { PerplexityMessage, PerplexityRequestOptions, PerplexityRequest } from './perplexity/types';

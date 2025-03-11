@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,10 +28,10 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ onClose }) => {
 
     setLoading(true);
     try {
-      const match = await createMatch(title, category, name);
+      const match = createMatch(title, category, name);
       if (match) {
         const whatsappLink = generateWhatsAppInvite(match.id, category, name);
-        // Stocker le lien d'invitation
+        // Store the invite link
         const matches = JSON.parse(localStorage.getItem('mrc_matches') || '[]');
         const matchIndex = matches.findIndex((m: any) => m.id === match.id);
         if (matchIndex !== -1) {

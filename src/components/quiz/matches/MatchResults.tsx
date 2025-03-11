@@ -18,9 +18,9 @@ const MatchResults: React.FC = () => {
   useEffect(() => {
     if (!matchId) return;
     
-    const match = getMatch(matchId);
-    if (match) {
-      setMatch(match);
+    const fetchedMatch = getMatch(matchId);
+    if (fetchedMatch) {
+      setMatch(fetchedMatch);
     } else {
       toast.error("Match introuvable");
       navigate("/quiz");
@@ -55,7 +55,7 @@ const MatchResults: React.FC = () => {
     );
   }
 
-  // Trier les participants par score décroissant
+  // Sort participants by score in descending order
   const sortedParticipants = [...match.participants].sort((a, b) => b.score - a.score);
   const winner = sortedParticipants[0];
 
