@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Key } from "lucide-react";
+import { Key, CreditCard } from "lucide-react";
 import { testPerplexityApiKey } from "../assistant/services/perplexityChat";
-import { refreshYouTubeCache } from "../assistant/services/youtubeService";
+import { refreshYouTubeCache, testYouTubeApiKey } from "../assistant/services/youtube";
 import APIKeyInput from "./APIKeyInput";
 import APIKeyActions from "./APIKeyActions";
 import OfflineFeaturesCard from "./OfflineFeaturesCard";
@@ -12,15 +12,18 @@ import OfflineFeaturesCard from "./OfflineFeaturesCard";
 interface ApiKeyStatus {
   perplexity: boolean;
   youtube: boolean;
+  stripe: boolean;
 }
 
 const APIKeyManager = () => {
   const [perplexityKey, setPerplexityKey] = useState("");
   const [youtubeKey, setYoutubeKey] = useState("");
+  const [stripeKey, setStripeKey] = useState("");
   const [isTesting, setIsTesting] = useState(false);
   const [keyStatus, setKeyStatus] = useState<ApiKeyStatus>({
     perplexity: false,
-    youtube: false
+    youtube: false,
+    stripe: false
   });
   const { toast } = useToast();
 
@@ -38,6 +41,10 @@ const APIKeyManager = () => {
           setYoutubeKey(keys.youtube);
           setKeyStatus(prev => ({ ...prev, youtube: true }));
         }
+        if (keys.stripe) {
+          setStripeKey(keys.stripe);
+          setKeyStatus(prev => ({ ...prev, stripe: true }));
+        }
       }
     } catch (error) {
       console.error("Error loading API keys:", error);
@@ -46,10 +53,11 @@ const APIKeyManager = () => {
 
   const saveKeys = () => {
     try {
-      // Store both keys
+      // Store all keys
       const keys = {
         perplexity: perplexityKey,
-        youtube: youtubeKey
+        youtube: youtubeKey,
+        stripe: stripeKey
       };
       
       localStorage.setItem("api_keys", JSON.stringify(keys));
@@ -74,6 +82,12 @@ const APIKeyManager = () => {
     }
   };
 
+  const testStripeKey = async (key: string) => {
+    // Une clé Stripe valide commence généralement par "sk_" pour une clé secrète
+    // ou "pk_" pour une clé publique
+    return key.startsWith("sk_") || key.startsWith("pk_");
+  };
+
   const handleSaveKeys = async () => {
     setIsTesting(true);
     
@@ -84,28 +98,43 @@ const APIKeyManager = () => {
         perplexityStatus = await testPerplexityApiKey(perplexityKey);
       }
       
-      // We don't have a test for YouTube yet, so we'll assume it's valid if provided
-      const youtubeStatus = youtubeKey.trim().length > 0;
+      // Test YouTube API key if provided
+      let youtubeStatus = false;
+      if (youtubeKey) {
+        youtubeStatus = await testYouTubeApiKey(youtubeKey);
+      }
+      
+      // Test Stripe API key if provided
+      let stripeStatus = false;
+      if (stripeKey) {
+        stripeStatus = await testStripeKey(stripeKey);
+      }
       
       // Update status
       setKeyStatus({
         perplexity: perplexityStatus,
-        youtube: youtubeStatus
+        youtube: youtubeStatus,
+        stripe: stripeStatus
       });
       
       // Save the keys regardless of test result
       saveKeys();
       
-      // Try to refresh YouTube cache if key is provided
+      // Try to refresh YouTube cache if key is valid
       if (youtubeStatus) {
         refreshYouTubeCache(youtubeKey);
       }
       
       // Show appropriate toast based on test results
-      if (perplexityStatus || youtubeStatus) {
+      const activeServices = [];
+      if (perplexityStatus) activeServices.push('Perplexity');
+      if (youtubeStatus) activeServices.push('YouTube');
+      if (stripeStatus) activeServices.push('Stripe');
+      
+      if (activeServices.length > 0) {
         toast({
           title: "Configuration réussie",
-          description: `Les services suivants sont actifs: ${perplexityStatus ? 'Perplexity' : ''}${perplexityStatus && youtubeStatus ? ', ' : ''}${youtubeStatus ? 'YouTube' : ''}`,
+          description: `Les services suivants sont actifs: ${activeServices.join(', ')}`,
           variant: "default",
         });
       } else {
@@ -187,6 +216,18 @@ const APIKeyManager = () => {
           infoText="Utilisée pour les vidéos et formations. Obtenir une clé sur"
           linkText="console.cloud.google.com"
           linkUrl="https://console.cloud.google.com/apis/credentials"
+        />
+        
+        <APIKeyInput
+          id="stripe-key"
+          label="Clé API Stripe"
+          value={stripeKey}
+          onChange={setStripeKey}
+          isValid={keyStatus.stripe}
+          placeholder="Clé API Stripe pour les paiements"
+          infoText="Utilisée pour les paiements et abonnements. Obtenir une clé sur"
+          linkText="dashboard.stripe.com/apikeys"
+          linkUrl="https://dashboard.stripe.com/apikeys"
         />
       </CardContent>
       <CardFooter>

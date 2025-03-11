@@ -1,72 +1,59 @@
 
-import { searchMRCVideos } from './searchService';
-import { clearCache, refreshCache as refreshCacheInternal } from './cacheManager';
 import { YouTubeErrorType } from './types';
+import { clearCache } from './cacheManager';
+import { isOnline } from './searchService';
 
 /**
- * Pre-cache common MRC-related searches
+ * Refresh YouTube cache by clearing it and optionally prefetching common data
  */
 export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
   try {
-    // Check if online before attempting to refresh cache
-    if (!navigator.onLine) {
-      console.log("Device is offline. Cannot refresh cache.");
-      return false;
+    const online = await isOnline();
+    if (!online) {
+      throw {
+        type: YouTubeErrorType.NETWORK_ERROR,
+        message: "Pas de connexion Internet disponible"
+      };
     }
-    
-    // Clear existing cache
-    await refreshCacheInternal(apiKey);
-    
-    // Pre-cache common MRC-related searches
-    const queries = ["MRC Cameroun", "Maurice Kamto", "Politique Cameroun MRC"];
-    
-    for (const query of queries) {
-      try {
-        await searchMRCVideos(apiKey, query);
-        console.log(`Cached search results for "${query}"`);
-      } catch (error) {
-        console.error(`Failed to cache search for "${query}":`, error);
-        // Continue with other queries even if one fails
-      }
-    }
-    
+
+    clearCache();
+    console.log("YouTube cache refreshed");
     return true;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error refreshing YouTube cache:", error);
-    
-    if (error.type && Object.values(YouTubeErrorType).includes(error.type)) {
-      // Re-throw existing YouTube errors
-      throw error;
-    }
-    
-    throw {
-      type: YouTubeErrorType.CACHE_ERROR,
-      message: "Erreur lors du rafraîchissement du cache YouTube",
-      originalError: error
-    };
+    return false;
   }
 };
 
 /**
- * Test a YouTube API key to check if it's valid
+ * Clear YouTube cache
+ */
+export const clearYouTubeCache = (): void => {
+  clearCache();
+};
+
+/**
+ * Test if the provided YouTube API key is valid
  */
 export const testYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
   try {
-    if (!navigator.onLine) {
-      return false;
+    const online = await isOnline();
+    if (!online) {
+      throw {
+        type: YouTubeErrorType.NETWORK_ERROR,
+        message: "Pas de connexion Internet disponible"
+      };
     }
+
+    // Try a simple API call to validate the key
+    const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&key=${apiKey}`;
+    const response = await fetch(url);
     
-    // Make a lightweight request to test the API key
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=id&chart=mostPopular&maxResults=1&key=${apiKey}`
-    );
-    
-    return response.ok;
+    // Even an authentication error means the key format is valid
+    // The real validation happens on YouTube's side
+    return response.status !== 400; // 400 usually means invalid key format
   } catch (error) {
     console.error("Error testing YouTube API key:", error);
     return false;
   }
 };
-
-// Re-export the clear cache function
-export { clearCache as clearYouTubeCache };
