@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Users, Clock } from "lucide-react";
+import { Send, Users, Clock, Sparkles } from "lucide-react";
 
 interface Message {
   id: string;
@@ -138,10 +138,12 @@ const UserChat = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[calc(100vh-12rem)]">
-      <Card className="md:col-span-3 flex flex-col h-full">
-        <CardHeader className="pb-3 pt-4">
-          <CardTitle className="text-xl flex items-center gap-2">
-            <Users size={20} className="text-mrc-blue" />
+      <Card className="md:col-span-3 flex flex-col h-full bg-gradient-to-br from-gray-900 to-gray-800 border-white/10">
+        <CardHeader className="pb-3 pt-4 border-b border-white/10">
+          <CardTitle className="text-xl flex items-center gap-2 text-white">
+            <div className="p-1.5 rounded-full bg-mrc-blue">
+              <Users size={18} className="text-white" />
+            </div>
             Discussion entre apprenants
           </CardTitle>
         </CardHeader>
@@ -153,26 +155,31 @@ const UserChat = () => {
                   key={message.id} 
                   className={`flex ${message.senderId === CURRENT_USER_ID ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex gap-2 max-w-[80%] ${message.senderId === CURRENT_USER_ID ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <Avatar className="h-8 w-8 flex-shrink-0">
+                  <div className={`flex gap-2 max-w-[85%] group ${message.senderId === CURRENT_USER_ID ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-offset-2 ring-offset-gray-900 ring-white/20">
                       {message.senderAvatar ? (
                         <AvatarImage src={message.senderAvatar} alt={message.senderName} />
                       ) : (
-                        <AvatarFallback className="bg-mrc-blue text-white">
+                        <AvatarFallback className={`${
+                          message.senderId === CURRENT_USER_ID ? 'bg-mrc-green' : 'bg-mrc-blue'
+                        } text-white`}>
                           {message.senderName.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       )}
                     </Avatar>
-                    <div className={`rounded-lg px-3 py-2 text-sm ${
+                    <div className={`rounded-2xl px-4 py-3 text-sm backdrop-blur-sm border transition-all duration-200 group-hover:shadow-lg ${
                       message.senderId === CURRENT_USER_ID
-                        ? 'bg-mrc-blue text-white'
-                        : 'bg-gray-100 dark:bg-gray-800'
+                        ? 'bg-mrc-green/20 border-mrc-green/30 text-white'
+                        : 'bg-mrc-blue/20 border-mrc-blue/30 text-white'
                     }`}>
-                      <div className="font-medium text-xs mb-1">
+                      <div className="font-medium text-xs mb-1 flex items-center gap-1">
                         {message.senderId !== CURRENT_USER_ID ? message.senderName : 'Vous'}
+                        {message.senderId === CURRENT_USER_ID && (
+                          <span className="inline-flex items-center text-[10px] opacity-60">(vous)</span>
+                        )}
                       </div>
-                      <p>{message.content}</p>
-                      <div className="text-xs opacity-70 mt-1 text-right">
+                      <p className="leading-relaxed">{message.content}</p>
+                      <div className="text-xs opacity-70 mt-1 text-right flex justify-end items-center gap-1">
                         {formatTime(message.timestamp)}
                       </div>
                     </div>
@@ -182,19 +189,19 @@ const UserChat = () => {
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-white/10 bg-gray-900/80 backdrop-blur-lg">
             <form onSubmit={handleSendMessage} className="flex gap-2">
               <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Écrivez votre message..."
-                className="flex-1"
+                className="flex-1 bg-gray-800/70 border-white/20 focus:border-mrc-blue/50 focus:ring-1 focus:ring-mrc-blue/30"
               />
               <Button 
                 type="submit" 
                 size="icon"
                 disabled={!newMessage.trim()}
-                className="bg-mrc-blue hover:bg-blue-700"
+                className="bg-gradient-to-r from-mrc-blue to-mrc-green hover:opacity-90 transition-opacity"
               >
                 <Send size={18} />
               </Button>
@@ -203,17 +210,20 @@ const UserChat = () => {
         </CardContent>
       </Card>
 
-      <Card className="h-full hidden md:flex flex-col">
-        <CardHeader className="pb-3 pt-4">
-          <CardTitle className="text-lg">Utilisateurs actifs</CardTitle>
+      <Card className="h-full hidden md:flex flex-col bg-gradient-to-br from-gray-900 to-gray-800 border-white/10">
+        <CardHeader className="pb-3 pt-4 border-b border-white/10">
+          <CardTitle className="text-lg text-white flex items-center gap-2">
+            <Sparkles size={16} className="text-mrc-green" />
+            Utilisateurs actifs
+          </CardTitle>
         </CardHeader>
-        <CardContent className="px-2">
+        <CardContent className="px-2 py-3">
           <ScrollArea className="h-full">
-            <div className="space-y-2 px-2">
+            <div className="space-y-1 px-2">
               {activeUsers.map((user) => (
-                <div key={user.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <div key={user.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-white/5 transition-colors">
                   <div className="relative">
-                    <Avatar>
+                    <Avatar className="border-2 border-gray-800">
                       {user.avatar ? (
                         <AvatarImage src={user.avatar} alt={user.name} />
                       ) : (
@@ -223,19 +233,19 @@ const UserChat = () => {
                       )}
                     </Avatar>
                     <span 
-                      className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-gray-800 ${
+                      className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-gray-800 ${
                         user.isOnline ? 'bg-green-500' : 'bg-gray-400'
                       }`}
                     ></span>
                   </div>
                   <div className="flex-1 overflow-hidden">
-                    <p className="font-medium text-sm truncate">
+                    <p className="font-medium text-sm truncate text-white">
                       {user.name}
                       {user.id === CURRENT_USER_ID && " (Vous)"}
                     </p>
                     {!user.isOnline && user.lastSeen && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                        <Clock size={12} className="mr-1" />
+                      <p className="text-xs text-gray-400 flex items-center">
+                        <Clock size={10} className="mr-1" />
                         Vu {formatLastSeen(user.lastSeen)}
                       </p>
                     )}

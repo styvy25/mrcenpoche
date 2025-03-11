@@ -31,7 +31,7 @@ const ChatContent = ({
   }, [messages, youtubeResults]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/60">
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900/80 to-black/40">
       {messages.map((message, index) => (
         <MessageDisplay key={index} message={message} />
       ))}

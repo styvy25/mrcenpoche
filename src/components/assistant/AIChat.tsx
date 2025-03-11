@@ -24,9 +24,9 @@ const AIChat = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg shadow-xl overflow-hidden border border-white/10">
+    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-black rounded-xl shadow-xl overflow-hidden border border-white/10">
       {!localStorage.getItem("api_keys") && (
-        <div className="p-4">
+        <div className="p-4 bg-black/40 backdrop-blur-sm">
           <APIKeyForm />
         </div>
       )}
