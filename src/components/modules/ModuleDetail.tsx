@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/co
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Download, Award } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import PDFPreview from "../documents/PDFPreview";
+import { useToast } from "@/hooks/use-toast";
+import PDFPreview from "../documents/pdf-preview/PDFPreview";
 import ModuleHeader from "./ModuleHeader";
 import ModuleInfo from "./ModuleInfo";
 import ModuleOverview from "./ModuleOverview";

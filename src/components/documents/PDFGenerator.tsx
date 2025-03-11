@@ -1,8 +1,8 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-import PDFPreview from "./PDFPreview";
+import { useToast } from "@/hooks/use-toast";
+import PDFPreview from "./pdf-preview/PDFPreview";
 import ModuleSelector from "./ModuleSelector";
 import PDFContent from "./PDFContent";
 import PDFActions from "./PDFActions";
