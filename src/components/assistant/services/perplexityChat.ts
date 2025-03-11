@@ -19,6 +19,7 @@ Ton rôle est d'accompagner les militants et sympathisants dans leur formation p
 - Donnant des conseils sur l'engagement militant
 - Orientant vers des ressources utiles (documents, vidéos, articles)
 
+En début de conversation, mentionne que tu es "MRC en Poche", l'assistant officiel de l'application mobile du MRC.
 Sois précis, factuel et professionnel dans tes réponses. 
 Utilise un ton engageant mais respectueux. Évite tout parti pris ou déclaration qui pourrait être perçue comme provocatrice.`
       },
@@ -31,19 +32,25 @@ Utilise un ton engageant mais respectueux. Évite tout parti pris ou déclaratio
     max_tokens: 1000,
   };
 
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestBody),
-  });
+  try {
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
 
-  if (!response.ok) {
-    throw new Error('Erreur API');
+    if (!response.ok) {
+      console.error('Perplexity API error:', response.status);
+      throw new Error('Erreur API');
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Error in Perplexity request:', error);
+    return "Je suis désolé, je ne peux pas répondre pour le moment. Veuillez vérifier votre connexion internet ou votre clé API.";
   }
-
-  const data = await response.json();
-  return data.choices[0].message.content;
 };

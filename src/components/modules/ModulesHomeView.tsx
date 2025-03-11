@@ -10,9 +10,11 @@ import ModuleCategoryTabs from "./ModuleCategoryTabs";
 import ModuleActionButtons from "./ModuleActionButtons";
 import QuizGrid from "./QuizGrid";
 import ModulesHelp from "./ModulesHelp";
-import { BookOpen, Award, FileText, Lightbulb } from "lucide-react";
+import { BookOpen, Award, FileText, Lightbulb, Settings, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 interface ModulesHomeViewProps {
   onChallengeClick: () => void;
@@ -28,6 +30,20 @@ const ModulesHomeView = ({
   onChallengeComplete 
 }: ModulesHomeViewProps) => {
   const [activeCategory, setActiveCategory] = useState("all");
+  const { toast } = useToast();
+  
+  const showAdminButton = () => {
+    const userRole = localStorage.getItem("user_role");
+    return userRole === "admin" || userRole === "superadmin";
+  };
+
+  const handleNotification = () => {
+    toast({
+      title: "Notification activée",
+      description: "Vous recevrez des notifications pour les nouveaux contenus",
+      variant: "default",
+    });
+  };
 
   return (
     <>
@@ -76,10 +92,19 @@ const ModulesHomeView = ({
                   <li className="p-2 bg-gray-50 dark:bg-gray-800 rounded-md">Organisation de Campagne</li>
                 </ol>
                 
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex justify-between">
                   <Button className="bg-mrc-blue hover:bg-blue-700 text-white">
                     <FileText className="mr-2 h-4 w-4" />
-                    Télécharger le programme complet
+                    Télécharger le programme
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleNotification} 
+                    variant="outline" 
+                    className="border-mrc-blue text-mrc-blue"
+                  >
+                    <Bell className="mr-2 h-4 w-4" />
+                    Notifications
                   </Button>
                 </div>
               </div>
@@ -140,6 +165,17 @@ const ModulesHomeView = ({
                 </div>
               </div>
             </div>
+            
+            {showAdminButton() && (
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Link to="/settings">
+                  <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Paramètres Admin (Configuration API)
+                  </Button>
+                </Link>
+              </div>
+            )}
           </Card>
         </div>
         <div>

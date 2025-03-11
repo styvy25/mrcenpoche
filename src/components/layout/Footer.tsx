@@ -1,16 +1,40 @@
 
-import { Github, Mail, Twitter } from "lucide-react";
+import { Github, Mail, Twitter, Globe, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { toast } = useToast();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  
+  useEffect(() => {
+    const saved = localStorage.getItem("notifications_enabled");
+    setNotificationsEnabled(saved ? saved === "true" : false);
+  }, []);
+  
+  const toggleNotifications = () => {
+    const newState = !notificationsEnabled;
+    setNotificationsEnabled(newState);
+    localStorage.setItem("notifications_enabled", newState.toString());
+    
+    toast({
+      title: newState ? "Notifications activées" : "Notifications désactivées",
+      description: newState 
+        ? "Vous recevrez des notifications pour les nouveaux contenus" 
+        : "Vous ne recevrez plus de notifications",
+      variant: "default",
+    });
+  };
   
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-mrc-blue">MRC LearnScape</h3>
+            <h3 className="text-lg font-semibold mb-4 text-mrc-blue">MRC en Poche</h3>
             <p className="text-sm text-gray-400 mb-4">
               Plateforme d'apprentissage immersive pour les militants du MRC avec assistance IA personnalisée.
             </p>
@@ -19,14 +43,22 @@ const Footer = () => {
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
               </a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                <Github className="h-5 w-5" />
-                <span className="sr-only">Github</span>
+              <a href="https://mrcparty.net" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                <Globe className="h-5 w-5" />
+                <span className="sr-only">Site web</span>
               </a>
               <a href="mailto:styvysam1@yahoo.fr" className="text-gray-400 hover:text-white transition-colors">
                 <Mail className="h-5 w-5" />
                 <span className="sr-only">Mail</span>
               </a>
+              <button 
+                onClick={toggleNotifications}
+                className={`text-gray-400 hover:text-white transition-colors ${notificationsEnabled ? 'text-mrc-blue' : ''}`}
+                aria-label="Toggle notifications"
+              >
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">Notifications</span>
+              </button>
             </div>
           </div>
           
@@ -58,6 +90,11 @@ const Footer = () => {
                   Quiz et Challenges
                 </Link>
               </li>
+              <li>
+                <Link to="/settings" className="text-gray-400 hover:text-white transition-colors">
+                  Paramètres
+                </Link>
+              </li>
             </ul>
           </div>
           
@@ -82,7 +119,7 @@ const Footer = () => {
         
         <div className="mt-8 pt-8 border-t border-gray-800">
           <p className="text-sm text-center text-gray-400">
-            &copy; {currentYear} MRC LearnScape. Tous droits réservés. 
+            &copy; {currentYear} MRCenPoche.com - Tous droits réservés. 
             <a href="https://mrcparty.net" target="_blank" rel="noopener noreferrer" className="ml-2 text-mrc-blue hover:underline">
               Source: mrcparty.net
             </a>
