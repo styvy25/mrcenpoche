@@ -21,5 +21,15 @@ export const politiqueQuestions: QuizQuestion[] = [
     category: "politique",
     difficulty: "moyen",
     imageSrc: "https://images.unsplash.com/photo-1532375810709-75b1da00537c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: 17,
+    question: "Quel sport est le plus populaire au Cameroun ?",
+    options: ["Basketball", "Volleyball", "Football", "Tennis"],
+    correctAnswer: 2,
+    explanation: "Le football est de loin le sport le plus populaire au Cameroun. L'équipe nationale, connue sous le nom de 'Lions Indomptables', a remporté cinq fois la Coupe d'Afrique des Nations.",
+    category: "culture",
+    difficulty: "facile",
+    imageSrc: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
   }
 ];

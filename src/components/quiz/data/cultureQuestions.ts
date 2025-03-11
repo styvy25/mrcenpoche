@@ -66,5 +66,14 @@ export const cultureQuestions: QuizQuestion[] = [
     explanation: "Le Bikutsi est une danse traditionnelle du peuple Beti du centre et du sud du Cameroun.",
     category: "culture",
     difficulty: "moyen"
+  },
+  {
+    id: 14,
+    question: "Quel écrivain camerounais a écrit 'Ville Cruelle' sous le pseudonyme d'Eza Boto ?",
+    options: ["Ferdinand Oyono", "Calixthe Beyala", "Mongo Beti", "Francis Bebey"],
+    correctAnswer: 2,
+    explanation: "Mongo Beti (de son vrai nom Alexandre Biyidi-Awala) a écrit 'Ville Cruelle' sous le pseudonyme d'Eza Boto en 1954.",
+    category: "culture",
+    difficulty: "difficile"
   }
 ];

@@ -22,12 +22,13 @@ export const histoireQuestions: QuizQuestion[] = [
     difficulty: "difficile"
   },
   {
-    id: 14,
-    question: "Quel écrivain camerounais a écrit 'Ville Cruelle' sous le pseudonyme d'Eza Boto ?",
-    options: ["Ferdinand Oyono", "Calixthe Beyala", "Mongo Beti", "Francis Bebey"],
+    id: 18,
+    question: "Quel est ce lac du Cameroun connu pour sa catastrophe naturelle de 1986 ?",
+    options: ["Lac Tchad", "Lac Barombi Mbo", "Lac Nyos", "Lac Tizon"],
     correctAnswer: 2,
-    explanation: "Mongo Beti (de son vrai nom Alexandre Biyidi-Awala) a écrit 'Ville Cruelle' sous le pseudonyme d'Eza Boto en 1954.",
-    category: "culture",
-    difficulty: "difficile"
+    explanation: "Le lac Nyos est tristement célèbre pour l'événement du 21 août 1986, lorsqu'une éruption limnique a libéré un nuage de dioxyde de carbone, causant la mort de plus de 1700 personnes et 3500 têtes de bétail.",
+    category: "histoire",
+    difficulty: "difficile",
+    imageSrc: "https://images.unsplash.com/photo-1584824388957-a4d5b939a953?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
   }
 ];

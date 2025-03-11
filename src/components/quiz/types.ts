@@ -86,7 +86,7 @@ export interface Appointment {
   title: string;
   startTime: Date;
   endTime: Date;
-  type: string;
+  type?: string;
   location?: string;
   description?: string;
   date?: Date;
@@ -95,4 +95,5 @@ export interface Appointment {
   participantsCount?: number;
   maxParticipants?: number;
   duration?: number;
+  status?: string;
 }
