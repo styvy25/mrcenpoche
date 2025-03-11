@@ -12,7 +12,6 @@ import ModuleQuizPage from "./pages/ModuleQuizPage";
 import AuthPage from "./pages/AuthPage";
 import { Toaster } from "./components/ui/toaster";
 import AuthNavItem from "./components/layout/AuthNavItem";
-import ApiKeysDialog from "./components/settings/ApiKeysDialog";
 
 function App() {
   return (
@@ -26,7 +25,8 @@ function App() {
             <Route path="/quiz" element={<QuizPage />} />
             <Route path="/assistant" element={<AssistantPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/module-quiz/:moduleId" element={<ModuleQuizPage />} />
+            <Route path="/modules/quiz" element={<ModuleQuizPage />} />
+            <Route path="/modules/quiz/:moduleId" element={<ModuleQuizPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
