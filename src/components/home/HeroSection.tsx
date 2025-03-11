@@ -31,7 +31,7 @@ const HeroSection = () => {
           <div className="">
             <div className="relative mx-auto w-full rounded-lg shadow-lg lg:max-w-md">
               <div className="relative block w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
-                <img className="w-full" alt="MRC LearnScape" src="/lovable-uploads/13009c82-2883-46e9-8cda-afd9d8e16ade.jpg" />
+                <img alt="MRC LearnScape" src="/lovable-uploads/13009c82-2883-46e9-8cda-afd9d8e16ade.jpg" className="w-full object-fill" />
                 <div className="">
                   <div className="text-center bg-black bg-opacity-50 p-4 rounded-lg">
                     <h3 className="">Styvy237</h3>
