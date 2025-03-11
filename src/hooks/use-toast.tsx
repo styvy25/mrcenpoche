@@ -13,7 +13,7 @@ export type Toast = {
   title?: string
   description?: string
   action?: ToastActionElement
-  type?: ToastType
+  type?: "foreground" | "background"  // Updated to match accepted types
   variant?: "default" | "destructive"
   duration?: number
   open?: boolean

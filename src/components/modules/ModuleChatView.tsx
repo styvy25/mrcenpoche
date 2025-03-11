@@ -21,7 +21,7 @@ const ModuleChatView = () => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   
-  // Vérifier si les clés API sont définies
+  // Check if API keys are defined
   useEffect(() => {
     if (chatType === "ai") {
       const apiKeys = localStorage.getItem("api_keys");
@@ -105,6 +105,7 @@ const ModuleChatView = () => {
                 toast({
                   title: "Configuration nécessaire",
                   description: "Veuillez configurer vos clés API dans les paramètres",
+                  variant: "destructive"  // Updated from "warning" to "destructive"
                 });
               }}
             >

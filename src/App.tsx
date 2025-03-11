@@ -15,7 +15,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import LegalPage from "./pages/LegalPage";
 import SettingsPage from "./pages/SettingsPage";
 import { Toaster } from "./components/ui/toaster";
-import { AuthProvider } from "./components/auth/AuthDialog";
+import { AuthProvider } from "./components/auth/AuthContext";
 
 function App() {
   return (
