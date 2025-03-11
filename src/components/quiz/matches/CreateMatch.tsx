@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { createMatch, generateWhatsAppInvite } from "@/services/matchService";
 import { useNavigate } from "react-router-dom";
-import { Share2, WhatsappIcon } from "lucide-react";
+import { Share2 } from "lucide-react";
 
 interface CreateMatchProps {
   onClose?: () => void;

@@ -1,8 +1,9 @@
+
 import React, { useState, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import SettingsPage from './pages/SettingsPage';
 import AIChat from './components/assistant/AIChat';
-import ModulePage from './pages/ModulePage';
+import ModulePage from './pages/ModulesPage';  // Fixed import path
 import QuizPage from "./pages/QuizPage";
 import MatchGame from "./components/quiz/matches/MatchGame";
 import MatchResults from "./components/quiz/matches/MatchResults";

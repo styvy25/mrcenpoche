@@ -5,7 +5,7 @@ import { histoireQuestions } from "./data/histoireQuestions";
 import { traditionsQuestions } from "./data/traditionsQuestions";
 import { politiqueQuestions } from "./data/politiqueQuestions";
 import { geographieQuestions } from "./data/geographieQuestions";
-import { testQuestions } from "./data/testQuestions";
+import { testQuestions } from "./data/test";
 import { categories } from "./data/categories";
 
 export const culturalQuizQuestions: QuizQuestion[] = [
