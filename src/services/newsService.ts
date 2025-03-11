@@ -52,6 +52,31 @@ export const generateEditorial = async (topic: string): Promise<string | null> =
   }
 };
 
+// Static editorial content for fallback
+export const getStaticEditorial = (): NewsArticle => {
+  return {
+    id: `static-editorial-${Date.now()}`,
+    title: "Le MRC et l'avenir politique du Cameroun",
+    content: `Le Mouvement pour la Renaissance du Cameroun (MRC) continue de se positionner comme une force politique majeure au Cameroun, proposant une alternative crédible pour l'avenir du pays.
+
+Sous la direction de Maurice Kamto, le parti a élaboré un programme de gouvernance qui met l'accent sur la réforme des institutions, le développement économique et social, et la promotion d'une démocratie véritable.
+
+Le MRC se distingue par sa vision d'un Cameroun uni, où toutes les composantes socioculturelles du pays participent harmonieusement au développement national. Cette approche inclusive vise à transcender les clivages ethniques et régionaux qui ont souvent caractérisé la politique camerounaise.
+
+La stratégie du parti s'articule autour de plusieurs axes prioritaires : la réforme constitutionnelle pour un équilibre des pouvoirs, le redressement économique pour créer des emplois et réduire la pauvreté, l'amélioration des services publics de base (éducation, santé, eau, électricité), et le renforcement de l'état de droit.
+
+Face aux défis auxquels le Cameroun est confronté, le MRC propose des solutions concrètes, basées sur une analyse rigoureuse des problèmes et une vision claire de l'avenir. Le parti met en avant l'importance de la bonne gouvernance, de la transparence et de la lutte contre la corruption comme conditions essentielles pour un développement durable.
+
+Le MRC appelle également à une révision du système électoral pour garantir des élections libres, transparentes et équitables, permettant ainsi une véritable expression de la volonté populaire. Cette revendication reflète l'engagement du parti pour une démocratie authentique, où le pouvoir émane réellement du peuple.
+
+En conclusion, le MRC se présente comme un acteur incontournable du paysage politique camerounais, porteur d'espoir pour un changement positif et durable dans le pays. À travers son programme et ses actions, le parti contribue à l'éveil des consciences et à la mobilisation citoyenne pour un Cameroun meilleur.`,
+    summary: "Analyse de la vision politique du MRC pour l'avenir du Cameroun",
+    timestamp: new Date(),
+    source: "Rédaction MRC en Poche",
+    tags: ["Éditorial", "Politique", "Vision"]
+  };
+};
+
 // Mock data for recent news articles
 const mockNewsData: NewsArticle[] = [
   {
@@ -81,6 +106,15 @@ const mockNewsData: NewsArticle[] = [
     source: "Porte-parole du MRC",
     tags: ["Économie", "Communiqué", "Politique"]
   },
+  {
+    id: "4",
+    title: "Maurice Kamto s'exprime sur les enjeux démocratiques",
+    content: "Lors d'une conférence tenue ce week-end, le président du MRC, Maurice Kamto, a abordé les enjeux démocratiques actuels et proposé une feuille de route pour les réformes nécessaires...",
+    summary: "Analyse des enjeux démocratiques par le président du MRC",
+    timestamp: new Date(Date.now() - 14 * 60 * 60 * 1000),
+    source: "Conférence de presse",
+    tags: ["Maurice Kamto", "Démocratie", "Réformes"]
+  },
 ];
 
 // Get all news articles (mock data for now)
@@ -102,12 +136,19 @@ export const getLatestEditorial = async (): Promise<NewsArticle | null> => {
     }
   }
   
+  // Check for API key
+  const apiKey = getPerplexityApiKey();
+  if (!apiKey) {
+    // Return static content if no API key is available
+    return getStaticEditorial();
+  }
+  
   // Generate a new editorial
   try {
     const topic = "Actualités politiques au Cameroun et actions du MRC";
     const content = await generateEditorial(topic);
     
-    if (!content) return null;
+    if (!content) return getStaticEditorial();
     
     const editorial: NewsArticle = {
       id: `editorial-${Date.now()}`,
@@ -126,6 +167,6 @@ export const getLatestEditorial = async (): Promise<NewsArticle | null> => {
     return editorial;
   } catch (error) {
     console.error("Error in getLatestEditorial:", error);
-    return null;
+    return getStaticEditorial();
   }
 };

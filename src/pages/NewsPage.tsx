@@ -8,6 +8,7 @@ import { getNewsArticles, getLatestEditorial, NewsArticle } from "@/services/new
 import EditorialCard from "@/components/news/EditorialCard";
 import NewsListSection from "@/components/news/NewsListSection";
 import NewsApiKeyPrompt from "@/components/news/NewsApiKeyPrompt";
+import PerplexityKeyConnector from "@/components/news/PerplexityKeyConnector";
 import { RefreshCw } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
@@ -126,7 +127,9 @@ const NewsPage: React.FC = () => {
           
           <TabsContent value="editorial" className="space-y-4">
             {!hasApiKey ? (
-              <NewsApiKeyPrompt onApiKeySubmit={handleApiKeySubmit} />
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <PerplexityKeyConnector onKeySubmitted={handleApiKeySubmit} />
+              </div>
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <EditorialCard 
