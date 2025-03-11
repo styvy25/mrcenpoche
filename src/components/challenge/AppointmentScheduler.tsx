@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { AppointmentRequest } from "../quiz/types";
+import { Appointment, AppointmentRequest } from "../quiz/types";
 import CalendarStep from "./appointment/CalendarStep";
 import AppointmentForm from "./appointment/AppointmentForm";
 import ConfirmationStep from "./appointment/ConfirmationStep";

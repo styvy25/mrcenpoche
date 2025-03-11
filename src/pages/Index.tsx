@@ -1,133 +1,195 @@
+// Replace the import for News with a different icon
+import { Book, Check, Settings, User, BarChart, Newspaper } from "lucide-react";
+import { Link } from "react-router-dom";
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import HeroSection from "@/components/home/HeroSection";
-import FeatureSection from "@/components/home/FeatureSection";
-import PricingSection from "@/components/home/PricingSection";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { BookOpen, FileText, BookMarked, News } from "lucide-react";
-import { MOCK_COURSES, COURSE_CATEGORIES } from "@/services/courseService";
-import { initializeLocalStorage } from "@/utils/localStorageUtils";
-
-const Home = () => {
-  const navigate = useNavigate();
-  
-  // Initialize localStorage with default data
-  useEffect(() => {
-    initializeLocalStorage(MOCK_COURSES, COURSE_CATEGORIES);
-  }, []);
-  
+const Index = () => {
   return (
-    <div className="overflow-hidden">
-      <HeroSection />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 className="text-3xl font-bold text-center mb-10 text-gray-900 dark:text-white">
-          Ressources de Formation
-        </h2>
-        
-        <Tabs defaultValue="courses" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="courses" className="flex items-center justify-center">
-              <BookOpen className="h-4 w-4 mr-2" />
-              Cours
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center justify-center">
-              <FileText className="h-4 w-4 mr-2" />
-              Documents
-            </TabsTrigger>
-            <TabsTrigger value="news" className="flex items-center justify-center">
-              <News className="h-4 w-4 mr-2" />
-              Actualités
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="courses" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="col-span-full md:col-span-1 bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 flex items-center">
-                  <BookMarked className="h-5 w-5 mr-2 text-mrc-blue" />
-                  Nos cours
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Explorez nos cours éducatifs sur la politique camerounaise et le MRC,
-                  conçus pour vous aider à mieux comprendre les enjeux et les positions du parti.
-                </p>
-                <ul className="space-y-2 mb-6">
-                  {COURSE_CATEGORIES.slice(0, 4).map(category => (
-                    <li key={category.id} className="flex items-start">
-                      <div className="h-5 w-5 text-green-500 mr-2 flex-shrink-0">
-                        <svg viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <span>{category.name}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button onClick={() => navigate("/courses")} className="w-full">
-                  Voir tous les cours
-                </Button>
-              </div>
-              
-              <div className="col-span-full md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {MOCK_COURSES.slice(0, 4).map(course => (
-                  <div key={course.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow">
-                    <h4 className="font-semibold text-lg mb-2">{course.title}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                      {course.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <div className="text-xs text-gray-500">
-                        {new Date(course.lastUpdated).toLocaleDateString('fr-FR')}
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => navigate(`/courses`)}
-                      >
-                        Voir
-                      </Button>
-                    </div>
+    <div className="bg-gray-100 min-h-screen">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            MRC LearnScape
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Bienvenue sur votre plateforme d'apprentissage personnalisée.
+          </p>
+        </div>
+      </header>
+      <main>
+        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Module de Formation */}
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Modules de Formation
+                    </dt>
+                    <dd className="mt-4 text-gray-900 text-2xl font-semibold">
+                      Découvrez nos cours
+                    </dd>
                   </div>
-                ))}
+                  <div className="w-12 h-12 rounded-full bg-mrc-blue text-white flex items-center justify-center">
+                    <Book className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Link
+                    to="/modules"
+                    className="inline-flex items-center text-sm font-medium text-mrc-blue hover:text-blue-500"
+                  >
+                    Commencer l'apprentissage
+                    <span className="ml-1">→</span>
+                  </Link>
+                </div>
               </div>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="documents" className="text-center py-8">
-            <div className="max-w-md mx-auto">
-              <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Documents et ressources</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Accédez à notre bibliothèque de documents, PDFs et ressources sur la politique camerounaise.
-              </p>
-              <Button onClick={() => navigate("/documents")}>
-                Explorer les documents
-              </Button>
+
+            {/* Assistant IA */}
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Assistant IA
+                    </dt>
+                    <dd className="mt-4 text-gray-900 text-2xl font-semibold">
+                      Obtenez de l'aide
+                    </dd>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-mrc-blue text-white flex items-center justify-center">
+                    <Check className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Link
+                    to="/assistant"
+                    className="inline-flex items-center text-sm font-medium text-mrc-blue hover:text-blue-500"
+                  >
+                    Poser une question
+                    <span className="ml-1">→</span>
+                  </Link>
+                </div>
+              </div>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="news" className="text-center py-8">
-            <div className="max-w-md mx-auto">
-              <News className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Actualités politiques</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Restez informé avec les dernières nouvelles et analyses politiques du Cameroun et du MRC.
-              </p>
-              <Button onClick={() => navigate("/news")}>
-                Voir les actualités
-              </Button>
+
+            {/* Documents */}
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Documents
+                    </dt>
+                    <dd className="mt-4 text-gray-900 text-2xl font-semibold">
+                      Téléchargez les ressources
+                    </dd>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-mrc-blue text-white flex items-center justify-center">
+                    <Settings className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Link
+                    to="/documents"
+                    className="inline-flex items-center text-sm font-medium text-mrc-blue hover:text-blue-500"
+                  >
+                    Accéder aux documents
+                    <span className="ml-1">→</span>
+                  </Link>
+                </div>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-      
-      <FeatureSection />
-      <PricingSection />
+
+            {/* Profil */}
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Profil
+                    </dt>
+                    <dd className="mt-4 text-gray-900 text-2xl font-semibold">
+                      Gérez votre compte
+                    </dd>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-mrc-blue text-white flex items-center justify-center">
+                    <User className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Link
+                    to="/profile"
+                    className="inline-flex items-center text-sm font-medium text-mrc-blue hover:text-blue-500"
+                  >
+                    Modifier votre profil
+                    <span className="ml-1">→</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Quiz et Challenges */}
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Quiz et Challenges
+                    </dt>
+                    <dd className="mt-4 text-gray-900 text-2xl font-semibold">
+                      Testez vos connaissances
+                    </dd>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-mrc-blue text-white flex items-center justify-center">
+                    <BarChart className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Link
+                    to="/quiz"
+                    className="inline-flex items-center text-sm font-medium text-mrc-blue hover:text-blue-500"
+                  >
+                    Participer aux activités
+                    <span className="ml-1">→</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+            
+            {/* Actualités */}
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Actualités
+                    </dt>
+                    <dd className="mt-4 text-gray-900 text-2xl font-semibold">
+                      Dernières nouvelles
+                    </dd>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-mrc-blue text-white flex items-center justify-center">
+                    <Newspaper className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Link
+                    to="/news"
+                    className="inline-flex items-center text-sm font-medium text-mrc-blue hover:text-blue-500"
+                  >
+                    Voir les actualités
+                    <span className="ml-1">→</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
 
-export default Home;
+export default Index;

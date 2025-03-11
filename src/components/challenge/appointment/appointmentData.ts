@@ -1,6 +1,6 @@
 
 import { Appointment } from "@/components/quiz/types";
-import { addDays, addHours, setHours } from "date-fns";
+import { addDays, addHours, setHours, format } from "date-fns";
 
 // Create base date for appointments
 const today = new Date();
@@ -9,14 +9,25 @@ const nextWeek = addDays(today, 7);
 
 // Helper function to add default startTime and endTime to appointments
 const createAppointment = (appointment: Partial<Appointment>): Appointment => {
-  const startTime = appointment.date || new Date();
-  const endTime = addHours(startTime, (appointment.duration || 60) / 60);
+  const startDate = appointment.date instanceof Date ? appointment.date : new Date();
+  const endDate = appointment.duration ? addHours(startDate, appointment.duration / 60) : addHours(startDate, 1);
   
   return {
-    startTime,
-    endTime,
-    ...appointment
-  } as Appointment;
+    id: appointment.id || `appt-${Date.now()}`,
+    title: appointment.title || '',
+    description: appointment.description || '',
+    date: appointment.date instanceof Date ? format(appointment.date, 'yyyy-MM-dd') : (appointment.date || ''),
+    startTime: appointment.startTime || format(startDate, 'HH:mm'),
+    endTime: appointment.endTime || format(endDate, 'HH:mm'),
+    location: appointment.location || '',
+    status: appointment.status || 'pending',
+    isVirtual: appointment.isVirtual,
+    link: appointment.link,
+    participantsCount: appointment.participantsCount,
+    maxParticipants: appointment.maxParticipants,
+    duration: appointment.duration,
+    type: appointment.type
+  };
 };
 
 // Upcoming appointments data with the fixed type structure
@@ -28,11 +39,12 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
     type: "training",
     date: setHours(tomorrow, 14),
     duration: 90,
-    status: "scheduled",
+    status: "pending",
     participantsCount: 12,
     maxParticipants: 25,
     isVirtual: true,
-    link: "https://zoom.us/j/example"
+    link: "https://zoom.us/j/example",
+    location: "En ligne"
   }),
   createAppointment({
     id: "event-2",
@@ -41,7 +53,7 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
     type: "workshop",
     date: setHours(addDays(today, 3), 10),
     duration: 180,
-    status: "scheduled",
+    status: "confirmed",
     participantsCount: 8,
     maxParticipants: 15,
     isVirtual: false,
@@ -54,11 +66,12 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
     type: "training",
     date: setHours(nextWeek, 16),
     duration: 120,
-    status: "scheduled",
+    status: "pending",
     participantsCount: 18,
     maxParticipants: 30,
     isVirtual: true,
-    link: "https://teams.microsoft.com/l/meetup-join/example"
+    link: "https://teams.microsoft.com/l/meetup-join/example",
+    location: "En ligne"
   })
 ];
 

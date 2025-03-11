@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Appointment } from "@/components/quiz/types";
+import { format } from "date-fns";
 
 // Define topics manually since TOPICS is not exported
 const APPOINTMENT_TOPICS = [
@@ -19,80 +20,31 @@ const APPOINTMENT_TOPICS = [
 ];
 
 interface AppointmentFormProps {
-  selectedDate: Date;
-  selectedTime: string;
-  onSubmit: (appointment: Appointment) => void;
+  date?: Date;
+  formData: any;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onTopicChange: (value: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
 }
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({
-  selectedDate,
-  selectedTime,
+  date,
+  formData,
+  onInputChange,
+  onTopicChange,
   onSubmit,
   onBack
 }) => {
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    topic: APPOINTMENT_TOPICS[0],
-    notes: ""
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleTopicChange = (value: string) => {
-    setFormData(prev => ({ ...prev, topic: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.email) {
-      toast({
-        title: "Informations manquantes",
-        description: "Veuillez remplir tous les champs obligatoires",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Format date and create appointment object
-    const dateString = selectedDate.toISOString().split('T')[0];
-    const [hours, minutes] = selectedTime.split(':');
-    
-    const appointment: Appointment = {
-      id: `appt-${Date.now()}`,
-      title: `Formation: ${formData.topic}`,
-      description: formData.notes || "Pas de notes additionnelles",
-      date: dateString,
-      startTime: selectedTime,
-      endTime: `${Number(hours) + 1}:${minutes}`,
-      location: "En ligne (lien envoyé par email)",
-      participant: {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone
-      },
-      status: "pending"
-    };
-
-    onSubmit(appointment);
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Nom complet *</Label>
         <Input 
           id="name"
           name="name"
           value={formData.name}
-          onChange={handleChange}
+          onChange={onInputChange}
           placeholder="Jean Dupont"
           required
         />
@@ -105,7 +57,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           name="email"
           type="email"
           value={formData.email}
-          onChange={handleChange}
+          onChange={onInputChange}
           placeholder="jean.dupont@example.com"
           required
         />
@@ -117,7 +69,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           id="phone"
           name="phone"
           value={formData.phone}
-          onChange={handleChange}
+          onChange={onInputChange}
           placeholder="+237 6xx xxx xxx"
         />
       </div>
@@ -126,7 +78,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         <Label htmlFor="topic">Sujet de formation *</Label>
         <Select 
           value={formData.topic} 
-          onValueChange={handleTopicChange}
+          onValueChange={onTopicChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="Sélectionnez un sujet" />
@@ -142,12 +94,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes ou questions</Label>
+        <Label htmlFor="message">Notes ou questions</Label>
         <Textarea 
-          id="notes"
-          name="notes"
-          value={formData.notes}
-          onChange={handleChange}
+          id="message"
+          name="message"
+          value={formData.message}
+          onChange={onInputChange}
           placeholder="Questions spécifiques ou points que vous souhaitez aborder..."
           rows={3}
         />
