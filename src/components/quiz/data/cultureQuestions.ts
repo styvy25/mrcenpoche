@@ -3,76 +3,92 @@ import { QuizQuestion } from "../types";
 
 export const cultureQuestions: QuizQuestion[] = [
   {
-    id: 3,
-    question: "Combien d'étoiles figurent sur le drapeau camerounais ?",
-    options: ["Une", "Deux", "Trois", "Quatre"],
+    id: "1",
+    text: "Culture Camerounaise",
+    question: "Quelle est la signification du mot 'Bakala' dans la langue Douala ?",
+    options: ["Bonjour", "Au revoir", "Merci", "Comment vas-tu ?"],
     correctAnswer: 0,
-    explanation: "Le drapeau camerounais comporte une étoile au centre, symbole de l'unité nationale.",
+    answers: [],
+    explanation: "En langue Douala, 'Bakala' signifie 'Bonjour', une salutation commune dans cette région du Cameroun.",
+    category: "culture",
+    difficulty: "moyen"
+  },
+  {
+    id: "2",
+    text: "Culture Camerounaise",
+    question: "Quel est le plat national du Cameroun ?",
+    options: ["Ndolé", "Poulet DG", "Eru", "Koki"],
+    correctAnswer: 0,
+    answers: [],
+    explanation: "Le Ndolé, préparé avec des feuilles amères, des arachides et de la viande ou du poisson, est considéré comme le plat national du Cameroun.",
     category: "culture",
     difficulty: "facile",
-    imageSrc: "https://images.unsplash.com/photo-1565791380709-49e529c11d62?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+    imageSrc: "https://images.unsplash.com/photo-1513135467880-98a646fcbc63?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
   },
   {
-    id: 5,
-    question: "Quelle danse traditionnelle est originaire de l'ouest du Cameroun ?",
-    options: ["Assiko", "Makossa", "Nguon", "Bikutsi"],
-    correctAnswer: 2,
-    explanation: "Le Nguon est une danse traditionnelle originaire de l'ouest du Cameroun, particulièrement de la région de Foumban.",
-    category: "culture",
-    difficulty: "moyen",
-    imageSrc: "https://images.unsplash.com/photo-1545128485-c400ce7b15ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 7,
-    question: "Quel est le plat traditionnel camerounais à base de manioc fermenté ?",
-    options: ["Ndolé", "Eru", "Bobolo", "Sanga"],
-    correctAnswer: 2,
-    explanation: "Le Bobolo est un plat traditionnel camerounais fait à base de manioc fermenté, enveloppé dans des feuilles de bananier.",
-    category: "culture",
-    difficulty: "moyen"
-  },
-  {
-    id: 8,
-    question: "Quel musicien camerounais est connu comme le 'Roi du Makossa' ?",
-    options: ["Petit Pays", "Manu Dibango", "Lapiro de Mbanga", "Manu Ella"],
+    id: "3",
+    text: "Culture Camerounaise",
+    question: "Quelle est la langue officielle la plus parlée au Cameroun ?",
+    options: ["Anglais", "Français", "Pidgin", "Fulfulde"],
     correctAnswer: 1,
-    explanation: "Manu Dibango, avec son tube 'Soul Makossa', est considéré comme le 'Roi du Makossa'.",
+    answers: [],
+    explanation: "Le français est la langue officielle la plus parlée au Cameroun, utilisée par environ 80% de la population.",
+    category: "culture",
+    difficulty: "facile"
+  },
+  {
+    id: "4",
+    text: "Culture Camerounaise",
+    question: "Quelle danse traditionnelle est originaire de la région du Littoral au Cameroun ?",
+    options: ["Bikutsi", "Makossa", "Assiko", "Mbaghalum"],
+    correctAnswer: 2,
+    answers: [],
+    explanation: "L'Assiko est une danse traditionnelle originaire de la région du Littoral au Cameroun, particulièrement populaire chez le peuple Bassa.",
     category: "culture",
     difficulty: "moyen"
   },
   {
-    id: 9,
-    question: "Quelle langue est la plus parlée au Cameroun en termes de locuteurs natifs ?",
-    options: ["Français", "Anglais", "Fulfulde", "Ewondo"],
-    correctAnswer: 2,
-    explanation: "Le Fulfulde est la langue avec le plus grand nombre de locuteurs natifs au Cameroun.",
+    id: "5",
+    text: "Culture Camerounaise",
+    question: "Quel est l'instrument de musique traditionnel emblématique des Grassfields ?",
+    options: ["Mvet", "Balafon", "Tambour parlant", "Nkul"],
+    correctAnswer: 1,
+    answers: [],
+    explanation: "Le balafon est un instrument traditionnel de percussion emblématique des régions des Grassfields au Cameroun.",
+    category: "culture",
+    difficulty: "moyen"
+  },
+  {
+    id: "6",
+    text: "Culture Camerounaise",
+    question: "Quelle fête traditionnelle célèbre-t-on chez les Bakweri ?",
+    options: ["Ngondo", "Nyanga", "Medumba", "Maale"],
+    correctAnswer: 3,
+    answers: [],
+    explanation: "Le Maale est une fête traditionnelle célébrée par le peuple Bakweri du Mont Cameroun pour apaiser les divinités du volcan.",
     category: "culture",
     difficulty: "difficile"
   },
   {
-    id: 11,
-    question: "Quelle est la principale langue véhiculaire des régions du Grand Nord camerounais ?",
-    options: ["Bamiléké", "Fulfulde", "Douala", "Ewondo"],
+    id: "7",
+    text: "Culture Camerounaise",
+    question: "Quel style musical camerounais a été popularisé par Manu Dibango ?",
+    options: ["Bikutsi", "Makossa", "Bend Skin", "Mbaghalum"],
     correctAnswer: 1,
-    explanation: "Le Fulfulde est la principale langue véhiculaire dans les régions du Grand Nord camerounais (Adamaoua, Nord et Extrême-Nord).",
+    answers: [],
+    explanation: "Le Makossa a été popularisé internationalement par Manu Dibango, notamment avec son titre 'Soul Makossa' en 1972.",
     category: "culture",
-    difficulty: "moyen"
+    difficulty: "moyen",
+    imageSrc: "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
   },
   {
-    id: 13,
-    question: "De quel peuple traditionnel est originaire la danse du Bikutsi ?",
-    options: ["Beti", "Bamiléké", "Douala", "Bassaa"],
+    id: "8",
+    text: "Culture Camerounaise",
+    question: "Que représente le 'Nkul' dans la culture traditionnelle camerounaise ?",
+    options: ["Un instrument de musique", "Un chef traditionnel", "Un rituel de purification", "Un symbole de richesse"],
     correctAnswer: 0,
-    explanation: "Le Bikutsi est une danse traditionnelle du peuple Beti du centre et du sud du Cameroun.",
-    category: "culture",
-    difficulty: "moyen"
-  },
-  {
-    id: 14,
-    question: "Quel écrivain camerounais a écrit 'Ville Cruelle' sous le pseudonyme d'Eza Boto ?",
-    options: ["Ferdinand Oyono", "Calixthe Beyala", "Mongo Beti", "Francis Bebey"],
-    correctAnswer: 2,
-    explanation: "Mongo Beti (de son vrai nom Alexandre Biyidi-Awala) a écrit 'Ville Cruelle' sous le pseudonyme d'Eza Boto en 1954.",
+    answers: [],
+    explanation: "Le 'Nkul' est un tambour à fente traditionnel utilisé comme instrument de communication dans plusieurs cultures du Sud Cameroun.",
     category: "culture",
     difficulty: "difficile"
   }

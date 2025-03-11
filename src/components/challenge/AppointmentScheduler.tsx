@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { AppointmentRequest } from "../quiz/types";
+import { Appointment, AppointmentRequest } from "../quiz/types";
 import CalendarStep from "./appointment/CalendarStep";
 import AppointmentForm from "./appointment/AppointmentForm";
 import ConfirmationStep from "./appointment/ConfirmationStep";
@@ -15,9 +15,6 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
   const [step, setStep] = useState<"calendar" | "form" | "confirmation">("calendar");
   const [appointmentType, setAppointmentType] = useState<"private" | "public">("private");
   const [formData, setFormData] = useState<Partial<AppointmentRequest>>({
-    name: "",
-    email: "",
-    phone: "",
     preferredDate: new Date(),
     topic: "",
     message: ""
@@ -59,6 +56,16 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
     setStep("confirmation");
   };
 
+  // Create a handler for appointment form submission that matches the expected type
+  const handleAppointmentSubmit = (appointment: Appointment) => {
+    console.log("Appointment created:", appointment);
+    toast({
+      title: "Demande envoyée !",
+      description: "Votre demande de rendez-vous a été enregistrée. Styvy-237 vous contactera bientôt.",
+    });
+    setStep("confirmation");
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-lg max-h-[80vh] overflow-y-auto">
       <div className="p-6">
@@ -78,7 +85,7 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
             formData={formData}
             onInputChange={handleInputChange}
             onTopicChange={handleTopicChange}
-            onSubmit={handleSubmit}
+            onSubmit={handleAppointmentSubmit}
             onBack={() => setStep("calendar")}
           />
         )}

@@ -1,21 +1,39 @@
 
 import { Appointment } from "@/components/quiz/types";
-import { addDays, addHours, setHours } from "date-fns";
+import { addDays, addHours, setHours, format } from "date-fns";
 
 // Create base date for appointments
 const today = new Date();
 const tomorrow = addDays(today, 1);
 const nextWeek = addDays(today, 7);
 
+// Helper function to format date to string
+const formatDateToString = (date: Date): string => {
+  return format(date, "yyyy-MM-dd");
+};
+
 // Helper function to add default startTime and endTime to appointments
 const createAppointment = (appointment: Partial<Appointment>): Appointment => {
-  const startTime = appointment.date || new Date();
-  const endTime = addHours(startTime, (appointment.duration || 60) / 60);
+  const startDate = appointment.date ? new Date(appointment.date) : new Date();
+  const durationMinutes = appointment.duration || 60;
+  const endDate = addHours(startDate, durationMinutes / 60);
   
   return {
-    startTime,
-    endTime,
-    ...appointment
+    id: appointment.id || `app-${Date.now()}`,
+    title: appointment.title || "",
+    description: appointment.description || "",
+    date: typeof appointment.date === 'string' ? appointment.date : formatDateToString(startDate),
+    startTime: appointment.startTime || format(startDate, "HH:mm"),
+    endTime: appointment.endTime || format(endDate, "HH:mm"),
+    location: appointment.location || "",
+    status: appointment.status || "pending",
+    isVirtual: appointment.isVirtual,
+    link: appointment.link,
+    duration: appointment.duration,
+    participantsCount: appointment.participantsCount,
+    maxParticipants: appointment.maxParticipants,
+    type: appointment.type,
+    participant: appointment.participant
   } as Appointment;
 };
 
@@ -26,9 +44,9 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
     title: "Webinaire: Stratégies d'organisation locale",
     description: "Apprenez à structurer et mobiliser efficacement les comités locaux",
     type: "training",
-    date: setHours(tomorrow, 14),
+    date: formatDateToString(setHours(tomorrow, 14)),
     duration: 90,
-    status: "scheduled",
+    status: "pending",
     participantsCount: 12,
     maxParticipants: 25,
     isVirtual: true,
@@ -39,9 +57,9 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
     title: "Atelier: Techniques de communication",
     description: "Formation pratique sur la communication politique efficace",
     type: "workshop",
-    date: setHours(addDays(today, 3), 10),
+    date: formatDateToString(setHours(addDays(today, 3), 10)),
     duration: 180,
-    status: "scheduled",
+    status: "pending",
     participantsCount: 8,
     maxParticipants: 15,
     isVirtual: false,
@@ -52,9 +70,9 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
     title: "Formation: Maîtrise des réseaux sociaux",
     description: "Comment utiliser efficacement les réseaux sociaux pour la mobilisation",
     type: "training",
-    date: setHours(nextWeek, 16),
+    date: formatDateToString(setHours(nextWeek, 16)),
     duration: 120,
-    status: "scheduled",
+    status: "pending",
     participantsCount: 18,
     maxParticipants: 30,
     isVirtual: true,

@@ -15,11 +15,14 @@ const QuizPage = () => {
 
   // Convert culturalQuizData.categories to match Category interface
   const categories: Category[] = culturalQuizData.categories.map((category: any) => ({
-    label: category.name,
     id: category.id,
     name: category.name,
-    color: category.color,
-    questions: culturalQuizData.quizQuestions?.filter(q => q.category === category.id) || []
+    badge: category.badge || "", // Add default values for required fields
+    color: category.color || "",
+    icon: category.icon || "",
+    description: category.description || "",
+    label: category.name,
+    questions: culturalQuizData.quizQuestions?.filter((q: any) => q.category === category.id) || []
   }));
 
   // Simulate loading

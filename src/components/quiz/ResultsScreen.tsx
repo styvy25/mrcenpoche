@@ -35,6 +35,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           score: (score / totalQuestions) * 100,
           correctAnswers: score,
           totalQuestions: totalQuestions,
+          timeSpent: 0,
           unlockedBadges: [],
           date: new Date()
         }}
