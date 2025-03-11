@@ -1,174 +1,45 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import { Card, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Key, CreditCard } from "lucide-react";
-import { testPerplexityApiKey } from "../assistant/services/perplexityChat";
-import { refreshYouTubeCache, testYouTubeApiKey } from "../assistant/services/youtube";
-import APIKeyInput from "./APIKeyInput";
+import APIKeyManagerHeader from "./APIKeyManagerHeader";
+import APIKeysList from "./APIKeysList";
 import APIKeyActions from "./APIKeyActions";
-import OfflineFeaturesCard from "./OfflineFeaturesCard";
-
-interface ApiKeyStatus {
-  perplexity: boolean;
-  youtube: boolean;
-  stripe: boolean;
-}
+import { useApiKeys } from "@/hooks/useApiKeys";
 
 const APIKeyManager = () => {
-  const [perplexityKey, setPerplexityKey] = useState("");
-  const [youtubeKey, setYoutubeKey] = useState("");
-  const [stripeKey, setStripeKey] = useState("");
-  const [isTesting, setIsTesting] = useState(false);
-  const [keyStatus, setKeyStatus] = useState<ApiKeyStatus>({
-    perplexity: false,
-    youtube: false,
-    stripe: false
-  });
+  const { keys, keyStatus, isTesting, updateKey, saveKeys } = useApiKeys();
   const { toast } = useToast();
 
-  // Load saved API keys on component mount
-  useEffect(() => {
-    try {
-      const savedKeys = localStorage.getItem("api_keys");
-      if (savedKeys) {
-        const keys = JSON.parse(savedKeys);
-        if (keys.perplexity) {
-          setPerplexityKey(keys.perplexity);
-          setKeyStatus(prev => ({ ...prev, perplexity: true }));
-        }
-        if (keys.youtube) {
-          setYoutubeKey(keys.youtube);
-          setKeyStatus(prev => ({ ...prev, youtube: true }));
-        }
-        if (keys.stripe) {
-          setStripeKey(keys.stripe);
-          setKeyStatus(prev => ({ ...prev, stripe: true }));
-        }
-      }
-    } catch (error) {
-      console.error("Error loading API keys:", error);
-    }
-  }, []);
-
-  const saveKeys = () => {
-    try {
-      // Store all keys
-      const keys = {
-        perplexity: perplexityKey,
-        youtube: youtubeKey,
-        stripe: stripeKey
-      };
-      
-      localStorage.setItem("api_keys", JSON.stringify(keys));
-      
+  const handleSaveKeys = async () => {
+    const result = await saveKeys();
+    
+    if (result.success && result.activeServices.length > 0) {
       toast({
-        title: "Clés API enregistrées",
-        description: "Vos clés API ont été enregistrées avec succès",
+        title: "Configuration réussie",
+        description: `Les services suivants sont actifs: ${result.activeServices.join(', ')}`,
         variant: "default",
       });
-      
-      return true;
-    } catch (error) {
-      console.error("Error saving API keys:", error);
-      
+    } else {
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'enregistrement des clés API",
+        title: "Configuration incomplète",
+        description: "Aucune clé API valide n'a été fournie ou les tests ont échoué",
         variant: "destructive",
       });
-      
-      return false;
     }
   };
 
-  const testStripeKey = async (key: string) => {
-    // Une clé Stripe valide commence généralement par "sk_" pour une clé secrète
-    // ou "pk_" pour une clé publique
-    return key.startsWith("sk_") || key.startsWith("pk_");
-  };
-
-  const handleSaveKeys = async () => {
-    setIsTesting(true);
+  const handleRefreshCache = async () => {
+    if (!keys.youtube) return;
     
     try {
-      // Test Perplexity API key if provided
-      let perplexityStatus = false;
-      if (perplexityKey) {
-        perplexityStatus = await testPerplexityApiKey(perplexityKey);
-      }
-      
-      // Test YouTube API key if provided
-      let youtubeStatus = false;
-      if (youtubeKey) {
-        youtubeStatus = await testYouTubeApiKey(youtubeKey);
-      }
-      
-      // Test Stripe API key if provided
-      let stripeStatus = false;
-      if (stripeKey) {
-        stripeStatus = await testStripeKey(stripeKey);
-      }
-      
-      // Update status
-      setKeyStatus({
-        perplexity: perplexityStatus,
-        youtube: youtubeStatus,
-        stripe: stripeStatus
-      });
-      
-      // Save the keys regardless of test result
-      saveKeys();
-      
-      // Try to refresh YouTube cache if key is valid
-      if (youtubeStatus) {
-        refreshYouTubeCache(youtubeKey);
-      }
-      
-      // Show appropriate toast based on test results
-      const activeServices = [];
-      if (perplexityStatus) activeServices.push('Perplexity');
-      if (youtubeStatus) activeServices.push('YouTube');
-      if (stripeStatus) activeServices.push('Stripe');
-      
-      if (activeServices.length > 0) {
+      const result = await refreshYouTubeCache(keys.youtube);
+      if (result) {
         toast({
-          title: "Configuration réussie",
-          description: `Les services suivants sont actifs: ${activeServices.join(', ')}`,
+          title: "Cache rafraîchi",
+          description: "Le cache YouTube a été rafraîchi avec succès",
           variant: "default",
         });
-      } else {
-        toast({
-          title: "Configuration incomplète",
-          description: "Aucune clé API valide n'a été fournie ou les tests ont échoué",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error testing API keys:", error);
-      toast({
-        title: "Erreur de test",
-        description: "Une erreur est survenue lors du test des clés API",
-        variant: "destructive",
-      });
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  const refreshCache = async () => {
-    setIsTesting(true);
-    
-    try {
-      if (youtubeKey) {
-        const refreshed = await refreshYouTubeCache(youtubeKey);
-        if (refreshed) {
-          toast({
-            title: "Cache rafraîchi",
-            description: "Le cache YouTube a été rafraîchi avec succès",
-            variant: "default",
-          });
-        }
       }
     } catch (error) {
       console.error("Error refreshing cache:", error);
@@ -177,63 +48,25 @@ const APIKeyManager = () => {
         description: "Une erreur est survenue lors du rafraîchissement du cache",
         variant: "destructive",
       });
-    } finally {
-      setIsTesting(false);
     }
   };
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Key className="h-5 w-5 text-mrc-blue" />
-          Gestionnaire de clés API
-        </CardTitle>
-        <CardDescription>
-          Configurez vos clés API pour activer les fonctionnalités en ligne de MRC en Poche
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <APIKeyInput
-          id="perplexity-key"
-          label="Clé API Perplexity"
-          value={perplexityKey}
-          onChange={setPerplexityKey}
-          isValid={keyStatus.perplexity}
-          placeholder="Clé API Perplexity pour l'assistant IA"
-          infoText="Utilisée pour l'assistant IA et la génération de contenu. Obtenir une clé sur"
-          linkText="perplexity.ai/settings/api"
-          linkUrl="https://www.perplexity.ai/settings/api"
-        />
-        
-        <APIKeyInput
-          id="youtube-key"
-          label="Clé API YouTube"
-          value={youtubeKey}
-          onChange={setYoutubeKey}
-          isValid={keyStatus.youtube}
-          placeholder="Clé API YouTube pour les vidéos"
-          infoText="Utilisée pour les vidéos et formations. Obtenir une clé sur"
-          linkText="console.cloud.google.com"
-          linkUrl="https://console.cloud.google.com/apis/credentials"
-        />
-        
-        <APIKeyInput
-          id="stripe-key"
-          label="Clé API Stripe"
-          value={stripeKey}
-          onChange={setStripeKey}
-          isValid={keyStatus.stripe}
-          placeholder="Clé API Stripe pour les paiements"
-          infoText="Utilisée pour les paiements et abonnements. Obtenir une clé sur"
-          linkText="dashboard.stripe.com/apikeys"
-          linkUrl="https://dashboard.stripe.com/apikeys"
-        />
-      </CardContent>
+      <APIKeyManagerHeader />
+      <APIKeysList
+        perplexityKey={keys.perplexity}
+        youtubeKey={keys.youtube}
+        stripeKey={keys.stripe}
+        keyStatus={keyStatus}
+        onPerplexityKeyChange={(value) => updateKey("perplexity", value)}
+        onYoutubeKeyChange={(value) => updateKey("youtube", value)}
+        onStripeKeyChange={(value) => updateKey("stripe", value)}
+      />
       <CardFooter>
         <APIKeyActions
           onSave={handleSaveKeys}
-          onRefreshCache={refreshCache}
+          onRefreshCache={handleRefreshCache}
           isYoutubeKeyValid={keyStatus.youtube}
           isTesting={isTesting}
         />
