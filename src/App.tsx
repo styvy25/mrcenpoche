@@ -1,36 +1,39 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import ModulesPage from "./pages/ModulesPage";
-import AssistantPage from "./pages/AssistantPage";
-import DocumentsPage from "./pages/DocumentsPage";
-import QuizPage from "./pages/QuizPage";
 import NotFound from "./pages/NotFound";
-import "./quiz.css";
+import QuizPage from "./pages/QuizPage";
+import ModulesPage from "./pages/ModulesPage";
+import ModuleQuizPage from "./pages/ModuleQuizPage";
+import DocumentsPage from "./pages/DocumentsPage";
+import AssistantPage from "./pages/AssistantPage";
+import Footer from "./components/layout/Footer";
+import { ToastProvider } from "./hooks/use-toast";
+import { Toaster } from "./components/ui/toaster";
+import "./App.css";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/modules" element={<ModulesPage />} />
-          <Route path="/assistant" element={<AssistantPage />} />
-          <Route path="/documents" element={<DocumentsPage />} />
-          <Route path="/quiz" element={<QuizPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <ToastProvider>
+      <Router>
+        <main className="min-h-screen flex flex-col">
+          <div className="flex-grow">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/modules" element={<ModulesPage />} />
+              <Route path="/modules/:moduleId/quiz" element={<ModuleQuizPage />} />
+              <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/assistant" element={<AssistantPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+          <Footer />
+        </main>
+        <Toaster />
+      </Router>
+    </ToastProvider>
+  );
+}
 
 export default App;

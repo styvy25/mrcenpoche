@@ -1,9 +1,10 @@
 
 import Navbar from "@/components/layout/Navbar";
 import PDFGenerator from "@/components/documents/PDFGenerator";
+import TrainingStatistics from "@/components/documents/TrainingStatistics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Download, Clock } from "lucide-react";
+import { FileText, Download, Clock, BarChart2 } from "lucide-react";
 
 const recentDocuments = [
   { id: 1, title: "Histoire du MRC", module: "Histoire et Valeurs du MRC", date: "15/06/2023", pages: 12 },
@@ -26,8 +27,9 @@ const DocumentsPage = () => {
         </div>
         
         <Tabs defaultValue="generate">
-          <TabsList className="mb-8 grid w-full md:w-[400px] grid-cols-2 mx-auto">
+          <TabsList className="mb-8 grid w-full md:w-[400px] grid-cols-3 mx-auto">
             <TabsTrigger value="generate">Générer un PDF</TabsTrigger>
+            <TabsTrigger value="statistics">Statistiques</TabsTrigger>
             <TabsTrigger value="history">Historique</TabsTrigger>
           </TabsList>
           
@@ -36,9 +38,15 @@ const DocumentsPage = () => {
               <PDFGenerator />
             </div>
           </TabsContent>
+
+          <TabsContent value="statistics" className="space-y-4">
+            <div className="max-w-3xl mx-auto">
+              <TrainingStatistics />
+            </div>
+          </TabsContent>
           
           <TabsContent value="history">
-            <div className="space-y-4">
+            <div className="space-y-4 max-w-4xl mx-auto">
               <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                 Documents récents
               </h2>
