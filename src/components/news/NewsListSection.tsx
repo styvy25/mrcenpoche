@@ -41,7 +41,6 @@ const NewsListSection: React.FC<NewsListSectionProps> = ({
         <NewsCard 
           key={article.id} 
           article={article}
-          isHighlighted={article.isHighlighted}
         />
       ))}
     </div>
