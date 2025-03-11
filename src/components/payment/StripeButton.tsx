@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Key } from 'lucide-react';
+import { Key, Loader2 } from 'lucide-react';
 import { useStripePayment } from '@/hooks/payment/useStripePayment';
 
 interface StripeButtonProps {
@@ -17,7 +17,7 @@ const StripeButton: React.FC<StripeButtonProps> = ({
   variant = "default",
   className = ""
 }) => {
-  const { initiatePayment, isApiKeySet } = useStripePayment(priceId);
+  const { initiatePayment, isApiKeySet, isProcessing } = useStripePayment(priceId);
 
   const handleClick = async () => {
     await initiatePayment();
@@ -28,8 +28,13 @@ const StripeButton: React.FC<StripeButtonProps> = ({
       onClick={handleClick} 
       variant={variant}
       className={className}
+      disabled={isProcessing}
     >
-      {!isApiKeySet && <Key className="h-4 w-4 mr-2" />}
+      {isProcessing ? (
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+      ) : !isApiKeySet ? (
+        <Key className="h-4 w-4 mr-2" />
+      ) : null}
       {children}
     </Button>
   );

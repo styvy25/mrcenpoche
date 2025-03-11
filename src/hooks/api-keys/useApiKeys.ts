@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ApiKeys, ApiKeyStatus } from "./types";
 import { validateApiKeys } from "./validation";
 import { loadFromSupabase, loadFromLocalStorage, saveToSupabase, saveToLocalStorage } from "./storage";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const useApiKeys = () => {
   const [keys, setKeys] = useState<ApiKeys>({
@@ -21,15 +22,36 @@ export const useApiKeys = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  // Check if the user is authenticated
-  const isAuthenticated = !!supabase.auth.getSession();
+  // Get auth status
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    loadKeys();
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+      
+      // Set up auth change listener
+      const { data: authListener } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          setIsAuthenticated(!!session);
+          if (event === 'SIGNED_IN') {
+            // Reload keys when user signs in
+            loadKeys();
+          }
+        }
+      );
+      
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    };
+    
+    checkAuth();
   }, []);
 
-  const loadKeys = async () => {
+  const loadKeys = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
@@ -68,10 +90,19 @@ export const useApiKeys = () => {
     } catch (err) {
       console.error("Error loading API keys:", err);
       setError("Failed to load API keys");
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les clés API",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated, toast]);
+
+  useEffect(() => {
+    loadKeys();
+  }, [loadKeys]);
 
   const saveKeys = async () => {
     setIsTesting(true);
@@ -103,6 +134,11 @@ export const useApiKeys = () => {
       };
     } catch (error) {
       console.error("Error saving API keys:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les clés API",
+        variant: "destructive",
+      });
       return { success: false, error };
     } finally {
       setIsTesting(false);
@@ -121,6 +157,7 @@ export const useApiKeys = () => {
     error,
     updateKey,
     saveKeys,
-    loadKeys
+    loadKeys,
+    isAuthenticated
   };
 };

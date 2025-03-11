@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStripe } from '@stripe/react-stripe-js';
 import { useToast } from "@/hooks/use-toast";
@@ -10,43 +11,51 @@ export const useStripePayment = (priceId: string) => {
   const { toast } = useToast();
   const { isApiKeySet } = useAppContext();
   const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const initiatePayment = async () => {
-    // Check if API key is set
-    if (!isApiKeySet) {
-      toast({
-        title: "Clé API manquante",
-        description: "Veuillez configurer une clé API Stripe pour effectuer des paiements",
-        variant: "destructive",
-      });
-      navigate('/settings');
-      return false;
-    }
-
-    // Check if Stripe is available
-    if (!stripe) {
-      toast({
-        title: "Erreur de paiement",
-        description: "Le service de paiement n'est pas disponible actuellement. Vérifiez que votre connexion internet est active.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    // Notify user about redirection
-    toast({
-      title: "Redirection vers le paiement",
-      description: "Vous allez être redirigé vers la page de paiement sécurisée",
-    });
-
+    if (isProcessing) return false;
+    
+    setIsProcessing(true);
+    
     try {
-      // Récupérer la clé API Stripe stockée
-      const { data: sessionData } = await supabase.auth.getSession();
-      
+      // Check if API key is set
+      if (!isApiKeySet) {
+        toast({
+          title: "Clé API manquante",
+          description: "Veuillez configurer une clé API Stripe pour effectuer des paiements",
+          variant: "destructive",
+        });
+        navigate('/settings');
+        setIsProcessing(false);
+        return false;
+      }
+
+      // Check if Stripe is available
+      if (!stripe) {
+        toast({
+          title: "Erreur de paiement",
+          description: "Le service de paiement n'est pas disponible actuellement. Vérifiez que votre connexion internet est active.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return false;
+      }
+
+      // Notify user about redirection
+      toast({
+        title: "Préparation du paiement",
+        description: "Vous allez être redirigé vers la page de paiement sécurisée",
+      });
+
+      // Récupérer la clé API Stripe
       let stripeKey = '';
       
+      // Essayer d'abord avec Supabase
+      const { data: sessionData } = await supabase.auth.getSession();
+      
       if (sessionData?.session) {
-        // Essayer de récupérer la clé Stripe depuis Supabase
+        // Récupérer la clé Stripe depuis Supabase
         const { data, error } = await supabase
           .from('api_keys_config')
           .select('stripe_key')
@@ -55,33 +64,35 @@ export const useStripePayment = (priceId: string) => {
           
         if (data && data.stripe_key) {
           stripeKey = data.stripe_key;
+          console.log("Clé Stripe récupérée depuis Supabase");
         }
-      } else {
-        // Utiliser localStorage comme fallback
+      }
+      
+      // Si pas de clé, essayer avec localStorage
+      if (!stripeKey) {
         const savedKeys = localStorage.getItem("api_keys");
         if (savedKeys) {
           const keys = JSON.parse(savedKeys);
           stripeKey = keys.stripe || '';
+          console.log("Clé Stripe récupérée depuis localStorage");
         }
       }
       
       if (!stripeKey) {
-        throw new Error("Clé Stripe non trouvée");
+        throw new Error("Aucune clé Stripe n'a été trouvée");
       }
       
       console.log("Création d'une session de paiement avec priceId:", priceId);
       
-      // Création de la session de paiement (simulation)
-      // Dans une version réelle, vous feriez appel à votre backend pour créer une session Stripe
+      // Dans une vraie application, cette partie serait gérée côté serveur
+      // Simuler une création de session Stripe
       const sessionId = "cs_test_" + Math.random().toString(36).substring(2, 15);
       
-      // Redirection vers la page de checkout (simulée pour le moment)
-      // Dans une version réelle, vous utiliseriez stripe.redirectToCheckout({ sessionId })
-      setTimeout(() => {
-        navigate('/payment?session=' + sessionId);
-      }, 1500);
+      // Redirection vers la page de paiement
+      navigate(`/payment?session=${sessionId}`);
       
       return true;
+      
     } catch (error) {
       console.error("Payment error:", error);
       toast({
@@ -90,11 +101,14 @@ export const useStripePayment = (priceId: string) => {
         variant: "destructive",
       });
       return false;
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   return {
     initiatePayment,
-    isApiKeySet
+    isApiKeySet,
+    isProcessing
   };
 };

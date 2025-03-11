@@ -1,6 +1,6 @@
 
 import React, { useState, createContext, useContext, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import SettingsPage from './pages/SettingsPage';
@@ -11,8 +11,9 @@ import MatchGame from "./components/quiz/matches/MatchGame";
 import MatchResults from "./components/quiz/matches/MatchResults";
 import Index from './pages/Index';
 import PaymentPage from './pages/PaymentPage';
+import { useApiKeys } from './hooks/useApiKeys';
 
-// Initialize Stripe
+// Initialize Stripe (utilisez une clé de test pour le développement)
 const stripePromise = loadStripe('pk_test_placeholder');
 
 interface AppContextProps {
@@ -29,40 +30,26 @@ export const useAppContext = () => useContext(AppContext);
 
 function App() {
   const [isApiKeySet, setIsApiKeySet] = useState<boolean>(false);
+  const { keyStatus, loadKeys } = useApiKeys();
   
-  // Vérifie l'existence de clés API au chargement et lors des mises à jour du localStorage
+  // Mettre à jour le statut des clés API lorsque keyStatus change
   useEffect(() => {
-    const checkApiKeys = () => {
-      try {
-        const savedKeys = localStorage.getItem("api_keys");
-        if (savedKeys) {
-          const keys = JSON.parse(savedKeys);
-          // Une application fonctionnelle si au moins une clé est définie
-          const hasAnyKey = Boolean(keys.perplexity || keys.youtube || keys.stripe);
-          setIsApiKeySet(hasAnyKey);
-        } else {
-          setIsApiKeySet(false);
-        }
-      } catch (error) {
-        console.error("Error checking API keys:", error);
-        setIsApiKeySet(false);
-      }
+    const hasAnyKey = keyStatus.perplexity || keyStatus.youtube || keyStatus.stripe;
+    setIsApiKeySet(hasAnyKey);
+  }, [keyStatus]);
+  
+  // Recharger les clés API au focus de la fenêtre (utile pour les multiples onglets)
+  useEffect(() => {
+    const handleFocus = () => {
+      loadKeys();
     };
     
-    // Vérifier au chargement initial
-    checkApiKeys();
-    
-    // Écouter les changements dans le localStorage (utile pour les multiples onglets)
-    window.addEventListener('storage', checkApiKeys);
-    
-    // Vérifier à nouveau quand la fenêtre reprend le focus
-    window.addEventListener('focus', checkApiKeys);
+    window.addEventListener('focus', handleFocus);
     
     return () => {
-      window.removeEventListener('storage', checkApiKeys);
-      window.removeEventListener('focus', checkApiKeys);
+      window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [loadKeys]);
 
   return (
     <div>

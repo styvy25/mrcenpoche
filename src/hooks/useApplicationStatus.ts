@@ -1,45 +1,31 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from '@/App';
+import { useApiKeys } from './useApiKeys';
 
 export function useApplicationStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const { isApiKeySet } = useAppContext();
-  const { toast } = useToast();
-
+  const { keyStatus } = useApiKeys();
+  
+  // Détecter l'état de la connexion internet
   useEffect(() => {
-    const handleOnlineStatusChange = () => {
-      const online = navigator.onLine;
-      setIsOnline(online);
-      
-      if (online) {
-        toast({
-          title: "Connexion rétablie",
-          description: "Vous êtes de nouveau connecté à Internet.",
-          variant: "default",
-        });
-      } else {
-        toast({
-          title: "Mode hors-ligne activé",
-          description: "L'application fonctionne désormais en mode hors-ligne avec des fonctionnalités limitées.",
-          variant: "destructive",
-        });
-      }
-    };
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
     
-    window.addEventListener('online', handleOnlineStatusChange);
-    window.addEventListener('offline', handleOnlineStatusChange);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
     
     return () => {
-      window.removeEventListener('online', handleOnlineStatusChange);
-      window.removeEventListener('offline', handleOnlineStatusChange);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
-  }, [toast]);
-
-  return { 
+  }, []);
+  
+  // Vérifier si au moins une clé API est configurée
+  const isApiKeySet = keyStatus.perplexity || keyStatus.youtube || keyStatus.stripe;
+  
+  return {
     isOnline,
     isApiKeySet,
-    isAppFunctional: isOnline || isApiKeySet
+    apiKeyStatus: keyStatus
   };
 }
