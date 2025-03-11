@@ -36,7 +36,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           correctAnswers: score,
           totalQuestions: totalQuestions,
           timeSpent: 0,
-          unlockedBadges: [],
+          unlockedBadges: earnedBadges,
           date: new Date()
         }}
       />

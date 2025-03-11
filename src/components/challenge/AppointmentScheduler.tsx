@@ -12,12 +12,16 @@ interface AppointmentSchedulerProps {
 
 const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [selectedTime, setSelectedTime] = useState<string>("10:00");
   const [step, setStep] = useState<"calendar" | "form" | "confirmation">("calendar");
   const [appointmentType, setAppointmentType] = useState<"private" | "public">("private");
   const [formData, setFormData] = useState<Partial<AppointmentRequest>>({
-    preferredDate: new Date(),
     topic: "",
-    message: ""
+    message: "",
+    name: "",
+    email: "",
+    phone: "",
+    type: "private"
   });
   const { toast } = useToast();
 
@@ -27,6 +31,10 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
       setFormData(prev => ({ ...prev, preferredDate: selectedDate }));
       setStep("form");
     }
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time);
   };
 
   const handleAppointmentTypeChange = (value: "private" | "public") => {
@@ -43,26 +51,14 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
     setFormData(prev => ({ ...prev, topic: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    console.log("Appointment request:", formData);
-    
-    toast({
-      title: "Demande envoyée !",
-      description: "Votre demande de rendez-vous a été enregistrée. Styvy-237 vous contactera bientôt.",
-    });
-    
-    setStep("confirmation");
-  };
-
-  // Create a handler for appointment form submission that matches the expected type
-  const handleAppointmentSubmit = (appointment: Appointment) => {
+  const handleSubmitAppointment = (appointment: Appointment) => {
     console.log("Appointment created:", appointment);
+    
     toast({
       title: "Demande envoyée !",
       description: "Votre demande de rendez-vous a été enregistrée. Styvy-237 vous contactera bientôt.",
     });
+    
     setStep("confirmation");
   };
 
@@ -81,11 +77,12 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
         
         {step === "form" && (
           <AppointmentForm
-            date={date}
+            selectedDate={date || new Date()}
+            selectedTime={selectedTime}
             formData={formData}
             onInputChange={handleInputChange}
             onTopicChange={handleTopicChange}
-            onSubmit={handleAppointmentSubmit}
+            onSubmit={handleSubmitAppointment}
             onBack={() => setStep("calendar")}
           />
         )}

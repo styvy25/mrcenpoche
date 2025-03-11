@@ -5,8 +5,8 @@ export interface QuizResult {
   score: number;
   timeSpent: number;
   badge?: string;
-  unlockedBadges?: any[]; // Add this property
-  date?: Date; // Add this property
+  unlockedBadges?: any[]; 
+  date?: Date;
 }
 
 export interface Answer {
@@ -61,17 +61,17 @@ export interface Category {
   icon: string;
   description: string;
   label?: string;
-  questions?: QuizQuestion[]; // Add this to support the code
+  questions?: QuizQuestion[]; 
 }
 
 // Extended types for the quiz functionality
 export interface QuizQuestion {
   id: string;
   text: string;
-  question: string; // The actual question text
-  options: string[]; // Add this to support the code
+  question: string; 
+  options: string[]; 
   answers: Answer[];
-  correctAnswer: string | number; // ID of the correct answer - support both string and number
+  correctAnswer: string | number;
   explanation?: string;
   category?: string;
   difficulty?: string;
@@ -85,10 +85,10 @@ export interface BadgeProps {
   imageUrl: string;
   threshold: number;
   category: string;
-  icon?: any; // Change to any to support the complex icon structure
+  icon?: any; 
   earnedAt?: Date;
   condition?: (result: QuizResult) => boolean;
-  colorClass?: string; // Add this to support QuizResult
+  colorClass?: string;
 }
 
 export interface AppointmentRequest {
@@ -103,7 +103,7 @@ export interface AppointmentRequest {
     email: string;
     phone?: string;
   };
-  name?: string; // Add these fields to match the form data
+  name?: string;
   email?: string;
   phone?: string;
   topic?: string;
