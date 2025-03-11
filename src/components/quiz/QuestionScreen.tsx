@@ -23,7 +23,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
   onNextQuestion,
   onCalculateResults,
 }) => {
-  const isSmallScreen = useMediaQuery("(max-width: 640px)");
+  const { isMobile } = useMediaQuery("(max-width: 640px)");
   const [animateButton, setAnimateButton] = useState(false);
   
   // Animate button when answer is selected
@@ -35,7 +35,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
 
   return (
     <div className="flex flex-col items-center space-y-4">
-      <div className={`w-full transition-all duration-300 ${isSmallScreen ? 'p-0' : 'p-2'}`}>
+      <div className={`w-full transition-all duration-300 ${isMobile ? 'p-0' : 'p-2'}`}>
         <QuizQuestionComponent
           question={currentQuestion}
           onAnswer={onAnswer}
@@ -49,7 +49,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
             <Button 
               onClick={onNextQuestion} 
               className="bg-mrc-blue hover:bg-blue-700 transition-colors flex items-center gap-2 px-6"
-              size={isSmallScreen ? "default" : "lg"}
+              size={isMobile ? "default" : "lg"}
             >
               <span>Question Suivante</span>
               <ArrowRight className="h-4 w-4" />
@@ -58,7 +58,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
             <Button 
               onClick={onCalculateResults}
               className="bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2 px-6"
-              size={isSmallScreen ? "default" : "lg"}
+              size={isMobile ? "default" : "lg"}
             >
               <span>Voir les résultats</span>
               <CheckCircle2 className="h-4 w-4" />

@@ -10,6 +10,7 @@ import DocumentsPage from "./pages/DocumentsPage";
 import NotFound from "./pages/NotFound";
 import ModuleQuizPage from "./pages/ModuleQuizPage";
 import AuthPage from "./pages/AuthPage";
+import PaymentPage from "./pages/PaymentPage";
 import { Toaster } from "./components/ui/toaster";
 import AuthNavItem from "./components/layout/AuthNavItem";
 
@@ -27,6 +28,7 @@ function App() {
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/modules/quiz" element={<ModuleQuizPage />} />
             <Route path="/modules/quiz/:moduleId" element={<ModuleQuizPage />} />
+            <Route path="/payment" element={<PaymentPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

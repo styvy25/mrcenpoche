@@ -1,23 +1,20 @@
 
 import { useState, useEffect } from 'react';
 
-interface MediaQueryProps {
-  isMobile: boolean;
-}
-
-export function useMediaQuery(): MediaQueryProps {
+export function useMediaQuery(query: string = "(max-width: 768px)"): { isMobile: boolean } {
   const [isMobile, setIsMobile] = useState(
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+    typeof window !== 'undefined' ? window.matchMedia(query).matches : false
   );
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(mediaQuery.matches);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    mediaQuery.addEventListener('change', handleResize);
+    return () => mediaQuery.removeEventListener('change', handleResize);
+  }, [query]);
 
   return { isMobile };
 }
