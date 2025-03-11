@@ -35,7 +35,7 @@ const Navbar = ({
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <span className="font-bold text-xl text-mrc-blue">MRC en Poche</span>
+              <Link to="/" className="font-bold text-xl text-mrc-blue">MRC en Poche</Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link to="/" className={`border-transparent ${isActive('/') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
@@ -50,13 +50,13 @@ const Navbar = ({
                 <Newspaper className="h-4 w-4 mr-1" />
                 Actualités
               </Link>
-              <Link to="/assistant" className={`border-transparent ${isActive('/assistant') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+              <Link to="/chat" className={`border-transparent ${isActive('/chat') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
                 <Bot className="h-4 w-4 mr-1" />
                 Assistant IA
               </Link>
-              <Link to="/documents" className={`border-transparent ${isActive('/documents') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+              <Link to="/quiz" className={`border-transparent ${isActive('/quiz') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
                 <FileText className="h-4 w-4 mr-1" />
-                Documents
+                Quiz
               </Link>
             </div>
           </div>
@@ -87,10 +87,16 @@ const Navbar = ({
       {isOpen && <div className="sm:hidden bg-white dark:bg-mrc-dark animate-fade-in">
           <div className="pt-2 pb-3 space-y-1">
             <Link to="/" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
-              Accueil
+              <div className="flex items-center">
+                <Home className="h-4 w-4 mr-2" />
+                Accueil
+              </div>
             </Link>
             <Link to="/modules" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
-              Modules
+              <div className="flex items-center">
+                <Book className="h-4 w-4 mr-2" />
+                Modules
+              </div>
             </Link>
             <Link to="/news" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
               <div className="flex items-center">
@@ -98,11 +104,17 @@ const Navbar = ({
                 Actualités
               </div>
             </Link>
-            <Link to="/assistant" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
-              Assistant IA
+            <Link to="/chat" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
+              <div className="flex items-center">
+                <Bot className="h-4 w-4 mr-2" />
+                Assistant IA
+              </div>
             </Link>
-            <Link to="/documents" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
-              Documents
+            <Link to="/quiz" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
+              <div className="flex items-center">
+                <FileText className="h-4 w-4 mr-2" />
+                Quiz
+              </div>
             </Link>
             <Link to="/settings" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
               <div className="flex items-center">
@@ -120,6 +132,6 @@ const Navbar = ({
         </div>}
     </nav>
   );
-};
+}
 
 export default Navbar;
