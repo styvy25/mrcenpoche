@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/auth/AuthDialog";
+import { useAuth } from "@/components/auth/AuthContext";
 import { PDFGenerationOptions, generatePDF, checkAPIKeysConfigured } from "../services/pdfGenerationService";
 
 export const usePDFGenerator = () => {
