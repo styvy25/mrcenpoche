@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
+import StripeButton from "../payment/StripeButton";
 
 const PricingSection = () => {
   return (
@@ -50,9 +51,13 @@ const PricingSection = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" variant="outline">
+              <StripeButton 
+                priceId="price_free" 
+                variant="outline" 
+                className="w-full"
+              >
                 Commencer gratuitement
-              </Button>
+              </StripeButton>
             </CardFooter>
           </Card>
           
@@ -100,9 +105,12 @@ const PricingSection = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button className="w-full bg-mrc-blue hover:bg-blue-700">
+              <StripeButton 
+                priceId="price_premium_monthly"
+                className="w-full bg-mrc-blue hover:bg-blue-700"
+              >
                 S'abonner maintenant
-              </Button>
+              </StripeButton>
             </CardFooter>
           </Card>
           
@@ -147,9 +155,13 @@ const PricingSection = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" variant="outline">
+              <StripeButton 
+                priceId="price_group_monthly"
+                variant="outline"
+                className="w-full"
+              >
                 Contacter pour groupe
-              </Button>
+              </StripeButton>
             </CardFooter>
           </Card>
         </div>
