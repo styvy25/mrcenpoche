@@ -1,146 +1,187 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { Match, MatchInvite, MatchParticipant } from "@/components/quiz/types/match";
-import { QuizQuestion } from "@/components/quiz/types";
-import { testQuestions } from "@/components/quiz/data/testQuestions";
-import { politiqueQuestions } from "@/components/quiz/data/politiqueQuestions";
+import { Match, MatchPlayer } from "@/components/quiz/types/match";
+import { culturalQuizQuestions } from "@/components/quiz/culturalQuizData";
+import { testQuestions } from "@/components/quiz/data/test";
 
-// Fonction pour créer un nouveau match
-export const createMatch = async (title: string, category: string, creatorName: string): Promise<Match | null> => {
+export const createMatch = async (quizType: string, userId: string): Promise<Match | null> => {
   try {
-    // Sélectionner les questions appropriées selon la catégorie
-    const questions = category === "test" 
-      ? testQuestions
-      : category === "politique" 
-        ? politiqueQuestions 
-        : [];
-    
-    // Dans une vraie implémentation, nous sauvegarderions cela dans Supabase
-    // Pour l'instant, nous simulons une réponse
-    const match: Match = {
-      id: `match_${Date.now()}`,
-      title,
-      createdAt: new Date(),
-      status: "pending",
-      category,
-      questions: questions.slice(0, 10), // Limiter à 10 questions
-      participants: [{
-        id: `user_${Date.now()}`,
-        name: creatorName,
-        score: 0,
-        correctAnswers: 0,
-        totalAnswers: 0
-      }],
-      creator: creatorName
-    };
-    
-    // Sauvegarder en local storage pour démo
-    const matches = JSON.parse(localStorage.getItem('mrc_matches') || '[]');
-    matches.push(match);
-    localStorage.setItem('mrc_matches', JSON.stringify(matches));
-    
-    return match;
-  } catch (error) {
-    console.error("Erreur lors de la création du match:", error);
-    return null;
-  }
-};
+    const { data: match, error: matchError } = await supabase
+      .from('matches')
+      .insert([{ 
+        quiz_type: quizType, 
+        created_by: userId,
+        created_at: new Date()
+      }])
+      .select()
+      .single();
 
-// Générer un lien d'invitation WhatsApp
-export const generateWhatsAppInvite = (matchId: string, category: string, creatorName: string): string => {
-  const baseUrl = window.location.origin;
-  const matchUrl = `${baseUrl}/quiz?match=${matchId}`;
-  
-  const message = encodeURIComponent(
-    `🏆 ${creatorName} vous invite à un match d'incollables sur ${category === 'test' ? 'le MRC' : 'la politique camerounaise'}! Cliquez ici pour rejoindre: ${matchUrl}`
-  );
-  
-  return `https://wa.me/?text=${message}`;
-};
-
-// Fonction pour rejoindre un match
-export const joinMatch = (matchId: string, participant: MatchParticipant): Match | null => {
-  try {
-    const matches = JSON.parse(localStorage.getItem('mrc_matches') || '[]');
-    const matchIndex = matches.findIndex((m: Match) => m.id === matchId);
-    
-    if (matchIndex === -1) return null;
-    
-    matches[matchIndex].participants.push(participant);
-    localStorage.setItem('mrc_matches', JSON.stringify(matches));
-    
-    return matches[matchIndex];
-  } catch (error) {
-    console.error("Erreur lors de la participation au match:", error);
-    return null;
-  }
-};
-
-// Fonction pour mettre à jour le score d'un participant
-export const updateScore = (matchId: string, participantId: string, score: number, correct: boolean): Match | null => {
-  try {
-    const matches = JSON.parse(localStorage.getItem('mrc_matches') || '[]');
-    const matchIndex = matches.findIndex((m: Match) => m.id === matchId);
-    
-    if (matchIndex === -1) return null;
-    
-    const participantIndex = matches[matchIndex].participants.findIndex(
-      (p: MatchParticipant) => p.id === participantId
-    );
-    
-    if (participantIndex === -1) return null;
-    
-    const participant = matches[matchIndex].participants[participantIndex];
-    participant.score += score;
-    participant.totalAnswers += 1;
-    if (correct) {
-      participant.correctAnswers += 1;
+    if (matchError) {
+      console.error("Error creating match:", matchError);
+      return null;
     }
-    
-    localStorage.setItem('mrc_matches', JSON.stringify(matches));
-    
-    return matches[matchIndex];
+
+    return match as Match;
   } catch (error) {
-    console.error("Erreur lors de la mise à jour du score:", error);
+    console.error("Error creating match:", error);
     return null;
   }
 };
 
-// Fonction pour récupérer tous les matchs
-export const getMatches = (): Match[] => {
+export const addPlayerToMatch = async (matchId: string, userId: string): Promise<MatchPlayer | null> => {
   try {
-    return JSON.parse(localStorage.getItem('mrc_matches') || '[]');
-  } catch (error) {
-    console.error("Erreur lors de la récupération des matchs:", error);
-    return [];
-  }
-};
+    const { data: player, error: playerError } = await supabase
+      .from('match_players')
+      .insert([{ 
+        match_id: matchId, 
+        user_id: userId,
+        joined_at: new Date()
+      }])
+      .select()
+      .single();
 
-// Fonction pour récupérer un match spécifique
-export const getMatch = (matchId: string): Match | null => {
-  try {
-    const matches = JSON.parse(localStorage.getItem('mrc_matches') || '[]');
-    return matches.find((m: Match) => m.id === matchId) || null;
+    if (playerError) {
+      console.error("Error adding player to match:", playerError);
+      return null;
+    }
+
+    return player as MatchPlayer;
   } catch (error) {
-    console.error("Erreur lors de la récupération du match:", error);
+    console.error("Error adding player to match:", error);
     return null;
   }
 };
 
-// Fonction pour terminer un match
-export const completeMatch = (matchId: string): Match | null => {
+export const getMatch = async (matchId: string): Promise<Match | null> => {
+    try {
+        const { data: match, error: matchError } = await supabase
+            .from('matches')
+            .select('*')
+            .eq('id', matchId)
+            .single();
+
+        if (matchError) {
+            console.error("Error fetching match:", matchError);
+            return null;
+        }
+
+        return match as Match;
+    } catch (error) {
+        console.error("Error fetching match:", error);
+        return null;
+    }
+};
+
+export const getMatchPlayers = async (matchId: string): Promise<MatchPlayer[] | null> => {
+    try {
+        const { data: players, error: playersError } = await supabase
+            .from('match_players')
+            .select('*')
+            .eq('match_id', matchId);
+
+        if (playersError) {
+            console.error("Error fetching match players:", playersError);
+            return null;
+        }
+
+        return players as MatchPlayer[];
+    } catch (error) {
+        console.error("Error fetching match players:", error);
+        return null;
+    }
+};
+
+export const recordAnswer = async (matchId: string, userId: string, questionId: string, answer: string): Promise<void> => {
   try {
-    const matches = JSON.parse(localStorage.getItem('mrc_matches') || '[]');
-    const matchIndex = matches.findIndex((m: Match) => m.id === matchId);
-    
-    if (matchIndex === -1) return null;
-    
-    matches[matchIndex].status = "completed";
-    localStorage.setItem('mrc_matches', JSON.stringify(matches));
-    
-    return matches[matchIndex];
+    const { error } = await supabase
+      .from('match_answers')
+      .insert([{
+        match_id: matchId,
+        user_id: userId,
+        question_id: questionId,
+        answer: answer,
+        answered_at: new Date()
+      }]);
+
+    if (error) {
+      console.error("Error recording answer:", error);
+    }
   } catch (error) {
-    console.error("Erreur lors de la complétion du match:", error);
+    console.error("Error recording answer:", error);
+  }
+};
+
+export const getMatchQuestions = (quizType: string, numberOfQuestions: number = 10) => {
+  let questions;
+
+  switch (quizType) {
+    case "culture":
+      questions = culturalQuizQuestions;
+      break;
+    case "test":
+      questions = testQuestions;
+      break;
+    default:
+      questions = culturalQuizQuestions;
+      break;
+  }
+
+  // Shuffle questions and pick the first 'numberOfQuestions'
+  const shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
+  return shuffledQuestions.slice(0, numberOfQuestions);
+};
+
+export const calculateMatchResults = async (matchId: string) => {
+  try {
+    const match = await getMatch(matchId);
+    if (!match) {
+      console.error("Match not found");
+      return null;
+    }
+
+    const questions = getMatchQuestions(match.quiz_type);
+    const players = await getMatchPlayers(matchId);
+
+    if (!players) {
+      console.error("No players found for this match");
+      return null;
+    }
+
+    const results = await Promise.all(
+      players.map(async (player) => {
+        const { data: answers, error } = await supabase
+          .from('match_answers')
+          .select('*')
+          .eq('match_id', matchId)
+          .eq('user_id', player.user_id);
+
+        if (error) {
+          console.error("Error fetching answers:", error);
+          return {
+            userId: player.user_id,
+            correctAnswers: 0,
+            totalQuestions: questions.length,
+          };
+        }
+
+        let correctAnswers = 0;
+        answers.forEach((answer) => {
+          const question = questions.find((q) => q.id === answer.question_id);
+          if (question && question.correctAnswer === answer.answer) {
+            correctAnswers++;
+          }
+        });
+
+        return {
+          userId: player.user_id,
+          correctAnswers: correctAnswers,
+          totalQuestions: questions.length,
+        };
+      })
+    );
+
+    return results;
+  } catch (error) {
+    console.error("Error calculating match results:", error);
     return null;
   }
 };
