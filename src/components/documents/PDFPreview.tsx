@@ -20,13 +20,25 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
+  const [loadError, setLoadError] = useState(false);
   const { toast } = useToast();
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
+    setLoadError(false);
     toast({
       title: "PDF chargé avec succès",
       description: `Document de ${numPages} pages chargé et prêt à être consulté.`,
+    });
+  }
+
+  function onDocumentLoadError(error: Error) {
+    console.error("PDF loading error:", error);
+    setLoadError(true);
+    toast({
+      title: "Erreur de chargement",
+      description: "Le chargement du PDF a échoué. Veuillez réessayer.",
+      variant: "destructive",
     });
   }
 
@@ -80,6 +92,24 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
     document.body.removeChild(link);
   };
 
+  const handleRetry = () => {
+    setLoadError(false);
+    // Force reload the PDF by creating a cache-busting URL
+    const cacheBuster = `?cache=${Date.now()}`;
+    const refreshedUrl = pdfUrl.includes('?') ? `${pdfUrl}&cache=${Date.now()}` : `${pdfUrl}${cacheBuster}`;
+    
+    // We need to temporarily change the URL to force a reload
+    const iframe = document.querySelector('iframe');
+    if (iframe) {
+      iframe.src = refreshedUrl;
+    }
+    
+    toast({
+      title: "Nouvelle tentative",
+      description: "Tentative de rechargement du PDF en cours...",
+    });
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
@@ -94,6 +124,7 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
           <Document
             file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
             loading={
               <div className="flex items-center justify-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mrc-blue"></div>
@@ -103,76 +134,83 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
               <div className="text-center p-4 text-red-500">
                 <p className="text-lg font-bold mb-2">Erreur de chargement</p>
                 <p className="mb-4">Le chargement du PDF a échoué. Veuillez réessayer.</p>
-                <Button className="bg-mrc-blue hover:bg-blue-700" onClick={() => window.location.reload()}>
-                  Recharger la page
+                <Button className="bg-mrc-blue hover:bg-blue-700 mr-2" onClick={handleRetry}>
+                  Réessayer
+                </Button>
+                <Button variant="outline" onClick={onClose}>
+                  Fermer
                 </Button>
               </div>
             }
           >
-            <Page 
-              pageNumber={pageNumber} 
-              scale={scale}
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
-              className="shadow-lg bg-white"
-            />
+            {!loadError && (
+              <Page 
+                pageNumber={pageNumber} 
+                scale={scale}
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
+                className="shadow-lg bg-white"
+              />
+            )}
           </Document>
         </div>
         
-        <div className="p-4 border-t flex flex-wrap justify-between items-center gap-2 bg-mrc-blue/10">
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={handleZoomOut}
-              disabled={scale <= 0.5}
-              className="bg-white"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <span className="mx-2 text-sm">
-              {Math.round(scale * 100)}%
-            </span>
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={handleZoomIn}
-              disabled={scale >= 2.5}
-              className="bg-white"
-            >
-              <ZoomIn className="h-4 w-4" />
+        {!loadError && numPages && (
+          <div className="p-4 border-t flex flex-wrap justify-between items-center gap-2 bg-mrc-blue/10">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleZoomOut}
+                disabled={scale <= 0.5}
+                className="bg-white"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="mx-2 text-sm">
+                {Math.round(scale * 100)}%
+              </span>
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleZoomIn}
+                disabled={scale >= 2.5}
+                className="bg-white"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={handlePrevPage} 
+                disabled={pageNumber <= 1}
+                className="bg-white"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <span className="mx-2 text-sm">
+                Page {pageNumber} sur {numPages || '--'}
+              </span>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={handleNextPage} 
+                disabled={!numPages || pageNumber >= numPages}
+                className="bg-white"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <Button onClick={handleDownload} className="bg-mrc-blue hover:bg-blue-700">
+              <Download className="h-4 w-4 mr-2" />
+              Télécharger
             </Button>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={handlePrevPage} 
-              disabled={pageNumber <= 1}
-              className="bg-white"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <span className="mx-2 text-sm">
-              Page {pageNumber} sur {numPages || '--'}
-            </span>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={handleNextPage} 
-              disabled={!numPages || pageNumber >= numPages}
-              className="bg-white"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          </div>
-          
-          <Button onClick={handleDownload} className="bg-mrc-blue hover:bg-blue-700">
-            <Download className="h-4 w-4 mr-2" />
-            Télécharger
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   );

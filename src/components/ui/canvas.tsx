@@ -1,143 +1,241 @@
-import React, { useRef, useEffect, useState } from "react";
 
-interface CanvasProps {
-  width?: number;
-  height?: number;
-  className?: string;
-  onDraw?: (data: string) => void;
+"use client";
+
+// Utility to create a Node class
+class Node {
+  x: number = 0;
+  y: number = 0;
+  vx: number = 0;
+  vy: number = 0;
 }
 
-interface Position {
-  x: number;
-  y: number;
+// Effect class for animated effects
+class Effect {
+  phase: number;
+  offset: number;
+  frequency: number;
+  amplitude: number;
+
+  constructor(config: { phase?: number, offset?: number, frequency?: number, amplitude?: number } = {}) {
+    this.phase = config.phase || 0;
+    this.offset = config.offset || 0;
+    this.frequency = config.frequency || 0.001;
+    this.amplitude = config.amplitude || 1;
+  }
+
+  update() {
+    this.phase += this.frequency;
+    return this.offset + Math.sin(this.phase) * this.amplitude;
+  }
 }
 
-const Canvas: React.FC<CanvasProps> = ({
-  width = 400,
-  height = 400,
-  className = "",
-  onDraw,
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [lastPosition, setLastPosition] = useState<Position | null>(null);
+// Line class for animated lines
+class Line {
+  spring: number;
+  friction: number;
+  nodes: Node[];
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    // Set up the canvas
-    context.strokeStyle = "black";
-    context.lineWidth = 2;
-    context.lineCap = "round";
-    context.lineJoin = "round";
+  constructor(config: { spring?: number } = {}) {
+    this.spring = (config.spring || 0.45) + 0.1 * Math.random() - 0.05;
+    this.friction = 0.5 + 0.01 * Math.random() - 0.005;
+    this.nodes = [];
     
-    setCtx(context);
-
-    // Clear canvas initially
-    context.fillStyle = "white";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-  }, []);
-
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    setIsDrawing(true);
-    
-    const position = getPosition(e);
-    setLastPosition(position);
-    
-    if (ctx) {
-      ctx.beginPath();
-      ctx.moveTo(position.x, position.y);
+    // Initialize nodes
+    for (let i = 0; i < 50; i++) {
+      const node = new Node();
+      node.x = 0;
+      node.y = 0;
+      this.nodes.push(node);
     }
-  };
+  }
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !ctx || !lastPosition) return;
+  update(pos: { x: number, y: number }) {
+    let spring = this.spring;
+    let node = this.nodes[0];
     
-    const position = getPosition(e);
+    // Update first node based on cursor position
+    node.vx += (pos.x - node.x) * spring;
+    node.vy += (pos.y - node.y) * spring;
     
-    ctx.lineTo(position.x, position.y);
-    ctx.stroke();
-    
-    setLastPosition(position);
-  };
-
-  const stopDrawing = () => {
-    if (isDrawing && ctx) {
-      ctx.closePath();
+    // Update remaining nodes
+    for (let i = 0, n = this.nodes.length; i < n; i++) {
+      node = this.nodes[i];
       
-      // If onDraw callback is provided, send the canvas data
-      if (onDraw && canvasRef.current) {
-        const dataUrl = canvasRef.current.toDataURL("image/png");
-        onDraw(dataUrl);
+      if (i > 0) {
+        const prev = this.nodes[i - 1];
+        node.vx += (prev.x - node.x) * spring;
+        node.vy += (prev.y - node.y) * spring;
+        node.vx += prev.vx * 0.025;
+        node.vy += prev.vy * 0.025;
       }
+      
+      // Apply friction and update position
+      node.vx *= this.friction;
+      node.vy *= this.friction;
+      node.x += node.vx;
+      node.y += node.vy;
+      
+      // Decrease spring tension for smooth trailing effect
+      spring *= 0.99;
+    }
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    let x = this.nodes[0].x;
+    let y = this.nodes[0].y;
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    
+    // Create smooth curves between nodes
+    for (let i = 1, n = this.nodes.length - 2; i < n; i++) {
+      const a = this.nodes[i];
+      const b = this.nodes[i + 1];
+      const x = 0.5 * (a.x + b.x);
+      const y = 0.5 * (a.y + b.y);
+      ctx.quadraticCurveTo(a.x, a.y, x, y);
     }
     
-    setIsDrawing(false);
-    setLastPosition(null);
-  };
+    // Connect to last node
+    const a = this.nodes[this.nodes.length - 2];
+    const b = this.nodes[this.nodes.length - 1];
+    ctx.quadraticCurveTo(a.x, a.y, b.x, b.y);
+    
+    ctx.stroke();
+    ctx.closePath();
+  }
+}
 
-  const getPosition = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>): Position => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    
-    const rect = canvas.getBoundingClientRect();
-    
-    if ('touches' in e) {
-      // Touch event
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top
-      };
-    } else {
-      // Mouse event
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
-    }
-  };
+// Main animation variables
+let ctx: CanvasRenderingContext2D | null = null;
+let effect: Effect;
+let lines: Line[] = [];
+let pos = { x: 0, y: 0 };
+let running = false;
+let animationFrame: number;
 
-  const clearCanvas = () => {
-    if (!ctx || !canvasRef.current) return;
-    
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    
-    // If onDraw callback is provided, send the empty canvas data
-    if (onDraw && canvasRef.current) {
-      const dataUrl = canvasRef.current.toDataURL("image/png");
-      onDraw(dataUrl);
-    }
-  };
-
-  return (
-    <div className="canvas-container">
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        className={`border border-gray-300 rounded-md ${className}`}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={stopDrawing}
-      />
-      <button
-        onClick={clearCanvas}
-        className="mt-2 px-3 py-1 bg-gray-200 rounded-md text-sm"
-      >
-        Effacer
-      </button>
-    </div>
-  );
+// Config parameters
+const SETTINGS = {
+  friction: 0.5,
+  trails: 80,
+  size: 50,
+  dampening: 0.025,
+  tension: 0.99
 };
 
-export default Canvas;
+// Handle mouse/touch movement
+function handlePointerMove(e: MouseEvent | TouchEvent) {
+  if ('touches' in e) {
+    pos.x = e.touches[0].clientX;
+    pos.y = e.touches[0].clientY;
+  } else {
+    pos.x = e.clientX;
+    pos.y = e.clientY;
+  }
+  e.preventDefault();
+}
+
+// Initialize lines
+function initLines() {
+  lines = [];
+  for (let i = 0; i < SETTINGS.trails; i++) {
+    lines.push(new Line({ spring: 0.45 + (i / SETTINGS.trails) * 0.025 }));
+  }
+}
+
+// Render animation frame
+function render() {
+  if (!ctx || !running) return;
+  
+  // Clear canvas with semi-transparent layer for trail effect
+  ctx.globalCompositeOperation = "source-over";
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.globalCompositeOperation = "lighter";
+  
+  // Set line style with dynamic color based on effect
+  const hue = Math.round(effect.update());
+  ctx.strokeStyle = `hsla(${hue},100%,50%,0.025)`;
+  ctx.lineWidth = 10;
+  
+  // Update and draw all lines
+  for (let i = 0; i < SETTINGS.trails; i++) {
+    const line = lines[i];
+    line.update(pos);
+    line.draw(ctx);
+  }
+  
+  // Continue animation loop
+  animationFrame = window.requestAnimationFrame(render);
+}
+
+// Resize canvas to match window
+function resizeCanvas() {
+  if (!ctx) return;
+  
+  const canvas = ctx.canvas;
+  canvas.width = window.innerWidth - 20;
+  canvas.height = window.innerHeight;
+}
+
+// Initialize canvas animation
+export function renderCanvas() {
+  // Find canvas element
+  const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+  if (!canvas) return;
+  
+  // Setup context
+  ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  
+  running = true;
+  
+  // Initialize effect with random phase
+  effect = new Effect({
+    phase: Math.random() * 2 * Math.PI,
+    amplitude: 85,
+    frequency: 0.0015,
+    offset: 285
+  });
+  
+  // Set initial position to center of screen
+  pos.x = window.innerWidth / 2;
+  pos.y = window.innerHeight / 2;
+  
+  // Add event listeners
+  document.addEventListener("mousemove", handlePointerMove);
+  document.addEventListener("touchmove", handlePointerMove, { passive: false });
+  document.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 1) {
+      pos.x = e.touches[0].clientX;
+      pos.y = e.touches[0].clientY;
+    }
+  }, { passive: true });
+  
+  // Handle window events
+  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("focus", () => {
+    if (!running) {
+      running = true;
+      render();
+    }
+  });
+  window.addEventListener("blur", () => {
+    running = false;
+    cancelAnimationFrame(animationFrame);
+  });
+  
+  // Initialize canvas and start animation
+  resizeCanvas();
+  initLines();
+  render();
+}
+
+// Cleanup function to remove event listeners (useful for React cleanup)
+export function cleanupCanvas() {
+  running = false;
+  if (animationFrame) {
+    cancelAnimationFrame(animationFrame);
+  }
+  document.removeEventListener("mousemove", handlePointerMove);
+  document.removeEventListener("touchmove", handlePointerMove);
+}

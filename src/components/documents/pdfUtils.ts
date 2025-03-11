@@ -1,12 +1,13 @@
 
 // Shared constants and utilities for PDF generation and handling
 
+// Use public PDF examples that are known to be reliable
 export const MODULE_PDF_URLS = {
   histoire: "https://www.africau.edu/images/default/sample.pdf",
   mobilisation: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
   communication: "https://www.orimi.com/pdf-test.pdf",
-  enjeux: "https://www.africau.edu/images/default/sample.pdf",
-  campagne: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+  enjeux: "https://infobooks.org/pdf/pdf-sample.pdf", 
+  campagne: "https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf"
 };
 
 export const MODULE_NAMES = {
@@ -98,10 +99,24 @@ export const MODULE_CONTENT = {
   ]
 };
 
+// Check if the device is mobile
 export const checkIsMobile = (): boolean => {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 };
 
+// Try to validate a PDF URL by making a HEAD request
+export const validatePdfUrl = async (url: string): Promise<boolean> => {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    const contentType = response.headers.get('content-type');
+    return response.ok && contentType?.includes('pdf');
+  } catch (error) {
+    console.error('PDF validation error:', error);
+    return false;
+  }
+};
+
+// Download PDF with fallback options
 export const downloadPDF = (pdfUrl: string, fileName: string): void => {
   const isMobile = checkIsMobile();
   
@@ -134,4 +149,17 @@ export const generatePDFFilename = (moduleName: string, username?: string): stri
 // Function to get content for a specific module
 export const getModuleContent = (moduleId: string) => {
   return MODULE_CONTENT[moduleId as keyof typeof MODULE_CONTENT] || [];
+};
+
+// Get a fallback PDF URL if the primary one fails
+export const getFallbackPdfUrl = (moduleId: string): string => {
+  const backups = [
+    "https://www.africau.edu/images/default/sample.pdf",
+    "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    "https://www.orimi.com/pdf-test.pdf"
+  ];
+  
+  // Return a different backup based on moduleId to provide variety
+  const index = moduleId.length % backups.length;
+  return backups[index];
 };
