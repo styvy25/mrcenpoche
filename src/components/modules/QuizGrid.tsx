@@ -1,16 +1,14 @@
 
 import { Button } from "@/components/ui/button";
-import { getModuleQuiz } from "@/components/modules/moduleQuizData";
+import { moduleQuizzes } from "@/components/modules/quizData";
 
 interface QuizGridProps {
   onStartQuiz: (moduleId: string) => void;
 }
 
 const QuizGrid = ({ onStartQuiz }: QuizGridProps) => {
-  const moduleQuizzes = getModuleQuiz("mobilisation") ? {} : {};
-  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-10">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
       {Object.entries(moduleQuizzes).map(([moduleId, quiz]) => (
         <div key={moduleId} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100">
           <div className="p-4">

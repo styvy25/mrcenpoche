@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import ModuleQuiz from "@/components/modules/ModuleQuiz";
-import { getModuleQuiz } from "@/components/modules/moduleQuizData";
+import { getModuleQuiz } from "@/components/modules/quizData";
 
 interface QuizContentProps {
   moduleId: string;

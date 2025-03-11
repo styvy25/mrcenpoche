@@ -10,7 +10,7 @@ export interface Lesson {
 }
 
 export interface Module {
-  id: number;
+  id: string | number;
   title: string;
   description: string;
   progress: number;
@@ -22,4 +22,16 @@ export interface Module {
   lessons: Lesson[];
   quizLink?: string;
   pdfUrl?: string;
+  questions?: QuizQuestion[];
+}
+
+interface QuizQuestion {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  category?: string;
+  difficulty?: string;
+  imageSrc?: string;
 }
