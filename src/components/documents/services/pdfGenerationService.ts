@@ -1,6 +1,6 @@
 
 import { toast } from "@/hooks/use-toast";
-import { MODULE_PDF_URLS, MODULE_NAMES, generatePDFFilename, downloadPDF } from "../pdfUtils";
+import { MODULE_PDF_URLS, MODULE_NAMES, generatePDFFilename, downloadPDF, validatePdfUrl, getFallbackPdfUrl } from "../pdfUtils";
 
 export interface PDFGenerationOptions {
   includeExercises: boolean;
@@ -8,7 +8,7 @@ export interface PDFGenerationOptions {
   includeSummary: boolean;
 }
 
-export const generateAndDownloadPDF = (
+export const generateAndDownloadPDF = async (
   selectedModule: string,
   userName: string,
   options: PDFGenerationOptions
@@ -28,8 +28,18 @@ export const generateAndDownloadPDF = (
     return false;
   }
 
-  // Get PDF URL and generate filename
-  const pdfUrl = MODULE_PDF_URLS[selectedModule as keyof typeof MODULE_PDF_URLS];
+  // Get PDF URL
+  let pdfUrl = MODULE_PDF_URLS[selectedModule as keyof typeof MODULE_PDF_URLS];
+  
+  // Validate URL and try fallback if needed
+  const isValidUrl = await validatePdfUrl(pdfUrl);
+  if (!isValidUrl) {
+    console.log("Primary PDF URL failed, trying fallback...");
+    const fallbackUrl = getFallbackPdfUrl(selectedModule);
+    pdfUrl = fallbackUrl;
+  }
+  
+  // Generate filename
   const fileName = generatePDFFilename(
     MODULE_NAMES[selectedModule as keyof typeof MODULE_NAMES],
     userName.trim() || undefined
