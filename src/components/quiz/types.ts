@@ -1,48 +1,111 @@
-
-// Original file content plus the addition of new needed types
-
-export interface QuizResult {
-  correctAnswers: number;
-  totalQuestions: number;
-  score: number;
-  timeSpent: number;
-  badge?: string;
-  unlockedBadges: BadgeProps[]; // Added this property
-  date: Date;
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  questions: Question[];
+  duration: number;
+  difficulty: "easy" | "medium" | "hard";
+  createdAt: Date;
+  updatedAt: Date;
+  author: string;
+  rating: number;
+  image: string;
+  tags: string[];
+  isPublished: boolean;
+  isFeatured: boolean;
+  isFree: boolean;
+  price: number;
+  discount: number;
+  reviews: Review[];
+  modules: Module[];
+  lessons: Lesson[];
+  resources: Resource[];
+  appointments: Appointment[];
+  announcements: Announcement[];
 }
 
-export interface Answer {
+export interface Review {
   id: string;
-  text: string;
-  isCorrect: boolean;
+  author: string;
+  rating: number;
+  comment: string;
+  createdAt: Date;
+}
+
+export interface Module {
+  id: string;
+  title: string;
+  description: string;
+  lessons: Lesson[];
+  resources: Resource[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  content: string;
+  duration: number;
+  resources: Resource[];
+  quiz: Quiz;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Resource {
+  id: string;
+  title: string;
+  url: string;
+  type: "video" | "audio" | "document" | "link";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  label?: string;
+  color?: string;
+  icon?: string;
+  badge?: string;
+  description?: string;
+  questions?: QuizQuestion[];
 }
 
 export interface Question {
   id: string;
   text: string;
-  answers: Answer[];
-  explanation?: string;
+  options: string[];
+  correctOption: number;
+  explanation: string;
 }
 
 // Add QuizQuestion interface
 export interface QuizQuestion {
-  id: number | string;
-  question: string;
+  id: string;
+  text: string;
   options: string[];
-  correctAnswer: number;
+  correctOption: number;
   explanation: string;
-  category?: string;
-  difficulty?: string;
-  imageSrc?: string;
 }
 
-export interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  threshold: number;
-  category: string;
+export interface QuizResult {
+  score: number;
+  correctAnswers: number;
+  totalQuestions: number;
+  timeSpent: number;
+  date: Date;
+  unlockedBadges?: BadgeProps[];
 }
 
 // Add BadgeProps interface
@@ -50,56 +113,34 @@ export interface BadgeProps {
   id: string;
   name: string;
   description: string;
-  icon: {
-    icon: React.ComponentType<any>;
-    className: string;
-  };
-  condition?: (score: number, total: number) => boolean;
-  earnedAt?: Date;
+  image: string;
+  requirementText: string;
+  colorClass?: string;
 }
 
-// Extend Category with questions property
-export interface Category {
+export interface Appointment {
   id: string;
-  name: string;
-  badge: string;
-  color: string;
-  icon: string;
+  title: string;
   description: string;
-  label?: string;
-  questions?: QuizQuestion[];
+  date: string;
+  time: string;
+  location: string;
+  status: "pending" | "confirmed" | "cancelled" | "completed";
+  participant: string;
+  // Add missing properties
+  isVirtual?: boolean;
+  link?: string;
+  participantsCount?: number;
+  maxParticipants?: number;
+  duration?: string;
 }
 
 // Add AppointmentRequest interface
 export interface AppointmentRequest {
   name: string;
   email: string;
-  phone?: string;
-  preferredDate: Date;
-  topic: string;
+  date: string;
+  time: string;
   message?: string;
-  type?: "private" | "public";
-}
-
-// Update Appointment interface with additional properties
-export interface Appointment {
-  id: string;
-  title: string;
-  description: string;
-  date: string | Date;
-  startTime: string | Date;
-  endTime: string | Date;
-  location: string;
-  participant?: {
-    name: string;
-    email: string;
-    phone?: string;
-  };
-  status: "pending" | "confirmed" | "cancelled" | "completed";
-  isVirtual?: boolean;
-  link?: string;
-  participantsCount?: number;
-  maxParticipants?: number;
-  duration?: number;
-  type?: string;
+  type: string;
 }

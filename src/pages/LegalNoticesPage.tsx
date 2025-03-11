@@ -11,11 +11,9 @@ const LegalNoticesPage: React.FC = () => {
   useEffect(() => {
     const fetchLegalNotices = async () => {
       try {
-        // Hardcoded API key for demo purposes - in production use environment variables or Supabase edge functions
-        const apiKey = ""; // You'll need to add your Perplexity API key here
-        const prompt = "Rédige les mentions légales complètes pour une plateforme d'apprentissage en ligne appelée MRC LearnScape, dédiée à la formation politique des militants du Mouvement pour la Renaissance du Cameroun (MRC). Inclus des informations sur l'éditeur du site, l'hébergement, la propriété intellectuelle, et les dispositions légales applicables au Cameroun. Formate le texte en markdown.";
+        const prompt = "Rédige les mentions légales complètes pour une plateforme d'apprentissage en ligne appelée MRC LearnScape, dédiée à la formation politique des militants du Mouvement pour la Renaissance du Cameroun (MRC). Inclus des informations sur l'éditeur du site (styvysam1@yahoo.fr, +49 155 66334864), l'hébergement, la propriété intellectuelle, et les dispositions légales applicables au Cameroun. Formate le texte en markdown.";
         
-        const response = await getPerplexityResponse(apiKey, prompt);
+        const response = await getPerplexityResponse("", prompt);
         setContent(response);
       } catch (error) {
         console.error("Failed to fetch legal notices:", error);

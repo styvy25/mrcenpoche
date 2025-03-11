@@ -11,11 +11,9 @@ const TermsPage: React.FC = () => {
   useEffect(() => {
     const fetchTerms = async () => {
       try {
-        // Hardcoded API key for demo purposes - in production use environment variables or Supabase edge functions
-        const apiKey = ""; // You'll need to add your Perplexity API key here
-        const prompt = "Rédige des conditions d'utilisation complètes pour une plateforme d'apprentissage en ligne appelée MRC LearnScape, dédiée à la formation politique des militants du Mouvement pour la Renaissance du Cameroun (MRC). Inclus des sections sur l'utilisation du contenu, les droits d'auteur, les règles de conduite, et la politique de modération. Formate le texte en markdown.";
+        const prompt = "Rédige des conditions d'utilisation complètes pour une plateforme d'apprentissage en ligne appelée MRC LearnScape, dédiée à la formation politique des militants du Mouvement pour la Renaissance du Cameroun (MRC). Inclus des sections sur l'utilisation du contenu, les droits d'auteur, les règles de conduite, et la politique de modération. Mentionne les coordonnées du responsable (styvysam1@yahoo.fr, +49 155 66334864). Formate le texte en markdown.";
         
-        const response = await getPerplexityResponse(apiKey, prompt);
+        const response = await getPerplexityResponse("", prompt);
         setContent(response);
       } catch (error) {
         console.error("Failed to fetch terms:", error);

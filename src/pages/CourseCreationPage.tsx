@@ -10,8 +10,19 @@ const CourseCreationPage: React.FC = () => {
 
   const handleCourseSubmit = async (courseData: any) => {
     try {
-      // This will only work if you have a 'courses' table in your Supabase database
-      // If not, it will fail silently and the data will only be available locally
+      // This will only work if user is authenticated
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData.user) {
+        toast({
+          title: "Authentification requise",
+          description: "Vous devez être connecté pour créer un cours.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Insert into courses table
       const { error } = await supabase
         .from('courses')
         .insert([
@@ -21,16 +32,16 @@ const CourseCreationPage: React.FC = () => {
             content: courseData.content,
             category: courseData.category,
             keywords: courseData.keywords,
-            created_at: new Date()
+            author_id: userData.user.id
           }
         ]);
 
       if (error) {
         console.error("Error saving to Supabase:", error);
         toast({
-          title: "Enregistrement local uniquement",
-          description: "Le cours a été généré mais n'a pas pu être enregistré dans la base de données.",
-          variant: "default"
+          title: "Erreur lors de l'enregistrement",
+          description: "Le cours n'a pas pu être enregistré dans la base de données.",
+          variant: "destructive"
         });
       } else {
         toast({
@@ -40,6 +51,11 @@ const CourseCreationPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error in submission:", error);
+      toast({
+        title: "Erreur inattendue",
+        description: "Une erreur s'est produite lors de la création du cours.",
+        variant: "destructive"
+      });
     }
   };
 
