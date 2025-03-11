@@ -8,14 +8,14 @@ const HeroSection = () => {
         <div className="">
           <div className="sm:text-center md:max-w-2xl lg:col-span-6 lg:text-left rounded-none md:mx-0 px-0 py-0 my-0">
             <h1 className="text-4xl tracking-tight font-extrabold sm:text-5xl md:text-6xl">
-              <span className="block">MRC LearnScape</span>
-              <span className="block text-red-400">Formation Interactive</span>
+              <span className="block px-[238px]">MRC LearnScape</span>
+              <span className="block text-red-400 px-[240px]">Formation Interactive</span>
             </h1>
-            <p className="mt-6 text-xl leading-8 text-gray-200">
+            <p className="mt-6 text-xl leading-8 text-gray-200 px-[240px]">
               Plateforme d'apprentissage immersive pour les militants du MRC avec assistance IA personnalisée, supports PDF et suivi de progression.
             </p>
             <div className="mt-8 sm:flex sm:justify-center lg:justify-start gap-4 px-[240px]">
-              <Link to="/modules" className="my-px mx-0 px-0 py-[5px]">
+              <Link to="/modules" className="mx-0 py-[5px] my-0 px-[41px]">
                 <Button className="bg-white text-mrc-blue hover:bg-gray-100 mx-[149px]">
                   Commencer la formation
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -28,12 +28,12 @@ const HeroSection = () => {
               </Link>
             </div>
           </div>
-          <div className="">
+          <div className="px-[7px] mx-[155px] rounded-sm">
             <div className="relative mx-auto w-full rounded-lg shadow-lg lg:max-w-md">
               <div className="relative block w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
                 <img alt="MRC LearnScape" src="/lovable-uploads/13009c82-2883-46e9-8cda-afd9d8e16ade.jpg" className="w-full object-fill" />
                 <div className="">
-                  <div className="text-center bg-black bg-opacity-50 p-4 rounded-lg">
+                  <div className="text-center bg-black bg-opacity-50 p-4 rounded-lg px-0 mx-0">
                     <h3 className="">Styvy237</h3>
                     <p className="">Votre assistant IA</p>
                   </div>
