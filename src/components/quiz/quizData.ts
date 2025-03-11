@@ -7,15 +7,14 @@ import { Question } from "./types";
 
 const placeholderQuestions: Question[] = [
   {
-    id: 1,
+    id: "1",
     text: "Placeholder question 1",
-    options: [
-      { id: 1, text: "Option 1" },
-      { id: 2, text: "Option 2" },
-      { id: 3, text: "Option 3" },
-      { id: 4, text: "Option 4" },
+    answers: [
+      { id: "1", text: "Option 1", isCorrect: false },
+      { id: "2", text: "Option 2", isCorrect: false },
+      { id: "3", text: "Option 3", isCorrect: false },
+      { id: "4", text: "Option 4", isCorrect: true },
     ],
-    correctOptionId: 1,
     explanation: "This is a placeholder"
   }
 ];
