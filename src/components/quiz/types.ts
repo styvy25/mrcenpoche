@@ -74,6 +74,11 @@ export interface AppointmentRequest {
   status: string;
   requestDate: Date;
   details: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  topic?: string;
+  message?: string;
 }
 
 export interface Appointment {
@@ -84,4 +89,10 @@ export interface Appointment {
   type: string;
   location?: string;
   description?: string;
+  date?: Date;
+  isVirtual?: boolean;
+  link?: string;
+  participantsCount?: number;
+  maxParticipants?: number;
+  duration?: number;
 }
