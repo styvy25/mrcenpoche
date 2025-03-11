@@ -20,5 +20,33 @@ export const geographieQuestions: QuizQuestion[] = [
     category: "geographie",
     difficulty: "moyen",
     imageSrc: "https://images.unsplash.com/photo-1546484475-7f7bd55792da?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: 21,
+    question: "Combien de régions administratives compte le Cameroun ?",
+    options: ["8", "10", "12", "14"],
+    correctAnswer: 1,
+    explanation: "Le Cameroun est divisé en 10 régions administratives: Adamaoua, Centre, Est, Extrême-Nord, Littoral, Nord, Nord-Ouest, Ouest, Sud et Sud-Ouest.",
+    category: "geographie",
+    difficulty: "facile"
+  },
+  {
+    id: 22,
+    question: "Quelle est la montagne la plus haute du Cameroun ?",
+    options: ["Mont Oku", "Mont Fako (Mont Cameroun)", "Mont Bamboutos", "Mont Mandara"],
+    correctAnswer: 1,
+    explanation: "Le Mont Fako, communément appelé Mont Cameroun, est la montagne la plus haute du Cameroun avec une altitude de 4,100 mètres.",
+    category: "geographie",
+    difficulty: "moyen",
+    imageSrc: "https://images.unsplash.com/photo-1611080626919-7cf5a9dbab12?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: 23,
+    question: "Quel pays ne partage PAS de frontière avec le Cameroun ?",
+    options: ["Nigeria", "Tchad", "République centrafricaine", "Bénin"],
+    correctAnswer: 3,
+    explanation: "Le Cameroun partage des frontières avec le Nigeria, le Tchad, la République centrafricaine, le Gabon, la Guinée équatoriale et le Congo, mais pas avec le Bénin.",
+    category: "geographie",
+    difficulty: "difficile"
   }
 ];

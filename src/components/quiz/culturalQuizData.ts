@@ -5,6 +5,7 @@ import { histoireQuestions } from "./data/histoireQuestions";
 import { traditionsQuestions } from "./data/traditionsQuestions";
 import { politiqueQuestions } from "./data/politiqueQuestions";
 import { geographieQuestions } from "./data/geographieQuestions";
+import { testQuestions } from "./data/testQuestions";
 import { categories } from "./data/categories";
 
 export const culturalQuizQuestions: QuizQuestion[] = [
@@ -12,11 +13,19 @@ export const culturalQuizQuestions: QuizQuestion[] = [
   ...histoireQuestions,
   ...traditionsQuestions,
   ...politiqueQuestions,
-  ...geographieQuestions
+  ...geographieQuestions,
+  ...testQuestions
 ];
 
 export const culturalQuizData = {
-  categories: categories,
+  categories: [
+    ...categories,
+    {
+      id: "test",
+      name: "Épreuve Test",
+      color: "bg-purple-500"
+    }
+  ],
   quizQuestions: culturalQuizQuestions
 };
 
