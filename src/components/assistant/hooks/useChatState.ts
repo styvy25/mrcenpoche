@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Message } from "../types/message";
 import { getPerplexityResponse } from "../services/perplexityService";
 import { searchMRCVideos, getVideoInfo } from "../services/youtubeService";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useChatState() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -211,16 +211,38 @@ export function useChatState() {
 
     const { perplexity, youtube } = JSON.parse(apiKeys);
     
-    if (!perplexity) {
-      toast({
-        title: "Clé API Perplexity manquante",
-        description: "Veuillez configurer votre clé API Perplexity dans les paramètres.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
+    // Check if the message is about generating a rugby XV
+    const rugbyKeywords = ["xv", "équipe", "composition", "rugby", "joueurs", "team"];
+    const isRugbyRequest = rugbyKeywords.some(keyword => input.toLowerCase().includes(keyword.toLowerCase()));
+    
+    if (isRugbyRequest) {
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-xv', {
+          body: { context: input }
+        });
+
+        if (error) throw error;
+
+        const aiMessage: Message = {
+          role: "assistant",
+          content: data.composition,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+      } catch (error) {
+        console.error('Error generating XV:', error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la génération de la composition d'équipe.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
-    
+
     const youtubeKeywords = ["vidéo", "video", "youtube", "regarder", "voir", "discours", "interview", "conférence", "média"];
     const hasYoutubeIntent = youtubeKeywords.some(keyword => input.toLowerCase().includes(keyword.toLowerCase()));
     
