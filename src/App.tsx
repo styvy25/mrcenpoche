@@ -1,46 +1,53 @@
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import ModulesPage from "./pages/ModulesPage";
+import React, { useState, createContext, useContext } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import SettingsPage from './pages/SettingsPage';
+import AIChat from './components/assistant/AIChat';
+import ModulePage from './pages/ModulePage';
 import QuizPage from "./pages/QuizPage";
-import AssistantPage from "./pages/AssistantPage";
-import DocumentsPage from "./pages/DocumentsPage";
-import NotFound from "./pages/NotFound";
-import ModuleQuizPage from "./pages/ModuleQuizPage";
-import AuthPage from "./pages/AuthPage";
-import PaymentPage from "./pages/PaymentPage";
-import NewsPage from "./pages/NewsPage";
-import TermsPage from "./pages/TermsPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import LegalPage from "./pages/LegalPage";
-import SettingsPage from "./pages/SettingsPage";
-import { Toaster } from "./components/ui/toaster";
-import { AuthProvider } from "./components/auth/AuthContext";
+import MatchGame from "./components/quiz/matches/MatchGame";
+import MatchResults from "./components/quiz/matches/MatchResults";
+
+interface AppContextProps {
+  isApiKeySet: boolean;
+  setIsApiKeySet: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const AppContext = createContext<AppContextProps>({
+  isApiKeySet: false,
+  setIsApiKeySet: () => {},
+});
 
 function App() {
+  const [isApiKeySet, setIsApiKeySet] = useState<boolean>(() => {
+    try {
+      const savedKeys = localStorage.getItem("api_keys");
+      if (savedKeys) {
+        const keys = JSON.parse(savedKeys);
+        return Boolean(keys.perplexity);
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking API keys:", error);
+      return false;
+    }
+  });
+
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/modules" element={<ModulesPage />} />
-          <Route path="/quiz" element={<QuizPage />} />
-          <Route path="/assistant" element={<AssistantPage />} />
-          <Route path="/documents" element={<DocumentsPage />} />
-          <Route path="/modules/quiz" element={<ModuleQuizPage />} />
-          <Route path="/modules/quiz/:moduleId" element={<ModuleQuizPage />} />
-          <Route path="/payment" element={<PaymentPage />} />
-          <Route path="/news" element={<NewsPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/legal" element={<LegalPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-      </Router>
-    </AuthProvider>
+    <div>
+      <AppContext.Provider value={{ isApiKeySet, setIsApiKeySet }}>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Navigate to="/modules" />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/chat" element={<AIChat />} />
+            <Route path="/modules" element={<ModulePage />} />
+            <Route path="/quiz" element={<QuizPage />} />
+            <Route path="/quiz-match/:matchId" element={<MatchGame />} />
+            <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
+          </Routes>
+        </Router>
+      </AppContext.Provider>
+    </div>
   );
 }
 

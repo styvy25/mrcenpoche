@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Book, Medal, Smartphone, Info, Trophy } from "lucide-react";
+import { Book, Medal, Smartphone, Info, Trophy, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import QuizContainer from "@/components/quiz/QuizContainer";
 import BadgesDisplay from "@/components/quiz/BadgesDisplay";
+import MatchesList from "@/components/quiz/matches/MatchesList";
 import { Category } from "@/components/quiz/types";
 import { culturalQuizData } from "@/components/quiz/culturalQuizData";
 import "../quiz.css";
@@ -39,7 +40,7 @@ const QuizPage = () => {
       <main className="container mx-auto px-4 py-10 pt-24">
         <div className="text-center mb-8 animate-fade-in">
           <h1 className="text-3xl font-bold text-mrc-blue gradient-text">Quiz Culturel Camerounais</h1>
-          <p className="text-gray-600 mt-2">Testez vos connaissances et gagnez des badges culturels</p>
+          <p className="text-gray-600 mt-2">Testez vos connaissances et affrontez d'autres membres</p>
           
           <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
             <Badge className="bg-mrc-green text-white">Culture</Badge>
@@ -55,7 +56,7 @@ const QuizPage = () => {
           <div className="max-w-md mx-auto mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800 flex items-start gap-2">
             <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
             <p className="text-left">
-              Découvrez notre nouvelle <strong>Épreuve Test</strong> de 15 questions sur le MRC et la politique camerounaise. Un excellent moyen de tester vos connaissances avant le vrai test.
+              <span className="font-bold">Nouveau:</span> Affrontez vos amis dans des matchs d'incollables sur le MRC et la politique camerounaise. Invitez directement via WhatsApp!
             </p>
           </div>
         </div>
@@ -66,10 +67,14 @@ const QuizPage = () => {
           onValueChange={setActiveTab}
           className="max-w-4xl mx-auto animate-fade-in"
         >
-          <TabsList className="grid grid-cols-2 w-full mb-8">
+          <TabsList className="grid grid-cols-3 w-full mb-8">
             <TabsTrigger value="quiz" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
               <Book className="h-4 w-4" />
               Quiz
+            </TabsTrigger>
+            <TabsTrigger value="matches" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
+              <Trophy className="h-4 w-4" />
+              Matchs
             </TabsTrigger>
             <TabsTrigger value="badges" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
               <Medal className="h-4 w-4" />
@@ -92,6 +97,10 @@ const QuizPage = () => {
             ) : (
               <QuizContainer categories={categories} />
             )}
+          </TabsContent>
+          
+          <TabsContent value="matches" className="p-1">
+            <MatchesList />
           </TabsContent>
           
           <TabsContent value="badges" className="p-1">
