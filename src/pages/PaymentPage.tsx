@@ -28,7 +28,7 @@ const PaymentPage: React.FC = () => {
       }, 300);
       
       return () => clearInterval(interval);
-    } else if (paymentStatus !== 'processing') {
+    } else if (paymentStatus === 'success' || paymentStatus === 'error') {
       setProgress(100);
     }
   }, [paymentStatus]);
