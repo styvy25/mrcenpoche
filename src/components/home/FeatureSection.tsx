@@ -19,7 +19,7 @@ const features = [{
 }];
 const FeatureSection = () => {
   return <section className="py-12 md:py-20 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 my-[68px] rounded-sm lg:px-[87px]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 rounded-sm lg:px-[87px] my-px">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
             Une plateforme complète pour votre formation
