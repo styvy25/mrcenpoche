@@ -2,15 +2,15 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import PDFPreview from "./pdf-preview/PDFPreview";
-import ModuleSelector from "./ModuleSelector";
-import PDFContent from "./PDFContent";
-import PDFActions from "./PDFActions";
-import { MODULE_PDF_URLS, MODULE_NAMES, MODULE_DESCRIPTIONS, MODULE_CONTENT, downloadPDF, generatePDFFilename, getModuleContent } from "./pdfUtils";
+import { MODULE_PDF_URLS, MODULE_NAMES, downloadPDF, generatePDFFilename } from "./pdfUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Settings, BookOpen } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import ModuleSelector from "./ModuleSelector";
+import PDFActions from "./PDFActions";
+import PDFPreview from "./pdf-preview/PDFPreview";
+import ModuleMetadata from "./module-selection/ModuleMetadata";
+import ContentTab from "./pdf-content/ContentTab";
+import OptionsTab from "./pdf-options/OptionsTab";
 
 const PDFGenerator = () => {
   const [selectedModule, setSelectedModule] = useState("");
@@ -74,8 +74,6 @@ const PDFGenerator = () => {
     downloadPDF(pdfUrl, fileName);
   };
 
-  const moduleContent = selectedModule ? getModuleContent(selectedModule) : [];
-
   return (
     <>
       <Card className="w-full">
@@ -91,14 +89,7 @@ const PDFGenerator = () => {
             setSelectedModule={setSelectedModule} 
           />
           
-          {selectedModule && (
-            <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20 mb-4">
-              <h3 className="text-sm font-medium text-mrc-blue mb-2">À propos de ce module</h3>
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                {MODULE_DESCRIPTIONS[selectedModule as keyof typeof MODULE_DESCRIPTIONS]}
-              </p>
-            </div>
-          )}
+          {selectedModule && <ModuleMetadata selectedModule={selectedModule} />}
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 mb-4">
@@ -112,116 +103,17 @@ const PDFGenerator = () => {
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="content" className="space-y-4">
-              {selectedModule ? (
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium">Sections incluses dans le document</h3>
-                  <div className="space-y-2 max-h-60 overflow-y-auto p-2">
-                    {moduleContent.map((section, index) => (
-                      <div key={index} className="border rounded-md p-3 bg-white dark:bg-gray-800">
-                        <h4 className="font-medium text-mrc-blue">{section.title}</h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                          {section.content}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <PDFContent />
-              )}
+            <TabsContent value="content">
+              <ContentTab selectedModule={selectedModule} />
             </TabsContent>
             
-            <TabsContent value="options" className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="user-name" className="text-sm font-medium block mb-2">
-                    Nom du destinataire
-                  </label>
-                  <Input 
-                    id="user-name"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Entrez votre nom (optionnel)"
-                    className="w-full"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Ce nom sera inclus dans le titre du document
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium block">
-                    Options du document
-                  </label>
-                  
-                  <div className="flex items-start space-x-2">
-                    <Checkbox 
-                      id="include-exercises" 
-                      checked={options.includeExercises}
-                      onCheckedChange={(checked) => 
-                        setOptions(prev => ({...prev, includeExercises: checked as boolean}))
-                      }
-                      className="mt-1"
-                    />
-                    <div className="grid gap-1.5 leading-none">
-                      <label
-                        htmlFor="include-exercises"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Inclure les exercices pratiques
-                      </label>
-                      <p className="text-xs text-gray-500">
-                        Ajoute des exercices pour mettre en pratique les concepts
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start space-x-2">
-                    <Checkbox 
-                      id="include-images" 
-                      checked={options.includeImages}
-                      onCheckedChange={(checked) => 
-                        setOptions(prev => ({...prev, includeImages: checked as boolean}))
-                      }
-                      className="mt-1"
-                    />
-                    <div className="grid gap-1.5 leading-none">
-                      <label
-                        htmlFor="include-images"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Inclure les illustrations et schémas
-                      </label>
-                      <p className="text-xs text-gray-500">
-                        Ajoute des visuels pour faciliter la compréhension
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start space-x-2">
-                    <Checkbox 
-                      id="include-summary" 
-                      checked={options.includeSummary}
-                      onCheckedChange={(checked) => 
-                        setOptions(prev => ({...prev, includeSummary: checked as boolean}))
-                      }
-                      className="mt-1"
-                    />
-                    <div className="grid gap-1.5 leading-none">
-                      <label
-                        htmlFor="include-summary"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Inclure un résumé exécutif
-                      </label>
-                      <p className="text-xs text-gray-500">
-                        Ajoute une synthèse des points clés à la fin du document
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <TabsContent value="options">
+              <OptionsTab 
+                userName={userName}
+                setUserName={setUserName}
+                options={options}
+                setOptions={setOptions}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
