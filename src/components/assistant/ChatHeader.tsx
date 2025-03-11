@@ -1,54 +1,50 @@
 
-import { Bot, Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { Download, Wifi, WifiOff } from "lucide-react";
 
 interface ChatHeaderProps {
   onGeneratePDF: () => void;
+  isOnline?: boolean;
 }
 
-const ChatHeader = ({ onGeneratePDF }: ChatHeaderProps) => {
-  const { toast } = useToast();
-
-  const handleGeneratePDF = () => {
-    // Check if it's a mobile device
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-      toast({
-        title: "Téléchargement sur mobile",
-        description: "Le PDF va s'ouvrir dans un nouvel onglet. Utilisez l'option de téléchargement de votre navigateur.",
-      });
-    }
-    
-    onGeneratePDF();
-  };
-
+const ChatHeader = ({ onGeneratePDF, isOnline = true }: ChatHeaderProps) => {
   return (
-    <div className="bg-gradient-to-r from-mrc-blue to-mrc-green text-white p-4 backdrop-blur-lg border-b border-white/10 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md">
-          <Bot className="text-white" size={24} />
-        </div>
-        <div>
-          <h2 className="text-xl font-bold flex items-center">
-            Assistant IA Styvy237
-            <Sparkles className="ml-2 text-yellow-300" size={16} />
-          </h2>
-          <p className="text-sm opacity-90">Votre guide personnalisé pour la formation MRC</p>
+    <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div>
+        <h2 className="text-lg font-bold text-white">Assistant IA - Styvy237</h2>
+        <div className="flex items-center mt-1">
+          <div className="flex items-center">
+            {isOnline ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></div>
+                <span className="text-xs text-green-400 flex items-center">
+                  <Wifi className="h-3 w-3 mr-1" />
+                  En ligne
+                </span>
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
+                <span className="text-xs text-yellow-400 flex items-center">
+                  <WifiOff className="h-3 w-3 mr-1" />
+                  Hors-ligne
+                </span>
+              </>
+            )}
+          </div>
+          <span className="mx-2 text-gray-500">•</span>
+          <span className="text-xs text-gray-400">Assistant politique MRC</span>
         </div>
       </div>
-      <div className="flex gap-2">
-        <Button 
-          variant="outline" 
-          className="bg-white/10 border-white/20 hover:bg-white/20" 
-          onClick={handleGeneratePDF}
-          title="Télécharger la conversation en PDF"
-        >
-          <Download size={18} className="mr-2" />
-          <span className="hidden sm:inline">Télécharger</span>
-        </Button>
-      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onGeneratePDF}
+        className="bg-gray-800 border-gray-700 hover:bg-gray-700 text-white"
+      >
+        <Download className="h-4 w-4 mr-2" />
+        Exporter
+      </Button>
     </div>
   );
 };

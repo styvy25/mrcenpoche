@@ -1,8 +1,8 @@
 
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sun, Moon, Newspaper, Home, Book, FileText, Bot, User } from "lucide-react";
+import { Menu, X, Sun, Moon, Newspaper, Home, Book, FileText, Bot, User, Key } from "lucide-react";
 
 interface NavbarProps {
   navEndElement?: React.ReactNode;
@@ -14,6 +14,7 @@ const Navbar = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -22,6 +23,10 @@ const Navbar = ({
 
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+
+  const handleAPIButtonClick = () => {
+    navigate('/settings');
   };
   
   return (
@@ -56,6 +61,15 @@ const Navbar = ({
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center gap-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAPIButtonClick}
+              className="flex items-center gap-2 text-mrc-blue border-mrc-blue/30 hover:bg-mrc-blue/10"
+            >
+              <Key className="h-4 w-4" />
+              API
+            </Button>
             <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="rounded-full">
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
@@ -91,7 +105,10 @@ const Navbar = ({
               Documents
             </Link>
             <Link to="/settings" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
-              Paramètres
+              <div className="flex items-center">
+                <Key className="h-4 w-4 mr-2" />
+                API & Paramètres
+              </div>
             </Link>
             <div className="flex items-center justify-between px-3 py-2">
               <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="rounded-full">

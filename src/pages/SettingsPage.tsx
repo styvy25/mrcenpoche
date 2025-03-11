@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APIKeyForm } from "@/components/settings/APIKeyForm";
 import { Separator } from "@/components/ui/separator";
-import { CalendarDays, CreditCard, Youtube, Bell, AlertCircle } from "lucide-react";
+import { Bell, AlertCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import APIKeyManager from "@/components/settings/APIKeyManager";
 
 const SettingsPage = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
@@ -49,64 +49,47 @@ const SettingsPage = () => {
         <TabsContent value="api-keys">
           <div className="grid gap-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Clés API</h2>
+              <h2 className="text-xl font-semibold">Configuration des API</h2>
             </div>
             <Separator className="my-2" />
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CalendarDays className="h-5 w-5 text-gray-500" />
-                  Perplexity API
-                </CardTitle>
-                <CardDescription>
-                  Configurez votre clé API Perplexity pour activer les fonctionnalités d'assistant IA.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <APIKeyForm 
-                  serviceKey="perplexity-api-key"
-                  serviceLabel="Clé API Perplexity"
-                  serviceDescription="Entrez votre clé API Perplexity pour activer les fonctionnalités d'assistant IA."
-                />
-              </CardContent>
-            </Card>
+            <APIKeyManager />
 
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-gray-500" />
-                  Stripe API
+                  <AlertCircle className="h-5 w-5 text-amber-500" />
+                  Fonctionnalités hors-ligne
                 </CardTitle>
                 <CardDescription>
-                  Configurez vos clés Stripe pour activer les fonctionnalités de paiement.
+                  Informations sur le fonctionnement de l'application en mode hors-ligne
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <APIKeyForm 
-                  serviceKey="stripe-api-key"
-                  serviceLabel="Clé API Stripe"
-                  serviceDescription="Entrez votre clé API Stripe pour activer les fonctionnalités de paiement."
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Youtube className="h-5 w-5 text-gray-500" />
-                  YouTube API
-                </CardTitle>
-                <CardDescription>
-                  Configurez votre clé API YouTube pour intégrer les vidéos YouTube.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <APIKeyForm 
-                  serviceKey="youtube-api-key"
-                  serviceLabel="Clé API YouTube"
-                  serviceDescription="Entrez votre clé API YouTube pour rechercher et intégrer des vidéos."
-                />
+                <div className="space-y-4 text-sm">
+                  <p>
+                    MRC en Poche est conçu pour fonctionner même sans connexion Internet. Voici comment les fonctionnalités principales se comportent en mode hors-ligne:
+                  </p>
+                  
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>
+                      <strong>Assistant IA:</strong> Utilise des réponses prédéfinies et des réponses précédemment mises en cache.
+                    </li>
+                    <li>
+                      <strong>Vidéos YouTube:</strong> Affiche des vidéos préchargées liées au MRC.
+                    </li>
+                    <li>
+                      <strong>Modules de formation:</strong> Tout le contenu des modules est disponible hors-ligne.
+                    </li>
+                    <li>
+                      <strong>Documents PDF:</strong> Les documents précédemment générés sont accessibles hors-ligne.
+                    </li>
+                  </ul>
+                  
+                  <p>
+                    Pour une expérience optimale, nous recommandons de vous connecter périodiquement à Internet afin de mettre à jour le contenu et d'accéder à toutes les fonctionnalités.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
