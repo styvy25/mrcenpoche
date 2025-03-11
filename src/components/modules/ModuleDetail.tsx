@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
@@ -62,8 +61,7 @@ const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
       // Animation before navigation
       toast({
         title: "Lancement du quiz",
-        description: "Préparez-vous à tester vos connaissances!",
-        icon: <Zap className="text-yellow-400 animate-pulse" />
+        description: "Préparez-vous à tester vos connaissances!"
       });
       
       // Navigate after a small delay for animation to be visible
@@ -74,8 +72,7 @@ const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
   const handleMarkLessonComplete = (lessonId: number) => {
     toast({
       title: "Leçon terminée",
-      description: "Votre progression a été enregistrée.",
-      icon: <CheckCircle className="text-green-500" />
+      description: "Votre progression a été enregistrée."
     });
     // Dans une vraie application, nous mettrions à jour l'état ou enverrions une requête à l'API
   };
@@ -113,8 +110,7 @@ const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
     // Enhanced toast with animation
     toast({
       title: "Félicitations!",
-      description: "Votre certificat a été généré et téléchargé avec succès.",
-      icon: <Sparkles className="text-yellow-400 animate-pulse" />
+      description: "Votre certificat a été généré et téléchargé avec succès."
     });
   };
 
@@ -212,7 +208,6 @@ const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
                 toast({
                   title: module.isCompleted ? "Module déjà terminé" : "Module marqué comme terminé",
                   description: module.isCompleted ? "Vous avez déjà terminé ce module." : "Votre progression a été enregistrée.",
-                  icon: module.isCompleted ? <CheckCircle className="text-green-500" /> : <TrendingUp className="text-mrc-blue" />
                 });
               }}
               disabled={module.isCompleted}
@@ -255,7 +250,7 @@ const ModuleDetail = ({ module, onBack }: ModuleDetailProps) => {
             {/* Shine effect for completed modules */}
             {module.isCompleted && (
               <span className="absolute inset-0 overflow-hidden rounded-md pointer-events-none">
-                <span className="absolute -inset-[10px] bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-40deg] animate-[shine_4s_infinite_ease-in-out] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                <span className="absolute -inset-[10px] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-40deg] animate-[shine_3s_infinite_ease-in-out] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               </span>
             )}
           </Button>

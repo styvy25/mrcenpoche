@@ -1,3 +1,4 @@
+
 export interface Quiz {
   id: string;
   title: string;
@@ -90,13 +91,16 @@ export interface Question {
   explanation: string;
 }
 
-// Add QuizQuestion interface
+// Update QuizQuestion interface to match how it's used in the app
 export interface QuizQuestion {
   id: string;
-  text: string;
+  question: string;
   options: string[];
-  correctOption: number;
+  correctAnswer: number;
   explanation: string;
+  category?: string;
+  difficulty?: string;
+  imageSrc?: string;
 }
 
 export interface QuizResult {
@@ -108,7 +112,7 @@ export interface QuizResult {
   unlockedBadges?: BadgeProps[];
 }
 
-// Add BadgeProps interface
+// Update BadgeProps interface to include icon and condition
 export interface BadgeProps {
   id: string;
   name: string;
@@ -116,6 +120,9 @@ export interface BadgeProps {
   image: string;
   requirementText: string;
   colorClass?: string;
+  icon?: any; // For Lucide icons
+  condition?: (score: number, total: number) => boolean;
+  earnedAt?: Date;
 }
 
 export interface Appointment {
@@ -133,9 +140,12 @@ export interface Appointment {
   participantsCount?: number;
   maxParticipants?: number;
   duration?: string;
+  type?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
-// Add AppointmentRequest interface
+// Update AppointmentRequest interface
 export interface AppointmentRequest {
   name: string;
   email: string;
@@ -143,4 +153,7 @@ export interface AppointmentRequest {
   time: string;
   message?: string;
   type: string;
+  phone?: string;
+  topic?: string;
+  preferredDate?: Date;
 }

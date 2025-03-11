@@ -8,6 +8,14 @@ export function TestimonialCard ({ handleShuffle, testimonial, position, id, aut
   const dragRef = React.useRef(0);
   const isFront = position === "front";
 
+  const getDragClientX = (e) => {
+    // Handle both mouse events and touch events
+    if ('touches' in e) {
+      return e.touches[0].clientX;
+    }
+    return e.clientX;
+  };
+
   return (
     <motion.div
       style={{
@@ -27,10 +35,11 @@ export function TestimonialCard ({ handleShuffle, testimonial, position, id, aut
         bottom: 0
       }}
       onDragStart={(e) => {
-        dragRef.current = e.clientX;
+        dragRef.current = getDragClientX(e);
       }}
       onDragEnd={(e) => {
-        if (dragRef.current - e.clientX > 150) {
+        const clientX = getDragClientX(e);
+        if (dragRef.current - clientX > 150) {
           handleShuffle();
         }
         dragRef.current = 0;

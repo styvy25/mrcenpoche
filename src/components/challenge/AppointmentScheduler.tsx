@@ -20,7 +20,8 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
     phone: "",
     preferredDate: new Date(),
     topic: "",
-    message: ""
+    message: "",
+    type: ""
   });
   const { toast } = useToast();
 

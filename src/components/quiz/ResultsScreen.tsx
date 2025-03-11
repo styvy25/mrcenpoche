@@ -36,6 +36,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           correctAnswers: score,
           totalQuestions: totalQuestions,
           unlockedBadges: [],
+          timeSpent: 0, // Add missing timeSpent property
           date: new Date()
         }}
       />
