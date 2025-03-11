@@ -18,14 +18,14 @@ const QuizQuestion = ({
 }: QuizQuestionProps) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-xl font-semibold mb-4">{question.question}</h3>
+      <h3 className="text-xl font-semibold mb-4 gradient-text">{question.question}</h3>
       
       {question.imageSrc && (
         <div className="mb-4">
           <img
             src={question.imageSrc}
             alt={`Illustration pour ${question.question}`}
-            className="rounded-lg max-h-48 mx-auto object-contain"
+            className="rounded-lg max-h-48 mx-auto object-contain shadow-lg transition-all duration-300 hover:scale-105"
           />
         </div>
       )}
@@ -41,7 +41,7 @@ const QuizQuestion = ({
               key={index}
               onClick={() => selectedAnswer === undefined && onAnswer(index)}
               className={cn(
-                "p-3 border rounded-lg cursor-pointer transition-all flex justify-between items-center",
+                "p-3 border rounded-lg cursor-pointer transition-all quiz-option flex justify-between items-center",
                 isSelected && "border-2",
                 isSelected && isCorrect && showFeedback && "border-green-500 bg-green-50",
                 isIncorrect && showFeedback && "border-red-500 bg-red-50",
@@ -53,7 +53,7 @@ const QuizQuestion = ({
               {showFeedback && isSelected && (
                 <>
                   {isCorrect ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <CheckCircle className="h-5 w-5 text-green-500 animate-bounce" />
                   ) : (
                     <XCircle className="h-5 w-5 text-red-500" />
                   )}
@@ -65,7 +65,7 @@ const QuizQuestion = ({
       </div>
       
       {showFeedback && question.explanation && (
-        <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg animate-float">
           <p className="text-sm text-gray-700">{question.explanation}</p>
         </div>
       )}

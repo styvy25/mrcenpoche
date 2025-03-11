@@ -1,29 +1,27 @@
 
 import { useState } from "react";
-import Navbar from "@/components/layout/Navbar";
-import QuizContainer from "@/components/quiz/QuizContainer";
-import BadgesDisplay from "@/components/quiz/BadgesDisplay";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Book, Medal } from "lucide-react";
-import { quizData } from "@/components/quiz/quizData";
+import { Badge } from "@/components/ui/badge";
+import QuizContainer from "@/components/quiz/QuizContainer";
+import BadgesDisplay from "@/components/quiz/BadgesDisplay";
 import { Category } from "@/components/quiz/types";
+import { culturalQuizData } from "@/components/quiz/culturalQuizData";
 
 const QuizPage = () => {
   const [activeTab, setActiveTab] = useState("quiz");
 
-  // Convert quizData.categories to match Category interface
-  const categories: Category[] = quizData.categories.map((category: any) => ({
+  // Convert culturalQuizData.categories to match Category interface
+  const categories: Category[] = culturalQuizData.categories.map((category: any) => ({
     label: category.name,
     id: category.id,
     name: category.name,
     color: category.color,
-    questions: quizData.quizQuestions?.filter(q => q.category === category.id) || []
+    questions: culturalQuizData.quizQuestions?.filter(q => q.category === category.id) || []
   }));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-mrc-blue/5 to-mrc-yellow/10">
-      <Navbar />
       <main className="container mx-auto px-4 py-10 pt-24">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-mrc-blue">Quiz Culturel Camerounais</h1>
@@ -55,7 +53,7 @@ const QuizPage = () => {
             <QuizContainer categories={categories} />
           </TabsContent>
           <TabsContent value="badges" className="p-1">
-            <BadgesDisplay />
+            <BadgesDisplay badges={[]} />
           </TabsContent>
         </Tabs>
       </main>

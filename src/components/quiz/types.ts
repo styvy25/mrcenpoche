@@ -7,6 +7,17 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   explanation: string;
+  category?: string;
+  difficulty?: string;
+  imageSrc?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  label?: string;
+  color?: string;
+  questions: QuizQuestion[];
 }
 
 export interface QuizSection {
@@ -39,11 +50,38 @@ export interface BadgeProps {
 }
 
 export interface QuizResult {
-  id: string;
-  quizId: string;
+  id?: string;
+  quizId?: string;
   score: number;
   totalQuestions: number;
-  timeTaken: number; // in seconds
-  earnedBadges: string[];
-  completedAt: Date;
+  timeTaken?: number; // in seconds
+  earnedBadges?: string[];
+  completedAt?: Date;
+  correctAnswers?: number;
+  unlockedBadges?: any[];
+  date?: Date;
+}
+
+export interface BadgesDisplayProps {
+  badges: BadgeProps[];
+}
+
+// Appointment types for challenge features
+export interface AppointmentRequest {
+  id: string;
+  userId: string;
+  requestType: string;
+  status: string;
+  requestDate: Date;
+  details: string;
+}
+
+export interface Appointment {
+  id: string;
+  title: string;
+  startTime: Date;
+  endTime: Date;
+  type: string;
+  location?: string;
+  description?: string;
 }

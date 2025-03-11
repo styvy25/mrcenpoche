@@ -14,7 +14,6 @@ import { Toaster } from "./components/ui/toaster";
 import AuthNavItem from "./components/layout/AuthNavItem";
 import ApiKeysDialog from "./components/settings/ApiKeysDialog";
 
-// Ajout du composant AuthNavItem à la barre de navigation
 function App() {
   return (
     <Router>
