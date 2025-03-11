@@ -2,12 +2,14 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+
 interface MenuProps {
   trigger: React.ReactNode;
   children: React.ReactNode;
   align?: "left" | "right";
   showChevron?: boolean;
 }
+
 export function Menu({
   trigger,
   children,
@@ -15,7 +17,22 @@ export function Menu({
   showChevron = true
 }: MenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  return <div className="relative inline-block text-left">
+  const menuRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  return <div className="relative inline-block text-left" ref={menuRef}>
       <div onClick={() => setIsOpen(!isOpen)} className="cursor-pointer inline-flex items-center" role="button" aria-haspopup="true" aria-expanded={isOpen}>
         {trigger}
         {showChevron && <ChevronDown className="ml-2 -mr-1 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />}
@@ -28,6 +45,7 @@ export function Menu({
         </div>}
     </div>;
 }
+
 interface MenuItemProps {
   children?: React.ReactNode;
   onClick?: () => void;
@@ -35,6 +53,7 @@ interface MenuItemProps {
   icon?: React.ReactNode;
   isActive?: boolean;
 }
+
 export function MenuItem({
   children,
   onClick,
@@ -54,6 +73,7 @@ export function MenuItem({
       </span>
     </button>;
 }
+
 export function MenuContainer({
   children
 }: {
@@ -61,24 +81,35 @@ export function MenuContainer({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const childrenArray = React.Children.toArray(children);
-  const totalItems = childrenArray.length;
+  const menuRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node) && isExpanded) {
+        setIsExpanded(false);
+      }
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isExpanded]);
+
   const handleToggle = () => {
-    if (isExpanded) {
-      setIsExpanded(false);
-    } else {
-      setIsExpanded(true);
-    }
+    setIsExpanded(!isExpanded);
   };
-  return <div className="relative w-[64px]" data-expanded={isExpanded}>
+
+  return <div className="relative w-[64px]" data-expanded={isExpanded} ref={menuRef}>
       {/* Container for all items */}
       <div className="relative">
         {/* First item - always visible */}
-        <div className="relative w-16 h-16 bg-gray-100 dark:bg-gray-800 cursor-pointer rounded-full group will-change-transform z-50" onClick={handleToggle}>
+        <div className="relative w-16 h-16 bg-gray-100 dark:bg-gray-800 cursor-pointer rounded-full group will-change-transform z-50 shadow-lg hover:shadow-xl transition-shadow" onClick={handleToggle}>
           {childrenArray[0]}
         </div>
 
         {/* Other items */}
-        {childrenArray.slice(1).map((child, index) => <div key={index} className="absolute top-0 left-0 w-16 h-16 bg-gray-100 dark:bg-gray-800 will-change-transform" style={{
+        {childrenArray.slice(1).map((child, index) => <div key={index} className="absolute top-0 left-0 w-16 h-16 bg-gray-100 dark:bg-gray-800 will-change-transform shadow-md" style={{
         transform: `translateY(${isExpanded ? (index + 1) * 48 : 0}px)`,
         opacity: isExpanded ? 1 : 0,
         zIndex: 40 - index,

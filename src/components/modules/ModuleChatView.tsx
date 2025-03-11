@@ -5,7 +5,7 @@ import AIChat from "@/components/assistant/AIChat";
 import { Button } from "@/components/ui/button";
 import { Bot, Users, Info } from "lucide-react";
 import AuthDialog, { useAuth } from "@/components/auth/AuthDialog";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -23,9 +23,9 @@ const ModuleChatView = () => {
   
   // Vérifier si les clés API sont définies
   useEffect(() => {
-    const apiKeys = localStorage.getItem("api_keys");
-    if (!apiKeys || !JSON.parse(apiKeys).youtube || !JSON.parse(apiKeys).perplexity) {
-      if (chatType === "ai") {
+    if (chatType === "ai") {
+      const apiKeys = localStorage.getItem("api_keys");
+      if (!apiKeys || !JSON.parse(apiKeys).youtube || !JSON.parse(apiKeys).perplexity) {
         setShowAPIKeyDialog(true);
       }
     }
@@ -67,7 +67,7 @@ const ModuleChatView = () => {
             variant={chatType === "user" ? "default" : "outline"}
             size="sm"
             onClick={() => handleSwitchChat("user")}
-            className={chatType === "user" ? "bg-mrc-blue" : ""}
+            className={chatType === "user" ? "bg-mrc-blue hover:bg-mrc-blue/90" : ""}
           >
             <Users size={16} className="mr-2" />
             <span className="hidden sm:inline">Apprenants</span>
@@ -76,7 +76,7 @@ const ModuleChatView = () => {
             variant={chatType === "ai" ? "default" : "outline"}
             size="sm"
             onClick={() => handleSwitchChat("ai")}
-            className={chatType === "ai" ? "bg-mrc-green" : ""}
+            className={chatType === "ai" ? "bg-mrc-green hover:bg-mrc-green/90" : ""}
           >
             <Bot size={16} className="mr-2" />
             <span className="hidden sm:inline">Assistant IA</span>

@@ -1,21 +1,32 @@
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sun, Moon, Newspaper, Settings } from "lucide-react";
+import { Menu, X, Sun, Moon, Newspaper, Settings, Home, Book, FileText, Bot, User } from "lucide-react";
 import { MenuContainer, MenuItem } from "@/components/ui/fluid-menu";
+
 interface NavbarProps {
   navEndElement?: React.ReactNode;
 }
+
 const Navbar = ({
   navEndElement
 }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const location = useLocation();
+  
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle("dark");
   };
-  return <nav className="bg-white dark:bg-mrc-dark border-b border-gray-200 dark:border-gray-700 fixed w-full z-50">
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+  
+  return (
+    <nav className="bg-white dark:bg-mrc-dark border-b border-gray-200 dark:border-gray-700 fixed w-full z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -23,20 +34,24 @@ const Navbar = ({
               <span className="font-bold text-xl text-mrc-blue">MRC en Poche</span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link to="/" className="border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              <Link to="/" className={`border-transparent ${isActive('/') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+                <Home className="h-4 w-4 mr-1" />
                 Accueil
               </Link>
-              <Link to="/modules" className="border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              <Link to="/modules" className={`border-transparent ${isActive('/modules') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+                <Book className="h-4 w-4 mr-1" />
                 Modules
               </Link>
-              <Link to="/news" className="border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              <Link to="/news" className={`border-transparent ${isActive('/news') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
                 <Newspaper className="h-4 w-4 mr-1" />
                 Actualités
               </Link>
-              <Link to="/assistant" className="border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              <Link to="/assistant" className={`border-transparent ${isActive('/assistant') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+                <Bot className="h-4 w-4 mr-1" />
                 Assistant IA
               </Link>
-              <Link to="/documents" className="border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              <Link to="/documents" className={`border-transparent ${isActive('/documents') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+                <FileText className="h-4 w-4 mr-1" />
                 Documents
               </Link>
             </div>
@@ -63,9 +78,7 @@ const Navbar = ({
               <MenuItem icon={<Link to="/modules"><span className="text-gray-600 dark:text-gray-300">Modules</span></Link>} />
               <MenuItem icon={<Link to="/assistant"><span className="text-gray-600 dark:text-gray-300">Assistant</span></Link>} />
               <MenuItem icon={<Link to="/quiz"><span className="text-gray-600 dark:text-gray-300">Quiz</span></Link>} />
-              <MenuItem icon={<Settings className="h-6 w-6" onClick={() => {
-              // Navigate to settings or open a settings modal
-            }} />} />
+              <MenuItem icon={<Link to="/settings"><span className="text-gray-600 dark:text-gray-300">Paramètres</span></Link>} />
             </MenuContainer>
           </div>
           
@@ -105,6 +118,8 @@ const Navbar = ({
             </div>
           </div>
         </div>}
-    </nav>;
+    </nav>
+  );
 };
+
 export default Navbar;

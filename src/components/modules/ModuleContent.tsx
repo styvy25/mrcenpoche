@@ -3,6 +3,7 @@ import ModuleDetail from "@/components/modules/ModuleDetail";
 import QuizContent from "@/components/modules/QuizContent";
 import ModulesHomeView from "@/components/modules/ModulesHomeView";
 import { Module } from "@/components/modules/types";
+import { useEffect } from "react";
 
 interface ModuleContentProps {
   selectedModule: Module | null;
@@ -27,6 +28,11 @@ const ModuleContent = ({
   onStartQuiz,
   onChallengeComplete
 }: ModuleContentProps) => {
+  // Scroll to top when switching modules
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [selectedModule, showQuiz]);
+  
   if (selectedModule) {
     if (showQuiz) {
       return (
