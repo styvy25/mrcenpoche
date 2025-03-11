@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -110,17 +111,25 @@ export default {
 					'50%': {
 						transform: 'translateY(-10px)'
 					}
+				},
+				marquee: {
+					'0%': { transform: 'translateX(0)' },
+					'100%': { transform: 'translateX(-50%)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out',
-				'float': 'float 3s ease-in-out infinite'
+				'float': 'float 3s ease-in-out infinite',
+				'marquee': 'marquee var(--duration, 30s) linear infinite'
 			},
 			backgroundImage: {
 				'gradient-mrc': 'linear-gradient(90deg, #005BAA 0%, #E30016 100%)',
 				'gradient-cameroon': 'linear-gradient(90deg, #009A44 0%, #FCD116 50%, #E30016 100%)'
+			},
+			maxWidth: {
+				'container': '1200px'
 			}
 		}
 	},
