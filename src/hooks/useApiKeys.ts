@@ -109,7 +109,8 @@ export const useApiKeys = () => {
   };
 
   const testStripeKey = async (key: string) => {
-    return key.startsWith("sk_") || key.startsWith("pk_");
+    // Basic validation for Stripe keys
+    return key.startsWith("pk_") || key.startsWith("sk_");
   };
 
   const saveKeys = async () => {

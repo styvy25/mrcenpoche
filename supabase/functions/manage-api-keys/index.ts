@@ -90,6 +90,16 @@ serve(async (req) => {
       );
     } 
     else if (action === 'save' && keys) {
+      // Validate Stripe key format if provided
+      if (keys.stripe && !(keys.stripe.startsWith('pk_') || keys.stripe.startsWith('sk_'))) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Invalid Stripe key format. Keys should start with pk_ or sk_'
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
       // Check if user already has keys
       const { data: existingData } = await supabaseClient
         .from('api_keys_config')
