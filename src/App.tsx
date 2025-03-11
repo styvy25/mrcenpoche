@@ -1,6 +1,8 @@
 
 import React, { useState, createContext, useContext, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import SettingsPage from './pages/SettingsPage';
 import AIChat from './components/assistant/AIChat';
 import ModulePage from './pages/ModulesPage';
@@ -8,6 +10,9 @@ import QuizPage from "./pages/QuizPage";
 import MatchGame from "./components/quiz/matches/MatchGame";
 import MatchResults from "./components/quiz/matches/MatchResults";
 import Index from './pages/Index';
+
+// Initialize Stripe
+const stripePromise = loadStripe('pk_test_placeholder');
 
 interface AppContextProps {
   isApiKeySet: boolean;
@@ -61,17 +66,19 @@ function App() {
   return (
     <div>
       <AppContext.Provider value={{ isApiKeySet, setIsApiKeySet }}>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/chat" element={<AIChat />} />
-            <Route path="/modules" element={<ModulePage />} />
-            <Route path="/quiz" element={<QuizPage />} />
-            <Route path="/quiz-match/:matchId" element={<MatchGame />} />
-            <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
-          </Routes>
-        </Router>
+        <Elements stripe={stripePromise}>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/chat" element={<AIChat />} />
+              <Route path="/modules" element={<ModulePage />} />
+              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/quiz-match/:matchId" element={<MatchGame />} />
+              <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
+            </Routes>
+          </Router>
+        </Elements>
       </AppContext.Provider>
     </div>
   );

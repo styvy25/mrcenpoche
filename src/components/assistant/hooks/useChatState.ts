@@ -25,6 +25,24 @@ export function useChatState() {
   
   const { isOnline } = useOfflineMode();
 
+  // Ensure all messages have a timestamp that's a Date object
+  const normalizeMessages = (msgs) => {
+    return msgs.map(msg => {
+      if (msg.timestamp && typeof msg.timestamp === 'string') {
+        return {
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        };
+      } else if (!msg.timestamp) {
+        return {
+          ...msg,
+          timestamp: new Date()
+        };
+      }
+      return msg;
+    });
+  };
+
   // Initialize messages from localStorage if available
   useEffect(() => {
     initializeMessages();
@@ -34,9 +52,16 @@ export function useChatState() {
   // Save messages to localStorage whenever they change
   useEffect(() => {
     if (messages.length > 0) {
-      localStorage.setItem('mrc_chat_messages', JSON.stringify(messages));
+      // Make sure all messages have proper timestamps before saving
+      const normalizedMessages = normalizeMessages(messages);
+      localStorage.setItem('mrc_chat_messages', JSON.stringify(normalizedMessages));
+      
+      // Update messages with normalized timestamps
+      if (JSON.stringify(messages) !== JSON.stringify(normalizedMessages)) {
+        setMessages(normalizedMessages);
+      }
     }
-  }, [messages]);
+  }, [messages, setMessages]);
 
   const handleSendMessage = (input: string) => {
     return baseHandleSendMessage(input, isOnline, handleYouTubeSearch);
@@ -47,7 +72,7 @@ export function useChatState() {
   };
 
   return {
-    messages,
+    messages: normalizeMessages(messages),
     isLoading,
     youtubeResults,
     isSearchingYouTube,

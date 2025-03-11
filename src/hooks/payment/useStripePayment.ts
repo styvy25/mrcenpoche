@@ -26,7 +26,7 @@ export const useStripePayment = (priceId: string) => {
     if (!stripe) {
       toast({
         title: "Erreur de paiement",
-        description: "Le service de paiement n'est pas disponible actuellement",
+        description: "Le service de paiement n'est pas disponible actuellement. Vérifiez que votre connexion internet est active.",
         variant: "destructive",
       });
       return false;
@@ -38,16 +38,26 @@ export const useStripePayment = (priceId: string) => {
       description: "Vous allez être redirigé vers la page de paiement sécurisée",
     });
 
-    // Here you would call your API to create a payment session
-    // and redirect to Stripe Checkout
-    console.log("Redirection vers Stripe avec le priceId:", priceId);
+    try {
+      // Here you would call your API to create a payment session
+      // and redirect to Stripe Checkout
+      console.log("Redirection vers Stripe avec le priceId:", priceId);
 
-    // Example redirection to a payment page (simulated)
-    setTimeout(() => {
-      navigate('/payment');
-    }, 1500);
-    
-    return true;
+      // Example redirection to a payment page (simulated)
+      setTimeout(() => {
+        navigate('/payment');
+      }, 1500);
+      
+      return true;
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast({
+        title: "Erreur de paiement",
+        description: "Une erreur est survenue lors de l'initialisation du paiement",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   return {
