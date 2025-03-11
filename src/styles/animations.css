@@ -56,4 +56,34 @@
     opacity: 0;
     animation: fadeIn 0.5s ease-out forwards;
   }
+  
+  /* Performance optimized animations */
+  .optimize-animation {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+  }
+  
+  /* Reduce animation intensity for users with reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    
+    .animate-float,
+    .scale-in,
+    .editorial-fade-in {
+      animation: none !important;
+      transform: none !important;
+    }
+  }
+  
+  /* Safely animatable properties */
+  .safe-animate {
+    transition-property: transform, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }

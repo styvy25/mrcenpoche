@@ -1,4 +1,5 @@
 
+import { memo } from "react";
 import { Bot, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Message } from "./types/message";
@@ -7,13 +8,17 @@ interface MessageDisplayProps {
   message: Message;
 }
 
-const MessageDisplay = ({ message }: MessageDisplayProps) => {
+// Use memo to prevent unnecessary re-renders
+const MessageDisplay = memo(({ message }: MessageDisplayProps) => {
   const isAssistant = message.role === "assistant";
   
   return (
-    <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} group`}>
+    <div 
+      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} group safe-animate`}
+      style={{ containIntrinsicSize: '0 auto' }} // Layout stability
+    >
       <Card 
-        className={`p-4 max-w-[85%] backdrop-blur-sm border transition-all duration-200 rounded-2xl group-hover:shadow-lg ${
+        className={`p-4 max-w-[85%] backdrop-blur-sm border transition-all duration-200 rounded-2xl group-hover:shadow-lg optimize-animation ${
           isAssistant 
             ? "bg-mrc-blue/20 border-mrc-blue/30 text-white ml-0" 
             : "bg-mrc-green/20 border-mrc-green/30 text-white ml-auto"
@@ -30,7 +35,7 @@ const MessageDisplay = ({ message }: MessageDisplayProps) => {
               {isAssistant ? "Styvy237" : "Vous"}
               {!isAssistant && <span className="inline-flex items-center text-[10px] opacity-60">(vous)</span>}
             </p>
-            <p className="mt-1 text-sm leading-relaxed">{message.content}</p>
+            <p className="mt-1 text-sm leading-relaxed whitespace-pre-line">{message.content}</p>
             <p className="text-xs text-gray-400 mt-2 text-right">
               {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </p>
@@ -39,6 +44,8 @@ const MessageDisplay = ({ message }: MessageDisplayProps) => {
       </Card>
     </div>
   );
-};
+});
+
+MessageDisplay.displayName = 'MessageDisplay';
 
 export default MessageDisplay;

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Key, Loader2, ShoppingCart, Shield, CheckCircle } from 'lucide-react';
 import { useStripePayment } from '@/hooks/payment/useStripePayment';
@@ -15,7 +15,7 @@ interface StripeButtonProps {
   size?: "default" | "sm" | "lg" | "xl" | "icon";
 }
 
-const StripeButton: React.FC<StripeButtonProps> = ({ 
+const StripeButton: React.FC<StripeButtonProps> = memo(({ 
   priceId, 
   children, 
   variant = "gradient",
@@ -26,25 +26,29 @@ const StripeButton: React.FC<StripeButtonProps> = ({
   const { initiatePayment, isApiKeySet, isProcessing } = useStripePayment(priceId);
   const navigate = useNavigate();
 
-  const handleClick = async () => {
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Add a small delay to allow the button animation to complete
+    e.preventDefault();
+    
     if (!isApiKeySet) {
       navigate('/settings');
       return;
     }
     
-    const success = await initiatePayment();
-    
-    if (success) {
-      // Fournir un feedback visuel de succès
-      console.log('Paiement initié avec succès');
-    }
+    // Introduce a small delay for better visual feedback
+    setTimeout(async () => {
+      const success = await initiatePayment();
+      if (success) {
+        console.log('Payment initiated successfully');
+      }
+    }, 100);
   };
 
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="relative"
+      className="relative optimize-animation"
     >
       <Button 
         onClick={handleClick} 
@@ -85,7 +89,7 @@ const StripeButton: React.FC<StripeButtonProps> = ({
       {/* Effet de succès lors du click */}
       {isProcessing && (
         <motion.div
-          className="absolute inset-0 bg-green-500/10 rounded-lg"
+          className="absolute inset-0 bg-green-500/10 rounded-lg optimize-animation"
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1.2, opacity: 0 }}
           transition={{ duration: 0.5, repeat: Infinity }}
@@ -93,6 +97,8 @@ const StripeButton: React.FC<StripeButtonProps> = ({
       )}
     </motion.div>
   );
-};
+});
+
+StripeButton.displayName = 'StripeButton';
 
 export default StripeButton;

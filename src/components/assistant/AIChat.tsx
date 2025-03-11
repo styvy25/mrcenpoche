@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Key, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-const AIChat = () => {
+const AIChat = memo(() => {
   const { 
     messages, 
     isLoading, 
     youtubeResults, 
     isSearchingYouTube, 
+    isOnline: chatIsOnline,
     handleSendMessage, 
     handleVideoSelect 
   } = useChatState();
@@ -70,7 +71,7 @@ const AIChat = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-black rounded-xl shadow-xl overflow-hidden border border-white/10">
+    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-black rounded-xl shadow-xl overflow-hidden border border-white/10 optimize-animation">
       {!isOnline && (
         <Alert variant="destructive" className="mx-4 mt-4 bg-amber-500/20 border-amber-500/30">
           <AlertTriangle className="h-4 w-4" />
@@ -107,7 +108,7 @@ const AIChat = () => {
       
       <ChatHeader 
         onGeneratePDF={handleGeneratePDF} 
-        isOnline={isOnline}
+        isOnline={chatIsOnline}
       />
       
       <ChatContent
@@ -125,6 +126,8 @@ const AIChat = () => {
       />
     </div>
   );
-};
+});
+
+AIChat.displayName = 'AIChat';
 
 export default AIChat;

@@ -1,5 +1,5 @@
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, memo } from "react";
 import MessageDisplay from "./MessageDisplay";
 import LoadingIndicator from "./LoadingIndicator";
 import YouTubeResults from "./YouTubeResults";
@@ -13,7 +13,8 @@ interface ChatContentProps {
   onVideoSelect: (videoId: string) => void;
 }
 
-const ChatContent = ({ 
+// Use memo to prevent unnecessary re-renders
+const ChatContent = memo(({ 
   messages, 
   youtubeResults, 
   isSearchingYouTube, 
@@ -21,19 +22,45 @@ const ChatContent = ({
   onVideoSelect 
 }: ChatContentProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Improved scroll handling with debounce for performance
   useEffect(() => {
-    scrollToBottom();
+    const timeoutId = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, [messages, youtubeResults]);
+  
+  // Apply content stabilization
+  useEffect(() => {
+    if (contentRef.current) {
+      // Set a minimum height to prevent layout jumps when messages are loading
+      contentRef.current.style.minHeight = `${contentRef.current.offsetHeight}px`;
+      
+      return () => {
+        if (contentRef.current) {
+          contentRef.current.style.minHeight = '';
+        }
+      };
+    }
+  }, []);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900/80 to-black/40">
+    <div 
+      ref={contentRef}
+      className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900/80 to-black/40 scrollable"
+    >
       {messages.map((message, index) => (
-        <MessageDisplay key={index} message={message} />
+        <MessageDisplay 
+          key={`message-${index}-${message.timestamp.getTime()}`} 
+          message={message} 
+        />
       ))}
       
       {youtubeResults.length > 0 && (
@@ -48,9 +75,11 @@ const ChatContent = ({
       )}
       
       {isLoading && <LoadingIndicator />}
-      <div ref={messagesEndRef} />
+      <div ref={messagesEndRef} aria-hidden="true" />
     </div>
   );
-};
+});
+
+ChatContent.displayName = 'ChatContent';
 
 export default ChatContent;

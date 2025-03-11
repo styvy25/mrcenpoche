@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
@@ -11,12 +11,17 @@ interface MatchResultsActionsProps {
   inviteLink?: string;
 }
 
-const MatchResultsActions: React.FC<MatchResultsActionsProps> = ({ inviteLink }) => {
+const MatchResultsActions: React.FC<MatchResultsActionsProps> = memo(({ inviteLink }) => {
   const navigate = useNavigate();
 
   const shareOnWhatsApp = () => {
     if (inviteLink) {
+      // Copy to clipboard first for better user experience
+      navigator.clipboard.writeText(inviteLink).catch(err => console.error("Failed to copy:", err));
+      
+      // Then open WhatsApp
       window.open(inviteLink, '_blank');
+      
       toast.success("Lien d'invitation copié!", {
         description: "Partagez ce lien avec vos amis pour les inviter au match",
         duration: 3000,
@@ -33,7 +38,11 @@ const MatchResultsActions: React.FC<MatchResultsActionsProps> = ({ inviteLink })
 
   return (
     <CardFooter className="flex flex-col sm:flex-row justify-between gap-4">
-      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+      <motion.div 
+        whileHover={{ scale: 1.05 }} 
+        whileTap={{ scale: 0.95 }}
+        className="optimize-animation"
+      >
         <Button 
           variant="outline" 
           onClick={() => navigate("/quiz")}
@@ -48,7 +57,7 @@ const MatchResultsActions: React.FC<MatchResultsActionsProps> = ({ inviteLink })
         <motion.div 
           whileHover={{ scale: 1.05 }} 
           whileTap={{ scale: 0.95 }}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto optimize-animation"
         >
           <Button 
             onClick={handleNewChallenge}
@@ -63,7 +72,7 @@ const MatchResultsActions: React.FC<MatchResultsActionsProps> = ({ inviteLink })
         <motion.div 
           whileHover={{ scale: 1.05 }} 
           whileTap={{ scale: 0.95 }}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto optimize-animation"
         >
           <Button 
             onClick={shareOnWhatsApp}
@@ -76,6 +85,8 @@ const MatchResultsActions: React.FC<MatchResultsActionsProps> = ({ inviteLink })
       </div>
     </CardFooter>
   );
-};
+});
+
+MatchResultsActions.displayName = 'MatchResultsActions';
 
 export default MatchResultsActions;
