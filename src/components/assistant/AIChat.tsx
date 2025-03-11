@@ -72,7 +72,7 @@ const AIChat = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-black rounded-xl shadow-xl overflow-hidden border border-white/10">
       {!isOnline && (
-        <Alert variant="warning" className="mx-4 mt-4 bg-amber-500/20 border-amber-500/30">
+        <Alert variant="destructive" className="mx-4 mt-4 bg-amber-500/20 border-amber-500/30">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle className="flex items-center gap-2">
             <WifiOff className="h-4 w-4" />
