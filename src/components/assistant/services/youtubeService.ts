@@ -4,7 +4,7 @@
  */
 
 import { 
-  searchMRCVideos, 
+  searchMRCVideos as searchMRCVideosInternal, 
   getVideoInfo as getVideoInfoDirect,
   getVideoDetails,
   getVideoTranscript,
@@ -28,10 +28,10 @@ export const searchMRCVideos = async (apiKey: string, query: string): Promise<Yo
     // Check if online
     if (!isOnline()) {
       console.log("Device is offline. Using fallback videos.");
-      return (await import("./youtube")).searchMRCVideos(apiKey, query);
+      return (await import("./youtube/offlineData")).offlineVideos;
     }
 
-    return await (await import("./youtube")).searchMRCVideos(apiKey, query);
+    return await searchMRCVideosInternal(apiKey, query);
   } catch (error: any) {
     console.error("Error searching MRC videos:", error);
     
@@ -123,7 +123,8 @@ export const getVideoInfo = async (apiKey: string, videoId: string): Promise<Vid
     
     return {
       title: "Video information unavailable",
-      description: "Could not retrieve video details"
+      description: "Could not retrieve video details",
+      transcript: "Transcript unavailable"
     };
   }
 };

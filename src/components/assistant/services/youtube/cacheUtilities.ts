@@ -8,7 +8,7 @@ import { isOnline } from './searchService';
  */
 export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
   try {
-    const online = await isOnline();
+    const online = isOnline();
     if (!online) {
       throw {
         type: YouTubeErrorType.NETWORK_ERROR,
@@ -37,7 +37,7 @@ export const clearYouTubeCache = (): void => {
  */
 export const testYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
   try {
-    const online = await isOnline();
+    const online = isOnline();
     if (!online) {
       throw {
         type: YouTubeErrorType.NETWORK_ERROR,
