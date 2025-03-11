@@ -16,3 +16,13 @@ export interface YouTubeVideo {
   thumbnail: string;
   publishedAt: string;
 }
+
+export interface YouTubeSearchParams {
+  key: string;
+  q: string;
+  part: string;
+  type: string;
+  maxResults: number;
+  channelId?: string;
+}
+

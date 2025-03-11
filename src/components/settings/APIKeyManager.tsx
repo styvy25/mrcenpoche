@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Key, Eye, EyeOff, RefreshCcw, CheckCircle, XCircle } from "lucide-react";
+import { Key } from "lucide-react";
 import { testPerplexityApiKey } from "../assistant/services/perplexityChat";
 import { refreshYouTubeCache } from "../assistant/services/youtubeService";
+import APIKeyInput from "./APIKeyInput";
+import APIKeyActions from "./APIKeyActions";
+import OfflineFeaturesCard from "./OfflineFeaturesCard";
 
 interface ApiKeyStatus {
   perplexity: boolean;
@@ -16,8 +17,6 @@ interface ApiKeyStatus {
 const APIKeyManager = () => {
   const [perplexityKey, setPerplexityKey] = useState("");
   const [youtubeKey, setYoutubeKey] = useState("");
-  const [showPerplexityKey, setShowPerplexityKey] = useState(false);
-  const [showYoutubeKey, setShowYoutubeKey] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [keyStatus, setKeyStatus] = useState<ApiKeyStatus>({
     perplexity: false,
@@ -166,136 +165,37 @@ const APIKeyManager = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label htmlFor="perplexity-key" className="text-sm font-medium">
-              Clé API Perplexity
-            </label>
-            {keyStatus.perplexity ? (
-              <span className="text-xs flex items-center text-green-600">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Connecté
-              </span>
-            ) : (
-              <span className="text-xs flex items-center text-gray-400">
-                <XCircle className="h-3 w-3 mr-1" />
-                Non configuré
-              </span>
-            )}
-          </div>
-          
-          <div className="relative">
-            <Input
-              id="perplexity-key"
-              type={showPerplexityKey ? "text" : "password"}
-              value={perplexityKey}
-              onChange={(e) => setPerplexityKey(e.target.value)}
-              placeholder="Clé API Perplexity pour l'assistant IA"
-              className="pr-10"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full px-3 py-2"
-              onClick={() => setShowPerplexityKey(!showPerplexityKey)}
-            >
-              {showPerplexityKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-          </div>
-          
-          <p className="text-xs text-gray-500">
-            Utilisée pour l'assistant IA et la génération de contenu. Obtenir une clé sur{" "}
-            <a 
-              href="https://www.perplexity.ai/settings/api" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-mrc-blue hover:underline"
-            >
-              perplexity.ai/settings/api
-            </a>
-          </p>
-        </div>
+        <APIKeyInput
+          id="perplexity-key"
+          label="Clé API Perplexity"
+          value={perplexityKey}
+          onChange={setPerplexityKey}
+          isValid={keyStatus.perplexity}
+          placeholder="Clé API Perplexity pour l'assistant IA"
+          infoText="Utilisée pour l'assistant IA et la génération de contenu. Obtenir une clé sur"
+          linkText="perplexity.ai/settings/api"
+          linkUrl="https://www.perplexity.ai/settings/api"
+        />
         
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label htmlFor="youtube-key" className="text-sm font-medium">
-              Clé API YouTube
-            </label>
-            {keyStatus.youtube ? (
-              <span className="text-xs flex items-center text-green-600">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Connecté
-              </span>
-            ) : (
-              <span className="text-xs flex items-center text-gray-400">
-                <XCircle className="h-3 w-3 mr-1" />
-                Non configuré
-              </span>
-            )}
-          </div>
-          
-          <div className="relative">
-            <Input
-              id="youtube-key"
-              type={showYoutubeKey ? "text" : "password"}
-              value={youtubeKey}
-              onChange={(e) => setYoutubeKey(e.target.value)}
-              placeholder="Clé API YouTube pour les vidéos"
-              className="pr-10"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full px-3 py-2"
-              onClick={() => setShowYoutubeKey(!showYoutubeKey)}
-            >
-              {showYoutubeKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-          </div>
-          
-          <p className="text-xs text-gray-500">
-            Utilisée pour les vidéos et formations. Obtenir une clé sur{" "}
-            <a 
-              href="https://console.cloud.google.com/apis/credentials" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-mrc-blue hover:underline"
-            >
-              console.cloud.google.com
-            </a>
-          </p>
-        </div>
+        <APIKeyInput
+          id="youtube-key"
+          label="Clé API YouTube"
+          value={youtubeKey}
+          onChange={setYoutubeKey}
+          isValid={keyStatus.youtube}
+          placeholder="Clé API YouTube pour les vidéos"
+          infoText="Utilisée pour les vidéos et formations. Obtenir une clé sur"
+          linkText="console.cloud.google.com"
+          linkUrl="https://console.cloud.google.com/apis/credentials"
+        />
       </CardContent>
-      <CardFooter className="flex justify-between gap-4">
-        <Button 
-          variant="outline" 
-          onClick={refreshCache}
-          disabled={isTesting || !keyStatus.youtube}
-          className="flex items-center gap-2"
-        >
-          <RefreshCcw className="h-4 w-4" />
-          Rafraîchir le cache
-        </Button>
-        
-        <Button 
-          onClick={handleSaveKeys}
-          disabled={isTesting}
-          className="flex items-center gap-2"
-        >
-          {isTesting ? (
-            <>
-              <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-1"></span>
-              Test en cours...
-            </>
-          ) : (
-            <>
-              <Key className="h-4 w-4" />
-              Enregistrer et tester
-            </>
-          )}
-        </Button>
+      <CardFooter>
+        <APIKeyActions
+          onSave={handleSaveKeys}
+          onRefreshCache={refreshCache}
+          isYoutubeKeyValid={keyStatus.youtube}
+          isTesting={isTesting}
+        />
       </CardFooter>
     </Card>
   );
