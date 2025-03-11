@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Appointment, AppointmentRequest } from "../quiz/types";
+import { AppointmentRequest } from "../quiz/types";
 import CalendarStep from "./appointment/CalendarStep";
 import AppointmentForm from "./appointment/AppointmentForm";
 import ConfirmationStep from "./appointment/ConfirmationStep";
@@ -20,8 +20,7 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
     phone: "",
     preferredDate: new Date(),
     topic: "",
-    message: "",
-    type: ""
+    message: ""
   });
   const { toast } = useToast();
 

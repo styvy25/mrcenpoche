@@ -13,8 +13,6 @@ export const badges: BadgeProps[] = [
     id: "perfect-score",
     name: "Score parfait",
     description: "Obtenir 100% à un quiz",
-    image: "",
-    requirementText: "Obtenir 100% à un quiz",
     icon: createIconComponent(Trophy, "h-8 w-8 text-yellow-500"),
     condition: (score, total) => score === total,
   },
@@ -22,8 +20,6 @@ export const badges: BadgeProps[] = [
     id: "advanced",
     name: "Niveau avancé",
     description: "Obtenir plus de 90% à un quiz difficile",
-    image: "",
-    requirementText: "Obtenir plus de 90% à un quiz difficile",
     icon: createIconComponent(Medal, "h-8 w-8 text-blue-500"),
     condition: (score, total) => (score / total) > 0.9,
   },
@@ -31,8 +27,6 @@ export const badges: BadgeProps[] = [
     id: "strong-start",
     name: "Bon début",
     description: "Obtenir plus de 80% à votre premier quiz",
-    image: "",
-    requirementText: "Obtenir plus de 80% à votre premier quiz",
     icon: createIconComponent(Award, "h-8 w-8 text-green-500"),
     condition: (score, total) => (score / total) > 0.8,
   },
@@ -40,8 +34,6 @@ export const badges: BadgeProps[] = [
     id: "fast-learner",
     name: "Apprentissage rapide",
     description: "Terminer un quiz en moins de 2 minutes avec un bon score",
-    image: "",
-    requirementText: "Terminer un quiz en moins de 2 minutes avec un bon score",
     icon: createIconComponent(BookCheck, "h-8 w-8 text-purple-500"),
     condition: (score, total) => (score / total) > 0.7,
   },
@@ -49,8 +41,6 @@ export const badges: BadgeProps[] = [
     id: "knowledge-master",
     name: "Maître du savoir",
     description: "Obtenir plus de 85% sur 5 quiz différents",
-    image: "",
-    requirementText: "Obtenir plus de 85% sur 5 quiz différents",
     icon: createIconComponent(Brain, "h-8 w-8 text-indigo-500"),
     condition: (score, total) => (score / total) > 0.85,
   },
@@ -58,18 +48,11 @@ export const badges: BadgeProps[] = [
     id: "perfect-memory",
     name: "Mémoire parfaite",
     description: "Répondre correctement à toutes les questions de mémoire",
-    image: "",
-    requirementText: "Répondre correctement à toutes les questions de mémoire",
     icon: createIconComponent(Star, "h-8 w-8 text-amber-500"),
     condition: (score, total) => score >= total - 1,
   },
 ];
 
 export const calculateEarnedBadges = (score: number, totalQuestions: number): BadgeProps[] => {
-  return badges.filter(badge => {
-    if (typeof badge.condition === 'function') {
-      return badge.condition(score, totalQuestions);
-    }
-    return false;
-  });
+  return badges.filter(badge => badge.condition(score, totalQuestions));
 };

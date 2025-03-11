@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Category, QuizQuestion } from "./types";
 import QuestionScreen from "./QuestionScreen";
@@ -50,7 +51,7 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
       return;
     }
 
-    const question = category.questions?.[currentQuestionIndex];
+    const question = category.questions[currentQuestionIndex];
 
     if (!question) {
       console.error("No current question found");
@@ -63,7 +64,7 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
     setSelectedAnswers(updatedAnswers);
 
     // Check if this is the last question
-    const isLastQuestion = currentQuestionIndex === (category.questions?.length || 0) - 1;
+    const isLastQuestion = currentQuestionIndex === category.questions.length - 1;
 
     if (isLastQuestion) {
       calculateResults();
@@ -79,8 +80,8 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
   const calculateResults = () => {
     const category = categories[currentCategoryIndex];
 
-    if (!category || !category.questions) {
-      console.error("No current category or questions found");
+    if (!category) {
+      console.error("No current category found");
       return;
     }
 

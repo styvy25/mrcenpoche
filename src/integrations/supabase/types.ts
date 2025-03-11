@@ -244,36 +244,6 @@ export type Database = {
         }
         Relationships: []
       }
-      api_keys: {
-        Row: {
-          active: boolean | null
-          created_at: string | null
-          id: string
-          key: string
-          name: string
-          service: string
-          updated_at: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          created_at?: string | null
-          id?: string
-          key: string
-          name: string
-          service: string
-          updated_at?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          created_at?: string | null
-          id?: string
-          key?: string
-          name?: string
-          service?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       chat_messages: {
         Row: {
           created_at: string | null
@@ -444,86 +414,6 @@ export type Database = {
           updated_at?: string | null
           voting_age?: number
           voting_methods?: string[] | null
-        }
-        Relationships: []
-      }
-      course_documents: {
-        Row: {
-          course_id: string | null
-          created_at: string | null
-          file_name: string
-          file_size: number
-          file_type: string
-          file_url: string
-          id: string
-          updated_at: string | null
-        }
-        Insert: {
-          course_id?: string | null
-          created_at?: string | null
-          file_name: string
-          file_size: number
-          file_type: string
-          file_url: string
-          id?: string
-          updated_at?: string | null
-        }
-        Update: {
-          course_id?: string | null
-          created_at?: string | null
-          file_name?: string
-          file_size?: number
-          file_type?: string
-          file_url?: string
-          id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "course_documents_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      courses: {
-        Row: {
-          author_id: string | null
-          category: string
-          content: string
-          created_at: string | null
-          description: string
-          id: string
-          keywords: string[] | null
-          published: boolean | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          author_id?: string | null
-          category: string
-          content: string
-          created_at?: string | null
-          description: string
-          id?: string
-          keywords?: string[] | null
-          published?: boolean | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          author_id?: string | null
-          category?: string
-          content?: string
-          created_at?: string | null
-          description?: string
-          id?: string
-          keywords?: string[] | null
-          published?: boolean | null
-          title?: string
-          updated_at?: string | null
         }
         Relationships: []
       }

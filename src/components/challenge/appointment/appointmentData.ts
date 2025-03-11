@@ -1,6 +1,6 @@
 
 import { Appointment } from "@/components/quiz/types";
-import { addDays, addHours, setHours, format } from "date-fns";
+import { addDays, addHours, setHours } from "date-fns";
 
 // Create base date for appointments
 const today = new Date();
@@ -9,29 +9,14 @@ const nextWeek = addDays(today, 7);
 
 // Helper function to add default startTime and endTime to appointments
 const createAppointment = (appointment: Partial<Appointment>): Appointment => {
-  const startDate = new Date();
-  const endDate = appointment.duration ? 
-    addHours(startDate, parseInt(appointment.duration) / 60) : 
-    addHours(startDate, 1);
+  const startTime = appointment.date || new Date();
+  const endTime = addHours(startTime, (appointment.duration || 60) / 60);
   
   return {
-    id: appointment.id || `appt-${Date.now()}`,
-    title: appointment.title || '',
-    description: appointment.description || '',
-    date: appointment.date || format(new Date(), 'yyyy-MM-dd'),
-    time: appointment.time || format(startDate, 'HH:mm'),
-    location: appointment.location || '',
-    status: appointment.status || 'pending',
-    participant: appointment.participant || '',
-    isVirtual: appointment.isVirtual,
-    link: appointment.link,
-    participantsCount: appointment.participantsCount,
-    maxParticipants: appointment.maxParticipants,
-    duration: appointment.duration,
-    type: appointment.type,
-    startTime: appointment.startTime || format(startDate, 'HH:mm'),
-    endTime: appointment.endTime || format(endDate, 'HH:mm')
-  };
+    startTime,
+    endTime,
+    ...appointment
+  } as Appointment;
 };
 
 // Upcoming appointments data with the fixed type structure
@@ -41,47 +26,39 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
     title: "Webinaire: Stratégies d'organisation locale",
     description: "Apprenez à structurer et mobiliser efficacement les comités locaux",
     type: "training",
-    date: format(setHours(tomorrow, 14), 'yyyy-MM-dd'),
-    time: format(setHours(tomorrow, 14), 'HH:mm'),
-    duration: "90",
-    status: "pending",
+    date: setHours(tomorrow, 14),
+    duration: 90,
+    status: "scheduled",
     participantsCount: 12,
     maxParticipants: 25,
     isVirtual: true,
-    link: "https://zoom.us/j/example",
-    location: "En ligne",
-    participant: ""
+    link: "https://zoom.us/j/example"
   }),
   createAppointment({
     id: "event-2",
     title: "Atelier: Techniques de communication",
     description: "Formation pratique sur la communication politique efficace",
     type: "workshop",
-    date: format(setHours(addDays(today, 3), 10), 'yyyy-MM-dd'),
-    time: format(setHours(addDays(today, 3), 10), 'HH:mm'),
-    duration: "180",
-    status: "confirmed",
+    date: setHours(addDays(today, 3), 10),
+    duration: 180,
+    status: "scheduled",
     participantsCount: 8,
     maxParticipants: 15,
     isVirtual: false,
-    location: "Siège du MRC, Yaoundé",
-    participant: ""
+    location: "Siège du MRC, Yaoundé"
   }),
   createAppointment({
     id: "event-3",
     title: "Formation: Maîtrise des réseaux sociaux",
     description: "Comment utiliser efficacement les réseaux sociaux pour la mobilisation",
     type: "training",
-    date: format(setHours(nextWeek, 16), 'yyyy-MM-dd'),
-    time: format(setHours(nextWeek, 16), 'HH:mm'),
-    duration: "120",
-    status: "pending",
+    date: setHours(nextWeek, 16),
+    duration: 120,
+    status: "scheduled",
     participantsCount: 18,
     maxParticipants: 30,
     isVirtual: true,
-    link: "https://teams.microsoft.com/l/meetup-join/example",
-    location: "En ligne",
-    participant: ""
+    link: "https://teams.microsoft.com/l/meetup-join/example"
   })
 ];
 
