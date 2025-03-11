@@ -1,13 +1,12 @@
-
 // Shared constants and utilities for PDF generation and handling
 
-// Use public PDF examples that are known to be reliable
+// Use more reliable PDF examples that are CORS-friendly
 export const MODULE_PDF_URLS = {
-  histoire: "https://www.africau.edu/images/default/sample.pdf",
-  mobilisation: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-  communication: "https://www.orimi.com/pdf-test.pdf",
-  enjeux: "https://infobooks.org/pdf/pdf-sample.pdf", 
-  campagne: "https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf"
+  histoire: "https://cors-anywhere.herokuapp.com/https://www.africau.edu/images/default/sample.pdf",
+  mobilisation: "https://cors-anywhere.herokuapp.com/https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+  communication: "https://cors-anywhere.herokuapp.com/https://www.orimi.com/pdf-test.pdf",
+  enjeux: "https://drive.google.com/uc?export=download&id=1hvjS-Ec0QaJEBiXWJ4Sf-4_GrF59Keoh", 
+  campagne: "https://drive.google.com/uc?export=download&id=1FBGYD-qlwZuDGwIGOTBRKqMClKwIxrYR"
 };
 
 export const MODULE_NAMES = {
@@ -107,7 +106,13 @@ export const checkIsMobile = (): boolean => {
 // Try to validate a PDF URL by making a HEAD request
 export const validatePdfUrl = async (url: string): Promise<boolean> => {
   try {
-    const response = await fetch(url, { method: 'HEAD' });
+    const response = await fetch(url, { 
+      method: 'HEAD',
+      mode: 'cors',
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
     const contentType = response.headers.get('content-type');
     return response.ok && contentType?.includes('pdf');
   } catch (error) {
@@ -153,13 +158,28 @@ export const getModuleContent = (moduleId: string) => {
 
 // Get a fallback PDF URL if the primary one fails
 export const getFallbackPdfUrl = (moduleId: string): string => {
+  // These URLs should be more reliable and CORS-friendly
   const backups = [
-    "https://www.africau.edu/images/default/sample.pdf",
-    "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    "https://www.orimi.com/pdf-test.pdf"
+    "https://drive.google.com/uc?export=download&id=1hvjS-Ec0QaJEBiXWJ4Sf-4_GrF59Keoh",
+    "https://drive.google.com/uc?export=download&id=1FBGYD-qlwZuDGwIGOTBRKqMClKwIxrYR",
+    "https://cors-anywhere.herokuapp.com/https://www.africau.edu/images/default/sample.pdf"
   ];
   
   // Return a different backup based on moduleId to provide variety
   const index = moduleId.length % backups.length;
   return backups[index];
+};
+
+// Function to use static PDF resources from public folder when external URLs fail
+export const getLocalPdfUrl = (moduleId: string): string => {
+  // Map module IDs to local PDF files in the public folder
+  const localPdfMap: Record<string, string> = {
+    histoire: "/pdf/histoire-mrc.pdf",
+    mobilisation: "/pdf/techniques-mobilisation.pdf",
+    communication: "/pdf/communication-politique.pdf",
+    enjeux: "/pdf/enjeux-politiques.pdf",
+    campagne: "/pdf/organisation-campagne.pdf"
+  };
+  
+  return localPdfMap[moduleId] || "/pdf/sample.pdf";
 };

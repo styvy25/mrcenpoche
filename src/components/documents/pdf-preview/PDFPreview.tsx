@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PDFDocument from "./PDFDocument";
 import PDFToolbar from "./PDFToolbar";
 import PDFHeader from "./PDFHeader";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { pdfjs } from "react-pdf";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
+import { getFallbackPdfUrl, getLocalPdfUrl } from "../pdfUtils";
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
@@ -23,11 +24,32 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
   const [loadError, setLoadError] = useState(false);
+  const [currentPdfUrl, setCurrentPdfUrl] = useState(pdfUrl);
+  const [fallbackAttempted, setFallbackAttempted] = useState(false);
+  const [localFallbackAttempted, setLocalFallbackAttempted] = useState(false);
   const { toast } = useToast();
+
+  // Extract module ID from the URL to use for fallbacks
+  const getModuleIdFromUrl = (url: string): string => {
+    const parts = url.split('/');
+    const fileName = parts[parts.length - 1].split('.')[0];
+    
+    // Try to match the file name with a module ID
+    if (fileName.includes('histoire')) return 'histoire';
+    if (fileName.includes('mobil')) return 'mobilisation';
+    if (fileName.includes('communi')) return 'communication';
+    if (fileName.includes('enjeux')) return 'enjeux';
+    if (fileName.includes('campagne')) return 'campagne';
+    
+    // Default fallback
+    return 'histoire';
+  };
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
     setLoadError(false);
+    setFallbackAttempted(false);
+    setLocalFallbackAttempted(false);
     toast({
       title: "PDF chargé avec succès",
       description: `Document de ${numPages} pages chargé et prêt à être consulté.`,
@@ -37,11 +59,41 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
   function onDocumentLoadError(error: Error) {
     console.error("PDF loading error:", error);
     setLoadError(true);
-    toast({
-      title: "Erreur de chargement",
-      description: "Le chargement du PDF a échoué. Veuillez réessayer.",
-      variant: "destructive",
-    });
+    
+    // Try fallback automatically only once
+    if (!fallbackAttempted && !localFallbackAttempted) {
+      const moduleId = getModuleIdFromUrl(currentPdfUrl);
+      const fallbackUrl = getFallbackPdfUrl(moduleId);
+      
+      setFallbackAttempted(true);
+      setCurrentPdfUrl(fallbackUrl);
+      
+      toast({
+        title: "Tentative avec une source alternative",
+        description: "Essai avec une source PDF alternative...",
+      });
+    } 
+    // If fallback also failed, try local PDF
+    else if (fallbackAttempted && !localFallbackAttempted) {
+      const moduleId = getModuleIdFromUrl(currentPdfUrl);
+      const localUrl = getLocalPdfUrl(moduleId);
+      
+      setLocalFallbackAttempted(true);
+      setCurrentPdfUrl(localUrl);
+      
+      toast({
+        title: "Dernière tentative",
+        description: "Essai avec un PDF local...",
+      });
+    }
+    // If all fallbacks failed
+    else {
+      toast({
+        title: "Erreur de chargement",
+        description: "Le chargement du PDF a échoué. Veuillez réessayer manuellement.",
+        variant: "destructive",
+      });
+    }
   }
 
   const handlePrevPage = () => {
@@ -64,15 +116,21 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
 
   const handleRetry = () => {
     setLoadError(false);
+    
+    // Reset to original URL if we've gone through all fallbacks
+    if (fallbackAttempted && localFallbackAttempted) {
+      setFallbackAttempted(false);
+      setLocalFallbackAttempted(false);
+      setCurrentPdfUrl(pdfUrl);
+    }
+    
     // Force reload the PDF by creating a cache-busting URL
     const cacheBuster = `?cache=${Date.now()}`;
-    const refreshedUrl = pdfUrl.includes('?') ? `${pdfUrl}&cache=${Date.now()}` : `${pdfUrl}${cacheBuster}`;
+    const refreshedUrl = currentPdfUrl.includes('?') 
+      ? `${currentPdfUrl}&cache=${Date.now()}` 
+      : `${currentPdfUrl}${cacheBuster}`;
     
-    // We need to temporarily change the URL to force a reload
-    const iframe = document.querySelector('iframe');
-    if (iframe) {
-      iframe.src = refreshedUrl;
-    }
+    setCurrentPdfUrl(refreshedUrl);
     
     toast({
       title: "Nouvelle tentative",
@@ -91,7 +149,7 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
 
     // Create an invisible link element
     const link = document.createElement('a');
-    link.href = pdfUrl;
+    link.href = currentPdfUrl;
     
     // Set download attribute for desktop browsers
     if (!isMobile) {
@@ -119,7 +177,7 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
         
         <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-100">
           <PDFDocument 
-            pdfUrl={pdfUrl}
+            pdfUrl={currentPdfUrl}
             pageNumber={pageNumber}
             scale={scale}
             onLoadSuccess={onDocumentLoadSuccess}
