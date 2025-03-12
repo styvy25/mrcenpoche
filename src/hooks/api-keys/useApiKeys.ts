@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ApiKeys, ApiKeyStatus } from "./types";
 import { validateApiKeys } from "./validation";
-import { loadFromSupabase, loadFromLocalStorage, saveToSupabase, saveToLocalStorage } from "./storage";
+import { loadApiKeys, persistApiKeys } from "./storage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -56,36 +56,18 @@ export const useApiKeys = () => {
     setError(null);
     
     try {
-      let apiKeys: ApiKeys | null = null;
-      
-      // If user is authenticated, try to load from Supabase first
-      if (isAuthenticated) {
-        apiKeys = await loadFromSupabase();
-        
-        if (apiKeys) {
-          // Update key status based on presence of keys
-          setKeyStatus({
-            perplexity: !!apiKeys.perplexity,
-            youtube: !!apiKeys.youtube,
-            stripe: !!apiKeys.stripe
-          });
-          
-          setKeys(apiKeys);
-          setIsLoading(false);
-          return;
-        }
-      }
-      
-      // Fall back to localStorage if not authenticated or Supabase fetch failed
-      apiKeys = loadFromLocalStorage();
+      // Using the enhanced loadApiKeys function that prioritizes Supabase
+      const apiKeys = await loadApiKeys();
       
       if (apiKeys) {
-        setKeys(apiKeys);
+        // Update key status based on presence of keys
         setKeyStatus({
           perplexity: !!apiKeys.perplexity,
           youtube: !!apiKeys.youtube,
           stripe: !!apiKeys.stripe
         });
+        
+        setKeys(apiKeys);
       }
     } catch (err) {
       console.error("Error loading API keys:", err);
@@ -98,7 +80,7 @@ export const useApiKeys = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, toast]);
+  }, [toast]);
 
   useEffect(() => {
     loadKeys();
@@ -116,13 +98,8 @@ export const useApiKeys = () => {
 
       setKeyStatus(validationResults);
 
-      // Store in Supabase if authenticated
-      if (isAuthenticated) {
-        await saveToSupabase(keys);
-      }
-
-      // Store in localStorage as fallback
-      saveToLocalStorage(keys);
+      // Use the enhanced persistApiKeys function for reliable storage
+      await persistApiKeys(keys);
       
       return {
         success: true,

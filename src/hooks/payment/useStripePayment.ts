@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStripe } from '@stripe/react-stripe-js';
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from '@/App';
-import { supabase } from "@/integrations/supabase/client";
+import { loadApiKeys } from "@/hooks/api-keys/storage";
 
 export const useStripePayment = (priceId: string) => {
   const stripe = useStripe();
@@ -48,34 +48,12 @@ export const useStripePayment = (priceId: string) => {
         description: "Vous allez être redirigé vers la page de paiement sécurisée",
       });
 
-      // Récupérer la clé API Stripe
+      // Get Stripe API key with the enhanced function
       let stripeKey = '';
+      const apiKeys = await loadApiKeys();
       
-      // Essayer d'abord avec Supabase
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      if (sessionData?.session) {
-        // Récupérer la clé Stripe depuis Supabase
-        const { data, error } = await supabase
-          .from('api_keys_config')
-          .select('stripe_key')
-          .eq('user_id', sessionData.session.user.id)
-          .single();
-          
-        if (data && data.stripe_key) {
-          stripeKey = data.stripe_key;
-          console.log("Clé Stripe récupérée depuis Supabase");
-        }
-      }
-      
-      // Si pas de clé, essayer avec localStorage
-      if (!stripeKey) {
-        const savedKeys = localStorage.getItem("api_keys");
-        if (savedKeys) {
-          const keys = JSON.parse(savedKeys);
-          stripeKey = keys.stripe || '';
-          console.log("Clé Stripe récupérée depuis localStorage");
-        }
+      if (apiKeys && apiKeys.stripe) {
+        stripeKey = apiKeys.stripe;
       }
       
       if (!stripeKey) {
@@ -84,11 +62,11 @@ export const useStripePayment = (priceId: string) => {
       
       console.log("Création d'une session de paiement avec priceId:", priceId);
       
-      // Dans une vraie application, cette partie serait gérée côté serveur
-      // Simuler une création de session Stripe
+      // In a real app, this would be handled server-side
+      // Simulate a Stripe session creation
       const sessionId = "cs_test_" + Math.random().toString(36).substring(2, 15);
       
-      // Redirection vers la page de paiement
+      // Redirect to payment page
       navigate(`/payment?session=${sessionId}`);
       
       return true;

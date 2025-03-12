@@ -14,13 +14,13 @@ export const loadFromSupabase = async (): Promise<ApiKeys | null> => {
         .single();
       
       if (error) {
-        // Si l'erreur est "No rows found", c'est normal pour un nouvel utilisateur
+        // If error is "No rows found", it's normal for a new user
         if (error.code === 'PGRST116') {
-          console.log("Pas de clés API trouvées pour cet utilisateur");
+          console.log("No API keys found for this user");
           return null;
         }
         
-        console.error("Erreur lors de la récupération des clés API:", error);
+        console.error("Error retrieving API keys:", error);
         return null;
       }
       
@@ -55,7 +55,7 @@ export const saveToSupabase = async (keys: ApiKeys): Promise<boolean> => {
     const { data: sessionData } = await supabase.auth.getSession();
     
     if (sessionData?.session) {
-      // Vérifier si l'utilisateur a déjà des clés API
+      // Check if user already has API keys
       const { data: existingData, error: checkError } = await supabase
         .from('api_keys_config')
         .select('id')
@@ -65,7 +65,7 @@ export const saveToSupabase = async (keys: ApiKeys): Promise<boolean> => {
       let result;
       
       if (!checkError && existingData) {
-        // Mettre à jour les clés existantes
+        // Update existing keys
         result = await supabase
           .from('api_keys_config')
           .update({
@@ -76,7 +76,7 @@ export const saveToSupabase = async (keys: ApiKeys): Promise<boolean> => {
           })
           .eq('user_id', sessionData.session.user.id);
       } else {
-        // Insérer de nouvelles clés
+        // Insert new keys
         result = await supabase
           .from('api_keys_config')
           .insert({
@@ -88,7 +88,7 @@ export const saveToSupabase = async (keys: ApiKeys): Promise<boolean> => {
       }
       
       if (result.error) {
-        console.error("Erreur lors de la sauvegarde des clés API:", result.error);
+        console.error("Error saving API keys:", result.error);
         return false;
       }
       
@@ -103,4 +103,30 @@ export const saveToSupabase = async (keys: ApiKeys): Promise<boolean> => {
 
 export const saveToLocalStorage = (keys: ApiKeys): void => {
   localStorage.setItem("api_keys", JSON.stringify(keys));
+};
+
+// New function to ensure keys are persisted to both localStorage and Supabase
+export const persistApiKeys = async (keys: ApiKeys): Promise<boolean> => {
+  // Save to localStorage as a fallback for offline access
+  saveToLocalStorage(keys);
+  
+  // For authenticated users, also save to Supabase for permanent storage
+  const result = await saveToSupabase(keys);
+  
+  return result;
+};
+
+// New function to load keys with preference for Supabase data (more reliable)
+export const loadApiKeys = async (): Promise<ApiKeys | null> => {
+  // Try to get keys from Supabase first (authenticated storage)
+  const supabaseKeys = await loadFromSupabase();
+  
+  if (supabaseKeys) {
+    // Sync with local storage to ensure consistency
+    saveToLocalStorage(supabaseKeys);
+    return supabaseKeys;
+  }
+  
+  // Fall back to localStorage if Supabase failed or user is not authenticated
+  return loadFromLocalStorage();
 };

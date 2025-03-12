@@ -1,20 +1,32 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Key } from "lucide-react";
 import { testPerplexityApiKey } from "@/components/assistant/services/perplexityChat";
+import { persistApiKeys, loadApiKeys } from "@/hooks/api-keys/storage";
 
 const FooterAPIManager = () => {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("api_keys") 
-    ? JSON.parse(localStorage.getItem("api_keys") || "{}").perplexity || ""
-    : "");
+  const [apiKey, setApiKey] = useState("");
   const [isKeyValid, setIsKeyValid] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const { toast } = useToast();
+
+  // Load the API key on component mount
+  useEffect(() => {
+    const loadKey = async () => {
+      const keys = await loadApiKeys();
+      if (keys && keys.perplexity) {
+        setApiKey(keys.perplexity);
+        setIsKeyValid(true);
+      }
+    };
+    
+    loadKey();
+  }, []);
 
   const handleSaveKey = async () => {
     if (!apiKey.trim()) {
@@ -32,12 +44,12 @@ const FooterAPIManager = () => {
       setIsKeyValid(isValid);
 
       if (isValid) {
-        // Save to localStorage
-        const existingKeys = JSON.parse(localStorage.getItem("api_keys") || "{}");
-        localStorage.setItem("api_keys", JSON.stringify({
-          ...existingKeys,
-          perplexity: apiKey
-        }));
+        // Save using the persistApiKeys function for reliable storage
+        await persistApiKeys({
+          perplexity: apiKey,
+          youtube: "",
+          stripe: ""
+        });
 
         toast({
           title: "Clé API sauvegardée",
@@ -124,7 +136,7 @@ const FooterAPIManager = () => {
             </Button>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Votre clé sera stockée localement dans votre navigateur et ne sera jamais partagée.
+            Votre clé sera stockée de façon permanente et sécurisée.
           </p>
         </div>
       )}
