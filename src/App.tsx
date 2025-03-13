@@ -13,6 +13,8 @@ import Index from './pages/Index';
 import PaymentPage from './pages/PaymentPage';
 import DocumentsPage from './pages/DocumentsPage';
 import { useApiKeys } from './hooks/useApiKeys';
+import { AuthProvider } from './components/auth/AuthContext';
+import ApplicationStatus from './components/layout/ApplicationStatus';
 
 // Initialize Stripe (utilisez une clé de test pour le développement)
 const stripePromise = loadStripe('pk_test_placeholder');
@@ -53,10 +55,11 @@ function App() {
   }, [loadKeys]);
 
   return (
-    <div>
+    <AuthProvider>
       <AppContext.Provider value={{ isApiKeySet, setIsApiKeySet }}>
         <Elements stripe={stripePromise}>
           <Router>
+            <ApplicationStatus />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/settings" element={<SettingsPage />} />
@@ -71,7 +74,7 @@ function App() {
           </Router>
         </Elements>
       </AppContext.Provider>
-    </div>
+    </AuthProvider>
   );
 }
 

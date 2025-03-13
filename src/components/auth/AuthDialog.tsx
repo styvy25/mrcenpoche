@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Shield, LogIn, User } from "lucide-react";
+import { Shield, LogIn, User, UserPlus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/custom-dialog";
 import { useAuth } from "./AuthContext";
 import LoginForm from "./LoginForm";
@@ -19,7 +18,7 @@ import RegisterForm from "./RegisterForm";
 const AuthDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isLoading } = useAuth();
 
   const handleDialogClose = () => {
     setIsOpen(false);
@@ -29,6 +28,15 @@ const AuthDialog = () => {
 
   const switchToRegister = () => setIsLogin(false);
   const switchToLogin = () => setIsLogin(true);
+
+  if (isLoading) {
+    return (
+      <Button variant="outline" size="sm" disabled className="flex items-center gap-1">
+        <span className="animate-spin h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full mr-1"></span>
+        <span className="hidden md:inline-block">Chargement...</span>
+      </Button>
+    );
+  }
 
   if (isAuthenticated) {
     return (
@@ -45,10 +53,16 @@ const AuthDialog = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center gap-1">
-          <LogIn className="h-3.5 w-3.5" />
-          <span className="hidden md:inline-block">Connexion</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <LogIn className="h-3.5 w-3.5" />
+            <span className="hidden md:inline-block">Connexion</span>
+          </Button>
+          <Button size="sm" className="flex items-center gap-1 bg-mrc-blue hover:bg-mrc-blue/90">
+            <UserPlus className="h-3.5 w-3.5" />
+            <span className="hidden md:inline-block">S'inscrire</span>
+          </Button>
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <div className="flex flex-col items-center gap-2">

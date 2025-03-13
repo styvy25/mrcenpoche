@@ -105,7 +105,7 @@ export const saveToLocalStorage = (keys: ApiKeys): void => {
   localStorage.setItem("api_keys", JSON.stringify(keys));
 };
 
-// New function to ensure keys are persisted to both localStorage and Supabase
+// Ensure keys are persisted to both localStorage and Supabase
 export const persistApiKeys = async (keys: ApiKeys): Promise<boolean> => {
   // Save to localStorage as a fallback for offline access
   saveToLocalStorage(keys);
@@ -116,7 +116,7 @@ export const persistApiKeys = async (keys: ApiKeys): Promise<boolean> => {
   return result;
 };
 
-// New function to load keys with preference for Supabase data (more reliable)
+// Load keys with preference for Supabase data (more reliable)
 export const loadApiKeys = async (): Promise<ApiKeys | null> => {
   // Try to get keys from Supabase first (authenticated storage)
   const supabaseKeys = await loadFromSupabase();

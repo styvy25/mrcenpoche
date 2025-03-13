@@ -1,35 +1,36 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Key, Palette, UserCircle } from "lucide-react";
-import APIKeysSection from "./sections/APIKeysSection";
+import { Building2, KeyRound, User2, Brush, Shield } from "lucide-react";
 import AccountSection from "./sections/AccountSection";
-import NotificationsSection from "./sections/NotificationsSection";
+import APIKeysSection from "./sections/APIKeysSection";
 import AppearanceSection from "./sections/AppearanceSection";
+import NotificationsSection from "./sections/NotificationsSection";
+import AuditAndTestSection from "./sections/AuditAndTestSection";
 
-interface SettingsTabsProps {
-  defaultTab?: string;
-}
-
-const SettingsTabs = ({ defaultTab = "api-keys" }: SettingsTabsProps) => {
+const SettingsTabs = () => {
   return (
-    <Tabs defaultValue={defaultTab} className="w-full">
-      <TabsList className="mb-4 flex flex-wrap">
+    <Tabs defaultValue="api-keys" className="w-full">
+      <TabsList className="w-full sm:w-auto mb-8 grid grid-cols-3 sm:grid-cols-5 gap-2">
         <TabsTrigger value="api-keys" className="flex items-center gap-2">
-          <Key className="h-4 w-4" />
-          Clés API
+          <KeyRound className="h-4 w-4" />
+          <span className="hidden sm:inline-block">API Keys</span>
         </TabsTrigger>
         <TabsTrigger value="account" className="flex items-center gap-2">
-          <UserCircle className="h-4 w-4" />
-          Compte
-        </TabsTrigger>
-        <TabsTrigger value="notifications" className="flex items-center gap-2">
-          <Bell className="h-4 w-4" />
-          Notifications
+          <User2 className="h-4 w-4" />
+          <span className="hidden sm:inline-block">Compte</span>
         </TabsTrigger>
         <TabsTrigger value="appearance" className="flex items-center gap-2">
-          <Palette className="h-4 w-4" />
-          Apparence
+          <Brush className="h-4 w-4" />
+          <span className="hidden sm:inline-block">Apparence</span>
+        </TabsTrigger>
+        <TabsTrigger value="notifications" className="flex items-center gap-2">
+          <Building2 className="h-4 w-4" />
+          <span className="hidden sm:inline-block">Notifications</span>
+        </TabsTrigger>
+        <TabsTrigger value="audit" className="flex items-center gap-2">
+          <Shield className="h-4 w-4" />
+          <span className="hidden sm:inline-block">Audit</span>
         </TabsTrigger>
       </TabsList>
 
@@ -41,12 +42,16 @@ const SettingsTabs = ({ defaultTab = "api-keys" }: SettingsTabsProps) => {
         <AccountSection />
       </TabsContent>
 
+      <TabsContent value="appearance">
+        <AppearanceSection />
+      </TabsContent>
+
       <TabsContent value="notifications">
         <NotificationsSection />
       </TabsContent>
-
-      <TabsContent value="appearance">
-        <AppearanceSection />
+      
+      <TabsContent value="audit">
+        <AuditAndTestSection />
       </TabsContent>
     </Tabs>
   );
