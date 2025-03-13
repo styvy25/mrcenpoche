@@ -1,58 +1,50 @@
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useAppearanceSettings } from "@/hooks/useAppearanceSettings";
+import { Separator } from "@/components/ui/separator";
 import DisplayModeSettings from "../appearance/DisplayModeSettings";
-import TextPresentationSettings from "../appearance/TextPresentationSettings";
 import InterfaceSettings from "../appearance/InterfaceSettings";
+import TextPresentationSettings from "../appearance/TextPresentationSettings";
+import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
+import { useTour } from "@/components/tour/TourContext";
 
 const AppearanceSection = () => {
-  const {
-    fontStyle,
-    textSize, 
-    darkMode,
-    animations,
-    compactMode,
-    immersiveBackground,
-    handleDarkModeChange,
-    handleAnimationsChange,
-    handleCompactModeChange,
-    handleFontStyleChange,
-    handleTextSizeChange,
-    handleImmersiveBackgroundChange
-  } = useAppearanceSettings();
+  const { resetTour } = useTour();
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Apparence</CardTitle>
-        <CardDescription>
-          Personnalisez l'apparence et l'ergonomie de l'application
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <DisplayModeSettings 
-          darkMode={darkMode} 
-          onDarkModeChange={handleDarkModeChange}
-        />
-
-        <TextPresentationSettings 
-          fontStyle={fontStyle}
-          textSize={textSize}
-          onFontStyleChange={handleFontStyleChange}
-          onTextSizeChange={handleTextSizeChange}
-        />
-
-        <InterfaceSettings 
-          animations={animations}
-          immersiveBackground={immersiveBackground}
-          compactMode={compactMode}
-          onAnimationsChange={handleAnimationsChange}
-          onImmersiveBackgroundChange={handleImmersiveBackgroundChange}
-          onCompactModeChange={handleCompactModeChange}
-        />
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">Apparence</h3>
+        <p className="text-sm text-muted-foreground">
+          Personnalisez l'apparence et le comportement de l'application
+        </p>
+      </div>
+      <Separator />
+      
+      <DisplayModeSettings />
+      <Separator />
+      
+      <InterfaceSettings />
+      <Separator />
+      
+      <TextPresentationSettings />
+      <Separator />
+      
+      <div>
+        <h3 className="text-base font-medium mb-2">Guide d'utilisation</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Relancez le guide d'utilisation pour redécouvrir les fonctionnalités de l'application
+        </p>
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={resetTour}
+        >
+          <HelpCircle className="h-4 w-4" />
+          Relancer le guide d'utilisation
+        </Button>
+      </div>
+    </div>
   );
 };
 

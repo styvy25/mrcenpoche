@@ -15,8 +15,11 @@ import DocumentsPage from './pages/DocumentsPage';
 import { useApiKeys } from './hooks/useApiKeys';
 import { AuthProvider } from './components/auth/AuthContext';
 import ApplicationStatus from './components/layout/ApplicationStatus';
+import { TourProvider } from './components/tour/TourContext';
+import TourPopup from './components/tour/TourPopup';
+import { SEOProvider } from './hooks/useSEO';
 
-// Initialize Stripe (utilisez une clé de test pour le développement)
+// Initialize Stripe
 const stripePromise = loadStripe('pk_test_placeholder');
 
 interface AppContextProps {
@@ -35,13 +38,13 @@ function App() {
   const [isApiKeySet, setIsApiKeySet] = useState<boolean>(false);
   const { keyStatus, loadKeys } = useApiKeys();
   
-  // Mettre à jour le statut des clés API lorsque keyStatus change
+  // Update API key status when keyStatus changes
   useEffect(() => {
     const hasAnyKey = keyStatus.perplexity || keyStatus.youtube || keyStatus.stripe;
     setIsApiKeySet(hasAnyKey);
   }, [keyStatus]);
   
-  // Recharger les clés API au focus de la fenêtre (utile pour les multiples onglets)
+  // Reload API keys on window focus (useful for multiple tabs)
   useEffect(() => {
     const handleFocus = () => {
       loadKeys();
@@ -59,18 +62,23 @@ function App() {
       <AppContext.Provider value={{ isApiKeySet, setIsApiKeySet }}>
         <Elements stripe={stripePromise}>
           <Router>
-            <ApplicationStatus />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/chat" element={<AIChat />} />
-              <Route path="/modules" element={<ModulePage />} />
-              <Route path="/quiz" element={<QuizPage />} />
-              <Route path="/quiz-match/:matchId" element={<MatchGame />} />
-              <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
-              <Route path="/payment" element={<PaymentPage />} />
-              <Route path="/documents" element={<DocumentsPage />} />
-            </Routes>
+            <SEOProvider>
+              <TourProvider>
+                <ApplicationStatus />
+                <TourPopup />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/chat" element={<AIChat />} />
+                  <Route path="/modules" element={<ModulePage />} />
+                  <Route path="/quiz" element={<QuizPage />} />
+                  <Route path="/quiz-match/:matchId" element={<MatchGame />} />
+                  <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
+                  <Route path="/payment" element={<PaymentPage />} />
+                  <Route path="/documents" element={<DocumentsPage />} />
+                </Routes>
+              </TourProvider>
+            </SEOProvider>
           </Router>
         </Elements>
       </AppContext.Provider>
