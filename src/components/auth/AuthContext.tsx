@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               isAuthenticated: true,
               user: {
                 id: sessionData.session.user.id,
-                username: profile.username || sessionData.session.user.email?.split('@')[0] || 'User',
+                username: profile.full_name || sessionData.session.user.email?.split('@')[0] || 'User',
                 email: sessionData.session.user.email || '',
                 password: '', // Not storing password
                 avatar: profile.avatar_url,
@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             isAuthenticated: true,
             user: {
               id: session.user.id,
-              username: profile?.username || session.user.email?.split('@')[0] || 'User',
+              username: profile?.full_name || session.user.email?.split('@')[0] || 'User',
               email: session.user.email || '',
               password: '', // Not storing password
               avatar: profile?.avatar_url,
