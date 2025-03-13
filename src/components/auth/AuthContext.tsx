@@ -29,6 +29,17 @@ interface AuthContextType {
   updateLastLogin: () => void;
 }
 
+// Type for the Supabase profile structure
+interface SupabaseProfile {
+  id: string;
+  full_name: string;
+  email_notifications: boolean;
+  avatar_url: string;
+  created_at: string;
+  updated_at: string;
+  two_factor_enabled: boolean;
+}
+
 const LOCAL_STORAGE_AUTH_KEY = "mrc_learnscape_auth";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
