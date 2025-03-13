@@ -11,6 +11,7 @@ import MatchGame from "./components/quiz/matches/MatchGame";
 import MatchResults from "./components/quiz/matches/MatchResults";
 import Index from './pages/Index';
 import PaymentPage from './pages/PaymentPage';
+import DocumentsPage from './pages/DocumentsPage';
 import { useApiKeys } from './hooks/useApiKeys';
 
 // Initialize Stripe (utilisez une clé de test pour le développement)
@@ -65,6 +66,7 @@ function App() {
               <Route path="/quiz-match/:matchId" element={<MatchGame />} />
               <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
               <Route path="/payment" element={<PaymentPage />} />
+              <Route path="/documents" element={<DocumentsPage />} />
             </Routes>
           </Router>
         </Elements>
