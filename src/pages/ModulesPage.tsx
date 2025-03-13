@@ -1,10 +1,14 @@
+
 import Navbar from "@/components/layout/Navbar";
 import ModulesTabs from "@/components/modules/ModulesTabs";
 import ModuleProgressView from "@/components/modules/ModuleProgressView";
 import ModuleChallengeView from "@/components/modules/ModuleChallengeView";
 import ModuleChatView from "@/components/modules/ModuleChatView";
 import ModuleContent from "@/components/modules/ModuleContent";
+import ModulesNavigation from "@/components/modules/ModulesNavigation";
 import { useModuleState } from "@/hooks/useModuleState";
+import { useSEO } from "@/hooks/useSEO";
+import { useEffect } from "react";
 
 const demoModule = {
   id: 1,
@@ -74,6 +78,14 @@ const ModulesPage = () => {
     handleChallengeClick,
     handleChatClick
   } = useModuleState();
+  
+  const { setPageTitle, setPageDescription } = useSEO();
+  
+  // Set SEO metadata
+  useEffect(() => {
+    setPageTitle("Modules de Formation - MRC en Poche");
+    setPageDescription("Explorez nos modules de formation conçus pour vous aider à devenir un militant efficace et bien informé.");
+  }, [setPageTitle, setPageDescription]);
 
   const renderModulesContent = () => (
     <ModuleContent
@@ -93,6 +105,11 @@ const ModulesPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       <div className="pt-20 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ModulesNavigation 
+          currentModule={selectedModule}
+          onStartLesson={() => selectedModule && selectedModule.lessons.length > 0 && handleStartQuiz(selectedModule.id.toString())}
+        />
+        
         <ModulesTabs
           activeTab={activeTab}
           setActiveTab={setActiveTab}

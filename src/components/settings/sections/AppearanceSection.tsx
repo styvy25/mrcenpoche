@@ -7,9 +7,24 @@ import TextPresentationSettings from "../appearance/TextPresentationSettings";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { useTour } from "@/components/tour/TourContext";
+import { useAppearanceSettings } from "@/hooks/useAppearanceSettings";
 
 const AppearanceSection = () => {
   const { resetTour } = useTour();
+  const {
+    darkMode, 
+    setDarkMode,
+    animations,
+    setAnimations,
+    immersiveBackground,
+    setImmersiveBackground,
+    compactMode,
+    setCompactMode,
+    fontStyle,
+    setFontStyle,
+    textSize,
+    setTextSize
+  } = useAppearanceSettings();
 
   return (
     <div className="space-y-6">
@@ -21,13 +36,28 @@ const AppearanceSection = () => {
       </div>
       <Separator />
       
-      <DisplayModeSettings />
+      <DisplayModeSettings 
+        darkMode={darkMode} 
+        onDarkModeChange={setDarkMode} 
+      />
       <Separator />
       
-      <InterfaceSettings />
+      <InterfaceSettings 
+        animations={animations}
+        immersiveBackground={immersiveBackground}
+        compactMode={compactMode}
+        onAnimationsChange={setAnimations}
+        onImmersiveBackgroundChange={setImmersiveBackground}
+        onCompactModeChange={setCompactMode}
+      />
       <Separator />
       
-      <TextPresentationSettings />
+      <TextPresentationSettings 
+        fontStyle={fontStyle}
+        textSize={textSize}
+        onFontStyleChange={setFontStyle}
+        onTextSizeChange={setTextSize}
+      />
       <Separator />
       
       <div>

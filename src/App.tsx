@@ -42,6 +42,9 @@ function App() {
   useEffect(() => {
     const hasAnyKey = keyStatus.perplexity || keyStatus.youtube || keyStatus.stripe;
     setIsApiKeySet(hasAnyKey);
+    
+    // Set document title
+    document.title = "MRC en Poche | Plateforme d'apprentissage";
   }, [keyStatus]);
   
   // Reload API keys on window focus (useful for multiple tabs)
