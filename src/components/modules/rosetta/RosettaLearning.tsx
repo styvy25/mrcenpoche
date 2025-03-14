@@ -1,329 +1,202 @@
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Volume2, Mic, Check, Play, BookOpen, RotateCw } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { CheckCircle, XCircle, Volume2, Repeat, ChevronRight } from 'lucide-react';
+
+interface Phrase {
+  original: string;
+  translation: string;
+  audio?: string;
+}
 
 interface RosettaLearningProps {
-  moduleId: string | number;
-  lessonContent: string;
+  moduleId: string;
   onComplete: () => void;
 }
 
-interface LearningItem {
-  id: number;
-  originalText: string;
-  translation: string;
-  audioUrl?: string;
-}
+const RosettaLearning: React.FC<RosettaLearningProps> = ({ moduleId, onComplete }) => {
+  const [currentPhrase, setCurrentPhrase] = useState<number>(0);
+  const [showTranslation, setShowTranslation] = useState<boolean>(false);
+  const [userAnswer, setUserAnswer] = useState<string>('');
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [completed, setCompleted] = useState<boolean>(false);
 
-const RosettaLearning: React.FC<RosettaLearningProps> = ({ 
-  moduleId, 
-  lessonContent,
-  onComplete 
-}) => {
-  const [activeTab, setActiveTab] = useState("learn");
-  const [progress, setProgress] = useState(0);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
-  const [userTranscript, setUserTranscript] = useState("");
-  const [learningItems, setLearningItems] = useState<LearningItem[]>([]);
-  const { toast } = useToast();
-
-  // Process lesson content to create learning items
-  useEffect(() => {
-    if (!lessonContent) return;
-    
-    // Simple example to extract sentences from content
-    // In a real implementation, this would be more sophisticated
-    const sentences = lessonContent
-      .split(/[.!?]+/)
-      .map(s => s.trim())
-      .filter(s => s.length > 10 && s.length < 100)
-      .slice(0, 8);
-    
-    const items: LearningItem[] = sentences.map((sentence, idx) => ({
-      id: idx + 1,
-      originalText: sentence,
-      translation: sentence, // In real app, this would be a translation
-      audioUrl: undefined // Would be real audio URLs in production
-    }));
-    
-    setLearningItems(items);
-  }, [lessonContent]);
-
-  // Initialize speech recognition
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      // @ts-ignore - WebkitSpeechRecognition is not in TS types
-      const SpeechRecognition = window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = 'fr-FR';
-
-      recognition.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0])
-          .map((result: any) => result.transcript)
-          .join('');
-        
-        setUserTranscript(transcript);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      setRecognition(recognition);
+  // Sample phrases based on module
+  const phrases: Phrase[] = [
+    {
+      original: "Le MRC est un parti politique camerounais.",
+      translation: "The MRC is a Cameroonian political party.",
+    },
+    {
+      original: "Maurice Kamto est le président du MRC.",
+      translation: "Maurice Kamto is the president of the MRC.",
+    },
+    {
+      original: "La mobilisation citoyenne est essentielle pour le changement.",
+      translation: "Citizen mobilization is essential for change.",
+    },
+    {
+      original: "Le développement durable est une priorité pour le Cameroun.",
+      translation: "Sustainable development is a priority for Cameroon.",
+    },
+    {
+      original: "La jeunesse représente l'avenir du pays.",
+      translation: "Youth represents the future of the country.",
     }
-  }, []);
+  ];
 
-  const startListening = () => {
-    if (recognition) {
-      setUserTranscript("");
-      setIsListening(true);
-      recognition.start();
-    } else {
-      toast({
-        title: "Fonctionnalité non disponible",
-        description: "La reconnaissance vocale n'est pas prise en charge par votre navigateur.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const stopListening = () => {
-    if (recognition && isListening) {
-      recognition.stop();
-      setIsListening(false);
-      
-      // Compare user's speech to original
-      checkPronunciation();
-    }
-  };
-
+  // Play audio for current phrase
   const playAudio = () => {
-    toast({
-      title: "Lecture audio",
-      description: "Cette fonctionnalité sera disponible prochainement.",
-    });
+    if (!phrases[currentPhrase].audio) return;
     
-    // In a real implementation, this would play the audio file
-    // const audio = new Audio(learningItems[currentIndex]?.audioUrl);
-    // audio.play();
+    try {
+      // Create audio instance safely
+      const audio = new Audio(phrases[currentPhrase].audio);
+      audio.play().catch(error => {
+        console.error("Error playing audio:", error);
+      });
+    } catch (error) {
+      console.error("Error creating audio element:", error);
+    }
   };
 
-  const checkPronunciation = () => {
-    // In a real implementation, this would use NLP to check pronunciation
-    // For now, we'll just simulate success with a random score
-    const score = Math.floor(Math.random() * 40) + 60; // 60-100%
+  // Check user answer
+  const checkAnswer = () => {
+    const correct = userAnswer.toLowerCase().trim() === phrases[currentPhrase].translation.toLowerCase().trim();
+    setIsCorrect(correct);
     
-    toast({
-      title: score > 80 ? "Excellente prononciation!" : "Bonne tentative",
-      description: `Vous avez obtenu ${score}% de précision.`,
-    });
-    
-    // Move to next item if score is good enough
-    if (score > 70 && currentIndex < learningItems.length - 1) {
+    if (correct) {
       setTimeout(() => {
-        setCurrentIndex(prev => prev + 1);
-        updateProgress(currentIndex + 1);
+        nextPhrase();
       }, 1500);
     }
   };
 
-  const updateProgress = (index: number) => {
-    const newProgress = Math.floor(((index + 1) / learningItems.length) * 100);
-    setProgress(newProgress);
-    
-    if (newProgress >= 100) {
-      toast({
-        title: "Module terminé!",
-        description: "Félicitations! Vous avez complété ce module d'apprentissage.",
-      });
-      onComplete();
-    }
-  };
-
-  const handleNext = () => {
-    if (currentIndex < learningItems.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      updateProgress(currentIndex + 1);
+  // Move to next phrase
+  const nextPhrase = () => {
+    if (currentPhrase < phrases.length - 1) {
+      setCurrentPhrase(prev => prev + 1);
+      setShowTranslation(false);
+      setUserAnswer('');
+      setIsCorrect(null);
+      setProgress(Math.round(((currentPhrase + 1) / phrases.length) * 100));
     } else {
+      setCompleted(true);
       onComplete();
     }
   };
 
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      updateProgress(currentIndex - 1);
-    }
+  // Show translation
+  const revealTranslation = () => {
+    setShowTranslation(true);
   };
 
-  const handleRestart = () => {
-    setCurrentIndex(0);
-    setProgress(0);
+  // Reset current phrase
+  const repeatPhrase = () => {
+    setUserAnswer('');
+    setIsCorrect(null);
+    setShowTranslation(false);
   };
-
-  const currentItem = learningItems[currentIndex];
-
-  if (!currentItem) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <p>Chargement du contenu...</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Apprentissage Interactif</h3>
-        <Button variant="outline" size="sm" onClick={handleRestart}>
-          <RotateCw className="h-4 w-4 mr-2" />
-          Recommencer
-        </Button>
-      </div>
-      
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span>Progression</span>
-          <span>{progress}%</span>
-        </div>
+    <div className="w-full max-w-2xl mx-auto p-4">
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Apprentissage interactif des concepts clés</h3>
         <Progress value={progress} className="h-2" />
+        <p className="text-sm text-gray-500 mt-1">
+          {currentPhrase + 1} sur {phrases.length} phrases
+        </p>
       </div>
+
+      <Card className="p-6 mb-6">
+        <div className="flex items-center mb-4">
+          <h4 className="text-lg font-medium">Phrase originale:</h4>
+          {phrases[currentPhrase].audio && (
+            <Button variant="ghost" size="icon" onClick={playAudio} className="ml-2">
+              <Volume2 className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
+        
+        <p className="text-xl mb-6 font-medium">{phrases[currentPhrase].original}</p>
+        
+        <div className="mb-4">
+          <label htmlFor="translation" className="block text-sm font-medium mb-2">
+            Votre traduction:
+          </label>
+          <input
+            id="translation"
+            type="text"
+            className="w-full p-3 border rounded-md"
+            value={userAnswer}
+            onChange={(e) => setUserAnswer(e.target.value)}
+            placeholder="Entrez votre traduction..."
+            disabled={isCorrect === true}
+          />
+        </div>
+        
+        {isCorrect === true && (
+          <div className="flex items-center text-green-600 mb-4">
+            <CheckCircle className="h-5 w-5 mr-2" />
+            <span>Correct! Bien joué!</span>
+          </div>
+        )}
+        
+        {isCorrect === false && (
+          <div className="flex items-center text-red-600 mb-4">
+            <XCircle className="h-5 w-5 mr-2" />
+            <span>Incorrect. Essayez encore ou consultez la traduction.</span>
+          </div>
+        )}
+        
+        {showTranslation && (
+          <div className="bg-gray-100 p-3 rounded-md mb-4 dark:bg-gray-800">
+            <p className="font-medium">Traduction correcte:</p>
+            <p>{phrases[currentPhrase].translation}</p>
+          </div>
+        )}
+        
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Button 
+            onClick={checkAnswer} 
+            disabled={!userAnswer || isCorrect === true}
+          >
+            Vérifier
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={revealTranslation}
+            disabled={showTranslation}
+          >
+            Voir la traduction
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={repeatPhrase}
+            disabled={isCorrect === true}
+          >
+            <Repeat className="h-4 w-4 mr-1" />
+            Recommencer
+          </Button>
+          <Button 
+            variant="default" 
+            onClick={nextPhrase}
+            className="ml-auto"
+          >
+            Suivant
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      </Card>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="learn" className="flex items-center gap-1">
-            <BookOpen className="h-4 w-4" />
-            <span>Apprendre</span>
-          </TabsTrigger>
-          <TabsTrigger value="listen" className="flex items-center gap-1">
-            <Volume2 className="h-4 w-4" />
-            <span>Écouter</span>
-          </TabsTrigger>
-          <TabsTrigger value="speak" className="flex items-center gap-1">
-            <Mic className="h-4 w-4" />
-            <span>Parler</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="learn" className="space-y-4">
-          <Card className="p-6 bg-white dark:bg-gray-800">
-            <p className="text-xl mb-4">{currentItem.originalText}</p>
-            <hr className="my-4 border-gray-200 dark:border-gray-700" />
-            <p className="text-lg text-gray-600 dark:text-gray-400">{currentItem.translation}</p>
-          </Card>
-          
-          <div className="flex justify-between mt-4">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-            >
-              Précédent
-            </Button>
-            <Button
-              onClick={handleNext}
-            >
-              {currentIndex === learningItems.length - 1 ? "Terminer" : "Suivant"}
-            </Button>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="listen" className="space-y-4">
-          <Card className="p-6 flex flex-col items-center bg-white dark:bg-gray-800">
-            <p className="text-xl mb-8">{currentItem.originalText}</p>
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-16 h-16 rounded-full"
-              onClick={playAudio}
-            >
-              <Play className="h-8 w-8" />
-            </Button>
-            <p className="text-sm text-muted-foreground mt-4">
-              Cliquez sur le bouton pour écouter la prononciation
-            </p>
-          </Card>
-          
-          <div className="flex justify-between mt-4">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-            >
-              Précédent
-            </Button>
-            <Button
-              onClick={handleNext}
-            >
-              {currentIndex === learningItems.length - 1 ? "Terminer" : "Suivant"}
-            </Button>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="speak" className="space-y-4">
-          <Card className="p-6 flex flex-col items-center bg-white dark:bg-gray-800">
-            <p className="text-xl mb-8">{currentItem.originalText}</p>
-            
-            {isListening ? (
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-16 h-16 rounded-full bg-red-100 hover:bg-red-200 text-red-600"
-                onClick={stopListening}
-              >
-                <Check className="h-8 w-8" />
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-16 h-16 rounded-full"
-                onClick={startListening}
-              >
-                <Mic className="h-8 w-8" />
-              </Button>
-            )}
-            
-            <p className="text-sm text-muted-foreground mt-4">
-              {isListening 
-                ? "Je vous écoute... Cliquez pour terminer." 
-                : "Cliquez sur le micro et lisez la phrase à haute voix."}
-            </p>
-            
-            {userTranscript && (
-              <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-md w-full">
-                <p className="font-medium mb-1">Votre prononciation:</p>
-                <p className="text-sm">{userTranscript}</p>
-              </div>
-            )}
-          </Card>
-          
-          <div className="flex justify-between mt-4">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-            >
-              Précédent
-            </Button>
-            <Button
-              onClick={handleNext}
-            >
-              {currentIndex === learningItems.length - 1 ? "Terminer" : "Suivant"}
-            </Button>
-          </div>
-        </TabsContent>
-      </Tabs>
+      <div className="text-center">
+        <p className="text-sm text-gray-500 mb-2">
+          Complétez toutes les phrases pour terminer l'exercice
+        </p>
+      </div>
     </div>
   );
 };

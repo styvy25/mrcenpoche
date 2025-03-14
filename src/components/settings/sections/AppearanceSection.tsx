@@ -13,17 +13,17 @@ const AppearanceSection = () => {
   const { resetTour } = useTour();
   const {
     darkMode, 
-    setDarkMode,
     animations,
-    setAnimations,
     immersiveBackground,
-    setImmersiveBackground,
     compactMode,
-    setCompactMode,
     fontStyle,
-    setFontStyle,
     textSize,
-    setTextSize
+    handleDarkModeChange,
+    handleAnimationsChange,
+    handleImmersiveBackgroundChange,
+    handleCompactModeChange,
+    handleFontStyleChange,
+    handleTextSizeChange
   } = useAppearanceSettings();
 
   return (
@@ -38,7 +38,7 @@ const AppearanceSection = () => {
       
       <DisplayModeSettings 
         darkMode={darkMode} 
-        onDarkModeChange={setDarkMode} 
+        onDarkModeChange={handleDarkModeChange} 
       />
       <Separator />
       
@@ -46,17 +46,17 @@ const AppearanceSection = () => {
         animations={animations}
         immersiveBackground={immersiveBackground}
         compactMode={compactMode}
-        onAnimationsChange={setAnimations}
-        onImmersiveBackgroundChange={setImmersiveBackground}
-        onCompactModeChange={setCompactMode}
+        onAnimationsChange={handleAnimationsChange}
+        onImmersiveBackgroundChange={handleImmersiveBackgroundChange}
+        onCompactModeChange={handleCompactModeChange}
       />
       <Separator />
       
       <TextPresentationSettings 
         fontStyle={fontStyle}
         textSize={textSize}
-        onFontStyleChange={setFontStyle}
-        onTextSizeChange={setTextSize}
+        onFontStyleChange={handleFontStyleChange}
+        onTextSizeChange={handleTextSizeChange}
       />
       <Separator />
       

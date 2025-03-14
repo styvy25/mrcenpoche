@@ -12,6 +12,7 @@ import MatchResults from "./components/quiz/matches/MatchResults";
 import Index from './pages/Index';
 import PaymentPage from './pages/PaymentPage';
 import DocumentsPage from './pages/DocumentsPage';
+import NotFound from './pages/NotFound';
 import { useApiKeys } from './hooks/useApiKeys';
 import { AuthProvider } from './components/auth/AuthContext';
 import ApplicationStatus from './components/layout/ApplicationStatus';
@@ -79,6 +80,7 @@ function App() {
                   <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/documents" element={<DocumentsPage />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </TourProvider>
             </SEOProvider>

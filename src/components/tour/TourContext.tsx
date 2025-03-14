@@ -1,179 +1,230 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/auth/AuthContext";
+import { useAuth } from '@/components/auth/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-type TourStep = {
-  element: string;
+interface Tour {
+  id: string;
   title: string;
   content: string;
-  position: 'top' | 'right' | 'bottom' | 'left';
-};
-
-type PageTour = {
-  [key: string]: TourStep[];
-};
+  element?: string;
+  placement?: 'top' | 'right' | 'bottom' | 'left';
+  page: string;
+}
 
 interface TourContextType {
-  isOpen: boolean;
-  currentStep: number;
-  steps: TourStep[];
-  openTour: () => void;
-  closeTour: () => void;
+  currentTour: Tour | null;
+  showTour: boolean;
+  setShowTour: (show: boolean) => void;
   nextStep: () => void;
-  prevStep: () => void;
   resetTour: () => void;
+  completeTour: () => void;
 }
+
+// Tour Steps Data
+const tourData: Record<string, Tour[]> = {
+  '/': [
+    {
+      id: 'welcome',
+      title: 'Bienvenue sur MRC en Poche',
+      content: 'Découvrez notre plateforme dédiée à la formation des militants et sympathisants du MRC.',
+      page: '/',
+    },
+    {
+      id: 'navigation',
+      title: 'Navigation',
+      content: 'Utilisez la barre de navigation pour accéder aux différentes sections de l\'application.',
+      element: 'nav',
+      placement: 'bottom',
+      page: '/',
+    }
+  ],
+  '/modules': [
+    {
+      id: 'modules-intro',
+      title: 'Modules de formation',
+      content: 'Explorez nos modules thématiques pour approfondir vos connaissances sur le MRC et ses positions.',
+      page: '/modules',
+    },
+    {
+      id: 'module-selection',
+      title: 'Sélection des modules',
+      content: 'Cliquez sur un module pour accéder à son contenu et commencer votre apprentissage.',
+      element: '.module-card',
+      placement: 'top',
+      page: '/modules',
+    }
+  ],
+  '/quiz': [
+    {
+      id: 'quiz-intro',
+      title: 'Quiz interactifs',
+      content: 'Testez vos connaissances avec nos quiz thématiques sur le MRC et la politique camerounaise.',
+      page: '/quiz',
+    }
+  ],
+  '/chat': [
+    {
+      id: 'chat-intro',
+      title: 'Assistant virtuel',
+      content: 'Posez vos questions à notre assistant pour obtenir des informations sur le MRC et ses positions.',
+      page: '/chat',
+    }
+  ],
+  '/documents': [
+    {
+      id: 'documents-intro',
+      title: 'Génération de documents',
+      content: 'Créez et téléchargez des supports de formation personnalisés pour vos activités militantes.',
+      page: '/documents',
+    }
+  ]
+};
 
 const TourContext = createContext<TourContextType | undefined>(undefined);
 
-const pageTours: PageTour = {
-  '/': [
-    { element: '#hero-section', title: 'Bienvenue sur LearnScape237', content: 'Votre plateforme d\'apprentissage personnalisée.', position: 'bottom' },
-    { element: 'nav', title: 'Navigation', content: 'Utilisez cette barre pour accéder aux différentes sections.', position: 'bottom' },
-  ],
-  '/modules': [
-    { element: '.module-grid', title: 'Modules de formation', content: 'Parcourez les différents modules disponibles.', position: 'bottom' },
-    { element: '.module-card', title: 'Module', content: 'Cliquez sur un module pour commencer à apprendre.', position: 'right' },
-  ],
-  '/quiz': [
-    { element: '.quiz-container', title: 'Testez vos connaissances', content: 'Répondez aux questions pour évaluer votre compréhension.', position: 'top' },
-  ],
-  '/chat': [
-    { element: '.chat-input', title: 'Assistant IA', content: 'Posez vos questions ici pour obtenir de l\'aide.', position: 'top' },
-  ],
-  '/documents': [
-    { element: '.pdf-generator', title: 'Générateur de documents', content: 'Créez et téléchargez des supports de formation.', position: 'right' },
-  ],
-  '/settings': [
-    { element: '.tabs-list', title: 'Paramètres', content: 'Configurez vos préférences et vos clés API.', position: 'bottom' },
-    { element: '#api-keys', title: 'Clés API', content: 'Entrez vos clés API pour débloquer toutes les fonctionnalités.', position: 'right' },
-  ],
-};
-
 export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const location = useLocation();
+  const [currentTourPage, setCurrentTourPage] = useState<string>('/');
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [showTour, setShowTour] = useState(false);
   const { isAuthenticated, user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [steps, setSteps] = useState<TourStep[]>([]);
-  const [hasSeenTour, setHasSeenTour] = useState<{[key: string]: boolean}>({});
 
+  // Get current tour based on page and step index
+  const getCurrentTour = (): Tour | null => {
+    const pageTour = tourData[currentTourPage];
+    if (!pageTour || currentStepIndex >= pageTour.length) return null;
+    return pageTour[currentStepIndex];
+  };
+
+  // Load tour state from database or localStorage
   useEffect(() => {
-    // Get tour steps for current page
-    const currentPathSteps = pageTours[location.pathname] || [];
-    setSteps(currentPathSteps);
-    setCurrentStep(0);
-
-    // Check if user has seen the tour for this page
-    const checkTourStatus = async () => {
+    const loadTourState = async () => {
       if (isAuthenticated && user) {
         try {
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from('user_preferences')
-            .select('tour_history')
+            .select('tour_completed, tour_current_page, tour_step_index')
             .eq('user_id', user.id)
             .single();
-          
-          if (data && data.tour_history) {
-            setHasSeenTour(data.tour_history);
-            
-            // Auto-open tour if user hasn't seen it and steps exist
-            if (!data.tour_history[location.pathname] && currentPathSteps.length > 0) {
-              // Wait a bit to ensure page is fully loaded
-              setTimeout(() => setIsOpen(true), 1000);
+
+          if (!error && data) {
+            if (!data.tour_completed) {
+              setCurrentTourPage(data.tour_current_page || '/');
+              setCurrentStepIndex(data.tour_step_index || 0);
+              setShowTour(true);
             }
           } else {
-            // No tour history exists yet
-            if (currentPathSteps.length > 0) {
-              setTimeout(() => setIsOpen(true), 1000);
-            }
+            // Create preferences if not exist
+            await supabase.from('user_preferences').upsert({
+              user_id: user.id,
+              tour_completed: false,
+              tour_current_page: '/',
+              tour_step_index: 0
+            });
+            setShowTour(true);
           }
         } catch (error) {
-          console.error('Error loading tour history:', error);
+          console.error('Error loading tour state:', error);
         }
       } else {
         // For non-authenticated users, use localStorage
-        const localTourHistory = localStorage.getItem('tour_history');
-        if (localTourHistory) {
-          try {
-            const parsedHistory = JSON.parse(localTourHistory);
-            setHasSeenTour(parsedHistory);
-            
-            if (!parsedHistory[location.pathname] && currentPathSteps.length > 0) {
-              setTimeout(() => setIsOpen(true), 1000);
-            }
-          } catch (e) {
-            console.error('Error parsing tour history:', e);
-          }
-        } else if (currentPathSteps.length > 0) {
-          setTimeout(() => setIsOpen(true), 1000);
+        const tourCompleted = localStorage.getItem('tour_completed') === 'true';
+        if (!tourCompleted) {
+          const savedPage = localStorage.getItem('tour_current_page') || '/';
+          const savedStep = parseInt(localStorage.getItem('tour_step_index') || '0');
+          
+          setCurrentTourPage(savedPage);
+          setCurrentStepIndex(savedStep);
+          setShowTour(true);
         }
       }
     };
 
-    checkTourStatus();
-  }, [location.pathname, isAuthenticated, user]);
+    loadTourState();
 
-  const updateTourHistory = async (path: string) => {
-    const newHistory = { ...hasSeenTour, [path]: true };
-    setHasSeenTour(newHistory);
-
-    if (isAuthenticated && user) {
-      try {
-        await supabase
-          .from('user_preferences')
-          .upsert({
-            user_id: user.id,
-            tour_history: newHistory
-          }, { onConflict: 'user_id' });
-      } catch (error) {
-        console.error('Error updating tour history:', error);
+    // Update current page when location changes
+    const updateCurrentPage = () => {
+      const pathname = window.location.pathname;
+      if (tourData[pathname]) {
+        setCurrentTourPage(pathname);
+        setCurrentStepIndex(0);
       }
+    };
+
+    window.addEventListener('popstate', updateCurrentPage);
+    updateCurrentPage();
+
+    return () => window.removeEventListener('popstate', updateCurrentPage);
+  }, [isAuthenticated, user]);
+
+  // Save tour state
+  const saveTourState = async (page: string, stepIndex: number, completed: boolean = false) => {
+    if (isAuthenticated && user) {
+      await supabase.from('user_preferences').upsert({
+        user_id: user.id,
+        tour_completed: completed,
+        tour_current_page: page,
+        tour_step_index: stepIndex
+      });
     } else {
-      // For non-authenticated users, use localStorage
-      localStorage.setItem('tour_history', JSON.stringify(newHistory));
+      localStorage.setItem('tour_current_page', page);
+      localStorage.setItem('tour_step_index', stepIndex.toString());
+      if (completed) {
+        localStorage.setItem('tour_completed', 'true');
+      }
     }
   };
 
-  const openTour = () => setIsOpen(true);
-  
-  const closeTour = () => {
-    setIsOpen(false);
-    updateTourHistory(location.pathname);
-  };
-  
+  // Move to next step
   const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+    const pageTour = tourData[currentTourPage];
+    if (!pageTour) return;
+
+    if (currentStepIndex < pageTour.length - 1) {
+      const newStepIndex = currentStepIndex + 1;
+      setCurrentStepIndex(newStepIndex);
+      saveTourState(currentTourPage, newStepIndex);
     } else {
-      closeTour();
+      // End of current page tour
+      setShowTour(false);
+      
+      // Find next page with tour
+      const pages = Object.keys(tourData);
+      const currentPageIndex = pages.indexOf(currentTourPage);
+      
+      if (currentPageIndex < pages.length - 1) {
+        const nextPage = pages[currentPageIndex + 1];
+        saveTourState(nextPage, 0);
+      } else {
+        // All tours completed
+        completeTour();
+      }
     }
   };
-  
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-  
+
+  // Reset and restart tour
   const resetTour = () => {
-    setCurrentStep(0);
-    setIsOpen(true);
+    setCurrentTourPage('/');
+    setCurrentStepIndex(0);
+    setShowTour(true);
+    saveTourState('/', 0, false);
+  };
+
+  // Mark tour as completed
+  const completeTour = () => {
+    setShowTour(false);
+    saveTourState(currentTourPage, currentStepIndex, true);
   };
 
   return (
-    <TourContext.Provider
-      value={{
-        isOpen,
-        currentStep,
-        steps,
-        openTour,
-        closeTour,
-        nextStep,
-        prevStep,
-        resetTour
+    <TourContext.Provider 
+      value={{ 
+        currentTour: getCurrentTour(), 
+        showTour, 
+        setShowTour, 
+        nextStep, 
+        resetTour,
+        completeTour 
       }}
     >
       {children}
