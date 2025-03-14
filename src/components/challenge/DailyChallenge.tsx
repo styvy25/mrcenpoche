@@ -8,6 +8,9 @@ import ChallengeHeader from "./ChallengeHeader";
 import ChallengeContent from "./ChallengeContent";
 import ChallengeActions from "./ChallengeActions";
 import AvailableSessions from "./AvailableSessions";
+import ConnectedUsers from "./ConnectedUsers";
+import { useAuth } from "../auth/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DailyChallengeProps {
   onComplete?: () => void;
@@ -19,7 +22,9 @@ const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
   const [totalPoints, setTotalPoints] = useState<number>(0);
   const [nextRefresh, setNextRefresh] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [connectedUsers, setConnectedUsers] = useState<any[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     // Initialize challenge data
@@ -50,6 +55,51 @@ const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
     
     return () => clearInterval(intervalId);
   }, []);
+
+  // Setup realtime presence for connected users
+  useEffect(() => {
+    if (!user) return;
+
+    const channelName = 'challenge_users';
+    const channel = supabase.channel(channelName);
+    
+    // Track the current user's presence
+    const userPresence = {
+      user_id: user.id,
+      name: user?.user_metadata?.full_name || 'Utilisateur',
+      avatar: user?.user_metadata?.avatar_url,
+      online_at: new Date().toISOString(),
+      challenge_id: dailyChallenge?.id || 'daily',
+      score: totalPoints
+    };
+
+    // Setup presence handlers
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = channel.presenceState();
+        const users = Object.values(presenceState).flat();
+        setConnectedUsers(users as any[]);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        toast({
+          title: "Nouvel utilisateur connecté",
+          description: `${newPresences[0]?.name || 'Un utilisateur'} a rejoint le défi`,
+        });
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        // Optional: Show when users leave
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track(userPresence);
+        }
+      });
+
+    // Cleanup on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, dailyChallenge, totalPoints, toast]);
 
   const startChallenge = () => {
     if (!dailyChallenge) return;
@@ -107,6 +157,11 @@ const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
       </CardHeader>
       <CardContent>
         <ChallengeContent challenge={dailyChallenge} />
+        
+        {/* Connected Users Section */}
+        <div className="mt-4">
+          <ConnectedUsers users={connectedUsers} />
+        </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-3">
         <ChallengeActions

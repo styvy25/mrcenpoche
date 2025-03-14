@@ -101,42 +101,54 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadTourState = async () => {
       if (isAuthenticated && user) {
         try {
+          // Check if user_preferences table exists and has the required columns
           const { data, error } = await supabase
             .from('user_preferences')
-            .select('tour_completed, tour_current_page, tour_step_index')
+            .select('*')
             .eq('user_id', user.id)
             .single();
 
           if (!error && data) {
-            if (!data.tour_completed) {
-              setCurrentTourPage(data.tour_current_page || '/');
-              setCurrentStepIndex(data.tour_step_index || 0);
+            // Use column names based on what's available in the database
+            const tourCompleted = data.tour_completed || data.completed;
+            const tourCurrentPage = data.tour_current_page || data.current_page;
+            const tourStepIndex = data.tour_step_index || data.step_index;
+            
+            if (!tourCompleted) {
+              setCurrentTourPage(tourCurrentPage || '/');
+              setCurrentStepIndex(tourStepIndex || 0);
               setShowTour(true);
             }
           } else {
             // Create preferences if not exist
             await supabase.from('user_preferences').upsert({
               user_id: user.id,
-              tour_completed: false,
-              tour_current_page: '/',
-              tour_step_index: 0
+              completed: false,
+              current_page: '/',
+              step_index: 0
             });
             setShowTour(true);
           }
         } catch (error) {
           console.error('Error loading tour state:', error);
+          // Fallback to localStorage
+          useFallbackTourState();
         }
       } else {
         // For non-authenticated users, use localStorage
-        const tourCompleted = localStorage.getItem('tour_completed') === 'true';
-        if (!tourCompleted) {
-          const savedPage = localStorage.getItem('tour_current_page') || '/';
-          const savedStep = parseInt(localStorage.getItem('tour_step_index') || '0');
-          
-          setCurrentTourPage(savedPage);
-          setCurrentStepIndex(savedStep);
-          setShowTour(true);
-        }
+        useFallbackTourState();
+      }
+    };
+
+    const useFallbackTourState = () => {
+      const tourCompleted = localStorage.getItem('tour_completed') === 'true';
+      if (!tourCompleted) {
+        const savedPage = localStorage.getItem('tour_current_page') || '/';
+        const savedStep = parseInt(localStorage.getItem('tour_step_index') || '0');
+        
+        setCurrentTourPage(savedPage);
+        setCurrentStepIndex(savedStep);
+        setShowTour(true);
       }
     };
 
@@ -162,9 +174,9 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isAuthenticated && user) {
       await supabase.from('user_preferences').upsert({
         user_id: user.id,
-        tour_completed: completed,
-        tour_current_page: page,
-        tour_step_index: stepIndex
+        completed: completed,
+        current_page: page,
+        step_index: stepIndex
       });
     } else {
       localStorage.setItem('tour_current_page', page);
