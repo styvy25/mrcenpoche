@@ -2,187 +2,253 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import QuizQuestion from '../QuizQuestion';
-import MainLayout from '@/components/layout/MainLayout';
-import { useToast } from '@/components/ui/use-toast';
+import { Card } from '@/components/ui/card';
+import { getRandomQuestions } from '../data/test';
+import { BadgeCheck, Clock, User, Users } from 'lucide-react';
+import Navbar from '@/components/layout/Navbar';
+import QuizQuestion from '@/components/quiz/QuizQuestion';
 import ScoreAnimation from './ScoreAnimation';
+import DuelVisualEffects from './components/DuelVisualEffects';
+import { useToast } from '@/components/ui/use-toast';
 import ConnectedUsers from '@/components/challenge/ConnectedUsers';
-import { quizData } from '../quizData';
 
 const MatchGame = () => {
   const { matchId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  const [questions, setQuestions] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(15);
-  const [showScoreAnimation, setShowScoreAnimation] = useState(false);
-  const [scoreAnimationValue, setScoreAnimationValue] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
-  const [connectedUsers, setConnectedUsers] = useState([
-    {
-      user_id: '1',
-      name: 'Jean Pierre',
-      online_at: new Date().toISOString(),
-      score: 320,
-    },
-    {
-      user_id: '2',
-      name: 'Marie Ngo',
-      online_at: new Date().toISOString(),
-      score: 280,
-    },
-    {
-      user_id: '3',
-      name: 'Paul Biya',
-      online_at: new Date().toISOString(),
-      score: 240,
-    },
-    {
-      user_id: '4',
-      name: 'Vous',
-      online_at: new Date().toISOString(),
-      score: score,
-    }
+  const [isAnswering, setIsAnswering] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const [animationType, setAnimationType] = useState<'correct' | 'wrong'>('correct');
+  const [playerNames] = useState(['Vous', 'Adversaire']);
+  const [players, setPlayers] = useState([
+    { id: 1, name: 'Vous', score: 0, isReady: true, isCurrentUser: true },
+    { id: 2, name: 'Adversaire', score: 0, isReady: true, isCurrentUser: false }
   ]);
-
-  // Get quiz questions based on matchId
-  const questions = quizData.questions.slice(0, 10);
-  const currentQuestion = questions[currentQuestionIndex];
+  
+  // Initialize questions
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        // Get random questions from our test data
+        const gameQuestions = getRandomQuestions(10);
+        setQuestions(gameQuestions);
+      } catch (error) {
+        console.error('Error loading match data:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les questions du quiz.",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    loadQuestions();
+  }, [matchId, toast]);
   
   // Timer effect
   useEffect(() => {
-    if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      handleAnswerSubmit('');
-    }
-  }, [timeLeft]);
-
-  // Update user score in connected users list
-  useEffect(() => {
-    setConnectedUsers(prev => {
-      const updatedUsers = [...prev];
-      const userIndex = updatedUsers.findIndex(u => u.user_id === '4');
-      if (userIndex !== -1) {
-        updatedUsers[userIndex] = {
-          ...updatedUsers[userIndex],
-          score: score
-        };
-      }
-      return updatedUsers.sort((a, b) => (b.score || 0) - (a.score || 0));
-    });
-  }, [score]);
-
-  const handleAnswerSubmit = (selectedAnswer: string) => {
-    // Save answer
-    const newAnswers = [...answers];
-    newAnswers[currentQuestionIndex] = selectedAnswer;
-    setAnswers(newAnswers);
+    if (questions.length === 0 || currentQuestionIndex >= questions.length) return;
     
-    // Calculate points based on correctness and time left
-    let pointsEarned = 0;
-    if (selectedAnswer === currentQuestion.correctAnswer) {
-      pointsEarned = Math.max(10, timeLeft * 2); // Base 10 points + bonus for speed
-      
-      // Show score animation
-      setScoreAnimationValue(pointsEarned);
-      setShowScoreAnimation(true);
-      setTimeout(() => setShowScoreAnimation(false), 1500);
-      
-      // Update score
-      setScore(score + pointsEarned);
-    }
-    
-    // Proceed to next question or end of game
-    if (currentQuestionIndex < questions.length - 1) {
-      setTimeout(() => {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        setTimeLeft(15);
-      }, 500);
-    } else {
-      // End of match
-      setTimeout(() => {
-        navigate(`/quiz-match/${matchId}/results`);
-      }, 1000);
-    }
-    
-    // Update other users' scores randomly
-    setTimeout(() => {
-      setConnectedUsers(prev => {
-        return prev.map(user => {
-          if (user.user_id !== '4') { // Not the current user
-            const randomPoints = Math.floor(Math.random() * 20);
-            return {
-              ...user,
-              score: (user.score || 0) + (Math.random() > 0.3 ? randomPoints : 0)
-            };
-          }
-          return user;
-        }).sort((a, b) => (b.score || 0) - (a.score || 0));
+    const timer = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(timer);
+          handleTimeout();
+          return 0;
+        }
+        return prevTime - 1;
       });
-    }, 300);
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [currentQuestionIndex, questions]);
+  
+  const handleTimeout = () => {
+    // Simulate opponent answering
+    const isOpponentCorrect = Math.random() > 0.5;
+    
+    if (isOpponentCorrect) {
+      // Update opponent score
+      setPlayers((prevPlayers) => 
+        prevPlayers.map(player => 
+          player.isCurrentUser ? player : { ...player, score: player.score + 5 }
+        )
+      );
+    }
+    
+    // Move to next question after timeout
+    setTimeout(() => {
+      goToNextQuestion();
+    }, 1500);
   };
-
+  
+  const handleAnswerSelected = (selectedAnswer: string) => {
+    if (isAnswering || currentQuestionIndex >= questions.length) return;
+    
+    setIsAnswering(true);
+    const currentQuestion = questions[currentQuestionIndex];
+    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+    
+    // Show animation
+    setAnimationType(isCorrect ? 'correct' : 'wrong');
+    setShowAnimation(true);
+    
+    if (isCorrect) {
+      // Calculate score based on time left
+      const questionScore = Math.max(5, timeLeft);
+      setScore((prevScore) => prevScore + questionScore);
+      
+      // Update player score
+      setPlayers((prevPlayers) => 
+        prevPlayers.map(player => 
+          player.isCurrentUser ? { ...player, score: player.score + questionScore } : player
+        )
+      );
+    }
+    
+    // Simulate opponent answering
+    const opponentDelay = Math.floor(Math.random() * 3000) + 1000; // 1-4 seconds
+    const isOpponentCorrect = Math.random() > 0.4; // 60% chance of correct
+    
+    setTimeout(() => {
+      if (isOpponentCorrect) {
+        const opponentScore = Math.max(5, Math.floor(Math.random() * 10) + 3);
+        setPlayers((prevPlayers) => 
+          prevPlayers.map(player => 
+            !player.isCurrentUser ? { ...player, score: player.score + opponentScore } : player
+          )
+        );
+      }
+      
+      // Hide animation and go to next question
+      setTimeout(() => {
+        setShowAnimation(false);
+        setIsAnswering(false);
+        goToNextQuestion();
+      }, 1000);
+    }, opponentDelay);
+  };
+  
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+      setTimeLeft(15);
+    } else {
+      // End of game - navigate to results
+      navigate(`/quiz-match/${matchId}/results`, { 
+        state: { 
+          score: players.find(p => p.isCurrentUser)?.score || 0,
+          opponentScore: players.find(p => !p.isCurrentUser)?.score || 0,
+          totalQuestions: questions.length
+        } 
+      });
+    }
+  };
+  
+  const getProgressPercentage = () => {
+    return ((currentQuestionIndex + 1) / questions.length) * 100;
+  };
+  
+  // If no questions, show loading
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Navbar />
+        <div className="pt-20 container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center items-center h-[60vh]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mrc-blue"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
-    <MainLayout>
-      <div className="pb-20">
-        <Card className="w-full shadow-sm">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-xl">
-                Défi en cours
-              </CardTitle>
-              <div className="flex items-center space-x-2">
-                <div className="text-sm font-semibold">
-                  Score: {score}
-                </div>
-                <div className="text-sm font-medium px-2 py-1 bg-amber-100 text-amber-800 rounded">
-                  Question {currentQuestionIndex + 1}/{questions.length}
-                </div>
-              </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Navbar />
+      <div className="pt-20 pb-12 container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Match Quiz</h2>
+            <div className="flex items-center space-x-2">
+              <Users className="h-5 w-5 text-mrc-blue" />
+              <span>{players.length} joueurs</span>
             </div>
-            
-            <div className="mt-2">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Temps restant</span>
-                <span>{timeLeft}s</span>
-              </div>
-              <Progress 
-                value={(timeLeft / 15) * 100} 
-                className="h-2" 
-                indicatorClassName={timeLeft < 5 ? "bg-red-500" : ""}
-              />
-            </div>
-          </CardHeader>
+          </div>
           
-          <CardContent className="relative pt-4">
-            {showScoreAnimation && (
-              <ScoreAnimation points={scoreAnimationValue} />
-            )}
-            
+          <Progress 
+            value={getProgressPercentage()} 
+            className="h-2 mt-4" 
+          />
+          
+          <div className="flex justify-between text-sm mt-1">
+            <span>Question {currentQuestionIndex + 1}/{questions.length}</span>
+            <div className="flex items-center">
+              <Clock className="h-4 w-4 mr-1 text-red-500" />
+              <span className="font-medium">{timeLeft}s</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Connected users section */}
+        <Card className="mb-6 p-4">
+          <h3 className="text-lg font-medium mb-2 flex items-center">
+            <Users className="h-5 w-5 mr-2 text-mrc-blue" />
+            Participants
+          </h3>
+          <ConnectedUsers />
+        </Card>
+        
+        <Card className="mb-6">
+          {questions.length > 0 && currentQuestionIndex < questions.length && (
             <QuizQuestion
-              question={currentQuestion.question}
-              options={currentQuestion.options}
-              onAnswerSelected={handleAnswerSubmit}
-              disabled={timeLeft === 0}
+              question={questions[currentQuestionIndex]}
+              onAnswerSelected={handleAnswerSelected}
+              disabled={isAnswering}
               key={currentQuestionIndex}
             />
-          </CardContent>
-          
-          <CardFooter className="flex-col items-start pt-2">
-            <div className="w-full mt-4">
-              <h3 className="text-sm font-medium mb-2">Classement en direct</h3>
-              <ConnectedUsers users={connectedUsers} />
-            </div>
-          </CardFooter>
+          )}
         </Card>
+        
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          {players.map((player) => (
+            <Card key={player.id} className={`p-4 ${player.isCurrentUser ? 'border-mrc-blue' : ''}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <User className="h-5 w-5 mr-2 text-mrc-blue" />
+                  <span className="font-medium">{player.name}</span>
+                  {player.isCurrentUser && (
+                    <BadgeCheck className="h-4 w-4 ml-1 text-green-500" />
+                  )}
+                </div>
+                <div className="font-bold text-2xl">{player.score}</div>
+              </div>
+            </Card>
+          ))}
+        </div>
+        
+        <DuelVisualEffects 
+          playerName={playerNames[0]} 
+          opponentName={playerNames[1]}
+          currentQuestion={currentQuestionIndex}
+          showAnimation={showAnimation}
+          animationType={animationType}
+        />
+        
+        {showAnimation && (
+          <ScoreAnimation 
+            type={animationType} 
+            score={animationType === 'correct' ? '+5' : '0'} 
+          />
+        )}
       </div>
-    </MainLayout>
+    </div>
   );
 };
 

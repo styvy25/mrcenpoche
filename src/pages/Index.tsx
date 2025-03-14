@@ -2,26 +2,33 @@
 import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/home/HeroSection";
 import FeatureSection from "@/components/home/FeatureSection";
+import NewsSection from "@/components/home/NewsSection";
 import PricingSection from "@/components/home/PricingSection";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { ChevronUp, Brain, Award, BookOpen, MapPin, Share2 } from "lucide-react";
+import { ChevronUp, Brain, Award, BookOpen, Share2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { useSEO } from "@/hooks/useSEO";
 
 const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { toast } = useToast();
+  const { setPageTitle, setPageDescription } = useSEO();
   
   useEffect(() => {
+    // Set page title and description for SEO
+    setPageTitle("MRC en Poche | Application officielle du MRC");
+    setPageDescription("L'application officielle du Mouvement pour la Renaissance du Cameroun (MRC). Découvrez nos modules de formation, actualités, quiz et plus encore.");
+    
     const checkScroll = () => {
       setShowScrollTop(window.scrollY > 500);
     };
     window.addEventListener("scroll", checkScroll);
     return () => window.removeEventListener("scroll", checkScroll);
-  }, []);
+  }, [setPageTitle, setPageDescription]);
   
   const scrollToTop = () => {
     window.scrollTo({
@@ -185,6 +192,9 @@ const Index = () => {
             </div>
           </div>
         </section>
+        
+        {/* Integrated News Section */}
+        <NewsSection />
         
         <PricingSection />
       </main>

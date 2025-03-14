@@ -1,154 +1,161 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Prize, getRandomChallenge } from './challengeData';
+import { Award, Calendar, CheckCircle, Flag, Gift } from 'lucide-react';
+import { format } from 'date-fns';
+import ChallengeContent from './ChallengeContent';
+import ChallengeActions from './ChallengeActions';
+import ChallengeHeader from './ChallengeHeader';
+import { useToast } from '@/components/ui/use-toast';
+import { fr } from 'date-fns/locale';
 import { useAuth } from '@/components/auth/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Clock, Award, Users, Trophy } from 'lucide-react';
-import { motion } from 'framer-motion';
-import ConnectedUsers from './ConnectedUsers';
 
-// Mock data for connected users
-const mockUsers = [
-  {
-    user_id: '1',
-    name: 'Jean Mendoza',
-    avatar: 'https://i.pravatar.cc/150?img=1',
-    online_at: new Date().toISOString(),
-    score: 450,
-  },
-  {
-    user_id: '2',
-    name: 'Alice Kamga',
-    avatar: 'https://i.pravatar.cc/150?img=2',
-    online_at: new Date().toISOString(),
-    score: 370,
-  },
-  {
-    user_id: '3',
-    name: 'François Biya',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    online_at: new Date().toISOString(),
-    score: 320,
-  },
-];
+export interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  points: number;
+  completed?: boolean;
+  timeEstimate: string;
+  steps?: string[];
+  category: string;
+  prize?: Prize;
+}
 
-const DailyChallenge = () => {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
-  const [countdown, setCountdown] = useState('');
-  const [connectedUsers, setConnectedUsers] = useState(mockUsers);
-  const [challengeStarted, setChallengeStarted] = useState(false);
+interface DailyChallengeProps {
+  onComplete?: () => void;
+}
 
-  // Calculate countdown to next challenge (12:00 PM and 6:00 PM each day)
+const DailyChallenge: React.FC<DailyChallengeProps> = ({ onComplete }) => {
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completed, setCompleted] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  
   useEffect(() => {
-    const updateCountdown = () => {
-      const now = new Date();
-      const noon = new Date(now);
-      noon.setHours(12, 0, 0, 0);
-      
-      const evening = new Date(now);
-      evening.setHours(18, 0, 0, 0);
-      
-      let nextChallenge;
-      if (now < noon) {
-        nextChallenge = noon;
-      } else if (now < evening) {
-        nextChallenge = evening;
-      } else {
-        nextChallenge = new Date(now);
-        nextChallenge.setDate(nextChallenge.getDate() + 1);
-        nextChallenge.setHours(12, 0, 0, 0);
-      }
-      
-      const diff = nextChallenge.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      
-      setCountdown(`${hours}h ${minutes}m`);
-    };
+    // Load challenge
+    const dailyChallenge = getRandomChallenge();
     
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 60000);
-    return () => clearInterval(interval);
+    // Check if user has completed this challenge today
+    const lastCompletedDate = localStorage.getItem('lastCompletedChallengeDate');
+    const lastChallengeId = localStorage.getItem('lastCompletedChallengeId');
+    const today = format(new Date(), 'yyyy-MM-dd');
+    
+    if (lastCompletedDate === today && lastChallengeId === dailyChallenge.id) {
+      setCompleted(true);
+      setProgress(100);
+      setCurrentStep(dailyChallenge.steps?.length || 1);
+    }
+    
+    setChallenge(dailyChallenge);
   }, []);
+  
+  const handleNextStep = () => {
+    if (!challenge || !challenge.steps) return;
 
-  // Add current user to connected users if authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const userExists = connectedUsers.some(u => u.user_id === user.id);
-      
-      if (!userExists) {
-        // Get user name from user object, fallback to email
-        const name = user.email || 'Anonymous User';
-        
-        const newUser = {
-          user_id: user.id,
-          name: name,
-          avatar: user.user_metadata?.avatar_url,
-          online_at: new Date().toISOString(),
-          score: Math.floor(Math.random() * 200) + 200, // Random score for demo
-        };
-        
-        setConnectedUsers(prev => [...prev, newUser]);
-      }
+    const nextStep = currentStep + 1;
+    const totalSteps = challenge.steps.length;
+    
+    // Calculate progress
+    const newProgress = Math.floor((nextStep / totalSteps) * 100);
+    
+    setCurrentStep(nextStep);
+    setProgress(newProgress);
+    
+    if (nextStep >= totalSteps) {
+      completeChallenge();
     }
-  }, [isAuthenticated, user]);
-
-  const handleStartChallenge = () => {
-    if (!isAuthenticated) {
-      // Handle non-authenticated users
-      navigate('/login');
-      return;
+  };
+  
+  const completeChallenge = () => {
+    if (!challenge) return;
+    
+    // Mark as completed
+    setCompleted(true);
+    setProgress(100);
+    
+    // Save to localStorage
+    const today = format(new Date(), 'yyyy-MM-dd');
+    localStorage.setItem('lastCompletedChallengeDate', today);
+    localStorage.setItem('lastCompletedChallengeId', challenge.id);
+    
+    // Add points to user account if available
+    try {
+      if (user) {
+        const currentPoints = localStorage.getItem(`user_points_${user.id}`) || '0';
+        const newPoints = parseInt(currentPoints) + challenge.points;
+        localStorage.setItem(`user_points_${user.id}`, newPoints.toString());
+      }
+    } catch (error) {
+      console.error("Error updating user points:", error);
     }
     
-    setChallengeStarted(true);
-    // Navigate to quiz challenge
-    navigate('/quiz');
+    // Show toast notification
+    toast({
+      title: "Défi complété!",
+      description: `Vous avez gagné ${challenge.points} points!`,
+    });
+    
+    // Call parent's onComplete if provided
+    if (onComplete) {
+      onComplete();
+    }
   };
-
+  
+  if (!challenge) {
+    return <div className="text-center py-8">Chargement du défi...</div>;
+  }
+  
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl flex items-center text-mrc-blue">
-          <Trophy className="mr-2 h-5 w-5" />
-          Défi quotidien
-        </CardTitle>
-        <CardDescription>
-          Testez vos connaissances et gagnez des points
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-4">
+      <ChallengeHeader 
+        title={challenge.title}
+        points={challenge.points}
+        difficulty={challenge.difficulty}
+        timeEstimate={challenge.timeEstimate}
+      />
       
-      <CardContent className="pb-2">
-        {!challengeStarted && (
-          <div className="flex flex-col">
-            <div className="flex items-center text-sm text-muted-foreground mb-4">
-              <Clock className="mr-2 h-4 w-4" />
-              Prochain défi dans: <span className="font-bold ml-1">{countdown}</span>
-            </div>
-            
-            <div className="bg-muted p-3 rounded-md mb-4">
-              <h4 className="font-medium mb-1">Thème du jour: Histoire du MRC</h4>
-              <p className="text-sm text-muted-foreground">
-                10 questions sur l'histoire et les principes du MRC
-              </p>
-            </div>
+      <Progress 
+        value={progress} 
+        className="h-2 w-full"
+      />
+      
+      <div className="text-sm text-gray-500 flex justify-between">
+        <span>Progression: {progress}%</span>
+        <span>
+          <Calendar className="inline h-4 w-4 mr-1" />
+          {format(new Date(), "d MMMM yyyy", { locale: fr })}
+        </span>
+      </div>
+      
+      <ChallengeContent 
+        challenge={challenge} 
+        currentStep={currentStep} 
+        completed={completed}
+      />
+      
+      <ChallengeActions 
+        onNextStep={handleNextStep}
+        completed={completed}
+        currentStep={currentStep}
+        totalSteps={challenge.steps?.length || 0}
+      />
+      
+      {completed && challenge.prize && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4 mt-4">
+          <div className="flex items-center">
+            <Gift className="h-5 w-5 text-yellow-500 mr-2" />
+            <h4 className="font-medium text-yellow-800 dark:text-yellow-400">Récompense gagnée!</h4>
           </div>
-        )}
-        
-        <ConnectedUsers users={connectedUsers} />
-      </CardContent>
-      
-      <CardFooter>
-        <Button 
-          onClick={handleStartChallenge} 
-          className="w-full"
-          variant={challengeStarted ? "outline" : "default"}
-        >
-          {challengeStarted ? "Continuer le défi" : "Commencer le défi"}
-        </Button>
-      </CardFooter>
-    </Card>
+          <p className="mt-2 text-yellow-700 dark:text-yellow-300">{challenge.prize.description}</p>
+        </div>
+      )}
+    </div>
   );
 };
 

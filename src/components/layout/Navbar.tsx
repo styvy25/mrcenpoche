@@ -15,14 +15,23 @@ import {
   Home,
   Menu,
   X,
-  Newspaper
+  Newspaper,
+  HelpCircle,
+  Info,
+  ShieldCheck
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger
 } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
@@ -69,13 +78,18 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const navLinks = [
+  const mainNavLinks = [
     { path: "/modules", icon: <LayoutGrid className="h-4 w-4" />, label: "Modules" },
     { path: "/quiz", icon: <BookOpen className="h-4 w-4" />, label: "Quiz" },
     { path: "/chat", icon: <MessageSquare className="h-4 w-4" />, label: "Assistant" },
     { path: "/news", icon: <Newspaper className="h-4 w-4" />, label: "Actualités" },
     { path: "/documents", icon: <FileText className="h-4 w-4" />, label: "Documents" },
-    { path: "/settings", icon: <Settings className="h-4 w-4" />, label: "Paramètres" }
+  ];
+  
+  const secondaryNavLinks = [
+    { path: "/settings", icon: <Settings className="h-4 w-4" />, label: "Paramètres" },
+    { path: "/terms", icon: <ShieldCheck className="h-4 w-4" />, label: "CGU" },
+    { path: "/privacy", icon: <Info className="h-4 w-4" />, label: "Confidentialité" },
   ];
 
   return (
@@ -89,19 +103,43 @@ const Navbar = () => {
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={handleGoBack}>
-                  <ChevronLeft className="h-4 w-4 mr-2" />
-                  Retour
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleGoForward}>
-                  <ChevronRight className="h-4 w-4 mr-2" />
-                  Suivant
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleGoHome}>
-                  <Home className="h-4 w-4 mr-2" />
-                  Accueil
-                </DropdownMenuItem>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={handleGoBack}>
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Retour
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleGoForward}>
+                    <ChevronRight className="h-4 w-4 mr-2" />
+                    Suivant
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleGoHome}>
+                    <Home className="h-4 w-4 mr-2" />
+                    Accueil
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Pages</DropdownMenuLabel>
+                
+                {mainNavLinks.map((link) => (
+                  <DropdownMenuItem key={link.path} onClick={() => navigate(link.path)}>
+                    {link.icon}
+                    <span className="ml-2">{link.label}</span>
+                  </DropdownMenuItem>
+                ))}
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Autres</DropdownMenuLabel>
+                
+                {secondaryNavLinks.map((link) => (
+                  <DropdownMenuItem key={link.path} onClick={() => navigate(link.path)}>
+                    {link.icon}
+                    <span className="ml-2">{link.label}</span>
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
             
@@ -143,7 +181,7 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-1">
-          {navLinks.map((link) => (
+          {mainNavLinks.map((link) => (
             <Link to={link.path} key={link.path}>
               <Button
                 variant={isActive(link.path) ? "default" : "ghost"}
@@ -154,6 +192,23 @@ const Navbar = () => {
               </Button>
             </Link>
           ))}
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-1">
+                <HelpCircle className="h-4 w-4" />
+                <span>Plus</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {secondaryNavLinks.map((link) => (
+                <DropdownMenuItem key={link.path} onClick={() => navigate(link.path)}>
+                  {link.icon}
+                  <span className="ml-2">{link.label}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
         {/* Mobile Navigation */}
@@ -166,7 +221,7 @@ const Navbar = () => {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col space-y-4 mt-8">
-                {navLinks.map((link) => (
+                {mainNavLinks.map((link) => (
                   <Link 
                     to={link.path} 
                     key={link.path}
@@ -181,6 +236,26 @@ const Navbar = () => {
                     </Button>
                   </Link>
                 ))}
+                
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+                  <p className="text-sm text-gray-500 mb-2 px-2">Autres pages</p>
+                  {secondaryNavLinks.map((link) => (
+                    <Link 
+                      to={link.path} 
+                      key={link.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start"
+                      >
+                        {link.icon}
+                        <span className="ml-2">{link.label}</span>
+                      </Button>
+                    </Link>
+                  ))}
+                </div>
               </div>
             </SheetContent>
           </Sheet>

@@ -1,14 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import RosettaPhrase from '@/modules/learning/RosettaPhrase';
 import RosettaProgress from '@/modules/learning/RosettaProgress';
 import RosettaControls from '@/modules/learning/RosettaControls';
-
-interface Phrase {
-  original: string;
-  translation: string;
-  audio?: string;
-}
+import { useRosettaState } from '@/modules/learning/useRosettaState';
 
 interface RosettaLearningProps {
   moduleId: string;
@@ -16,47 +11,12 @@ interface RosettaLearningProps {
 }
 
 const RosettaLearning: React.FC<RosettaLearningProps> = ({ moduleId, onComplete }) => {
-  const [currentPhrase, setCurrentPhrase] = useState<number>(0);
-  const [completed, setCompleted] = useState<boolean>(false);
-
-  // Sample phrases based on module
-  const phrases: Phrase[] = [
-    {
-      original: "Le MRC est un parti politique camerounais.",
-      translation: "The MRC is a Cameroonian political party.",
-    },
-    {
-      original: "Maurice Kamto est le président du MRC.",
-      translation: "Maurice Kamto is the president of the MRC.",
-    },
-    {
-      original: "La mobilisation citoyenne est essentielle pour le changement.",
-      translation: "Citizen mobilization is essential for change.",
-    },
-    {
-      original: "Le développement durable est une priorité pour le Cameroun.",
-      translation: "Sustainable development is a priority for Cameroon.",
-    },
-    {
-      original: "La jeunesse représente l'avenir du pays.",
-      translation: "Youth represents the future of the country.",
-    }
-  ];
-
-  // Move to next phrase
-  const nextPhrase = () => {
-    if (currentPhrase < phrases.length - 1) {
-      setCurrentPhrase(prev => prev + 1);
-    } else {
-      setCompleted(true);
-      onComplete();
-    }
-  };
-
-  // Handle correct answer
-  const handleCorrectAnswer = () => {
-    nextPhrase();
-  };
+  const { 
+    currentPhrase, 
+    phrases, 
+    handleCorrectAnswer, 
+    nextPhrase 
+  } = useRosettaState({ moduleId, onComplete });
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
