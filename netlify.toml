@@ -1,7 +1,7 @@
 
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "npm install --legacy-peer-deps && npm run build"
 
 # Define redirects so that client-side routing works with SPA
 [[redirects]]
@@ -26,7 +26,7 @@
 
 # Split test for different deployment branches
 [context.main]
-  command = "npm run build"
+  command = "npm install --legacy-peer-deps && npm run build"
   
 [context.staging]
   command = "npm run build:staging"
