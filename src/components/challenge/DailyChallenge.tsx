@@ -1,175 +1,152 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-import { Challenge } from "./types";
-import { loadOrCreateChallenge, saveChallengeProgress, completeChallenge } from "./challengeUtils";
-import ChallengeHeader from "./ChallengeHeader";
-import ChallengeContent from "./ChallengeContent";
-import ChallengeActions from "./ChallengeActions";
-import AvailableSessions from "./AvailableSessions";
-import ConnectedUsers from "./ConnectedUsers";
-import { useAuth } from "../auth/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAuth } from '@/components/auth/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Clock, Award, Users, Trophy } from 'lucide-react';
+import { motion } from 'framer-motion';
+import ConnectedUsers from './ConnectedUsers';
 
-interface DailyChallengeProps {
-  onComplete?: () => void;
-}
+// Mock data for connected users
+const mockUsers = [
+  {
+    user_id: '1',
+    name: 'Jean Mendoza',
+    avatar: 'https://i.pravatar.cc/150?img=1',
+    online_at: new Date().toISOString(),
+    score: 450,
+  },
+  {
+    user_id: '2',
+    name: 'Alice Kamga',
+    avatar: 'https://i.pravatar.cc/150?img=2',
+    online_at: new Date().toISOString(),
+    score: 370,
+  },
+  {
+    user_id: '3',
+    name: 'François Biya',
+    avatar: 'https://i.pravatar.cc/150?img=3',
+    online_at: new Date().toISOString(),
+    score: 320,
+  },
+];
 
-const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
-  const [dailyChallenge, setDailyChallenge] = useState<Challenge | null>(null);
-  const [streakCount, setStreakCount] = useState<number>(0);
-  const [totalPoints, setTotalPoints] = useState<number>(0);
-  const [nextRefresh, setNextRefresh] = useState<Date>(new Date());
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [connectedUsers, setConnectedUsers] = useState<any[]>([]);
-  const { toast } = useToast();
-  const { user } = useAuth();
+const DailyChallenge = () => {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+  const [countdown, setCountdown] = useState('');
+  const [connectedUsers, setConnectedUsers] = useState(mockUsers);
+  const [challengeStarted, setChallengeStarted] = useState(false);
 
+  // Calculate countdown to next challenge (12:00 PM and 6:00 PM each day)
   useEffect(() => {
-    // Initialize challenge data
-    const initializeChallenge = () => {
-      setIsLoading(true);
-      
-      const { dailyChallenge, streakCount, totalPoints, nextRefresh } = loadOrCreateChallenge();
-      
-      setDailyChallenge(dailyChallenge);
-      setStreakCount(streakCount);
-      setTotalPoints(totalPoints);
-      setNextRefresh(nextRefresh);
-      
-      setIsLoading(false);
-    };
-
-    initializeChallenge();
-    
-    // Set up timer to check for refresh
-    const intervalId = setInterval(() => {
+    const updateCountdown = () => {
       const now = new Date();
-      const storedDate = localStorage.getItem('dailyChallengeDate');
+      const noon = new Date(now);
+      noon.setHours(12, 0, 0, 0);
       
-      if (storedDate !== now.toDateString()) {
-        initializeChallenge();
+      const evening = new Date(now);
+      evening.setHours(18, 0, 0, 0);
+      
+      let nextChallenge;
+      if (now < noon) {
+        nextChallenge = noon;
+      } else if (now < evening) {
+        nextChallenge = evening;
+      } else {
+        nextChallenge = new Date(now);
+        nextChallenge.setDate(nextChallenge.getDate() + 1);
+        nextChallenge.setHours(12, 0, 0, 0);
       }
-    }, 60000); // Check every minute
+      
+      const diff = nextChallenge.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      setCountdown(`${hours}h ${minutes}m`);
+    };
     
-    return () => clearInterval(intervalId);
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Setup realtime presence for connected users
+  // Add current user to connected users if authenticated
   useEffect(() => {
-    if (!user) return;
+    if (isAuthenticated && user) {
+      const userExists = connectedUsers.some(u => u.user_id === user.id);
+      
+      if (!userExists) {
+        // Get user name from user object, fallback to email
+        const name = user.email || 'Anonymous User';
+        
+        const newUser = {
+          user_id: user.id,
+          name: name,
+          avatar: user.user_metadata?.avatar_url,
+          online_at: new Date().toISOString(),
+          score: Math.floor(Math.random() * 200) + 200, // Random score for demo
+        };
+        
+        setConnectedUsers(prev => [...prev, newUser]);
+      }
+    }
+  }, [isAuthenticated, user]);
 
-    const channelName = 'challenge_users';
-    const channel = supabase.channel(channelName);
+  const handleStartChallenge = () => {
+    if (!isAuthenticated) {
+      // Handle non-authenticated users
+      navigate('/login');
+      return;
+    }
     
-    // Track the current user's presence
-    const userPresence = {
-      user_id: user.id,
-      name: user?.user_metadata?.full_name || 'Utilisateur',
-      avatar: user?.user_metadata?.avatar_url,
-      online_at: new Date().toISOString(),
-      challenge_id: dailyChallenge?.id || 'daily',
-      score: totalPoints
-    };
-
-    // Setup presence handlers
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const presenceState = channel.presenceState();
-        const users = Object.values(presenceState).flat();
-        setConnectedUsers(users as any[]);
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        toast({
-          title: "Nouvel utilisateur connecté",
-          description: `${newPresences[0]?.name || 'Un utilisateur'} a rejoint le défi`,
-        });
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        // Optional: Show when users leave
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track(userPresence);
-        }
-      });
-
-    // Cleanup on unmount
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, dailyChallenge, totalPoints, toast]);
-
-  const startChallenge = () => {
-    if (!dailyChallenge) return;
-    
-    const updatedChallenge = saveChallengeProgress(dailyChallenge, 20);
-    setDailyChallenge(updatedChallenge);
-    
-    // Simulate starting the challenge (in a real app, navigate to the challenge)
-    toast({
-      title: "Défi commencé",
-      description: `Vous avez commencé le défi "${dailyChallenge.title}"`,
-    });
+    setChallengeStarted(true);
+    // Navigate to quiz challenge
+    navigate('/quiz');
   };
-
-  const handleCompleteChallenge = () => {
-    if (!dailyChallenge) return;
-    
-    const { completedChallenge, newStreak, newPoints } = completeChallenge(
-      dailyChallenge,
-      streakCount,
-      totalPoints
-    );
-    
-    setDailyChallenge(completedChallenge);
-    setStreakCount(newStreak);
-    setTotalPoints(newPoints);
-    
-    toast({
-      title: "Défi complété !",
-      description: `Félicitations ! Vous avez gagné ${dailyChallenge.points} points.`,
-    });
-    
-    if (onComplete) onComplete();
-  };
-
-  if (isLoading) {
-    return (
-      <Card className="w-full h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-mrc-blue"></div>
-          <p className="text-sm text-gray-500">Chargement du défi quotidien...</p>
-        </div>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full">
-      <CardHeader className="pb-3">
-        <ChallengeHeader 
-          streakCount={streakCount}
-          totalPoints={totalPoints}
-          nextRefresh={nextRefresh}
-        />
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl flex items-center text-mrc-blue">
+          <Trophy className="mr-2 h-5 w-5" />
+          Défi quotidien
+        </CardTitle>
+        <CardDescription>
+          Testez vos connaissances et gagnez des points
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChallengeContent challenge={dailyChallenge} />
+      
+      <CardContent className="pb-2">
+        {!challengeStarted && (
+          <div className="flex flex-col">
+            <div className="flex items-center text-sm text-muted-foreground mb-4">
+              <Clock className="mr-2 h-4 w-4" />
+              Prochain défi dans: <span className="font-bold ml-1">{countdown}</span>
+            </div>
+            
+            <div className="bg-muted p-3 rounded-md mb-4">
+              <h4 className="font-medium mb-1">Thème du jour: Histoire du MRC</h4>
+              <p className="text-sm text-muted-foreground">
+                10 questions sur l'histoire et les principes du MRC
+              </p>
+            </div>
+          </div>
+        )}
         
-        {/* Connected Users Section */}
-        <div className="mt-4">
-          <ConnectedUsers users={connectedUsers} />
-        </div>
+        <ConnectedUsers users={connectedUsers} />
       </CardContent>
-      <CardFooter className="flex flex-col gap-3">
-        <ChallengeActions
-          challenge={dailyChallenge}
-          onStart={startChallenge}
-          onComplete={handleCompleteChallenge}
-        />
-        <AvailableSessions />
+      
+      <CardFooter>
+        <Button 
+          onClick={handleStartChallenge} 
+          className="w-full"
+          variant={challengeStarted ? "outline" : "default"}
+        >
+          {challengeStarted ? "Continuer le défi" : "Commencer le défi"}
+        </Button>
       </CardFooter>
     </Card>
   );

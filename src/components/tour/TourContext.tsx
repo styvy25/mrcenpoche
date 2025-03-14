@@ -78,6 +78,14 @@ const tourData: Record<string, Tour[]> = {
       content: 'Créez et téléchargez des supports de formation personnalisés pour vos activités militantes.',
       page: '/documents',
     }
+  ],
+  '/news': [
+    {
+      id: 'news-intro',
+      title: 'Actualités',
+      content: 'Restez informé des dernières actualités concernant le MRC et le Cameroun.',
+      page: '/news',
+    }
   ]
 };
 
@@ -109,23 +117,26 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .single();
 
           if (!error && data) {
-            // Use column names based on what's available in the database
-            const tourCompleted = data.tour_completed || data.completed;
-            const tourCurrentPage = data.tour_current_page || data.current_page;
-            const tourStepIndex = data.tour_step_index || data.step_index;
+            // Use preferences JSON field to store tour data
+            const preferences = data.preferences || {};
+            const tourCompleted = preferences.tour_completed || false;
+            const tourCurrentPage = preferences.tour_current_page || '/';
+            const tourStepIndex = preferences.tour_step_index || 0;
             
             if (!tourCompleted) {
-              setCurrentTourPage(tourCurrentPage || '/');
-              setCurrentStepIndex(tourStepIndex || 0);
+              setCurrentTourPage(tourCurrentPage);
+              setCurrentStepIndex(tourStepIndex);
               setShowTour(true);
             }
           } else {
             // Create preferences if not exist
             await supabase.from('user_preferences').upsert({
               user_id: user.id,
-              completed: false,
-              current_page: '/',
-              step_index: 0
+              preferences: {
+                tour_completed: false,
+                tour_current_page: '/',
+                tour_step_index: 0
+              }
             });
             setShowTour(true);
           }
@@ -174,9 +185,11 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isAuthenticated && user) {
       await supabase.from('user_preferences').upsert({
         user_id: user.id,
-        completed: completed,
-        current_page: page,
-        step_index: stepIndex
+        preferences: {
+          tour_completed: completed,
+          tour_current_page: page,
+          tour_step_index: stepIndex
+        }
       });
     } else {
       localStorage.setItem('tour_current_page', page);

@@ -93,8 +93,8 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({
           {quizData && (
             <TabsContent value="quiz">
               <ModuleQuiz
-                quizData={quizData}
-                onQuizComplete={handleLessonComplete}
+                questions={quizData.questions}
+                onComplete={handleLessonComplete}
               />
             </TabsContent>
           )}

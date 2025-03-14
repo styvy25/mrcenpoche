@@ -33,4 +33,25 @@
 
 # Custom domain configuration
 [context.production]
-  environment = { NODE_ENV = "production" }
+  environment = { NODE_ENV = "production", SITE_URL = "https://mrcenpoche.xyz" }
+
+# Custom domain setup
+[[plugins]]
+  package = "@netlify/plugin-sitemap"
+
+  [plugins.inputs]
+  baseUrl = "https://mrcenpoche.xyz"
+  
+# Optimize for production
+[build.processing]
+  skip_processing = false
+[build.processing.css]
+  bundle = true
+  minify = true
+[build.processing.js]
+  bundle = true
+  minify = true
+[build.processing.html]
+  pretty_urls = true
+[build.processing.images]
+  compress = true

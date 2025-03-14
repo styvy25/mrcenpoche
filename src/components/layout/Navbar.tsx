@@ -14,7 +14,8 @@ import {
   ChevronRight, 
   Home,
   Menu,
-  X 
+  X,
+  Newspaper
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
@@ -72,6 +73,7 @@ const Navbar = () => {
     { path: "/modules", icon: <LayoutGrid className="h-4 w-4" />, label: "Modules" },
     { path: "/quiz", icon: <BookOpen className="h-4 w-4" />, label: "Quiz" },
     { path: "/chat", icon: <MessageSquare className="h-4 w-4" />, label: "Assistant" },
+    { path: "/news", icon: <Newspaper className="h-4 w-4" />, label: "Actualités" },
     { path: "/documents", icon: <FileText className="h-4 w-4" />, label: "Documents" },
     { path: "/settings", icon: <Settings className="h-4 w-4" />, label: "Paramètres" }
   ];
@@ -190,6 +192,6 @@ const Navbar = () => {
       </div>
     </header>
   );
-};
+}
 
 export default Navbar;
