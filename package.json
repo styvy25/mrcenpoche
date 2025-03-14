@@ -9,7 +9,12 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
-  },
+{
+  "dependencies": {
+    "react-day-picker": "^8.10.1", // Vérifiez la dernière version compatible
+    "date-fns": "^3.6.0"
+  }
+}  },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
