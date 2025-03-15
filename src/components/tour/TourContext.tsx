@@ -4,6 +4,12 @@ import { useLocation } from 'react-router-dom';
 import { useToast } from '../ui/use-toast';
 import { useAuth } from '@/components/auth/AuthContext';
 
+interface TourStep {
+  path: string;
+  title: string;
+  description: string;
+}
+
 interface TourContextType {
   isOpen: boolean;
   currentStep: number;
@@ -14,6 +20,10 @@ interface TourContextType {
   prevStep: () => void;
   skipTour: () => void;
   resetTour: () => void;
+  currentTour?: TourStep;
+  showTour: boolean;
+  setShowTour: (show: boolean) => void;
+  completeTour: () => void;
 }
 
 const TourContext = createContext<TourContextType>({
@@ -26,15 +36,12 @@ const TourContext = createContext<TourContextType>({
   prevStep: () => {},
   skipTour: () => {},
   resetTour: () => {},
+  showTour: false,
+  setShowTour: () => {},
+  completeTour: () => {},
 });
 
 export const useTour = () => useContext(TourContext);
-
-interface TourStep {
-  path: string;
-  title: string;
-  description: string;
-}
 
 // Tour configuration based on path
 const tourSteps: TourStep[] = [
@@ -73,6 +80,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [tourCompleted, setTourCompleted] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -84,6 +92,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   };
   
   const totalSteps = getCurrentPathSteps().length;
+  const currentTour = getCurrentPathSteps()[currentStep];
   
   useEffect(() => {
     // Check if tour should be shown on this page
@@ -109,6 +118,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
         const pathSteps = getCurrentPathSteps();
         if (pathSteps.length > 0 && !tourCompleted) {
           setIsOpen(true);
+          setShowTour(true);
         }
       } catch (error) {
         console.error("Error loading tour data:", error);
@@ -136,6 +146,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   const openTour = () => {
     if (getCurrentPathSteps().length > 0) {
       setIsOpen(true);
+      setShowTour(true);
     } else {
       toast({
         title: "Visite guidée non disponible",
@@ -146,6 +157,7 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   
   const closeTour = () => {
     setIsOpen(false);
+    setShowTour(false);
   };
   
   const nextStep = () => {
@@ -180,6 +192,10 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
       description: "La visite guidée s'affichera lors de votre prochaine navigation."
     });
   };
+
+  const completeTour = () => {
+    closeTour();
+  };
   
   return (
     <TourContext.Provider
@@ -192,7 +208,11 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
         nextStep,
         prevStep,
         skipTour,
-        resetTour
+        resetTour,
+        currentTour,
+        showTour,
+        setShowTour,
+        completeTour
       }}
     >
       {children}
