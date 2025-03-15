@@ -1,221 +1,253 @@
 
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useToast } from '../ui/use-toast';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-interface TourStep {
-  path: string;
+interface Tour {
+  id: string;
   title: string;
-  description: string;
+  content: string;
+  element?: string;
+  placement?: 'top' | 'right' | 'bottom' | 'left';
+  page: string;
 }
 
 interface TourContextType {
-  isOpen: boolean;
-  currentStep: number;
-  totalSteps: number;
-  openTour: () => void;
-  closeTour: () => void;
-  nextStep: () => void;
-  prevStep: () => void;
-  skipTour: () => void;
-  resetTour: () => void;
-  currentTour?: TourStep;
+  currentTour: Tour | null;
   showTour: boolean;
   setShowTour: (show: boolean) => void;
+  nextStep: () => void;
+  resetTour: () => void;
   completeTour: () => void;
 }
 
-const TourContext = createContext<TourContextType>({
-  isOpen: false,
-  currentStep: 0,
-  totalSteps: 0,
-  openTour: () => {},
-  closeTour: () => {},
-  nextStep: () => {},
-  prevStep: () => {},
-  skipTour: () => {},
-  resetTour: () => {},
-  showTour: false,
-  setShowTour: () => {},
-  completeTour: () => {},
-});
+// Tour Steps Data
+const tourData: Record<string, Tour[]> = {
+  '/': [
+    {
+      id: 'welcome',
+      title: 'Bienvenue sur MRC en Poche',
+      content: 'Découvrez notre plateforme dédiée à la formation des militants et sympathisants du MRC.',
+      page: '/',
+    },
+    {
+      id: 'navigation',
+      title: 'Navigation',
+      content: 'Utilisez la barre de navigation pour accéder aux différentes sections de l\'application.',
+      element: 'nav',
+      placement: 'bottom',
+      page: '/',
+    }
+  ],
+  '/modules': [
+    {
+      id: 'modules-intro',
+      title: 'Modules de formation',
+      content: 'Explorez nos modules thématiques pour approfondir vos connaissances sur le MRC et ses positions.',
+      page: '/modules',
+    },
+    {
+      id: 'module-selection',
+      title: 'Sélection des modules',
+      content: 'Cliquez sur un module pour accéder à son contenu et commencer votre apprentissage.',
+      element: '.module-card',
+      placement: 'top',
+      page: '/modules',
+    }
+  ],
+  '/quiz': [
+    {
+      id: 'quiz-intro',
+      title: 'Quiz interactifs',
+      content: 'Testez vos connaissances avec nos quiz thématiques sur le MRC et la politique camerounaise.',
+      page: '/quiz',
+    }
+  ],
+  '/chat': [
+    {
+      id: 'chat-intro',
+      title: 'Assistant virtuel',
+      content: 'Posez vos questions à notre assistant pour obtenir des informations sur le MRC et ses positions.',
+      page: '/chat',
+    }
+  ],
+  '/documents': [
+    {
+      id: 'documents-intro',
+      title: 'Génération de documents',
+      content: 'Créez et téléchargez des supports de formation personnalisés pour vos activités militantes.',
+      page: '/documents',
+    }
+  ]
+};
 
-export const useTour = () => useContext(TourContext);
+const TourContext = createContext<TourContextType | undefined>(undefined);
 
-// Tour configuration based on path
-const tourSteps: TourStep[] = [
-  {
-    path: '/',
-    title: 'Bienvenue sur MRC en Poche',
-    description: 'Découvrez toutes les fonctionnalités de l\'application et commencez votre apprentissage.'
-  },
-  {
-    path: '/modules',
-    title: 'Modules de formation',
-    description: 'Accédez aux modules de formation pour en apprendre davantage sur le MRC.'
-  },
-  {
-    path: '/quiz',
-    title: 'Quiz interactifs',
-    description: 'Testez vos connaissances avec nos quiz interactifs.'
-  },
-  {
-    path: '/chat',
-    title: 'Assistant virtuel',
-    description: 'Posez vos questions à notre assistant virtuel et obtenez des réponses personnalisées.'
-  },
-  {
-    path: '/news',
-    title: 'Actualités',
-    description: 'Restez informé(e) des dernières actualités du MRC et de l\'environnement politique.'
-  }
-];
-
-interface TourProviderProps {
-  children: React.ReactNode;
-}
-
-export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [tourCompleted, setTourCompleted] = useState(false);
+export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentTourPage, setCurrentTourPage] = useState<string>('/');
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showTour, setShowTour] = useState(false);
-  const location = useLocation();
-  const { toast } = useToast();
-  const { user } = useAuth();
-  
-  // Get available steps for current path
-  const getCurrentPathSteps = (): TourStep[] => {
-    const currentPath = location.pathname;
-    return tourSteps.filter(step => step.path === currentPath);
+  const { isAuthenticated, user } = useAuth();
+
+  // Get current tour based on page and step index
+  const getCurrentTour = (): Tour | null => {
+    const pageTour = tourData[currentTourPage];
+    if (!pageTour || currentStepIndex >= pageTour.length) return null;
+    return pageTour[currentStepIndex];
   };
-  
-  const totalSteps = getCurrentPathSteps().length;
-  const currentTour = getCurrentPathSteps()[currentStep];
-  
+
+  // Load tour state from database or localStorage
   useEffect(() => {
-    // Check if tour should be shown on this page
-    if (!tourCompleted && user) {
-      try {
-        const userData = localStorage.getItem(`tour_data_${user.id}`);
-        if (userData) {
-          const data = JSON.parse(userData);
-          // Use correct property access
-          if (typeof data === 'object' && data !== null) {
-            setTourCompleted(data.tour_completed || false);
+    const loadTourState = async () => {
+      if (isAuthenticated && user) {
+        try {
+          // Check if user_preferences table exists and has the required columns
+          const { data, error } = await supabase
+            .from('user_preferences')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          if (!error && data) {
+            // Use column names based on what's available in the database
+            const tourCompleted = data.tour_completed || data.completed;
+            const tourCurrentPage = data.tour_current_page || data.current_page;
+            const tourStepIndex = data.tour_step_index || data.step_index;
             
-            // If we have a saved state for the current page, restore it
-            if (data.tour_current_page === location.pathname) {
-              setCurrentStep(data.tour_step_index || 0);
-            } else {
-              setCurrentStep(0);
+            if (!tourCompleted) {
+              setCurrentTourPage(tourCurrentPage || '/');
+              setCurrentStepIndex(tourStepIndex || 0);
+              setShowTour(true);
             }
+          } else {
+            // Create preferences if not exist
+            await supabase.from('user_preferences').upsert({
+              user_id: user.id,
+              completed: false,
+              current_page: '/',
+              step_index: 0
+            });
+            setShowTour(true);
           }
+        } catch (error) {
+          console.error('Error loading tour state:', error);
+          // Fallback to localStorage
+          useFallbackTourState();
         }
+      } else {
+        // For non-authenticated users, use localStorage
+        useFallbackTourState();
+      }
+    };
 
-        // Auto-show tour for first-time users if we have steps for this page
-        const pathSteps = getCurrentPathSteps();
-        if (pathSteps.length > 0 && !tourCompleted) {
-          setIsOpen(true);
-          setShowTour(true);
-        }
-      } catch (error) {
-        console.error("Error loading tour data:", error);
+    const useFallbackTourState = () => {
+      const tourCompleted = localStorage.getItem('tour_completed') === 'true';
+      if (!tourCompleted) {
+        const savedPage = localStorage.getItem('tour_current_page') || '/';
+        const savedStep = parseInt(localStorage.getItem('tour_step_index') || '0');
+        
+        setCurrentTourPage(savedPage);
+        setCurrentStepIndex(savedStep);
+        setShowTour(true);
       }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, user]);
-  
-  // Save tour state when it changes
-  useEffect(() => {
-    if (user) {
-      try {
-        const tourData = {
-          tour_completed: tourCompleted,
-          tour_current_page: location.pathname,
-          tour_step_index: currentStep
-        };
-        localStorage.setItem(`tour_data_${user.id}`, JSON.stringify(tourData));
-      } catch (error) {
-        console.error("Error saving tour data:", error);
+    };
+
+    loadTourState();
+
+    // Update current page when location changes
+    const updateCurrentPage = () => {
+      const pathname = window.location.pathname;
+      if (tourData[pathname]) {
+        setCurrentTourPage(pathname);
+        setCurrentStepIndex(0);
       }
-    }
-  }, [tourCompleted, currentStep, location.pathname, user]);
-  
-  const openTour = () => {
-    if (getCurrentPathSteps().length > 0) {
-      setIsOpen(true);
-      setShowTour(true);
-    } else {
-      toast({
-        title: "Visite guidée non disponible",
-        description: "Aucune visite guidée n'est disponible pour cette page."
+    };
+
+    window.addEventListener('popstate', updateCurrentPage);
+    updateCurrentPage();
+
+    return () => window.removeEventListener('popstate', updateCurrentPage);
+  }, [isAuthenticated, user]);
+
+  // Save tour state
+  const saveTourState = async (page: string, stepIndex: number, completed: boolean = false) => {
+    if (isAuthenticated && user) {
+      await supabase.from('user_preferences').upsert({
+        user_id: user.id,
+        completed: completed,
+        current_page: page,
+        step_index: stepIndex
       });
-    }
-  };
-  
-  const closeTour = () => {
-    setIsOpen(false);
-    setShowTour(false);
-  };
-  
-  const nextStep = () => {
-    if (currentStep < totalSteps - 1) {
-      setCurrentStep(prev => prev + 1);
     } else {
-      // Complete tour for this page
-      closeTour();
+      localStorage.setItem('tour_current_page', page);
+      localStorage.setItem('tour_step_index', stepIndex.toString());
+      if (completed) {
+        localStorage.setItem('tour_completed', 'true');
+      }
     }
-  };
-  
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
-  
-  const skipTour = () => {
-    setTourCompleted(true);
-    closeTour();
-    toast({
-      title: "Visite guidée désactivée",
-      description: "Vous pouvez la réactiver depuis les paramètres."
-    });
-  };
-  
-  const resetTour = () => {
-    setTourCompleted(false);
-    setCurrentStep(0);
-    toast({
-      title: "Visite guidée réinitialisée",
-      description: "La visite guidée s'affichera lors de votre prochaine navigation."
-    });
   };
 
-  const completeTour = () => {
-    closeTour();
+  // Move to next step
+  const nextStep = () => {
+    const pageTour = tourData[currentTourPage];
+    if (!pageTour) return;
+
+    if (currentStepIndex < pageTour.length - 1) {
+      const newStepIndex = currentStepIndex + 1;
+      setCurrentStepIndex(newStepIndex);
+      saveTourState(currentTourPage, newStepIndex);
+    } else {
+      // End of current page tour
+      setShowTour(false);
+      
+      // Find next page with tour
+      const pages = Object.keys(tourData);
+      const currentPageIndex = pages.indexOf(currentTourPage);
+      
+      if (currentPageIndex < pages.length - 1) {
+        const nextPage = pages[currentPageIndex + 1];
+        saveTourState(nextPage, 0);
+      } else {
+        // All tours completed
+        completeTour();
+      }
+    }
   };
-  
+
+  // Reset and restart tour
+  const resetTour = () => {
+    setCurrentTourPage('/');
+    setCurrentStepIndex(0);
+    setShowTour(true);
+    saveTourState('/', 0, false);
+  };
+
+  // Mark tour as completed
+  const completeTour = () => {
+    setShowTour(false);
+    saveTourState(currentTourPage, currentStepIndex, true);
+  };
+
   return (
-    <TourContext.Provider
-      value={{
-        isOpen,
-        currentStep,
-        totalSteps,
-        openTour,
-        closeTour,
-        nextStep,
-        prevStep,
-        skipTour,
+    <TourContext.Provider 
+      value={{ 
+        currentTour: getCurrentTour(), 
+        showTour, 
+        setShowTour, 
+        nextStep, 
         resetTour,
-        currentTour,
-        showTour,
-        setShowTour,
-        completeTour
+        completeTour 
       }}
     >
       {children}
     </TourContext.Provider>
   );
+};
+
+export const useTour = () => {
+  const context = useContext(TourContext);
+  if (context === undefined) {
+    throw new Error('useTour must be used within a TourProvider');
+  }
+  return context;
 };

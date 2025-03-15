@@ -1,20 +1,20 @@
 
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import DailyChallenge from '@/components/challenge/DailyChallenge';
+import { Lightbulb } from "lucide-react";
+import DailyChallenge from "@/components/challenge/DailyChallenge";
 
 interface DailyChallengeSectionProps {
   onChallengeComplete: () => void;
 }
 
-const DailyChallengeSection: React.FC<DailyChallengeSectionProps> = ({ onChallengeComplete }) => {
+const DailyChallengeSection = ({ onChallengeComplete }: DailyChallengeSectionProps) => {
   return (
-    <Card className="p-6 h-full flex flex-col">
-      <h3 className="text-xl font-semibold mb-3">Défi du jour</h3>
-      <div className="flex-grow">
-        <DailyChallenge onComplete={onChallengeComplete} />
+    <div>
+      <div className="flex items-center mb-4">
+        <Lightbulb className="mr-2 h-5 w-5 text-yellow-500" />
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Défi Quotidien</h2>
       </div>
-    </Card>
+      <DailyChallenge onComplete={onChallengeComplete} />
+    </div>
   );
 };
 

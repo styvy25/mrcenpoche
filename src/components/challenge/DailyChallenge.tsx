@@ -1,161 +1,177 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Prize, getRandomChallenge } from './challengeData';
-import { Award, Calendar, CheckCircle, Flag, Gift } from 'lucide-react';
-import { format } from 'date-fns';
-import ChallengeContent from './ChallengeContent';
-import ChallengeActions from './ChallengeActions';
-import ChallengeHeader from './ChallengeHeader';
-import { useToast } from '@/components/ui/use-toast';
-import { fr } from 'date-fns/locale';
-import { useAuth } from '@/components/auth/AuthContext';
-
-export interface Challenge {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  points: number;
-  completed?: boolean;
-  timeEstimate: string;
-  steps?: string[];
-  category: string;
-  prize?: Prize;
-}
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { Challenge } from "./types";
+import { loadOrCreateChallenge, saveChallengeProgress, completeChallenge } from "./challengeUtils";
+import ChallengeHeader from "./ChallengeHeader";
+import ChallengeContent from "./ChallengeContent";
+import ChallengeActions from "./ChallengeActions";
+import AvailableSessions from "./AvailableSessions";
+import ConnectedUsers from "./ConnectedUsers";
+import { useAuth } from "../auth/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DailyChallengeProps {
   onComplete?: () => void;
 }
 
-const DailyChallenge: React.FC<DailyChallengeProps> = ({ onComplete }) => {
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completed, setCompleted] = useState(false);
+const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
+  const [dailyChallenge, setDailyChallenge] = useState<Challenge | null>(null);
+  const [streakCount, setStreakCount] = useState<number>(0);
+  const [totalPoints, setTotalPoints] = useState<number>(0);
+  const [nextRefresh, setNextRefresh] = useState<Date>(new Date());
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [connectedUsers, setConnectedUsers] = useState<any[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
-  
-  useEffect(() => {
-    // Load challenge
-    const dailyChallenge = getRandomChallenge();
-    
-    // Check if user has completed this challenge today
-    const lastCompletedDate = localStorage.getItem('lastCompletedChallengeDate');
-    const lastChallengeId = localStorage.getItem('lastCompletedChallengeId');
-    const today = format(new Date(), 'yyyy-MM-dd');
-    
-    if (lastCompletedDate === today && lastChallengeId === dailyChallenge.id) {
-      setCompleted(true);
-      setProgress(100);
-      setCurrentStep(dailyChallenge.steps?.length || 1);
-    }
-    
-    setChallenge(dailyChallenge);
-  }, []);
-  
-  const handleNextStep = () => {
-    if (!challenge || !challenge.steps) return;
 
-    const nextStep = currentStep + 1;
-    const totalSteps = challenge.steps.length;
+  useEffect(() => {
+    // Initialize challenge data
+    const initializeChallenge = () => {
+      setIsLoading(true);
+      
+      const { dailyChallenge, streakCount, totalPoints, nextRefresh } = loadOrCreateChallenge();
+      
+      setDailyChallenge(dailyChallenge);
+      setStreakCount(streakCount);
+      setTotalPoints(totalPoints);
+      setNextRefresh(nextRefresh);
+      
+      setIsLoading(false);
+    };
+
+    initializeChallenge();
     
-    // Calculate progress
-    const newProgress = Math.floor((nextStep / totalSteps) * 100);
-    
-    setCurrentStep(nextStep);
-    setProgress(newProgress);
-    
-    if (nextStep >= totalSteps) {
-      completeChallenge();
-    }
-  };
-  
-  const completeChallenge = () => {
-    if (!challenge) return;
-    
-    // Mark as completed
-    setCompleted(true);
-    setProgress(100);
-    
-    // Save to localStorage
-    const today = format(new Date(), 'yyyy-MM-dd');
-    localStorage.setItem('lastCompletedChallengeDate', today);
-    localStorage.setItem('lastCompletedChallengeId', challenge.id);
-    
-    // Add points to user account if available
-    try {
-      if (user) {
-        const currentPoints = localStorage.getItem(`user_points_${user.id}`) || '0';
-        const newPoints = parseInt(currentPoints) + challenge.points;
-        localStorage.setItem(`user_points_${user.id}`, newPoints.toString());
+    // Set up timer to check for refresh
+    const intervalId = setInterval(() => {
+      const now = new Date();
+      const storedDate = localStorage.getItem('dailyChallengeDate');
+      
+      if (storedDate !== now.toDateString()) {
+        initializeChallenge();
       }
-    } catch (error) {
-      console.error("Error updating user points:", error);
-    }
+    }, 60000); // Check every minute
     
-    // Show toast notification
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Setup realtime presence for connected users
+  useEffect(() => {
+    if (!user) return;
+
+    const channelName = 'challenge_users';
+    const channel = supabase.channel(channelName);
+    
+    // Track the current user's presence
+    const userPresence = {
+      user_id: user.id,
+      name: user?.user_metadata?.full_name || 'Utilisateur',
+      avatar: user?.user_metadata?.avatar_url,
+      online_at: new Date().toISOString(),
+      challenge_id: dailyChallenge?.id || 'daily',
+      score: totalPoints
+    };
+
+    // Setup presence handlers
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = channel.presenceState();
+        const users = Object.values(presenceState).flat();
+        setConnectedUsers(users as any[]);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        toast({
+          title: "Nouvel utilisateur connecté",
+          description: `${newPresences[0]?.name || 'Un utilisateur'} a rejoint le défi`,
+        });
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        // Optional: Show when users leave
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track(userPresence);
+        }
+      });
+
+    // Cleanup on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, dailyChallenge, totalPoints, toast]);
+
+  const startChallenge = () => {
+    if (!dailyChallenge) return;
+    
+    const updatedChallenge = saveChallengeProgress(dailyChallenge, 20);
+    setDailyChallenge(updatedChallenge);
+    
+    // Simulate starting the challenge (in a real app, navigate to the challenge)
     toast({
-      title: "Défi complété!",
-      description: `Vous avez gagné ${challenge.points} points!`,
+      title: "Défi commencé",
+      description: `Vous avez commencé le défi "${dailyChallenge.title}"`,
+    });
+  };
+
+  const handleCompleteChallenge = () => {
+    if (!dailyChallenge) return;
+    
+    const { completedChallenge, newStreak, newPoints } = completeChallenge(
+      dailyChallenge,
+      streakCount,
+      totalPoints
+    );
+    
+    setDailyChallenge(completedChallenge);
+    setStreakCount(newStreak);
+    setTotalPoints(newPoints);
+    
+    toast({
+      title: "Défi complété !",
+      description: `Félicitations ! Vous avez gagné ${dailyChallenge.points} points.`,
     });
     
-    // Call parent's onComplete if provided
-    if (onComplete) {
-      onComplete();
-    }
+    if (onComplete) onComplete();
   };
-  
-  if (!challenge) {
-    return <div className="text-center py-8">Chargement du défi...</div>;
-  }
-  
-  return (
-    <div className="space-y-4">
-      <ChallengeHeader 
-        title={challenge.title}
-        points={challenge.points}
-        difficulty={challenge.difficulty}
-        timeEstimate={challenge.timeEstimate}
-      />
-      
-      <Progress 
-        value={progress} 
-        className="h-2 w-full"
-      />
-      
-      <div className="text-sm text-gray-500 flex justify-between">
-        <span>Progression: {progress}%</span>
-        <span>
-          <Calendar className="inline h-4 w-4 mr-1" />
-          {format(new Date(), "d MMMM yyyy", { locale: fr })}
-        </span>
-      </div>
-      
-      <ChallengeContent 
-        challenge={challenge} 
-        currentStep={currentStep} 
-        completed={completed}
-      />
-      
-      <ChallengeActions 
-        onNextStep={handleNextStep}
-        completed={completed}
-        currentStep={currentStep}
-        totalSteps={challenge.steps?.length || 0}
-      />
-      
-      {completed && challenge.prize && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4 mt-4">
-          <div className="flex items-center">
-            <Gift className="h-5 w-5 text-yellow-500 mr-2" />
-            <h4 className="font-medium text-yellow-800 dark:text-yellow-400">Récompense gagnée!</h4>
-          </div>
-          <p className="mt-2 text-yellow-700 dark:text-yellow-300">{challenge.prize.description}</p>
+
+  if (isLoading) {
+    return (
+      <Card className="w-full h-[400px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-mrc-blue"></div>
+          <p className="text-sm text-gray-500">Chargement du défi quotidien...</p>
         </div>
-      )}
-    </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <ChallengeHeader 
+          streakCount={streakCount}
+          totalPoints={totalPoints}
+          nextRefresh={nextRefresh}
+        />
+      </CardHeader>
+      <CardContent>
+        <ChallengeContent challenge={dailyChallenge} />
+        
+        {/* Connected Users Section */}
+        <div className="mt-4">
+          <ConnectedUsers users={connectedUsers} />
+        </div>
+      </CardContent>
+      <CardFooter className="flex flex-col gap-3">
+        <ChallengeActions
+          challenge={dailyChallenge}
+          onStart={startChallenge}
+          onComplete={handleCompleteChallenge}
+        />
+        <AvailableSessions />
+      </CardFooter>
+    </Card>
   );
 };
 

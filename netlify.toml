@@ -1,7 +1,7 @@
 
 [build]
   publish = "dist"
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm run build"
 
 # Define redirects so that client-side routing works with SPA
 [[redirects]]
@@ -26,32 +26,11 @@
 
 # Split test for different deployment branches
 [context.main]
-  command = "npm install --legacy-peer-deps && npm run build"
+  command = "npm run build"
   
 [context.staging]
   command = "npm run build:staging"
 
 # Custom domain configuration
 [context.production]
-  environment = { NODE_ENV = "production", SITE_URL = "https://mrcenpoche.xyz" }
-
-# Custom domain setup
-[[plugins]]
-  package = "@netlify/plugin-sitemap"
-
-  [plugins.inputs]
-  baseUrl = "https://mrcenpoche.xyz"
-  
-# Optimize for production
-[build.processing]
-  skip_processing = false
-[build.processing.css]
-  bundle = true
-  minify = true
-[build.processing.js]
-  bundle = true
-  minify = true
-[build.processing.html]
-  pretty_urls = true
-[build.processing.images]
-  compress = true
+  environment = { NODE_ENV = "production" }

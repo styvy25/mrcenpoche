@@ -9,7 +9,6 @@ import ModulePage from './pages/ModulesPage';
 import QuizPage from "./pages/QuizPage";
 import MatchGame from "./components/quiz/matches/MatchGame";
 import MatchResults from "./components/quiz/matches/MatchResults";
-import NewsPage from "./pages/NewsPage";
 import Index from './pages/Index';
 import PaymentPage from './pages/PaymentPage';
 import DocumentsPage from './pages/DocumentsPage';
@@ -81,7 +80,6 @@ function App() {
                   <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/documents" element={<DocumentsPage />} />
-                  <Route path="/news" element={<NewsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </TourProvider>
