@@ -20,7 +20,7 @@ const ModuleDetailTabs = ({
   setActiveTab,
   onLessonClick,
 }: ModuleDetailTabsProps) => {
-  // Helper function to handle dummy lesson content props  
+  // Helper function to handle lesson content props  
   const getLessonContentProps = () => {
     if (!activeLesson) {
       return {

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,16 +13,20 @@ interface QuizQuestion {
   explanation: string;
 }
 
-interface ModuleQuizProps {
+export interface ModuleQuizProps {
   moduleId: string;
   questions: QuizQuestion[];
-  onComplete: (score: number, totalQuestions: number) => void;
+  onComplete: (score?: number, totalQuestions?: number) => void;
+  quizData?: any;
+  onQuizComplete?: () => void;
 }
 
 const ModuleQuiz: React.FC<ModuleQuizProps> = ({
   moduleId,
   questions,
   onComplete,
+  quizData,
+  onQuizComplete,
 }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -63,6 +66,7 @@ const ModuleQuiz: React.FC<ModuleQuizProps> = ({
     } else {
       setQuizCompleted(true);
       onComplete(score, questions.length);
+      if (onQuizComplete) onQuizComplete();
     }
   };
 
@@ -120,11 +124,11 @@ const ModuleQuiz: React.FC<ModuleQuizProps> = ({
         />
         
         <h3 className="text-xl font-semibold mb-4">
-          {questions[currentQuestion].question}
+          {questions[currentQuestion]?.question || "Question non disponible"}
         </h3>
         
         <div className="space-y-3 mb-6">
-          {questions[currentQuestion].options.map((option, index) => (
+          {questions[currentQuestion]?.options.map((option, index) => (
             <div
               key={index}
               onClick={() => handleAnswerSelect(index)}
@@ -150,7 +154,7 @@ const ModuleQuiz: React.FC<ModuleQuizProps> = ({
           ))}
         </div>
         
-        {showExplanation && (
+        {showExplanation && questions[currentQuestion] && (
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
             <p className="text-sm text-gray-700">
               {questions[currentQuestion].explanation}

@@ -6,24 +6,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, ArrowLeft, ArrowRight, Book, Play } from "lucide-react";
 import DOMPurify from "dompurify";
 
-// Define interface for RosettaLearning component
+// Define proper interfaces for the lazy-loaded components
 interface RosettaLearningProps {
   moduleId: string;
   onComplete: () => void;
 }
 
-// Define ModuleQuizProps interface
 export interface ModuleQuizProps {
   moduleId: string;
   questions: any[];
-  onComplete: () => void;
+  onComplete: (score?: number, totalQuestions?: number) => void;
   quizData?: any;
   onQuizComplete?: () => void;
 }
 
 // Import components with proper lazy loading
-const RosettaLearning = React.lazy(() => import("./rosetta/RosettaLearning"));
-const ModuleQuiz = React.lazy(() => import("./ModuleQuiz"));
+const RosettaLearning = React.lazy(() => import("./rosetta/RosettaLearning")) as React.FC<RosettaLearningProps>;
+const ModuleQuiz = React.lazy(() => import("./ModuleQuiz")) as React.FC<ModuleQuizProps>;
 
 export interface ModuleLessonContentProps {
   moduleId: string;
@@ -50,6 +49,7 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({
   onComplete,
   hasNext = false,
   hasPrevious = false,
+  activeLesson,
 }) => {
   const [currentTab, setCurrentTab] = useState<string>("content");
   const [lessonCompleted, setLessonCompleted] = useState<boolean>(false);
