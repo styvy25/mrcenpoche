@@ -30,7 +30,9 @@ const ModuleDetailTabs = ({
         lessonContent: "<p>Veuillez sélectionner une leçon pour afficher son contenu.</p>",
         onBack: () => {},
         onNext: () => {},
-        onComplete: () => {}
+        onComplete: () => {},
+        hasNext: false,
+        hasPrevious: false
       };
     }
     
@@ -41,7 +43,9 @@ const ModuleDetailTabs = ({
       lessonContent: activeLesson.content || "",
       onBack: () => {},
       onNext: () => {},
-      onComplete: () => {}
+      onComplete: () => {},
+      hasNext: false,
+      hasPrevious: false
     };
   };
 

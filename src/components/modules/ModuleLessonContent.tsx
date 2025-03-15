@@ -5,25 +5,25 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, ArrowLeft, ArrowRight, Book, Play } from "lucide-react";
 import DOMPurify from "dompurify";
-import { Lesson } from "./types";
 
-// Define separate interface for RosettaLearning component
+// Define interface for RosettaLearning component
 interface RosettaLearningProps {
   moduleId: string;
   onComplete: () => void;
 }
 
-// Import RosettaLearning with proper type
-const RosettaLearning = React.lazy(() => import("./rosetta/RosettaLearning")) as React.LazyExoticComponent<React.FC<RosettaLearningProps>>;
-
 // Define ModuleQuizProps interface
-interface ModuleQuizProps {
-  quizData: any;
-  onQuizComplete: () => void;
+export interface ModuleQuizProps {
+  moduleId: string;
+  questions: any[];
+  onComplete: () => void;
+  quizData?: any;
+  onQuizComplete?: () => void;
 }
 
-// Import ModuleQuiz with proper type
-const ModuleQuiz = React.lazy(() => import("./ModuleQuiz")) as React.LazyExoticComponent<React.FC<ModuleQuizProps>>;
+// Import components with proper lazy loading
+const RosettaLearning = React.lazy(() => import("./rosetta/RosettaLearning"));
+const ModuleQuiz = React.lazy(() => import("./ModuleQuiz"));
 
 export interface ModuleLessonContentProps {
   moduleId: string;
@@ -36,6 +36,7 @@ export interface ModuleLessonContentProps {
   onComplete: () => void;
   hasNext?: boolean;
   hasPrevious?: boolean;
+  activeLesson?: any;
 }
 
 const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({
@@ -116,6 +117,9 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({
             <TabsContent value="quiz">
               <React.Suspense fallback={<div>Chargement...</div>}>
                 <ModuleQuiz
+                  moduleId={moduleId}
+                  questions={quizData.questions || []}
+                  onComplete={handleLessonComplete}
                   quizData={quizData}
                   onQuizComplete={handleLessonComplete}
                 />

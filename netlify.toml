@@ -1,7 +1,7 @@
 
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
 
 # Define redirects so that client-side routing works with SPA
 [[redirects]]
@@ -9,7 +9,7 @@
   to = "/index.html"
   status = 200
 
-# Custom headers for security
+# Custom headers for performance and security
 [[headers]]
   for = "/*"
   [headers.values]
@@ -18,6 +18,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "upgrade-insecure-requests"
+    Cache-Control = "public, max-age=31536000"
 
 # Environment variable configuration
 [build.environment]
@@ -31,7 +32,7 @@
 [context.staging]
   command = "npm ci --legacy-peer-deps && npm run build:staging"
 
-# Custom domain configuration
+# Production configuration
 [context.production]
   environment = { NODE_ENV = "production" }
   command = "npm ci --legacy-peer-deps && npm run build"
@@ -39,10 +40,6 @@
 # Domain settings
 [build.processing.html]
   pretty_urls = true
-
-# Custom domain setup
-[[plugins]]
-  package = "@netlify/plugin-sitemap"
 
 # Handle 404 errors gracefully
 [[redirects]]

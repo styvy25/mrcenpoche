@@ -39,3 +39,6 @@ export const culturalQuizData = {
     { id: "test", name: "Test", badge: "test_expert", color: "gray", icon: "check", description: "Questions de test" }
   ]
 };
+
+// Make sure to export the culturalQuizData as default as well
+export default culturalQuizData;
