@@ -9,7 +9,7 @@
   to = "/index.html"
   status = 200
 
-# Custom headers
+# Custom headers for security
 [[headers]]
   for = "/*"
   [headers.values]
@@ -26,11 +26,26 @@
 
 # Split test for different deployment branches
 [context.main]
-  command = "npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
   
 [context.staging]
-  command = "npm run build:staging"
+  command = "npm ci --legacy-peer-deps && npm run build:staging"
 
 # Custom domain configuration
 [context.production]
   environment = { NODE_ENV = "production" }
+  command = "npm ci --legacy-peer-deps && npm run build"
+
+# Domain settings
+[build.processing.html]
+  pretty_urls = true
+
+# Custom domain setup
+[[plugins]]
+  package = "@netlify/plugin-sitemap"
+
+# Handle 404 errors gracefully
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

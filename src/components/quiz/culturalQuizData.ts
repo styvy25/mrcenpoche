@@ -1,41 +1,28 @@
 
-import { QuizQuestion, Category } from "./types";
+import { QuizQuestion } from "./types";
 import { cultureQuestions } from "./data/cultureQuestions";
-import { histoireQuestions } from "./data/histoireQuestions";
-import { traditionsQuestions } from "./data/traditionsQuestions";
-import { politiqueQuestions } from "./data/politiqueQuestions";
 import { geographieQuestions } from "./data/geographieQuestions";
+import { histoireQuestions } from "./data/histoireQuestions";
+import { politiqueQuestions } from "./data/politiqueQuestions";
+import { traditionsQuestions } from "./data/traditionsQuestions";
 import { testQuestions } from "./data/test";
-import { categories } from "./data/categories";
 
+// Combine all culture-related questions
 export const culturalQuizQuestions: QuizQuestion[] = [
   ...cultureQuestions,
-  ...histoireQuestions,
-  ...traditionsQuestions,
-  ...politiqueQuestions,
   ...geographieQuestions,
+  ...histoireQuestions,
+  ...politiqueQuestions,
+  ...traditionsQuestions,
   ...testQuestions
 ];
 
-export const culturalQuizData = {
-  categories: [
-    ...categories,
-    {
-      id: "test",
-      name: "Épreuve Test",
-      color: "bg-purple-500"
-    }
-  ],
-  quizQuestions: culturalQuizQuestions
+// Export individual categories for specific quizzes
+export const categories = {
+  culture: cultureQuestions,
+  geographie: geographieQuestions,
+  histoire: histoireQuestions,
+  politique: politiqueQuestions,
+  traditions: traditionsQuestions,
+  test: testQuestions
 };
-
-export const getCulturalQuizQuestions = async (): Promise<QuizQuestion[]> => {
-  // Simuler un chargement asynchrone
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(culturalQuizQuestions);
-    }, 1000);
-  });
-};
-
-export default culturalQuizQuestions;
