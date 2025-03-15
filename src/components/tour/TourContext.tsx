@@ -21,6 +21,16 @@ interface TourContextType {
   completeTour: () => void;
 }
 
+interface UserPreferences {
+  completed?: boolean;
+  current_page?: string;
+  step_index?: number;
+  tour_completed?: boolean;
+  tour_current_page?: string;
+  tour_step_index?: number;
+  [key: string]: any;
+}
+
 // Tour Steps Data
 const tourData: Record<string, Tour[]> = {
   '/': [
@@ -109,10 +119,23 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .single();
 
           if (!error && data) {
-            // Use column names based on what's available in the database
-            const tourCompleted = data.tour_completed || data.completed;
-            const tourCurrentPage = data.tour_current_page || data.current_page;
-            const tourStepIndex = data.tour_step_index || data.step_index;
+            // Handle data from preferences safely by checking existence
+            const userPrefs = data as UserPreferences;
+            
+            // Determine if tour is completed
+            const tourCompleted = userPrefs.tour_completed !== undefined 
+              ? userPrefs.tour_completed 
+              : (userPrefs.completed !== undefined ? userPrefs.completed : false);
+            
+            // Get current page
+            const tourCurrentPage = userPrefs.tour_current_page !== undefined 
+              ? userPrefs.tour_current_page 
+              : (userPrefs.current_page !== undefined ? userPrefs.current_page : '/');
+            
+            // Get step index
+            const tourStepIndex = userPrefs.tour_step_index !== undefined 
+              ? userPrefs.tour_step_index 
+              : (userPrefs.step_index !== undefined ? userPrefs.step_index : 0);
             
             if (!tourCompleted) {
               setCurrentTourPage(tourCurrentPage || '/');
@@ -123,9 +146,11 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Create preferences if not exist
             await supabase.from('user_preferences').upsert({
               user_id: user.id,
-              completed: false,
-              current_page: '/',
-              step_index: 0
+              preferences: {
+                tour_completed: false,
+                tour_current_page: '/',
+                tour_step_index: 0
+              }
             });
             setShowTour(true);
           }
@@ -174,9 +199,11 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isAuthenticated && user) {
       await supabase.from('user_preferences').upsert({
         user_id: user.id,
-        completed: completed,
-        current_page: page,
-        step_index: stepIndex
+        preferences: {
+          tour_completed: completed,
+          tour_current_page: page,
+          tour_step_index: stepIndex
+        }
       });
     } else {
       localStorage.setItem('tour_current_page', page);

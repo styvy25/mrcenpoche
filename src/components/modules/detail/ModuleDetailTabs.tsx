@@ -20,6 +20,31 @@ const ModuleDetailTabs = ({
   setActiveTab,
   onLessonClick,
 }: ModuleDetailTabsProps) => {
+  // Helper function to handle dummy lesson content props  
+  const getLessonContentProps = () => {
+    if (!activeLesson) {
+      return {
+        moduleId: module.id.toString(),
+        lessonId: "",
+        lessonTitle: "Leçon non sélectionnée",
+        lessonContent: "<p>Veuillez sélectionner une leçon pour afficher son contenu.</p>",
+        onBack: () => {},
+        onNext: () => {},
+        onComplete: () => {}
+      };
+    }
+    
+    return {
+      moduleId: module.id.toString(),
+      lessonId: activeLesson.id.toString(),
+      lessonTitle: activeLesson.title,
+      lessonContent: activeLesson.content || "",
+      onBack: () => {},
+      onNext: () => {},
+      onComplete: () => {}
+    };
+  };
+
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="grid w-full grid-cols-3">
@@ -41,8 +66,7 @@ const ModuleDetailTabs = ({
       
       <TabsContent value="content" className="pt-4">
         <ModuleLessonContent 
-          activeLesson={activeLesson}
-          onMarkComplete={() => {}}
+          {...getLessonContentProps()}
         />
       </TabsContent>
     </Tabs>

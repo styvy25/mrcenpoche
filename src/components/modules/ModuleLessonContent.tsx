@@ -5,10 +5,27 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, ArrowLeft, ArrowRight, Book, Play } from "lucide-react";
 import DOMPurify from "dompurify";
-import RosettaLearning from "./rosetta/RosettaLearning";
-import ModuleQuiz from "./ModuleQuiz";
+import { Lesson } from "./types";
 
-interface ModuleLessonContentProps {
+// Define separate interface for RosettaLearning component
+interface RosettaLearningProps {
+  moduleId: string;
+  onComplete: () => void;
+}
+
+// Import RosettaLearning with proper type
+const RosettaLearning = React.lazy(() => import("./rosetta/RosettaLearning")) as React.LazyExoticComponent<React.FC<RosettaLearningProps>>;
+
+// Define ModuleQuizProps interface
+interface ModuleQuizProps {
+  quizData: any;
+  onQuizComplete: () => void;
+}
+
+// Import ModuleQuiz with proper type
+const ModuleQuiz = React.lazy(() => import("./ModuleQuiz")) as React.LazyExoticComponent<React.FC<ModuleQuizProps>>;
+
+export interface ModuleLessonContentProps {
   moduleId: string;
   lessonId: string;
   lessonTitle: string;
@@ -87,15 +104,22 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({
           </TabsContent>
 
           <TabsContent value="interactive">
-            <RosettaLearning moduleId={moduleId} onComplete={handleLessonComplete} />
+            <React.Suspense fallback={<div>Chargement...</div>}>
+              <RosettaLearning 
+                moduleId={moduleId}
+                onComplete={handleLessonComplete}
+              />
+            </React.Suspense>
           </TabsContent>
 
           {quizData && (
             <TabsContent value="quiz">
-              <ModuleQuiz
-                quizData={quizData}
-                onQuizComplete={handleLessonComplete}
-              />
+              <React.Suspense fallback={<div>Chargement...</div>}>
+                <ModuleQuiz
+                  quizData={quizData}
+                  onQuizComplete={handleLessonComplete}
+                />
+              </React.Suspense>
             </TabsContent>
           )}
         </CardContent>

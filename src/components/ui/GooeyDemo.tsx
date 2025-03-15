@@ -54,7 +54,7 @@ function GooeyDemo() {
                     bounce: 0,
                   }}
                 >
-                  <AnimatePresence mode="wait">
+                  <AnimatePresence>
                     <motion.div
                       key={item.label}
                       initial={{ opacity: 0, filter: "blur(10px)" }}
@@ -80,7 +80,7 @@ function GooeyDemo() {
           className="relative w-12 h-12 bg-[#efefef] rounded-full flex items-center justify-center"
           onClick={() => setIsOpen(!isOpen)}
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {isOpen ? (
               <motion.div
                 key="close"

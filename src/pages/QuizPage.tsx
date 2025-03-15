@@ -14,11 +14,11 @@ const QuizPage = () => {
   const [activeTab, setActiveTab] = useState("quiz");
   const [isLoading, setIsLoading] = useState(true);
 
-  // Convert culturalQuizData.categories to match Category interface
+  // Get categories from the culturalQuizData
   const categories: Category[] = culturalQuizData.categories.map((category: any) => ({
     id: category.id,
     name: category.name,
-    badge: category.badge || "", // Add default values for required fields
+    badge: category.badge || "", 
     color: category.color || "",
     icon: category.icon || "",
     description: category.description || "",
