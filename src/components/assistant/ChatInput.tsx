@@ -25,7 +25,7 @@ const ChatInput = memo(({
   }, []);
   return <div className="p-4 border-t border-white/10 backdrop-blur-lg bg-sky-300">
       <form onSubmit={handleSubmit} className="flex gap-2">
-        <Input value={input} onChange={handleChange} placeholder="Posez votre question à Styvy237..." disabled={isLoading} aria-label="Message input" className="flex-1 bg-gray-800/70 border-white/20 focus:border-mrc-blue/50 focus:ring-1 focus:ring-mrc-blue/30 h-11 my-0 px-[18px] rounded" />
+        <Input value={input} onChange={handleChange} placeholder="Posez votre question à Styvy237..." disabled={isLoading} aria-label="Message input" className="flex-1 border-white/20 focus:border-mrc-blue/50 focus:ring-1 focus:ring-mrc-blue/30 h-11 my-0 px-[18px] rounded bg-cyan-50" />
         <Button type="submit" disabled={isLoading || !input.trim()} className="bg-gradient-to-r from-mrc-blue to-mrc-green hover:opacity-90 transition-opacity h-11 px-4 optimize-animation">
           <Send size={18} className="mr-2" />
           <span>Envoyer</span>
