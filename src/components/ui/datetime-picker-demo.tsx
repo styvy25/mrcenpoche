@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { TimePicker } from "@/components/ui/datetime-picker";
 
-// Basic DateTimePicker Demo
+// Basic DateTimePicker that can be used in forms
 export function DateTimePicker() {
   const [date, setDate] = React.useState<Date>();
 
@@ -37,7 +37,7 @@ export function DateTimePicker() {
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP HH:mm:ss") : <span>Pick a date</span>}
+          {date ? format(date, "PPP HH:mm:ss") : <span>Choisir une date</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
@@ -55,13 +55,13 @@ export function DateTimePicker() {
   );
 }
 
-// Form Demo
+// Form example with date time picker
 export function DateTimePickerForm() {
   const [selectedDate, setSelectedDate] = React.useState<Date>();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log("Submitted date:", selectedDate);
+    console.log("Date soumise:", selectedDate);
   }
 
   return (
@@ -70,7 +70,7 @@ export function DateTimePickerForm() {
       onSubmit={handleSubmit}
     >
       <div className="flex flex-col">
-        <label className="text-left text-sm mb-2">DateTime</label>
+        <label className="text-left text-sm mb-2">Date et Heure</label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -84,7 +84,7 @@ export function DateTimePickerForm() {
               {selectedDate ? (
                 format(selectedDate, "PPP HH:mm:ss")
               ) : (
-                <span>Pick a date</span>
+                <span>Choisir une date</span>
               )}
             </Button>
           </PopoverTrigger>
@@ -104,12 +104,12 @@ export function DateTimePickerForm() {
           </PopoverContent>
         </Popover>
       </div>
-      <Button type="submit">Submit</Button>
+      <Button type="submit">Soumettre</Button>
     </form>
   );
 }
 
-// Simple TimePicker Demo
+// Simple TimePicker component isolated from calendar
 export function TimePickerDemo({ date, setDate }: { date: Date | undefined; setDate: (date: Date | undefined) => void }) {
   return (
     <div className="flex flex-col gap-4">
