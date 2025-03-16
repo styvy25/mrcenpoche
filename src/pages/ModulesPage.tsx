@@ -6,6 +6,7 @@ import ModuleChallengeView from "@/components/modules/ModuleChallengeView";
 import ModuleChatView from "@/components/modules/ModuleChatView";
 import ModuleContent from "@/components/modules/ModuleContent";
 import ModulesNavigation from "@/components/modules/ModulesNavigation";
+import TrainingStorage from "@/components/training/TrainingStorage";
 import { useModuleState } from "@/hooks/useModuleState";
 import { useSEO } from "@/hooks/useSEO";
 import { useEffect, useState } from "react";
@@ -19,6 +20,7 @@ const ModulesPage = () => {
     showQuiz,
     showChallenge,
     showChat,
+    showTraining,
     currentQuizModule,
     handleModuleSelect,
     handleBackToModules,
@@ -26,7 +28,8 @@ const ModulesPage = () => {
     handleQuizComplete,
     handleChallengeComplete,
     handleChallengeClick,
-    handleChatClick
+    handleChatClick,
+    handleTrainingClick
   } = useModuleState();
   
   const { setPageTitle, setPageDescription } = useSEO();
@@ -111,6 +114,7 @@ const ModulesPage = () => {
           progressContent={<ModuleProgressView />}
           challengeContent={<ModuleChallengeView onChallengeComplete={handleChallengeComplete} />}
           chatContent={<ModuleChatView />}
+          trainingContent={<TrainingStorage />}
         />
       </div>
     </div>

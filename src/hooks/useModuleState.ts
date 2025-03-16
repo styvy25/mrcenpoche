@@ -10,6 +10,7 @@ export function useModuleState() {
   const [showChat, setShowChat] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
+  const [showTraining, setShowTraining] = useState(false);
   const [currentQuizModule, setCurrentQuizModule] = useState("");
   const { toast } = useToast();
 
@@ -18,6 +19,7 @@ export function useModuleState() {
     setShowQuiz(false);
     setShowChat(false);
     setShowChallenge(false);
+    setShowTraining(false);
   };
 
   const handleBackToModules = () => {
@@ -30,6 +32,7 @@ export function useModuleState() {
     setShowQuiz(true);
     setShowChat(false);
     setShowChallenge(false);
+    setShowTraining(false);
   };
 
   const handleQuizComplete = (score: number, totalQuestions: number) => {
@@ -58,6 +61,11 @@ export function useModuleState() {
     setActiveTab("chat");
   };
 
+  const handleTrainingClick = () => {
+    setShowTraining(true);
+    setActiveTab("training");
+  };
+
   return {
     activeCategory,
     setActiveCategory,
@@ -67,6 +75,7 @@ export function useModuleState() {
     showChat,
     showQuiz,
     showChallenge,
+    showTraining,
     currentQuizModule,
     handleModuleSelect,
     handleBackToModules,
@@ -74,6 +83,7 @@ export function useModuleState() {
     handleQuizComplete,
     handleChallengeComplete,
     handleChallengeClick,
-    handleChatClick
+    handleChatClick,
+    handleTrainingClick
   };
 }
