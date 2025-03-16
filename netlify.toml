@@ -24,6 +24,7 @@
 [build.environment]
   NODE_VERSION = "18.18.0"
   NPM_VERSION = "9.8.1"
+  NODE_ENV = "production"
 
 # Split test for different deployment branches
 [context.main]
@@ -40,6 +41,10 @@
 # Domain settings
 [build.processing.html]
   pretty_urls = true
+
+# Define custom domain
+[context.production]
+  environment = { NETLIFY_CUSTOM_DOMAIN = "mrcenpoche.xyz" }
 
 # Handle 404 errors gracefully
 [[redirects]]

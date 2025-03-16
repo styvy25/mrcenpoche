@@ -24,10 +24,13 @@ export default defineConfig(({ mode }) => ({
           react: ['react', 'react-dom'],
           ui: ['@radix-ui/react-dialog', '@radix-ui/react-tabs'],
           components: ['@/components/ui'],
+          dateFns: ['date-fns'],
+          dayPicker: ['react-day-picker'],
+          charts: ['recharts']
         }
       }
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1500,
   },
   plugins: [
     react(),
@@ -40,6 +43,9 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', 'date-fns'],
+    esbuildOptions: {
+      target: 'es2020',
+    },
   },
 }));
