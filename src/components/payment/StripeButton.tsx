@@ -13,6 +13,7 @@ interface StripeButtonProps {
   className?: string;
   showIcon?: boolean;
   size?: "default" | "sm" | "lg" | "xl" | "icon";
+  priceId?: string; // Added priceId prop
 }
 
 const StripeButton: React.FC<StripeButtonProps> = memo(({ 
@@ -20,7 +21,8 @@ const StripeButton: React.FC<StripeButtonProps> = memo(({
   variant = "gradient",
   className = "",
   showIcon = true,
-  size = "default"
+  size = "default",
+  priceId // Added priceId to component props
 }) => {
   const { setShowPremiumDialog } = useAppContext();
   const [isProcessing, setIsProcessing] = React.useState(false);
@@ -30,7 +32,8 @@ const StripeButton: React.FC<StripeButtonProps> = memo(({
     setIsProcessing(true);
     
     try {
-      // Display the premium dialog which contains the link
+      // We can use priceId in the future for different pricing tiers
+      // For now, we just display the premium dialog which contains the link
       setShowPremiumDialog(true);
     } finally {
       setIsProcessing(false);
