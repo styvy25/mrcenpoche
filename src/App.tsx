@@ -5,11 +5,6 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import SettingsPage from './pages/SettingsPage';
 import AIChat from './components/assistant/AIChat';
-import ModulePage from './pages/ModulesPage';
-import QuizPage from "./pages/QuizPage";
-import MatchGame from "./components/quiz/matches/MatchGame";
-import MatchResults from "./components/quiz/matches/MatchResults";
-import Index from './pages/Index';
 import PaymentPage from './pages/PaymentPage';
 import DocumentsPage from './pages/DocumentsPage';
 import NotFound from './pages/NotFound';
@@ -19,6 +14,7 @@ import ApplicationStatus from './components/layout/ApplicationStatus';
 import { TourProvider } from './components/tour/TourContext';
 import TourPopup from './components/tour/TourPopup';
 import { SEOProvider } from './hooks/useSEO';
+import Index from './pages/Index';
 
 // Initialize Stripe
 const stripePromise = loadStripe('pk_test_placeholder');
@@ -74,10 +70,6 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/chat" element={<AIChat />} />
-                  <Route path="/modules" element={<ModulePage />} />
-                  <Route path="/quiz" element={<QuizPage />} />
-                  <Route path="/quiz-match/:matchId" element={<MatchGame />} />
-                  <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/documents" element={<DocumentsPage />} />
                   <Route path="*" element={<NotFound />} />

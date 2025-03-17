@@ -1,193 +1,147 @@
 
-import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthContext";
+import { Menu, X, Home, Settings, MessageCircle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAppContext } from "@/App";
-import AuthDialog from "@/components/auth/AuthDialog";
-import { 
-  FileText, 
-  BookOpen, 
-  LayoutGrid, 
-  Settings, 
-  MessageSquare, 
-  ChevronLeft, 
-  ChevronRight, 
-  Home,
-  Menu,
-  X 
-} from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AuthNavItem from "./AuthNavItem";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { isApiKeySet } = useAppContext();
-  const [previousLocation, setPreviousLocation] = useState<string>("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, user } = useAuth();
 
-  // Track navigation history for back button
+  // Check scroll position
   useEffect(() => {
-    if (location.pathname !== previousLocation && previousLocation !== "") {
-      // Store last 5 locations
-      const history = JSON.parse(localStorage.getItem('navigationHistory') || '[]');
-      if (history.length >= 5) {
-        history.shift(); // Remove oldest entry
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
       }
-      history.push(previousLocation);
-      localStorage.setItem('navigationHistory', JSON.stringify(history));
-    }
-    setPreviousLocation(location.pathname);
-  }, [location.pathname, previousLocation]);
+    };
 
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
+  // Navigation items
+  const navItems = [
+    { name: "Accueil", path: "/", icon: <Home size={18} /> },
+    { name: "Assistant", path: "/chat", icon: <MessageCircle size={18} /> },
+    { name: "Documents", path: "/documents", icon: <FileText size={18} /> },
+    { name: "Paramètres", path: "/settings", icon: <Settings size={18} /> },
+  ];
+
+  // Check if a nav item is active
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
-  const handleGoBack = () => {
-    const history = JSON.parse(localStorage.getItem('navigationHistory') || '[]');
-    if (history.length > 0) {
-      const lastPage = history.pop();
-      localStorage.setItem('navigationHistory', JSON.stringify(history));
-      navigate(lastPage);
-    } else {
-      navigate(-1);
-    }
-  };
-
-  const handleGoForward = () => {
-    navigate(1);
-  };
-
-  const handleGoHome = () => {
-    navigate('/');
-  };
-
-  const navLinks = [
-    { path: "/modules", icon: <LayoutGrid className="h-4 w-4" />, label: "Modules" },
-    { path: "/quiz", icon: <BookOpen className="h-4 w-4" />, label: "Quiz" },
-    { path: "/chat", icon: <MessageSquare className="h-4 w-4" />, label: "Assistant" },
-    { path: "/documents", icon: <FileText className="h-4 w-4" />, label: "Documents" },
-    { path: "/settings", icon: <Settings className="h-4 w-4" />, label: "Paramètres" }
-  ];
-
   return (
-    <header className="fixed w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-10">
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-1 mr-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" title="Navigation">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={handleGoBack}>
-                  <ChevronLeft className="h-4 w-4 mr-2" />
-                  Retour
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleGoForward}>
-                  <ChevronRight className="h-4 w-4 mr-2" />
-                  Suivant
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleGoHome}>
-                  <Home className="h-4 w-4 mr-2" />
-                  Accueil
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <div className="hidden sm:flex">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleGoBack}
-                aria-label="Retour"
-                title="Retour"
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? "bg-white dark:bg-gray-900 shadow-sm" : "bg-white/80 dark:bg-gray-900/80 backdrop-blur"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo and brand */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center">
+              <span className="text-xl font-bold">
+                MRC <span className="text-mrc-blue">en</span> Poche
+              </span>
+            </Link>
+          </div>
+
+          {/* Desktop navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-1 ${
+                  isActive(item.path)
+                    ? "bg-mrc-blue/10 text-mrc-blue"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                }`}
               >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleGoForward}
-                aria-label="Suivant"
-                title="Suivant"
+                <span>{item.icon}</span>
+                <span>{item.name}</span>
+              </Link>
+            ))}
+          </nav>
+
+          {/* User section */}
+          <div className="flex items-center">
+            {isAuthenticated ? (
+              <div className="flex items-center">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.avatar} />
+                  <AvatarFallback className="bg-mrc-blue text-white">
+                    {user?.username?.charAt(0).toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="ml-2 text-sm font-medium hidden sm:block">
+                  {user?.username || "Utilisateur"}
+                </span>
+              </div>
+            ) : (
+              <AuthNavItem />
+            )}
+
+            {/* Mobile menu button */}
+            <div className="flex md:hidden ml-2">
+              <Button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                variant="ghost"
+                size="icon"
+                className="text-gray-700 dark:text-gray-300"
               >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleGoHome}
-                aria-label="Accueil"
-                title="Accueil"
-              >
-                <Home className="h-4 w-4" />
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </Button>
             </div>
           </div>
-          
-          <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-            MRC<span className="text-mrc-blue"> en Poche</span>
-          </Link>
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1">
-          {navLinks.map((link) => (
-            <Link to={link.path} key={link.path}>
-              <Button
-                variant={isActive(link.path) ? "default" : "ghost"}
-                className="flex items-center gap-1"
-              >
-                {link.icon}
-                <span>{link.label}</span>
-              </Button>
-            </Link>
-          ))}
-        </nav>
-
-        {/* Mobile Navigation */}
-        <div className="md:hidden">
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <div className="flex flex-col space-y-4 mt-8">
-                {navLinks.map((link) => (
-                  <Link 
-                    to={link.path} 
-                    key={link.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Button
-                      variant={isActive(link.path) ? "default" : "ghost"}
-                      className="w-full justify-start"
-                    >
-                      {link.icon}
-                      <span className="ml-2">{link.label}</span>
-                    </Button>
-                  </Link>
-                ))}
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-
-        <div className="flex items-center">
-          <AuthDialog />
         </div>
       </div>
+
+      {/* Mobile navigation */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-white dark:bg-gray-900 shadow-lg overflow-hidden"
+          >
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`block px-3 py-2 rounded-md text-base font-medium flex items-center space-x-3 ${
+                    isActive(item.path)
+                      ? "bg-mrc-blue/10 text-mrc-blue"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <span>{item.icon}</span>
+                  <span>{item.name}</span>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
