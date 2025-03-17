@@ -1,43 +1,47 @@
 
 import React, { memo } from 'react';
 import { Button } from "@/components/ui/button";
-import { Key, Loader2, ShoppingCart, Shield } from 'lucide-react';
-import { useAppContext } from '@/App';
+import { Key, Loader2, ShoppingCart, Shield, CheckCircle } from 'lucide-react';
+import { useStripePayment } from '@/hooks/payment/useStripePayment';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/9AQ17sdSNgb25xufZi";
-
 interface StripeButtonProps {
+  priceId: string;
   children: React.ReactNode;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "gradient" | "glow";
   className?: string;
   showIcon?: boolean;
   size?: "default" | "sm" | "lg" | "xl" | "icon";
-  priceId?: string; // Added priceId prop
 }
 
 const StripeButton: React.FC<StripeButtonProps> = memo(({ 
+  priceId, 
   children, 
   variant = "gradient",
   className = "",
   showIcon = true,
-  size = "default",
-  priceId // Added priceId to component props
+  size = "default"
 }) => {
-  const { setShowPremiumDialog } = useAppContext();
-  const [isProcessing, setIsProcessing] = React.useState(false);
+  const { initiatePayment, isApiKeySet, isProcessing } = useStripePayment(priceId);
+  const navigate = useNavigate();
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Add a small delay to allow the button animation to complete
     e.preventDefault();
-    setIsProcessing(true);
     
-    try {
-      // We can use priceId in the future for different pricing tiers
-      // For now, we just display the premium dialog which contains the link
-      setShowPremiumDialog(true);
-    } finally {
-      setIsProcessing(false);
+    if (!isApiKeySet) {
+      navigate('/settings');
+      return;
     }
+    
+    // Introduce a small delay for better visual feedback
+    setTimeout(async () => {
+      const success = await initiatePayment();
+      if (success) {
+        console.log('Payment initiated successfully');
+      }
+    }, 100);
   };
 
   return (
@@ -55,6 +59,8 @@ const StripeButton: React.FC<StripeButtonProps> = memo(({
       >
         {isProcessing ? (
           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        ) : !isApiKeySet ? (
+          <Key className="h-4 w-4 mr-2" />
         ) : showIcon ? (
           <ShoppingCart className="h-4 w-4 mr-2" />
         ) : null}

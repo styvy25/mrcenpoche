@@ -2,7 +2,7 @@
 import ModuleDetail from "@/components/modules/ModuleDetail";
 import QuizContent from "@/components/modules/QuizContent";
 import ModulesHomeView from "@/components/modules/ModulesHomeView";
-import { Module, Lesson } from "@/components/modules/types";
+import { Module } from "@/components/modules/types";
 import { useEffect } from "react";
 
 interface ModuleContentProps {
@@ -15,8 +15,6 @@ interface ModuleContentProps {
   onChatClick: () => void;
   onStartQuiz: (moduleId: string) => void;
   onChallengeComplete: () => void;
-  activeLesson: Lesson | null;
-  onLessonSelect: (lesson: Lesson) => void;
 }
 
 const ModuleContent = ({
@@ -28,9 +26,7 @@ const ModuleContent = ({
   onChallengeClick,
   onChatClick,
   onStartQuiz,
-  onChallengeComplete,
-  activeLesson,
-  onLessonSelect
+  onChallengeComplete
 }: ModuleContentProps) => {
   // Scroll to top when switching modules
   useEffect(() => {
@@ -50,9 +46,7 @@ const ModuleContent = ({
       return (
         <ModuleDetail 
           module={selectedModule} 
-          onBack={onBackToModules}
-          activeLesson={activeLesson}
-          onLessonSelect={onLessonSelect}
+          onBack={onBackToModules} 
         />
       );
     }

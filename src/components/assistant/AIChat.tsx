@@ -1,5 +1,5 @@
 
-import { useState, useEffect, memo, useRef } from "react";
+import { useState, useEffect, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
@@ -9,7 +9,6 @@ import { usePdfGenerator } from "./utils/pdfUtils";
 import { Button } from "@/components/ui/button";
 import { Key, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { generateProactiveMessage, generateContextualResponse, getFollowUpSuggestions } from "./services/proactiveAssistant";
 
 const AIChat = memo(() => {
   const { 
@@ -26,75 +25,6 @@ const AIChat = memo(() => {
   const navigate = useNavigate();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [hasApiKey, setHasApiKey] = useState(false);
-  const proactiveTimerRef = useRef<number | null>(null);
-  const inactivityTimerRef = useRef<number | null>(null);
-  const lastActivityRef = useRef<number>(Date.now());
-  
-  // Track user activity
-  const updateLastActivity = () => {
-    lastActivityRef.current = Date.now();
-  };
-  
-  useEffect(() => {
-    // Add event listeners to track user activity
-    const activityEvents = ['mousedown', 'keypress', 'scroll', 'touchstart'];
-    activityEvents.forEach(event => {
-      window.addEventListener(event, updateLastActivity);
-    });
-    
-    return () => {
-      activityEvents.forEach(event => {
-        window.removeEventListener(event, updateLastActivity);
-      });
-    };
-  }, []);
-  
-  // Proactive assistant timer
-  useEffect(() => {
-    // Check for inactivity and send proactive messages
-    const checkInactivity = () => {
-      const inactivityThreshold = 60000; // 1 minute
-      const now = Date.now();
-      
-      if (now - lastActivityRef.current > inactivityThreshold && !isLoading && messages.length > 0) {
-        // Check if the last message was from the assistant
-        const lastMessage = messages[messages.length - 1];
-        if (lastMessage.role === 'user') {
-          // If the last message was from the user, send a contextual response
-          const contextualResponse = generateContextualResponse(lastMessage.content);
-          if (contextualResponse) {
-            handleSendMessage('_internal_contextual_response_' + contextualResponse);
-          }
-        } else {
-          // If the last message was from the assistant, send a proactive message
-          const proactiveMessage = generateProactiveMessage();
-          handleSendMessage('_internal_proactive_' + proactiveMessage);
-        }
-        lastActivityRef.current = now; // Reset the activity timer
-      }
-    };
-    
-    inactivityTimerRef.current = window.setInterval(checkInactivity, 30000); // Check every 30 seconds
-    
-    return () => {
-      if (inactivityTimerRef.current) {
-        clearInterval(inactivityTimerRef.current);
-      }
-    };
-  }, [messages, isLoading, handleSendMessage]);
-  
-  // Initial proactive message
-  useEffect(() => {
-    if (messages.length === 1 && messages[0].role === 'assistant') {
-      // First message is the welcome message, wait 2 seconds and send a proactive message
-      const timer = setTimeout(() => {
-        const proactiveMessage = generateProactiveMessage();
-        handleSendMessage('_internal_proactive_' + proactiveMessage);
-      }, 2000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [messages, handleSendMessage]);
   
   useEffect(() => {
     // Check if API keys are configured

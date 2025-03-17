@@ -36,7 +36,6 @@ export interface ModuleLessonContentProps {
   hasNext?: boolean;
   hasPrevious?: boolean;
   activeLesson?: any;
-  isCompleted?: boolean;
 }
 
 const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({
@@ -51,10 +50,9 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({
   hasNext = false,
   hasPrevious = false,
   activeLesson,
-  isCompleted = false,
 }) => {
   const [currentTab, setCurrentTab] = useState<string>("content");
-  const [lessonCompleted, setLessonCompleted] = useState<boolean>(isCompleted);
+  const [lessonCompleted, setLessonCompleted] = useState<boolean>(false);
 
   const handleLessonComplete = () => {
     setLessonCompleted(true);
@@ -141,17 +139,6 @@ const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({
           <ArrowLeft className="mr-2 h-4 w-4" />
           Précédent
         </Button>
-
-        {!lessonCompleted && (
-          <Button
-            variant="default"
-            onClick={handleLessonComplete}
-            className="flex items-center"
-          >
-            <CheckCircle className="mr-2 h-4 w-4" />
-            Marquer comme terminé
-          </Button>
-        )}
 
         <Button
           onClick={onNext}
