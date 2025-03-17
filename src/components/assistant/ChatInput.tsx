@@ -1,68 +1,141 @@
 
-import { useState, useCallback, memo } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Send, Download, PlusCircle } from "lucide-react";
+import React, { useState, useRef, useEffect } from 'react';
+import { SendHorizonal, Mic, MicOff, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import PremiumBanner from '@/components/premium/PremiumBanner';
+import PremiumDialog from '@/components/premium/PremiumDialog';
 
 interface ChatInputProps {
-  isLoading: boolean;
   onSendMessage: (message: string) => void;
-  onGeneratePDF: () => void;
+  isProcessing: boolean;
+  placeholder?: string;
 }
 
-const ChatInput = memo(({
-  isLoading,
-  onSendMessage,
-  onGeneratePDF
-}: ChatInputProps) => {
-  const [input, setInput] = useState("");
+const ChatInput = ({ onSendMessage, isProcessing, placeholder = "Posez votre question..." }: ChatInputProps) => {
+  const [message, setMessage] = useState('');
+  const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
+  const { canSendChatMessage, incrementChatMessages, getUsageStats } = usePlanLimits();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const {
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+    hasRecognitionSupport
+  } = useSpeechRecognition();
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedInput = input.trim();
-    if (!trimmedInput) return;
-    onSendMessage(trimmedInput);
-    setInput("");
-  }, [input, onSendMessage]);
+  // Mettre à jour le message avec la transcription
+  useEffect(() => {
+    if (transcript) {
+      setMessage(prev => prev + transcript);
+    }
+  }, [transcript]);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
-  }, []);
+  // Ajuster automatiquement la hauteur du textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [message]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+  };
+
+  const handleSendMessage = () => {
+    const trimmedMessage = message.trim();
+    if (trimmedMessage && !isProcessing) {
+      // Vérifier si l'utilisateur peut envoyer un message
+      if (!canSendChatMessage()) {
+        setIsPremiumDialogOpen(true);
+        return;
+      }
+      
+      // Incrémenter le compteur de messages
+      const canSend = incrementChatMessages();
+      if (!canSend) return;
+      
+      onSendMessage(trimmedMessage);
+      setMessage('');
+      
+      // Réinitialiser la hauteur du textarea
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleVoiceToggle = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  const stats = getUsageStats();
+  const showBanner = stats.userPlan === 'free' && stats.chatMessagesToday > Math.max(1, Math.floor(stats.chatMessagesLimit * 0.7));
 
   return (
-    <div className="p-4 border-t border-white/10 backdrop-blur-lg bg-sky-300">
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <Input 
-          value={input} 
-          onChange={handleChange} 
-          placeholder="Posez votre question à Styvy237..." 
-          disabled={isLoading} 
-          aria-label="Message input" 
-          className="flex-1 border-white/20 focus:border-mrc-blue/50 focus:ring-1 focus:ring-mrc-blue/30 h-11 my-0 px-[18px] rounded bg-cyan-50" 
+    <div className="w-full">
+      {showBanner && (
+        <PremiumBanner type="chat" className="mb-4" />
+      )}
+      
+      <div className="flex w-full items-end rounded-lg border bg-background shadow-sm">
+        <Textarea
+          ref={textareaRef}
+          placeholder={placeholder}
+          className="min-h-[50px] max-h-[200px] flex-1 resize-none border-0 bg-transparent p-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+          rows={1}
+          value={message}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          disabled={isProcessing}
         />
-        <Button 
-          type="submit" 
-          disabled={isLoading || !input.trim()} 
-          className="bg-gradient-to-r from-mrc-blue to-mrc-green hover:opacity-90 transition-opacity h-11 px-4 optimize-animation"
-        >
-          <Send size={18} className="mr-2" />
-          <span>Envoyer</span>
-        </Button>
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onGeneratePDF} 
-          title="Générer un PDF" 
-          disabled={isLoading} 
-          className="border-white/20 h-11 w-11 p-0 flex items-center justify-center bg-cyan-50"
-        >
-          <Download size={18} />
-        </Button>
-      </form>
+        <div className="flex items-center gap-1 p-1">
+          {hasRecognitionSupport && (
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className={`rounded-full ${isListening ? 'text-red-500' : ''}`}
+              onClick={handleVoiceToggle}
+              disabled={isProcessing}
+            >
+              {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            </Button>
+          )}
+          <Button
+            type="submit"
+            size="icon"
+            variant={message.trim() ? "default" : "ghost"}
+            className="rounded-full"
+            onClick={handleSendMessage}
+            disabled={!message.trim() || isProcessing}
+          >
+            {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizonal className="h-5 w-5" />}
+          </Button>
+        </div>
+      </div>
+      
+      <PremiumDialog 
+        isOpen={isPremiumDialogOpen} 
+        onClose={() => setIsPremiumDialogOpen(false)} 
+      />
     </div>
   );
-});
-
-ChatInput.displayName = 'ChatInput';
+};
 
 export default ChatInput;

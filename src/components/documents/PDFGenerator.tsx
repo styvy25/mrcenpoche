@@ -1,119 +1,77 @@
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Settings, BookOpen } from "lucide-react";
-import ModuleSelector from "./ModuleSelector";
-import PDFActions from "./PDFActions";
-import PDFPreview from "./pdf-preview/PDFPreview";
-import ModuleMetadata from "./module-selection/ModuleMetadata";
-import ContentTab from "./pdf-content/ContentTab";
-import OptionsTab from "./pdf-options/OptionsTab";
-import APIKeyDialog from "./dialogs/APIKeyDialog";
-import AuthenticationNotice from "./AuthenticationNotice";
-import { MODULE_PDF_URLS, MODULE_NAMES } from "./pdfUtils";
-import { usePDFGenerator } from "./hooks/usePDFGenerator";
-import { generateAndDownloadPDF } from "./services/pdfGenerationService";
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { FileText, Crown } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import PremiumDialog from "@/components/premium/PremiumDialog";
+import PremiumBanner from "@/components/premium/PremiumBanner";
 
-const PDFGenerator = () => {
-  const {
-    selectedModule,
-    setSelectedModule,
-    isGenerating,
-    showPreview,
-    setShowPreview,
-    pdfGenerated,
-    activeTab,
-    setActiveTab,
-    userName,
-    setUserName,
-    options,
-    setOptions,
-    showAPIKeyDialog,
-    setShowAPIKeyDialog,
-    handleGeneratePDF,
-    isAuthenticated
-  } = usePDFGenerator();
+interface PDFGeneratorProps {
+  onGenerate: () => void;
+  isGenerating: boolean;
+  isGenerateEnabled: boolean;
+}
 
-  const handlePreviewPDF = () => {
-    setShowPreview(true);
+const PDFGenerator: React.FC<PDFGeneratorProps> = ({ 
+  onGenerate, 
+  isGenerating,
+  isGenerateEnabled 
+}) => {
+  const { toast } = useToast();
+  const { canGeneratePdf, incrementPdfGenerations, userPlan } = usePlanLimits();
+  const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
+
+  const handleGeneratePDF = () => {
+    if (!isGenerateEnabled) {
+      toast({
+        title: "Impossible de générer le PDF",
+        description: "Veuillez remplir tous les champs obligatoires avant de générer le PDF."
+      });
+      return;
+    }
+    
+    // Vérifier si l'utilisateur peut générer un PDF
+    if (!canGeneratePdf()) {
+      setIsPremiumDialogOpen(true);
+      return;
+    }
+    
+    // Incrémenter le compteur de PDF
+    const canGenerate = incrementPdfGenerations();
+    if (!canGenerate) return;
+    
+    onGenerate();
   };
-
-  const handleDownloadPDF = () => {
-    generateAndDownloadPDF(selectedModule, userName, options);
-  };
-
-  if (!isAuthenticated) {
-    return <AuthenticationNotice />;
-  }
 
   return (
-    <>
-      <Card className="w-full">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl font-bold text-mrc-blue">Générateur de Supports PDF</CardTitle>
-          <CardDescription>
-            Créez des supports de formation personnalisés adaptés à vos besoins
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <ModuleSelector 
-            selectedModule={selectedModule} 
-            setSelectedModule={setSelectedModule} 
-          />
-          
-          {selectedModule && <ModuleMetadata selectedModule={selectedModule} />}
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-2 mb-4">
-              <TabsTrigger value="content" className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Contenu
-              </TabsTrigger>
-              <TabsTrigger value="options" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Options
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="content">
-              <ContentTab selectedModule={selectedModule} />
-            </TabsContent>
-            
-            <TabsContent value="options">
-              <OptionsTab 
-                userName={userName}
-                setUserName={setUserName}
-                options={options}
-                setOptions={setOptions}
-              />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row gap-3 w-full">
-          <PDFActions 
-            isGenerating={isGenerating}
-            pdfGenerated={pdfGenerated}
-            selectedModule={selectedModule}
-            handleGeneratePDF={handleGeneratePDF}
-            handlePreviewPDF={handlePreviewPDF}
-            handleDownloadPDF={handleDownloadPDF}
-          />
-        </CardFooter>
-      </Card>
-
-      {showPreview && (
-        <PDFPreview 
-          pdfUrl={MODULE_PDF_URLS[selectedModule as keyof typeof MODULE_PDF_URLS]} 
-          onClose={() => setShowPreview(false)} 
-          moduleName={MODULE_NAMES[selectedModule as keyof typeof MODULE_NAMES]} 
-        />
+    <div className="space-y-4">
+      {userPlan === 'free' && (
+        <PremiumBanner type="pdf" />
       )}
-
-      <APIKeyDialog 
-        showDialog={showAPIKeyDialog} 
-        onClose={() => setShowAPIKeyDialog(false)} 
+      
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Générer votre document</h3>
+        
+        <Button
+          onClick={handleGeneratePDF}
+          disabled={isGenerating || !isGenerateEnabled}
+          className="gap-2"
+        >
+          {isGenerating ? (
+            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+          ) : (
+            <FileText className="h-4 w-4" />
+          )}
+          Générer le PDF
+        </Button>
+      </div>
+      
+      <PremiumDialog 
+        isOpen={isPremiumDialogOpen} 
+        onClose={() => setIsPremiumDialogOpen(false)} 
       />
-    </>
+    </div>
   );
 };
 

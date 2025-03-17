@@ -2,9 +2,32 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
-import StripeButton from "../payment/StripeButton";
+import { useState } from "react";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import PremiumDialog from "@/components/premium/PremiumDialog";
 
 const PricingSection = () => {
+  const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
+  const [selectedPriceId, setSelectedPriceId] = useState("");
+  const { userPlan, updateUserPlan } = usePlanLimits();
+  
+  const handlePremiumClick = (priceId: string) => {
+    setSelectedPriceId(priceId);
+    setIsPremiumDialogOpen(true);
+  };
+  
+  const handleFreeTierClick = () => {
+    // Pour la démo, activer directement le plan gratuit
+    updateUserPlan('free');
+  };
+  
+  // Pour la démo seulement
+  const handleDemoClick = (plan: 'free' | 'premium' | 'group') => {
+    if (process.env.NODE_ENV !== 'production') {
+      updateUserPlan(plan);
+    }
+  };
+  
   return (
     <section className="py-12 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -51,13 +74,14 @@ const PricingSection = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <StripeButton 
-                priceId="price_free" 
+              <Button 
                 variant="outline" 
                 className="w-full"
+                onClick={handleFreeTierClick}
+                disabled={userPlan === 'free'}
               >
-                Commencer gratuitement
-              </StripeButton>
+                {userPlan === 'free' ? 'Plan actuel' : 'Commencer gratuitement'}
+              </Button>
             </CardFooter>
           </Card>
           
@@ -105,12 +129,23 @@ const PricingSection = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <StripeButton 
-                priceId="price_premium_monthly"
+              <Button 
                 className="w-full bg-mrc-blue hover:bg-blue-700"
+                onClick={() => handlePremiumClick('price_premium_monthly')}
+                disabled={userPlan === 'premium'}
               >
-                S'abonner maintenant
-              </StripeButton>
+                {userPlan === 'premium' ? 'Plan actuel' : "S'abonner maintenant"}
+              </Button>
+              
+              {process.env.NODE_ENV !== 'production' && userPlan !== 'premium' && (
+                <Button 
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => handleDemoClick('premium')}
+                >
+                  (Demo) Activer Premium
+                </Button>
+              )}
             </CardFooter>
           </Card>
           
@@ -155,17 +190,33 @@ const PricingSection = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <StripeButton 
-                priceId="price_group_monthly"
+              <Button 
                 variant="outline"
                 className="w-full"
+                onClick={() => handlePremiumClick('price_group_monthly')}
+                disabled={userPlan === 'group'}
               >
-                Contacter pour groupe
-              </StripeButton>
+                {userPlan === 'group' ? 'Plan actuel' : 'Contacter pour groupe'}
+              </Button>
+              
+              {process.env.NODE_ENV !== 'production' && userPlan !== 'group' && (
+                <Button 
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => handleDemoClick('group')}
+                >
+                  (Demo) Activer Groupe
+                </Button>
+              )}
             </CardFooter>
           </Card>
         </div>
       </div>
+      
+      <PremiumDialog 
+        isOpen={isPremiumDialogOpen} 
+        onClose={() => setIsPremiumDialogOpen(false)} 
+      />
     </section>
   );
 };
