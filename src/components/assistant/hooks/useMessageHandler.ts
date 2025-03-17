@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Message } from "../types/message";
 import { supabase } from "@/integrations/supabase/client";
 import { getPerplexityResponse } from "../services/perplexityService";
+import { generateContextualResponse, getFollowUpSuggestions } from "../services/proactiveAssistant";
 
 export function useMessageHandler() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -38,6 +39,30 @@ export function useMessageHandler() {
   }, []);
 
   const handleSendMessage = useCallback(async (input: string, isOnline: boolean, handleYouTubeSearch: (query: string, isOnline: boolean) => Promise<void>) => {
+    // Handle internal proactive messages
+    if (input.startsWith('_internal_proactive_')) {
+      const proactiveMessage = input.replace('_internal_proactive_', '');
+      const aiMessage: Message = {
+        role: "assistant",
+        content: proactiveMessage,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      return;
+    }
+    
+    // Handle internal contextual responses
+    if (input.startsWith('_internal_contextual_response_')) {
+      const contextualResponse = input.replace('_internal_contextual_response_', '');
+      const aiMessage: Message = {
+        role: "assistant",
+        content: contextualResponse,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      return;
+    }
+    
     if (!input.trim()) return;
     
     const userMessage: Message = {
@@ -55,9 +80,19 @@ export function useMessageHandler() {
         try {
           const offlineResponse = await getPerplexityResponse("", input); // Empty API key triggers offline mode
           
+          // Add follow-up suggestions in offline mode
+          const followUpSuggestions = getFollowUpSuggestions();
+          const randomSuggestions = followUpSuggestions
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 2);
+          
+          const suggestionText = randomSuggestions.length > 0 
+            ? "\n\nVous pourriez aussi me demander:\n- " + randomSuggestions.join("\n- ")
+            : "";
+          
           const aiMessage: Message = {
             role: "assistant",
-            content: offlineResponse,
+            content: offlineResponse + suggestionText,
             timestamp: new Date()
           };
 
@@ -133,9 +168,21 @@ export function useMessageHandler() {
       try {
         const responseContent = await getPerplexityResponse(perplexity, input);
         
+        // Add follow-up suggestions
+        const shouldAddSuggestions = Math.random() < 0.7; // 70% chance to add suggestions
+        
+        const followUpSuggestions = getFollowUpSuggestions();
+        const randomSuggestions = followUpSuggestions
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 2);
+        
+        const suggestionText = shouldAddSuggestions && randomSuggestions.length > 0 
+          ? "\n\nVous pourriez aussi me demander:\n- " + randomSuggestions.join("\n- ")
+          : "";
+        
         const aiMessage: Message = {
           role: "assistant",
-          content: responseContent,
+          content: responseContent + suggestionText,
           timestamp: new Date()
         };
 
