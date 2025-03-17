@@ -48,4 +48,8 @@ export default defineConfig(({ mode }) => ({
       target: 'es2020',
     },
   },
+  esbuild: {
+    // This helps avoid issues with direct eval() calls in dependencies
+    legalComments: 'none',
+  },
 }));
