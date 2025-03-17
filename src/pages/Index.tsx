@@ -9,12 +9,17 @@ import { useToast } from "@/components/ui/use-toast";
 import AIChat from "@/components/assistant/AIChat";
 import VoiceAssistantButton from "@/components/assistant/VoiceAssistantButton";
 import { useSEO } from "@/hooks/useSEO";
+import PricingSection from "@/components/home/PricingSection";
+import { useAppContext } from '@/App';
+import { useUsageLimits } from '@/hooks/useUsageLimits';
 
 const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { toast } = useToast();
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const { setPageTitle, setPageDescription } = useSEO();
+  const { isPremium } = useAppContext();
+  const { chatRemaining } = useUsageLimits();
   
   // Set SEO metadata
   useEffect(() => {
@@ -62,6 +67,11 @@ const Index = () => {
               <p className="mt-3 max-w-2xl mx-auto text-lg text-gray-500 dark:text-gray-300">
                 Votre guide politique personnel pour tout apprendre sur le MRC, répondre à vos questions et vous accompagner dans votre engagement militant.
               </p>
+              {!isPremium && (
+                <p className="mt-2 text-sm text-mrc-blue font-medium">
+                  Mode gratuit: {chatRemaining} message{chatRemaining !== 1 ? 's' : ''} restant{chatRemaining !== 1 ? 's' : ''} aujourd'hui
+                </p>
+              )}
             </div>
             
             <div className="flex flex-col items-center">
@@ -75,6 +85,9 @@ const Index = () => {
             </div>
           </div>
         </section>
+        
+        {/* Only show pricing section to non-premium users */}
+        {!isPremium && <PricingSection />}
       </main>
       
       <Footer />

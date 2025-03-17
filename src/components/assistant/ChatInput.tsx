@@ -2,7 +2,9 @@
 import { useState, useCallback, memo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Download, PlusCircle, Mic, Square } from "lucide-react";
+import { Send, Download, Mic, Square } from "lucide-react";
+import { useUsageLimits } from "@/hooks/useUsageLimits";
+import { useAppContext } from "@/App";
 
 interface ChatInputProps {
   isLoading: boolean;
@@ -19,6 +21,8 @@ const ChatInput = memo(({
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [recognition, setRecognition] = useState<any>(null);
+  const { incrementChatMessage, incrementPdfGenerated, isChatLimited, isPdfLimited, chatRemaining } = useUsageLimits();
+  const { isPremium, setShowPremiumDialog } = useAppContext();
 
   // Set up speech recognition
   useEffect(() => {
@@ -71,24 +75,48 @@ const ChatInput = memo(({
       setIsListening(false);
       // Send the message if transcript is not empty
       if (transcript.trim()) {
-        onSendMessage(transcript.trim());
-        setTranscript("");
-        setInput("");
+        handleSendMessage(transcript.trim());
       }
     }
-  }, [isListening, recognition, transcript, onSendMessage]);
+  }, [isListening, recognition, transcript]);
+
+  const handleSendMessage = useCallback((text: string) => {
+    // Check if user has reached their limit
+    if (isChatLimited) {
+      setShowPremiumDialog(true);
+      return;
+    }
+    
+    // Increment usage count and send message if allowed
+    if (incrementChatMessage()) {
+      onSendMessage(text);
+      setInput("");
+    }
+  }, [onSendMessage, incrementChatMessage, isChatLimited, setShowPremiumDialog]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     const trimmedInput = input.trim();
     if (!trimmedInput) return;
-    onSendMessage(trimmedInput);
-    setInput("");
-  }, [input, onSendMessage]);
+    handleSendMessage(trimmedInput);
+  }, [input, handleSendMessage]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
   }, []);
+
+  const handleGeneratePDF = useCallback(() => {
+    // Check if user has reached their PDF generation limit
+    if (isPdfLimited) {
+      setShowPremiumDialog(true);
+      return;
+    }
+    
+    // Increment usage count and generate PDF if allowed
+    if (incrementPdfGenerated()) {
+      onGeneratePDF();
+    }
+  }, [onGeneratePDF, incrementPdfGenerated, isPdfLimited, setShowPremiumDialog]);
 
   return (
     <div className="p-4 border-t border-white/10 backdrop-blur-lg bg-sky-300">
@@ -96,7 +124,7 @@ const ChatInput = memo(({
         <Input 
           value={input} 
           onChange={handleChange} 
-          placeholder="Posez votre question à Styvy237..." 
+          placeholder={isPremium ? "Posez votre question à Styvy237..." : `Posez votre question (${chatRemaining} restants aujourd'hui)`}
           disabled={isLoading || isListening} 
           aria-label="Message input" 
           className="flex-1 border-white/20 focus:border-mrc-blue/50 focus:ring-1 focus:ring-mrc-blue/30 h-11 my-0 px-[18px] rounded bg-cyan-50" 
@@ -121,7 +149,7 @@ const ChatInput = memo(({
         <Button 
           type="button" 
           variant="outline" 
-          onClick={onGeneratePDF} 
+          onClick={handleGeneratePDF} 
           title="Générer un PDF" 
           disabled={isLoading} 
           className="border-white/20 h-11 w-11 p-0 flex items-center justify-center bg-cyan-50"
