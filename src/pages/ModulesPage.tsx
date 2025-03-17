@@ -110,8 +110,11 @@ const ModulesPage = () => {
         <ModulesTabs
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          chatContent={<ModuleChatView />}
+          modulesContent={renderModulesContent()}
           progressContent={<ModuleProgressView />}
+          challengeContent={<ModuleChallengeView onChallengeComplete={handleChallengeComplete} />}
+          chatContent={<ModuleChatView />}
+          trainingContent={<TrainingStorage />}
         />
       </div>
     </div>
