@@ -10,7 +10,7 @@ import ModulesGridSection from "./sections/ModulesGridSection";
 interface ModulesHomeViewProps {
   onChallengeClick: () => void;
   onChatClick: () => void;
-  onStartQuiz: (moduleId: string) => void;
+  onStartQuiz: (moduleId: number) => void; // Changed from string to number
   onChallengeComplete: () => void;
 }
 

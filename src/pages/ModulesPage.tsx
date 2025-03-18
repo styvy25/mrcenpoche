@@ -107,7 +107,8 @@ const ModulesPage = () => {
       <div className="pt-20 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ModulesNavigation 
           currentModule={selectedModule}
-          onStartLesson={() => selectedModule && selectedModule.lessons.length > 0 && handleStartQuiz(selectedModule.id.toString())}
+          onStartLesson={() => selectedModule && selectedModule.lessons.length > 0 && 
+            handleStartQuiz(Number(selectedModule.id))} // Convert to number if it's a string
         />
         
         <ModulesTabs

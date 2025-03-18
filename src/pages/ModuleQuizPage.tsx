@@ -14,7 +14,7 @@ const ModuleQuizPage = () => {
   const [showQuiz, setShowQuiz] = useState(!!moduleId);
   const [completedQuizzes, setCompletedQuizzes] = useState<string[]>([]);
 
-  const handleStartQuiz = (id: string) => {
+  const handleStartQuiz = (id: number) => { // Changed from string to number
     navigate(`/modules/quiz/${id}`);
     setShowQuiz(true);
   };

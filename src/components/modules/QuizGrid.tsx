@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { moduleQuizzes } from "@/components/modules/quizData";
 
 interface QuizGridProps {
-  onStartQuiz: (moduleId: string) => void;
+  onStartQuiz: (moduleId: number) => void; // Changed from string to number
 }
 
 const QuizGrid = ({ onStartQuiz }: QuizGridProps) => {
@@ -16,7 +16,7 @@ const QuizGrid = ({ onStartQuiz }: QuizGridProps) => {
             <p className="text-sm text-gray-600 mb-4">{quiz.description}</p>
             <Button 
               className="w-full bg-mrc-blue text-white" 
-              onClick={() => onStartQuiz(moduleId)}
+              onClick={() => onStartQuiz(Number(moduleId))} // Convert string to number
             >
               Commencer le quiz
             </Button>
