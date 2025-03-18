@@ -1,22 +1,22 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText, Crown } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import PremiumDialog from "@/components/premium/PremiumDialog";
 import PremiumBanner from "@/components/premium/PremiumBanner";
 
 interface PDFGeneratorProps {
-  onGenerate: () => void;
-  isGenerating: boolean;
-  isGenerateEnabled: boolean;
+  onGenerate?: () => void;
+  isGenerating?: boolean;
+  isGenerateEnabled?: boolean;
 }
 
 const PDFGenerator: React.FC<PDFGeneratorProps> = ({ 
-  onGenerate, 
-  isGenerating,
-  isGenerateEnabled 
+  onGenerate = () => {}, 
+  isGenerating = false,
+  isGenerateEnabled = true
 }) => {
   const { toast } = useToast();
   const { canGeneratePdf, incrementPdfGenerations, userPlan } = usePlanLimits();

@@ -244,6 +244,42 @@ export type Database = {
         }
         Relationships: []
       }
+      api_integrations: {
+        Row: {
+          additional_data: Json | null
+          api_key: string | null
+          created_at: string | null
+          id: string
+          last_checked: string | null
+          name: string
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          additional_data?: Json | null
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          last_checked?: string | null
+          name: string
+          status: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          additional_data?: Json | null
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          last_checked?: string | null
+          name?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           active: boolean | null

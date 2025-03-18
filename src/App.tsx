@@ -3,14 +3,8 @@ import React, { useState, createContext, useContext, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import SettingsPage from './pages/SettingsPage';
 import AIChat from './components/assistant/AIChat';
-import ModulePage from './pages/ModulesPage';
-import QuizPage from "./pages/QuizPage";
-import MatchGame from "./components/quiz/matches/MatchGame";
-import MatchResults from "./components/quiz/matches/MatchResults";
 import Index from './pages/Index';
-import PaymentPage from './pages/PaymentPage';
 import DocumentsPage from './pages/DocumentsPage';
 import NotFound from './pages/NotFound';
 import { useApiKeys } from './hooks/useApiKeys';
@@ -72,13 +66,7 @@ function App() {
                 <TourPopup />
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/chat" element={<AIChat />} />
-                  <Route path="/modules" element={<ModulePage />} />
-                  <Route path="/quiz" element={<QuizPage />} />
-                  <Route path="/quiz-match/:matchId" element={<MatchGame />} />
-                  <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
-                  <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/documents" element={<DocumentsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

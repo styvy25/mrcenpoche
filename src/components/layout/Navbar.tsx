@@ -6,15 +6,11 @@ import { useAppContext } from "@/App";
 import AuthDialog from "@/components/auth/AuthDialog";
 import { 
   FileText, 
-  BookOpen, 
-  LayoutGrid, 
-  Settings, 
-  MessageSquare, 
   ChevronLeft, 
   ChevronRight, 
   Home,
   Menu,
-  X 
+  MessageSquare
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
@@ -69,11 +65,8 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { path: "/modules", icon: <LayoutGrid className="h-4 w-4" />, label: "Modules" },
-    { path: "/quiz", icon: <BookOpen className="h-4 w-4" />, label: "Quiz" },
     { path: "/chat", icon: <MessageSquare className="h-4 w-4" />, label: "Assistant" },
-    { path: "/documents", icon: <FileText className="h-4 w-4" />, label: "Documents" },
-    { path: "/settings", icon: <Settings className="h-4 w-4" />, label: "Paramètres" }
+    { path: "/documents", icon: <FileText className="h-4 w-4" />, label: "Documents" }
   ];
 
   return (

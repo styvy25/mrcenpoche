@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import PDFGenerator from "@/components/documents/PDFGenerator";
 import TrainingStatistics from "@/components/documents/TrainingStatistics";
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Download, Clock, BarChart2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 import ApplicationStatus from "@/components/layout/ApplicationStatus";
+import { useToast } from "@/components/ui/use-toast";
 
 const recentDocuments = [
   { id: 1, title: "Histoire du MRC", module: "Histoire et Valeurs du MRC", date: "15/06/2023", pages: 12 },
@@ -18,6 +19,21 @@ const recentDocuments = [
 
 const DocumentsPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGeneratePDF = () => {
+    setIsGenerating(true);
+    
+    // Simulating PDF generation
+    setTimeout(() => {
+      setIsGenerating(false);
+      toast({
+        title: "PDF généré avec succès",
+        description: "Votre document a été généré et est prêt à être téléchargé."
+      });
+    }, 2000);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -44,7 +60,11 @@ const DocumentsPage: React.FC = () => {
             
             <TabsContent value="generate" className="space-y-4">
               <div className="max-w-2xl mx-auto">
-                <PDFGenerator />
+                <PDFGenerator 
+                  onGenerate={handleGeneratePDF}
+                  isGenerating={isGenerating}
+                  isGenerateEnabled={true}
+                />
               </div>
             </TabsContent>
 
