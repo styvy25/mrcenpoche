@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Module } from "@/components/modules/types";
@@ -10,7 +9,7 @@ export function useModuleState() {
   const [showChat, setShowChat] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
-  const [currentQuizModule, setCurrentQuizModule] = useState<number | null>(null); // Fix: Changed type from string to number|null
+  const [currentQuizModule, setCurrentQuizModule] = useState<number | null>(null);
   const { toast } = useToast();
 
   const handleModuleSelect = (module: Module) => {
@@ -25,7 +24,7 @@ export function useModuleState() {
     setShowQuiz(false);
   };
 
-  const handleStartQuiz = (moduleId: number) => { // Fix: Changed type from string to number
+  const handleStartQuiz = (moduleId: number) => {
     setCurrentQuizModule(moduleId);
     setShowQuiz(true);
     setShowChat(false);
