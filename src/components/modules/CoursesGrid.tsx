@@ -18,16 +18,16 @@ const CoursesGrid = () => {
   // Filtrer les modules en fonction du plan de l'utilisateur
   const accessibleModules = modulesData.map(module => ({
     ...module,
-    isPremium: module.id > 3 && !canAccessAllModules() // Les 3 premiers modules sont gratuits
+    isPremium: typeof module.id === 'number' && module.id > 3 && !canAccessAllModules() // Fix: ensure module.id is a number before comparison
   }));
 
-  const handleModuleSelection = (moduleId: string) => {
+  const handleModuleSelection = (moduleId: number) => { // Fix: Changed type from string to number
     const module = accessibleModules.find(m => m.id === moduleId);
     
     if (module?.isPremium) {
       setIsPremiumDialogOpen(true);
     } else {
-      handleModuleClick(moduleId);
+      handleModuleClick(moduleId); // Fix: handleModuleClick expects a number
     }
   };
 

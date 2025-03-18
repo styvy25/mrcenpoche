@@ -10,11 +10,17 @@ import PremiumDialog from '@/components/premium/PremiumDialog';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
-  isProcessing: boolean;
+  isLoading: boolean; // Changed from isProcessing to isLoading to match AIChat.tsx
+  onGeneratePDF?: () => void;
   placeholder?: string;
 }
 
-const ChatInput = ({ onSendMessage, isProcessing, placeholder = "Posez votre question..." }: ChatInputProps) => {
+const ChatInput = ({ 
+  onSendMessage, 
+  isLoading, // Updated property name
+  onGeneratePDF,
+  placeholder = "Posez votre question..." 
+}: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
   const { canSendChatMessage, incrementChatMessages, getUsageStats } = usePlanLimits();
@@ -48,7 +54,7 @@ const ChatInput = ({ onSendMessage, isProcessing, placeholder = "Posez votre que
 
   const handleSendMessage = () => {
     const trimmedMessage = message.trim();
-    if (trimmedMessage && !isProcessing) {
+    if (trimmedMessage && !isLoading) { // Updated from isProcessing to isLoading
       // Vérifier si l'utilisateur peut envoyer un message
       if (!canSendChatMessage()) {
         setIsPremiumDialogOpen(true);
@@ -102,7 +108,7 @@ const ChatInput = ({ onSendMessage, isProcessing, placeholder = "Posez votre que
           value={message}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          disabled={isProcessing}
+          disabled={isLoading} // Updated from isProcessing to isLoading
         />
         <div className="flex items-center gap-1 p-1">
           {hasRecognitionSupport && (
@@ -112,7 +118,7 @@ const ChatInput = ({ onSendMessage, isProcessing, placeholder = "Posez votre que
               variant="ghost"
               className={`rounded-full ${isListening ? 'text-red-500' : ''}`}
               onClick={handleVoiceToggle}
-              disabled={isProcessing}
+              disabled={isLoading} // Updated from isProcessing to isLoading
             >
               {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </Button>
@@ -123,9 +129,9 @@ const ChatInput = ({ onSendMessage, isProcessing, placeholder = "Posez votre que
             variant={message.trim() ? "default" : "ghost"}
             className="rounded-full"
             onClick={handleSendMessage}
-            disabled={!message.trim() || isProcessing}
+            disabled={!message.trim() || isLoading} // Updated from isProcessing to isLoading
           >
-            {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizonal className="h-5 w-5" />}
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizonal className="h-5 w-5" />}
           </Button>
         </div>
       </div>

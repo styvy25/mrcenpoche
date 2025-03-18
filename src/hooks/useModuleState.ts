@@ -10,7 +10,7 @@ export function useModuleState() {
   const [showChat, setShowChat] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
-  const [currentQuizModule, setCurrentQuizModule] = useState("");
+  const [currentQuizModule, setCurrentQuizModule] = useState<number | null>(null); // Fix: Changed type from string to number|null
   const { toast } = useToast();
 
   const handleModuleSelect = (module: Module) => {
@@ -25,7 +25,7 @@ export function useModuleState() {
     setShowQuiz(false);
   };
 
-  const handleStartQuiz = (moduleId: string) => {
+  const handleStartQuiz = (moduleId: number) => { // Fix: Changed type from string to number
     setCurrentQuizModule(moduleId);
     setShowQuiz(true);
     setShowChat(false);

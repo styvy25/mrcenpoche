@@ -10,7 +10,7 @@ interface ModulesGridSectionProps {
   setActiveCategory: (category: string) => void;
   onChallengeClick: () => void;
   onChatClick: () => void;
-  onStartQuiz: (moduleId: string) => void;
+  onStartQuiz: (moduleId: number) => void; // Fix: Changed type from string to number
 }
 
 const ModulesGridSection = ({ 
