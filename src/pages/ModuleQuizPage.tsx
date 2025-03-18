@@ -5,7 +5,6 @@ import MainLayout from "../components/layout/MainLayout";
 import QuizContent from "@/components/modules/QuizContent";
 import QuizGrid from "@/components/modules/QuizGrid";
 import { useToast } from "@/hooks/use-toast";
-import { getModuleQuiz } from "@/components/modules/quizData";
 
 const ModuleQuizPage = () => {
   const { moduleId } = useParams<{ moduleId: string }>();
@@ -14,7 +13,7 @@ const ModuleQuizPage = () => {
   const [showQuiz, setShowQuiz] = useState(!!moduleId);
   const [completedQuizzes, setCompletedQuizzes] = useState<string[]>([]);
 
-  const handleStartQuiz = (id: number) => { // Changed from string to number
+  const handleStartQuiz = (id: number) => {
     navigate(`/modules/quiz/${id}`);
     setShowQuiz(true);
   };
