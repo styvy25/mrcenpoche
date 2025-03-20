@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { SendHorizonal, Mic, MicOff, Loader2 } from 'lucide-react';
+import { SendHorizonal, Mic, MicOff, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
@@ -10,14 +10,14 @@ import PremiumDialog from '@/components/premium/PremiumDialog';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
-  isLoading: boolean; // Changed from isProcessing to isLoading to match AIChat.tsx
+  isLoading: boolean;
   onGeneratePDF?: () => void;
   placeholder?: string;
 }
 
 const ChatInput = ({ 
   onSendMessage, 
-  isLoading, // Updated property name
+  isLoading, 
   onGeneratePDF,
   placeholder = "Posez votre question..." 
 }: ChatInputProps) => {
@@ -33,14 +33,14 @@ const ChatInput = ({
     hasRecognitionSupport
   } = useSpeechRecognition();
 
-  // Mettre à jour le message avec la transcription
+  // Update message with transcription
   useEffect(() => {
     if (transcript) {
       setMessage(prev => prev + transcript);
     }
   }, [transcript]);
 
-  // Ajuster automatiquement la hauteur du textarea
+  // Auto-adjust textarea height
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -54,21 +54,21 @@ const ChatInput = ({
 
   const handleSendMessage = () => {
     const trimmedMessage = message.trim();
-    if (trimmedMessage && !isLoading) { // Updated from isProcessing to isLoading
-      // Vérifier si l'utilisateur peut envoyer un message
+    if (trimmedMessage && !isLoading) {
+      // Check if user can send a message
       if (!canSendChatMessage()) {
         setIsPremiumDialogOpen(true);
         return;
       }
       
-      // Incrémenter le compteur de messages
+      // Increment message counter
       const canSend = incrementChatMessages();
       if (!canSend) return;
       
       onSendMessage(trimmedMessage);
       setMessage('');
       
-      // Réinitialiser la hauteur du textarea
+      // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -99,26 +99,26 @@ const ChatInput = ({
         <PremiumBanner type="chat" className="mb-4" />
       )}
       
-      <div className="flex w-full items-end rounded-lg border bg-background shadow-sm">
+      <div className="relative flex w-full items-end rounded-lg border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm shadow-inner">
         <Textarea
           ref={textareaRef}
           placeholder={placeholder}
-          className="min-h-[50px] max-h-[200px] flex-1 resize-none border-0 bg-transparent p-3 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="min-h-[50px] max-h-[200px] flex-1 resize-none border-0 bg-transparent p-3 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-500"
           rows={1}
           value={message}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          disabled={isLoading} // Updated from isProcessing to isLoading
+          disabled={isLoading}
         />
-        <div className="flex items-center gap-1 p-1">
+        <div className="flex items-center gap-1 p-2">
           {hasRecognitionSupport && (
             <Button
               type="button"
               size="icon"
               variant="ghost"
-              className={`rounded-full ${isListening ? 'text-red-500' : ''}`}
+              className={`rounded-full transition-all ${isListening ? 'text-red-500 bg-red-500/10' : 'hover:bg-gray-700/50'}`}
               onClick={handleVoiceToggle}
-              disabled={isLoading} // Updated from isProcessing to isLoading
+              disabled={isLoading}
             >
               {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </Button>
@@ -127,13 +127,20 @@ const ChatInput = ({
             type="submit"
             size="icon"
             variant={message.trim() ? "default" : "ghost"}
-            className="rounded-full"
+            className={`rounded-full ${message.trim() ? 'bg-gradient-to-r from-mrc-blue to-mrc-green text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
             onClick={handleSendMessage}
-            disabled={!message.trim() || isLoading} // Updated from isProcessing to isLoading
+            disabled={!message.trim() || isLoading}
           >
             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizonal className="h-5 w-5" />}
           </Button>
         </div>
+        
+        {message.length > 100 && !isLoading && (
+          <div className="absolute -top-7 right-2 text-xs text-gray-400 bg-gray-800/90 px-2 py-1 rounded">
+            <Sparkles className="h-3 w-3 inline mr-1 text-yellow-500" />
+            Message détaillé
+          </div>
+        )}
       </div>
       
       <PremiumDialog 

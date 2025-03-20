@@ -13,7 +13,6 @@ interface ChatContentProps {
   onVideoSelect: (videoId: string) => void;
 }
 
-// Use memo to prevent unnecessary re-renders
 const ChatContent = memo(({ 
   messages, 
   youtubeResults, 
@@ -37,12 +36,10 @@ const ChatContent = memo(({
     return () => clearTimeout(timeoutId);
   }, [messages, youtubeResults]);
   
-  // Apply content stabilization
+  // Apply content stabilization to prevent layout jumps
   useEffect(() => {
     if (contentRef.current) {
-      // Set a minimum height to prevent layout jumps when messages are loading
       contentRef.current.style.minHeight = `${contentRef.current.offsetHeight}px`;
-      
       return () => {
         if (contentRef.current) {
           contentRef.current.style.minHeight = '';
@@ -54,14 +51,25 @@ const ChatContent = memo(({
   return (
     <div 
       ref={contentRef}
-      className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900/80 to-black/40 scrollable"
+      className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900/80 to-black/40 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
     >
-      {messages.map((message, index) => (
-        <MessageDisplay 
-          key={`message-${index}-${message.timestamp.getTime()}`} 
-          message={message} 
-        />
-      ))}
+      {messages.length === 0 ? (
+        <div className="flex items-center justify-center h-full opacity-70">
+          <div className="text-center p-8 rounded-lg border border-gray-700/50 bg-gray-800/30 backdrop-blur-sm">
+            <h3 className="text-lg font-medium mb-2">Assistant IA à votre service</h3>
+            <p className="text-sm text-gray-300">
+              Posez vos questions concernant le MRC, la politique, ou vos besoins de formation.
+            </p>
+          </div>
+        </div>
+      ) : (
+        messages.map((message, index) => (
+          <MessageDisplay 
+            key={`message-${index}-${message.timestamp.getTime()}`} 
+            message={message} 
+          />
+        ))
+      )}
       
       {youtubeResults.length > 0 && (
         <YouTubeResults videos={youtubeResults} onVideoSelect={onVideoSelect} />

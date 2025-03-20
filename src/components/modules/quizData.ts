@@ -13,6 +13,7 @@ interface ModuleQuiz {
 }
 
 export const moduleQuizzes: Record<number, ModuleQuiz> = {
+  // Simplified quiz data
   1: {
     title: "Introduction au MRC",
     description: "Testez vos connaissances sur les fondamentaux du MRC",
