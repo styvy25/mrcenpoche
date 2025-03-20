@@ -65,7 +65,7 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { path: "/chat", icon: <MessageSquare className="h-4 w-4" />, label: "Assistant" },
+    { path: "/assistant", icon: <MessageSquare className="h-4 w-4" />, label: "Assistant" },
     { path: "/documents", icon: <FileText className="h-4 w-4" />, label: "Documents" }
   ];
 
