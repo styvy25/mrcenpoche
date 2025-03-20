@@ -1,15 +1,13 @@
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import AppNavigationWidget from "@/components/home/AppNavigationWidget";
+import HomeContent from "@/components/home/HomeContent";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main>
-        <AppNavigationWidget />
-      </main>
+      <HomeContent />
       <Footer />
     </div>
   );
