@@ -1,82 +1,39 @@
 
-import React, { useState, createContext, useContext, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import AIChat from './components/assistant/AIChat';
-import Index from './pages/Index';
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import AssistantPage from './pages/AssistantPage';
 import DocumentsPage from './pages/DocumentsPage';
+import NewsPage from './pages/NewsPage';
+import QuizPage from './pages/QuizPage';
+import LegalPage from './pages/LegalPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
+import PaymentPage from './pages/PaymentPage';
+import SettingsPage from './pages/SettingsPage';
+import AuthPage from './pages/AuthPage';
 import NotFound from './pages/NotFound';
-import { useApiKeys } from './hooks/useApiKeys';
-import { AuthProvider } from './components/auth/AuthContext';
-import ApplicationStatus from './components/layout/ApplicationStatus';
-import { TourProvider } from './components/tour/TourContext';
-import TourPopup from './components/tour/TourPopup';
-import { SEOProvider } from './hooks/useSEO';
+import Index from './pages/Index';
+import './App.css';
 
-// Initialize Stripe
-const stripePromise = loadStripe('pk_test_placeholder');
-
-interface AppContextProps {
-  isApiKeySet: boolean;
-  setIsApiKeySet: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const AppContext = createContext<AppContextProps>({
-  isApiKeySet: false,
-  setIsApiKeySet: () => {},
-});
-
-export const useAppContext = () => useContext(AppContext);
-
-function App() {
-  const [isApiKeySet, setIsApiKeySet] = useState<boolean>(false);
-  const { keyStatus, loadKeys } = useApiKeys();
-  
-  // Update API key status when keyStatus changes
-  useEffect(() => {
-    const hasAnyKey = keyStatus.perplexity || keyStatus.youtube || keyStatus.stripe;
-    setIsApiKeySet(hasAnyKey);
-    
-    // Set document title with custom domain
-    document.title = "MRC en Poche | mrcenpoche.xyz";
-  }, [keyStatus]);
-  
-  // Reload API keys on window focus (useful for multiple tabs)
-  useEffect(() => {
-    const handleFocus = () => {
-      loadKeys();
-    };
-    
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [loadKeys]);
-
+const App = () => {
   return (
-    <AuthProvider>
-      <AppContext.Provider value={{ isApiKeySet, setIsApiKeySet }}>
-        <Elements stripe={stripePromise}>
-          <Router>
-            <SEOProvider>
-              <TourProvider>
-                <ApplicationStatus />
-                <TourPopup />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/chat" element={<AIChat />} />
-                  <Route path="/documents" element={<DocumentsPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </TourProvider>
-            </SEOProvider>
-          </Router>
-        </Elements>
-      </AppContext.Provider>
-    </AuthProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/assistant" element={<AssistantPage />} />
+        <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/quiz" element={<QuizPage />} />
+        <Route path="/legal" element={<LegalPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;
