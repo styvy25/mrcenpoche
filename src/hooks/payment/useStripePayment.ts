@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStripe } from '@stripe/react-stripe-js';
 import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from '@/App';
+import { useAppContext } from '@/context/AppContext';
 import { loadApiKeys } from "@/hooks/api-keys/storage";
 
 export const useStripePayment = (priceId: string) => {

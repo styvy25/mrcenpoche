@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAppContext } from "@/App";
+import { useAppContext } from "@/context/AppContext";
 import AuthDialog from "@/components/auth/AuthDialog";
 import { 
   FileText, 
