@@ -340,6 +340,39 @@ export type Database = {
         }
         Relationships: []
       }
+      book_examples: {
+        Row: {
+          cover_image: string | null
+          created_at: string
+          description: string
+          generation_source: string
+          id: string
+          language: string
+          preview_content: Json | null
+          title: string
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string
+          description: string
+          generation_source: string
+          id?: string
+          language?: string
+          preview_content?: Json | null
+          title: string
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string
+          description?: string
+          generation_source?: string
+          id?: string
+          language?: string
+          preview_content?: Json | null
+          title?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           created_at: string | null
@@ -1096,6 +1129,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      generated_books: {
+        Row: {
+          book_content: Json | null
+          created_at: string
+          description: string | null
+          generation_source: string
+          id: string
+          language: string
+          source_data: Json | null
+          title: string
+          tone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          book_content?: Json | null
+          created_at?: string
+          description?: string | null
+          generation_source: string
+          id?: string
+          language?: string
+          source_data?: Json | null
+          title: string
+          tone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          book_content?: Json | null
+          created_at?: string
+          description?: string | null
+          generation_source?: string
+          id?: string
+          language?: string
+          source_data?: Json | null
+          title?: string
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       generated_documents: {
         Row: {
@@ -2258,6 +2333,45 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          limits: Json
+          plan_type: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          features: Json
+          id?: string
+          is_active?: boolean
+          limits: Json
+          plan_type?: string
+          start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          limits?: Json
+          plan_type?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       voter_requirements: {
         Row: {
