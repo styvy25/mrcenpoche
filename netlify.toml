@@ -45,9 +45,3 @@
 # Define custom domain
 [context.production]
   environment = { NETLIFY_CUSTOM_DOMAIN = "mrcenpoche.xyz" }
-
-# Handle 404 errors gracefully
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200

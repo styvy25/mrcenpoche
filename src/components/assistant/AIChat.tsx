@@ -9,6 +9,7 @@ import { usePdfGenerator } from "./utils/pdfUtils";
 import { Button } from "@/components/ui/button";
 import { Key, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/use-toast";
 
 const AIChat = memo(() => {
   const { 
@@ -18,11 +19,13 @@ const AIChat = memo(() => {
     isSearchingYouTube, 
     isOnline: chatIsOnline,
     handleSendMessage, 
-    handleVideoSelect 
+    handleVideoSelect,
+    clearConversation
   } = useChatState();
   
   const { generatePDF } = usePdfGenerator();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [hasApiKey, setHasApiKey] = useState(false);
   
@@ -70,6 +73,25 @@ const AIChat = memo(() => {
     generatePDF(messages);
   };
 
+  const handleRefresh = async () => {
+    try {
+      clearConversation();
+      toast({
+        title: "Conversation rafraîchie",
+        description: "Votre conversation a été réinitialisée avec succès.",
+      });
+      return true;
+    } catch (error) {
+      console.error("Error refreshing conversation:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors du rafraîchissement de la conversation.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-black rounded-xl shadow-xl overflow-hidden border border-white/10 optimize-animation">
       {!isOnline && (
@@ -108,6 +130,8 @@ const AIChat = memo(() => {
       
       <ChatHeader 
         onGeneratePDF={handleGeneratePDF} 
+        onClearConversation={clearConversation}
+        onRefresh={handleRefresh}
         isOnline={chatIsOnline}
       />
       
