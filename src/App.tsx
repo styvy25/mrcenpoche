@@ -16,27 +16,32 @@ import Index from './pages/Index';
 import './App.css';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './components/auth/AuthContext';
+import { TourProvider } from './components/tour/TourContext';
+import TourPopup from './components/tour/TourPopup';
 
 const App = () => {
   return (
     <AuthProvider>
       <AppProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/assistant" element={<AssistantPage />} />
-            <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/news" element={<NewsPage />} />
-            <Route path="/quiz" element={<QuizPage />} />
-            <Route path="/legal" element={<LegalPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/payment" element={<PaymentPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <TourProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/assistant" element={<AssistantPage />} />
+              <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/news" element={<NewsPage />} />
+              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/legal" element={<LegalPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/payment" element={<PaymentPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <TourPopup />
+          </BrowserRouter>
+        </TourProvider>
       </AppProvider>
     </AuthProvider>
   );
