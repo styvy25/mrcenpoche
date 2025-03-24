@@ -1,20 +1,12 @@
 
-import React, { useEffect, useRef, useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { updateRecording } from '../services/alertService';
+import { useRef, useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 
-interface RecordingManagerProps {
-  alertId: string;
-  recordingId: string;
-  onStop?: () => void;
+interface UseMediaRecordingOptions {
+  onSaveRecording?: (chunks: BlobPart[], durationSeconds: number) => Promise<void>;
 }
 
-const RecordingManager: React.FC<RecordingManagerProps> = ({ 
-  alertId, 
-  recordingId,
-  onStop 
-}) => {
+export const useMediaRecording = ({ onSaveRecording }: UseMediaRecordingOptions = {}) => {
   const [isRecording, setIsRecording] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -26,16 +18,6 @@ const RecordingManager: React.FC<RecordingManagerProps> = ({
   
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (alertId && recordingId) {
-      startRecording();
-    }
-    
-    return () => {
-      stopRecording();
-    };
-  }, [alertId, recordingId]);
-  
   const startRecording = async () => {
     try {
       // Request permissions for video and audio
@@ -64,8 +46,11 @@ const RecordingManager: React.FC<RecordingManagerProps> = ({
       };
       
       mediaRecorder.onstop = async () => {
-        // Save the recording
-        await saveRecording();
+        // Save the recording if callback provided
+        if (onSaveRecording) {
+          const durationSeconds = Math.round((Date.now() - recordingStartTimeRef.current) / 1000);
+          await onSaveRecording(chunksRef.current, durationSeconds);
+        }
       };
       
       // Start recording
@@ -93,6 +78,8 @@ const RecordingManager: React.FC<RecordingManagerProps> = ({
         description: "La caméra et le microphone enregistrent en continu.",
         variant: "default",
       });
+      
+      return true;
     } catch (error) {
       console.error('Error starting continuous recording:', error);
       toast({
@@ -100,6 +87,7 @@ const RecordingManager: React.FC<RecordingManagerProps> = ({
         description: "Impossible d'accéder à la caméra ou au microphone.",
         variant: "destructive",
       });
+      return false;
     }
   };
   
@@ -132,84 +120,17 @@ const RecordingManager: React.FC<RecordingManagerProps> = ({
         variant: "default",
       });
       
-      if (onStop) onStop();
+      return true;
     } catch (error) {
       console.error('Error stopping recording:', error);
+      return false;
     }
   };
-  
-  const saveRecording = async () => {
-    if (chunksRef.current.length === 0 || !alertId) return;
-    
-    try {
-      // Create video and audio blobs
-      const videoBlob = new Blob(chunksRef.current, { type: 'video/webm' });
-      const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
-      
-      // Calculate duration
-      const durationSeconds = Math.round((Date.now() - recordingStartTimeRef.current) / 1000);
-      
-      // Upload video to storage
-      const videoFileName = `fraud-evidence-video-${Date.now()}.webm`;
-      const { data: videoData, error: videoError } = await supabase.storage
-        .from('fraud-evidence')
-        .upload(videoFileName, videoBlob, {
-          contentType: 'video/webm',
-        });
-        
-      if (videoError) {
-        throw new Error(`Erreur de téléchargement vidéo: ${videoError.message}`);
-      }
-      
-      // Get video URL
-      const { data: videoUrlData } = supabase.storage
-        .from('fraud-evidence')
-        .getPublicUrl(videoFileName);
-      
-      // Upload audio to storage
-      const audioFileName = `fraud-evidence-audio-${Date.now()}.webm`;
-      const { data: audioData, error: audioError } = await supabase.storage
-        .from('fraud-evidence')
-        .upload(audioFileName, audioBlob, {
-          contentType: 'audio/webm',
-        });
-        
-      if (audioError) {
-        throw new Error(`Erreur de téléchargement audio: ${audioError.message}`);
-      }
-      
-      // Get audio URL
-      const { data: audioUrlData } = supabase.storage
-        .from('fraud-evidence')
-        .getPublicUrl(audioFileName);
-      
-      // Update recording in database
-      await updateRecording(
-        recordingId,
-        videoUrlData.publicUrl,
-        audioUrlData.publicUrl,
-        durationSeconds
-      );
-      
-      console.log('Recording saved successfully:', {
-        videoUrl: videoUrlData.publicUrl,
-        audioUrl: audioUrlData.publicUrl,
-        duration: durationSeconds
-      });
-      
-      // Reset start time for next segment
-      recordingStartTimeRef.current = Date.now();
-    } catch (error) {
-      console.error('Error saving recording:', error);
-    }
-  };
-  
-  // Hidden component - doesn't render anything visible to the user
-  return (
-    <div className="hidden">
-      <video ref={videoRef} autoPlay playsInline />
-    </div>
-  );
-};
 
-export default RecordingManager;
+  return {
+    isRecording,
+    videoRef,
+    startRecording,
+    stopRecording
+  };
+};
