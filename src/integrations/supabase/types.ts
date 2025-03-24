@@ -706,6 +706,42 @@ export type Database = {
         }
         Relationships: []
       }
+      electoral_alerts: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          location: string
+          media_type: string | null
+          media_url: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          location: string
+          media_type?: string | null
+          media_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          location?: string
+          media_type?: string | null
+          media_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       electoral_codes: {
         Row: {
           applicable_regions: string[] | null
@@ -1130,6 +1166,44 @@ export type Database = {
           },
         ]
       }
+      fraud_evidence_recordings: {
+        Row: {
+          alert_id: string
+          audio_url: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          id: string
+          user_id: string | null
+          video_url: string | null
+        }
+        Insert: {
+          alert_id: string
+          audio_url?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          alert_id?: string
+          audio_url?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_evidence_recordings_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "electoral_alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       generated_books: {
         Row: {
           book_content: Json | null
@@ -1330,6 +1404,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      messages: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          media_type: string | null
+          media_url: string | null
+          user_avatar: string | null
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          user_avatar?: string | null
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          user_avatar?: string | null
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: []
       }
       news_articles: {
         Row: {

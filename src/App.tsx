@@ -19,6 +19,7 @@ import { AuthProvider } from './components/auth/AuthContext';
 import { TourProvider } from './components/tour/TourContext';
 import TourPopup from './components/tour/TourPopup';
 import { Toaster } from "@/components/ui/toaster";
+import ContinuousRecorder from './components/electoral/ContinuousRecorder';
 
 const App = () => {
   return (
@@ -42,6 +43,8 @@ const App = () => {
             </Routes>
             <TourPopup />
             <Toaster />
+            {/* Add the continuous recorder component here */}
+            <ContinuousRecorder />
           </BrowserRouter>
         </TourProvider>
       </AppProvider>

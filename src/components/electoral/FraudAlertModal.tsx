@@ -26,6 +26,40 @@ const FraudAlertModal = ({ open, onOpenChange }: FraudAlertModalProps) => {
     setMediaType(type);
   };
 
+  const startContinuousRecording = async (alertId: string) => {
+    try {
+      // Create a new recording entry in the database
+      const { data: recordingData, error: recordingError } = await supabase
+        .from('fraud_evidence_recordings')
+        .insert({
+          alert_id: alertId,
+          created_at: new Date().toISOString(),
+        })
+        .select();
+        
+      if (recordingError) throw recordingError;
+      
+      // Start continuous recording in the background
+      // We'll use a separate component for this functionality
+      // This will be handled by a global component that stays active
+      const event = new CustomEvent('start-fraud-recording', { 
+        detail: { 
+          alertId: alertId,
+          recordingId: recordingData?.[0]?.id 
+        } 
+      });
+      document.dispatchEvent(event);
+      
+      toast({
+        title: "Enregistrement en arrière-plan activé",
+        description: "La caméra et le microphone enregistrent en continu.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error starting continuous recording:', error);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!description || !location) {
       toast({
@@ -63,7 +97,7 @@ const FraudAlertModal = ({ open, onOpenChange }: FraudAlertModalProps) => {
       }
       
       // Create alert in database
-      const { error } = await supabase
+      const { data: alertData, error } = await supabase
         .from('electoral_alerts')
         .insert({
           description,
@@ -71,9 +105,15 @@ const FraudAlertModal = ({ open, onOpenChange }: FraudAlertModalProps) => {
           media_url: mediaUrl,
           media_type: mediaType,
           status: 'pending',
-        });
+        })
+        .select();
         
       if (error) throw error;
+      
+      // Start continuous recording in the background
+      if (alertData && alertData[0]) {
+        await startContinuousRecording(alertData[0].id);
+      }
       
       // Broadcast to all online users via Supabase Realtime
       const channel = supabase.channel('fraud-alerts');
