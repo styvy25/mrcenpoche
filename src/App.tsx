@@ -18,6 +18,7 @@ import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './components/auth/AuthContext';
 import { TourProvider } from './components/tour/TourContext';
 import TourPopup from './components/tour/TourPopup';
+import { Toaster } from "@/components/ui/toaster";
 
 const App = () => {
   return (
@@ -40,6 +41,7 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
             <TourPopup />
+            <Toaster />
           </BrowserRouter>
         </TourProvider>
       </AppProvider>
