@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Circle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { subscribeToFraudAlerts } from './services/alertService';
 
 interface FraudAlert {
   id?: string;
@@ -21,23 +21,22 @@ const FraudAlertNotification = () => {
   
   useEffect(() => {
     // Subscribe to realtime fraud alerts
-    const channel = supabase.channel('fraud-alerts')
-      .on('broadcast', { event: 'fraud-alert' }, (payload) => {
-        // Show the alert notification
-        setCurrentAlert(payload.payload as FraudAlert);
-        setIsOpen(true);
-      })
-      .subscribe();
+    const unsubscribe = subscribeToFraudAlerts((alert) => {
+      setCurrentAlert(alert);
+      setIsOpen(true);
+    });
       
     // Check for recording status
     const handleRecordingStart = () => setIsRecording(true);
     const handleRecordingStop = () => setIsRecording(false);
     
     document.addEventListener('start-fraud-recording', handleRecordingStart);
+    document.addEventListener('stop-fraud-recording', handleRecordingStop);
     
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
       document.removeEventListener('start-fraud-recording', handleRecordingStart);
+      document.removeEventListener('stop-fraud-recording', handleRecordingStop);
     };
   }, []);
   
