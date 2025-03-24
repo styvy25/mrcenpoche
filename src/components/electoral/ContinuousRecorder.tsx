@@ -20,8 +20,12 @@ const ContinuousRecorder: React.FC<ContinuousRecorderProps> = () => {
   
   const { saveRecording } = useRecordingStorage(alertId, recordingId);
   
+  const onSaveRecording = async (chunks: BlobPart[], durationSeconds: number): Promise<void> => {
+    await saveRecording(chunks, durationSeconds);
+  };
+  
   const { videoRef, startRecording, stopRecording } = useMediaRecording({
-    onSaveRecording: saveRecording
+    onSaveRecording: onSaveRecording
   });
 
   // Listen for start recording events

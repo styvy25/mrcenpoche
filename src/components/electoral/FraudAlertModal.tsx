@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import AlertForm from './form/AlertForm';
 import { submitFraudAlert, startContinuousRecording } from './services/alertService';
 import RecordingManager from './recording/RecordingManager';
+import AlertSubmitSection from './form/AlertSubmitSection';
+import RecordingStatusSection from './form/RecordingStatusSection';
 
 interface FraudAlertModalProps {
   open: boolean;
@@ -136,16 +138,7 @@ const FraudAlertModal = ({ open, onOpenChange }: FraudAlertModalProps) => {
           />
         ) : (
           // Show recording status when recording
-          <div className="py-4">
-            <div className="flex items-center gap-2 text-red-500 mb-4">
-              <div className="w-3 h-3 bg-red-500 animate-pulse rounded-full"></div>
-              <span>Enregistrement en cours</span>
-            </div>
-            <p className="text-sm text-gray-500">
-              L'application enregistre discrètement en arrière-plan. Vous pouvez 
-              fermer cette fenêtre, mais l'enregistrement continuera.
-            </p>
-          </div>
+          <RecordingStatusSection />
         )}
         
         <DialogFooter>
@@ -158,24 +151,12 @@ const FraudAlertModal = ({ open, onOpenChange }: FraudAlertModalProps) => {
           </Button>
           
           {!recordingStarted && (
-            <Button 
-              type="submit" 
-              onClick={handleSubmit}
-              disabled={isSubmitting || !description || !location}
-              className="bg-mrc-red hover:bg-mrc-red/80"
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="animate-spin mr-2">⏳</span>
-                  Envoi...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Envoyer l'alerte
-                </>
-              )}
-            </Button>
+            <AlertSubmitSection 
+              isSubmitting={isSubmitting}
+              description={description}
+              location={location}
+              onSubmit={handleSubmit}
+            />
           )}
         </DialogFooter>
         

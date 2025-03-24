@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { updateRecording } from '../../services/alertService';
 
 export const useRecordingStorage = (alertId: string | null, recordingId: string | null) => {
-  const saveRecording = async (chunks: BlobPart[], durationSeconds: number) => {
-    if (chunks.length === 0 || !alertId || !recordingId) return false;
+  const saveRecording = async (chunks: BlobPart[], durationSeconds: number): Promise<void> => {
+    if (chunks.length === 0 || !alertId || !recordingId) return;
     
     try {
       // Create video and audio blobs
@@ -62,11 +62,8 @@ export const useRecordingStorage = (alertId: string | null, recordingId: string 
         audioUrl: audioUrlData.publicUrl,
         duration: durationSeconds
       });
-      
-      return true;
     } catch (error) {
       console.error('Error saving recording:', error);
-      return false;
     }
   };
 
