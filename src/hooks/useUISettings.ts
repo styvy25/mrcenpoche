@@ -28,9 +28,11 @@ export const useUISettings = () => {
         setLoading(true);
         
         // Try to fetch from Supabase
+        // Since the ui_settings table might not be in TypeScript types yet,
+        // we use the generic fetch approach with proper typing
         const { data, error } = await supabase
           .from('ui_settings')
-          .select('*');
+          .select('*') as { data: UISettings[] | null, error: Error | null };
           
         if (error) {
           console.warn('Error fetching UI settings, using defaults:', error);
