@@ -7,7 +7,11 @@ import ActiveUsersList from "./ActiveUsersList";
 import { useChatState } from "./hooks/useChatState";
 import FraudAlertButton from "../electoral/FraudAlertButton";
 
-const UserChat = () => {
+interface UserChatProps {
+  isInDialog?: boolean;
+}
+
+const UserChat = ({ isInDialog = false }: UserChatProps) => {
   const { 
     messages, 
     activeUsers, 
@@ -22,7 +26,7 @@ const UserChat = () => {
   if (chatSettings && !chatSettings.isVisible) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[calc(100vh-12rem)]">
+    <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 ${isInDialog ? 'h-full' : 'h-[calc(100vh-12rem)]'}`}>
       <Card className="md:col-span-3 flex flex-col h-full bg-gradient-to-br from-gray-900 to-gray-800 border-white/10">
         <CardHeader className="pb-3 pt-4 border-b border-white/10">
           <div className="flex justify-between items-center">
@@ -49,11 +53,13 @@ const UserChat = () => {
         </CardContent>
       </Card>
 
-      <ActiveUsersList 
-        users={activeUsers}
-        currentUserId={CURRENT_USER_ID}
-        formatLastSeen={formatLastSeen}
-      />
+      {!isInDialog && (
+        <ActiveUsersList 
+          users={activeUsers}
+          currentUserId={CURRENT_USER_ID}
+          formatLastSeen={formatLastSeen}
+        />
+      )}
     </div>
   );
 };

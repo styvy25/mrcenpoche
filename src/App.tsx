@@ -21,6 +21,7 @@ import TourPopup from './components/tour/TourPopup';
 import { Toaster } from "@/components/ui/toaster";
 import FraudAlertNotification from './components/electoral/FraudAlertNotification';
 import ContinuousRecorder from './components/electoral/ContinuousRecorder';
+import ChatButton from './components/chat/ChatButton';
 
 const App = () => {
   return (
@@ -48,6 +49,8 @@ const App = () => {
             <FraudAlertNotification />
             {/* Add the continuous recorder for background recording */}
             <ContinuousRecorder />
+            {/* Ajout du bouton de chat flottant */}
+            <ChatButton />
           </BrowserRouter>
         </TourProvider>
       </AppProvider>
