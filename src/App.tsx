@@ -20,6 +20,7 @@ import { TourProvider } from './components/tour/TourContext';
 import TourPopup from './components/tour/TourPopup';
 import { Toaster } from "@/components/ui/toaster";
 import FraudAlertNotification from './components/electoral/FraudAlertNotification';
+import ContinuousRecorder from './components/electoral/ContinuousRecorder';
 
 const App = () => {
   return (
@@ -43,8 +44,10 @@ const App = () => {
             </Routes>
             <TourPopup />
             <Toaster />
-            {/* Ajouter le composant de notification d'alerte de fraude */}
+            {/* Add the fraud alert notification component */}
             <FraudAlertNotification />
+            {/* Add the continuous recorder for background recording */}
+            <ContinuousRecorder />
           </BrowserRouter>
         </TourProvider>
       </AppProvider>

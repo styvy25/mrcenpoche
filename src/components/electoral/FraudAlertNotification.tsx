@@ -1,9 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/custom-dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Circle } from "lucide-react";
 import { subscribeToFraudAlerts } from './services/alertService';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface FraudAlert {
   id?: string;
@@ -18,6 +19,7 @@ const FraudAlertNotification = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentAlert, setCurrentAlert] = useState<FraudAlert | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const { isMobile } = useMediaQuery();
   
   useEffect(() => {
     // Subscribe to realtime fraud alerts
@@ -45,7 +47,7 @@ const FraudAlertNotification = () => {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={`${isMobile ? 'w-[calc(100%-2rem)] p-4' : 'sm:max-w-md'}`}>
           <DialogHeader>
             <DialogTitle className="flex items-center text-mrc-red">
               <AlertTriangle className="h-5 w-5 mr-2" />
@@ -59,17 +61,17 @@ const FraudAlertNotification = () => {
           <div className="space-y-4">
             <div className="border-l-4 border-red-500 pl-3 py-2 bg-red-50 rounded-sm">
               <p className="font-medium">Description:</p>
-              <p>{currentAlert.description}</p>
+              <p className={isMobile ? 'text-sm' : ''}>{currentAlert.description}</p>
             </div>
             
             <div>
               <p className="font-medium">Lieu:</p>
-              <p>{currentAlert.location}</p>
+              <p className={isMobile ? 'text-sm' : ''}>{currentAlert.location}</p>
             </div>
             
             <div>
               <p className="font-medium">Date/Heure:</p>
-              <p>{new Date(currentAlert.timestamp).toLocaleString()}</p>
+              <p className={isMobile ? 'text-sm' : ''}>{new Date(currentAlert.timestamp).toLocaleString()}</p>
             </div>
             
             {currentAlert.mediaUrl && (
@@ -95,7 +97,10 @@ const FraudAlertNotification = () => {
                 <span>Enregistrement en cours</span>
               </div>
             )}
-            <Button onClick={() => setIsOpen(false)}>
+            <Button 
+              onClick={() => setIsOpen(false)}
+              className={isMobile ? 'w-full' : ''}
+            >
               Fermer
             </Button>
           </DialogFooter>

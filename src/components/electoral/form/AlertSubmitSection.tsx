@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AlertSubmitSectionProps {
   isSubmitting: boolean;
@@ -16,12 +17,14 @@ const AlertSubmitSection: React.FC<AlertSubmitSectionProps> = ({
   location,
   onSubmit
 }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <Button 
       type="submit" 
       onClick={onSubmit}
       disabled={isSubmitting || !description || !location}
-      className="bg-mrc-red hover:bg-mrc-red/80"
+      className={`bg-mrc-red hover:bg-mrc-red/80 ${isMobile ? 'w-full' : ''}`}
     >
       {isSubmitting ? (
         <>
