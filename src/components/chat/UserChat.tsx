@@ -6,7 +6,6 @@ import MessageInput from "./MessageInput";
 import ActiveUsersList from "./ActiveUsersList";
 import { useChatState } from "./hooks/useChatState";
 import FraudAlertButton from "../electoral/FraudAlertButton";
-import FraudAlertNotification from "../electoral/FraudAlertNotification";
 
 const UserChat = () => {
   const { 
@@ -15,8 +14,12 @@ const UserChat = () => {
     CURRENT_USER_ID, 
     handleSendMessage, 
     formatTime, 
-    formatLastSeen 
+    formatLastSeen,
+    chatSettings
   } = useChatState();
+
+  // If chat is configured to be hidden, don't render it
+  if (chatSettings && !chatSettings.isVisible) return null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[calc(100vh-12rem)]">
@@ -51,9 +54,6 @@ const UserChat = () => {
         currentUserId={CURRENT_USER_ID}
         formatLastSeen={formatLastSeen}
       />
-      
-      {/* This component handles fraud alert notifications */}
-      <FraudAlertNotification />
     </div>
   );
 };

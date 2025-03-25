@@ -4,10 +4,16 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import FraudAlertModal from "./FraudAlertModal";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUISettings } from '@/hooks/useUISettings';
 
 const FraudAlertButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { getComponentSettings } = useUISettings();
+  const buttonSettings = getComponentSettings('FraudAlertButton');
+  
+  // If button is configured to be hidden, don't render it
+  if (!buttonSettings.isVisible) return null;
 
   return (
     <>
