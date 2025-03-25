@@ -1,109 +1,92 @@
 
 import { useEffect } from "react";
-import { Message, User } from "./types";
+import { Message } from "./types";
 
 export const useDemoData = (
-  user: any | null,
+  user: any,
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-  setActiveUsers: React.Dispatch<React.SetStateAction<User[]>>,
+  setActiveUsers: React.Dispatch<React.SetStateAction<any[]>>,
   handleSendMessage: (content: string, senderId: string, senderName: string, senderAvatar?: string) => Promise<Message | null>
 ) => {
-  // Initialize demo data if no user (for preview purposes)
-  useEffect(() => {
-    if (user) return; // Skip if user is authenticated
-    
-    // Initial users data
-    const initialUsers: User[] = [
-      { id: "user_1", name: "Vous", avatar: "/lovable-uploads/0a7e7325-0ab5-4f67-b830-1e1b22984ac8.png", isOnline: true },
-      { id: "user_2", name: "Thierry Kamto", avatar: "/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png", isOnline: true },
-      { id: "user_3", name: "Marie Ngoh", avatar: "/lovable-uploads/e326c83f-f666-44e5-9da1-72639a1027e0.png", isOnline: false, lastSeen: new Date(Date.now() - 25 * 60 * 1000) },
-      { id: "user_4", name: "Paul Biya", isOnline: true },
-      { id: "user_5", name: "Kamto Maurice", isOnline: false, lastSeen: new Date(Date.now() - 120 * 60 * 1000) },
-    ];
+  const triggerDemoResponse = async (messageCount: number) => {
+    // Only for demo mode (not authenticated)
+    if (user) return;
 
-    // Initial messages
-    const initialMessages: Message[] = [
-      {
-        id: "msg_1",
-        senderId: "user_2",
-        senderName: "Thierry Kamto",
-        senderAvatar: "/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png",
-        content: "Salut! Comment avancez-vous avec les modules de formation?",
-        timestamp: new Date(Date.now() - 35 * 60 * 1000)
-      },
-      {
-        id: "msg_2",
-        senderId: "user_1",
-        senderName: "Vous",
-        senderAvatar: "/lovable-uploads/0a7e7325-0ab5-4f67-b830-1e1b22984ac8.png",
-        content: "Ça avance bien! J'ai terminé le module sur l'histoire du MRC. Je trouve le contenu très intéressant.",
-        timestamp: new Date(Date.now() - 34 * 60 * 1000)
-      },
-      {
-        id: "msg_3",
-        senderId: "user_3",
-        senderName: "Marie Ngoh",
-        senderAvatar: "/lovable-uploads/e326c83f-f666-44e5-9da1-72639a1027e0.png",
-        content: "J'ai eu quelques difficultés avec le quiz de communication politique. Les questions sont assez techniques!",
-        timestamp: new Date(Date.now() - 28 * 60 * 1000)
-      },
-      {
-        id: "msg_4",
-        senderId: "user_2",
-        senderName: "Thierry Kamto",
-        senderAvatar: "/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png",
-        content: "C'est vrai que ce module est plus complexe. N'hésitez pas à utiliser l'assistant AI pour des explications supplémentaires!",
-        timestamp: new Date(Date.now() - 20 * 60 * 1000)
+    // Add a small delay to simulate processing
+    setTimeout(async () => {
+      if (messageCount === 1) {
+        await handleSendMessage(
+          "Bonjour ! Comment puis-je vous aider ?",
+          "user_2",
+          "Ngoufo",
+          "https://api.dicebear.com/7.x/micah/svg?seed=john"
+        );
+      } else if (messageCount === 2) {
+        await handleSendMessage(
+          "Je vois que vous êtes intéressé par notre plateforme. N'hésitez pas à poser des questions !",
+          "user_3",
+          "Caroline",
+          "https://api.dicebear.com/7.x/micah/svg?seed=susan"
+        );
+      } else if (messageCount === 3) {
+        await handleSendMessage(
+          "Avez-vous besoin d'informations sur le processus électoral ? ou d'autres questions ?",
+          "user_4",
+          "Samuel",
+          "https://api.dicebear.com/7.x/micah/svg?seed=alex"
+        );
+      } else {
+        // Random responses for other messages
+        const responses = [
+          "Merci pour votre message. Un membre de notre équipe vous répondra bientôt.",
+          "C'est noté, nous allons examiner votre demande.",
+          "Excellent point ! Je partage ces informations avec l'équipe.",
+          "Pouvez-vous fournir plus de détails à ce sujet ?",
+          "Consultez aussi notre section Documents pour plus d'informations."
+        ];
+        
+        const randomUser = ["user_2", "user_3", "user_4"][Math.floor(Math.random() * 3)];
+        const randomUserName = randomUser === "user_2" ? "Ngoufo" : 
+                              randomUser === "user_3" ? "Caroline" : "Samuel";
+        const randomUserAvatar = `https://api.dicebear.com/7.x/micah/svg?seed=${
+          randomUser === "user_2" ? "john" : 
+          randomUser === "user_3" ? "susan" : "alex"
+        }`;
+        
+        await handleSendMessage(
+          responses[Math.floor(Math.random() * responses.length)],
+          randomUser,
+          randomUserName,
+          randomUserAvatar
+        );
       }
-    ];
-
-    setActiveUsers(initialUsers);
-    setMessages(initialMessages);
-
-    // Set up demo response for when user sends a message
-    const setupDemoResponse = () => {
-      const originalSendMessage = handleSendMessage;
-      
-      // Simulate responses in demo mode
-      const messageListener = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        if (customEvent.detail?.messageCount % 3 === 0) {
-          setTimeout(() => {
-            const responderId = initialUsers.filter(u => u.id !== "user_1" && u.isOnline)[
-              Math.floor(Math.random() * (initialUsers.filter(u => u.id !== "user_1" && u.isOnline).length))
-            ].id;
-            
-            const responder = initialUsers.find(u => u.id === responderId);
-            
-            handleSendMessage(
-              "Merci pour votre message. Continuons cette discussion sur les modules de formation du MRC!",
-              responderId,
-              responder?.name || "Utilisateur",
-              responder?.avatar
-            );
-          }, 1500);
-        }
-      };
-
-      document.addEventListener('demo-message-sent', messageListener);
-      
-      return () => {
-        document.removeEventListener('demo-message-sent', messageListener);
-      };
-    };
-
-    const cleanup = setupDemoResponse();
-    return cleanup;
-  }, [user, setActiveUsers, setMessages, handleSendMessage]);
-
-  // Helper to trigger demo response events
-  const triggerDemoResponse = (messageCount: number) => {
-    if (!user) {
-      document.dispatchEvent(new CustomEvent('demo-message-sent', { 
-        detail: { messageCount } 
-      }));
-    }
+    }, 1000);
   };
+
+  // Initialize with demo messages if not authenticated
+  useEffect(() => {
+    if (!user && setMessages) {
+      const demoMessages: Message[] = [
+        {
+          id: "msg_1",
+          senderId: "user_2",
+          senderName: "Ngoufo",
+          senderAvatar: "https://api.dicebear.com/7.x/micah/svg?seed=john",
+          content: "Bienvenue sur notre plateforme d'éducation électorale !",
+          timestamp: new Date(Date.now() - 120 * 60000) // 2 hours ago
+        },
+        {
+          id: "msg_2",
+          senderId: "user_3",
+          senderName: "Caroline",
+          senderAvatar: "https://api.dicebear.com/7.x/micah/svg?seed=susan",
+          content: "N'hésitez pas à poser vos questions sur le processus électoral.",
+          timestamp: new Date(Date.now() - 90 * 60000) // 1.5 hours ago
+        }
+      ];
+      setMessages(demoMessages);
+    }
+  }, [user, setMessages]);
 
   return {
     triggerDemoResponse

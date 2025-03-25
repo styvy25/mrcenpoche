@@ -1,22 +1,20 @@
 
 import { useEffect } from 'react';
 
-type EventCallback<T = any> = (event: CustomEvent<T>) => void;
-
-export const useEventListener = <T = any>(
-  eventName: string, 
-  callback: EventCallback<T>,
-  dependencies: any[] = []
-) => {
+export function useEventListener<T>(
+  eventName: string,
+  handler: (event: CustomEvent<T>) => void,
+  deps: any[] = []
+) {
   useEffect(() => {
-    const handler = (event: Event) => {
-      callback(event as CustomEvent<T>);
+    const handleEvent = (event: Event) => {
+      handler(event as CustomEvent<T>);
     };
-    
-    document.addEventListener(eventName, handler);
-    
+
+    document.addEventListener(eventName, handleEvent);
+
     return () => {
-      document.removeEventListener(eventName, handler);
+      document.removeEventListener(eventName, handleEvent);
     };
-  }, dependencies);
-};
+  }, [eventName, handler, ...deps]);
+}

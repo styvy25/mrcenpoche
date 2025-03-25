@@ -3,6 +3,7 @@ import { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatMessage from "./ChatMessage";
 import { Message } from "./hooks/types";
+import { Users } from "lucide-react";
 
 interface MessagesContainerProps {
   messages: Message[];
