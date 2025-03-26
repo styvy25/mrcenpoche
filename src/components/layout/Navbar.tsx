@@ -10,22 +10,34 @@ import {
   ChevronRight, 
   Home,
   Menu,
-  MessageSquare
+  MessageSquare,
+  AlertTriangle,
+  BookOpen,
+  Server,
+  HelpCircle,
+  Settings
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
+import ApiKeysDialog from "@/components/settings/ApiKeysDialog";
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isApiKeySet } = useAppContext();
+  const isMobile = useIsMobile();
   const [previousLocation, setPreviousLocation] = useState<string>("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(!isApiKeySet);
 
   // Track navigation history for back button
   useEffect(() => {
@@ -65,8 +77,11 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { path: "/assistant", icon: <MessageSquare className="h-4 w-4" />, label: "Assistant" },
-    { path: "/documents", icon: <FileText className="h-4 w-4" />, label: "Documents" }
+    { path: "/assistant", icon: <MessageSquare className="h-4 w-4" />, label: "Assistant", badge: isApiKeySet ? false : true },
+    { path: "/documents", icon: <FileText className="h-4 w-4" />, label: "Documents" },
+    { path: "/news", icon: <BookOpen className="h-4 w-4" />, label: "Actualités" },
+    { path: "/quiz", icon: <HelpCircle className="h-4 w-4" />, label: "Quiz" },
+    { path: "/alerte-fraude", icon: <AlertTriangle className="h-4 w-4" />, label: "Signaler", highlight: true }
   ];
 
   return (
@@ -76,11 +91,12 @@ const Navbar = () => {
           <div className="flex items-center space-x-1 mr-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" title="Navigation">
+                <Button variant="ghost" size="icon" title="Menu de navigation">
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel>Navigation</DropdownMenuLabel>
                 <DropdownMenuItem onClick={handleGoBack}>
                   <ChevronLeft className="h-4 w-4 mr-2" />
                   Retour
@@ -93,6 +109,39 @@ const Navbar = () => {
                   <Home className="h-4 w-4 mr-2" />
                   Accueil
                 </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Fonctionnalités</DropdownMenuLabel>
+                
+                {navLinks.map((link) => (
+                  <DropdownMenuItem key={link.path} onClick={() => navigate(link.path)} className="flex items-center">
+                    <div className={`mr-2 ${link.highlight ? 'text-mrc-red' : ''}`}>{link.icon}</div>
+                    <span className={link.highlight ? 'text-mrc-red font-medium' : ''}>{link.label}</span>
+                    {link.badge && <Badge variant="outline" className="ml-auto text-xs">API Requise</Badge>}
+                  </DropdownMenuItem>
+                ))}
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Paramètres
+                </DropdownMenuItem>
+                
+                {!isApiKeySet && (
+                  <DropdownMenuItem className="text-blue-500 font-medium" asChild>
+                    <div className="w-full">
+                      <ApiKeysDialog 
+                        triggerButton={
+                          <div className="flex items-center gap-2 w-full">
+                            <Server className="h-4 w-4" />
+                            Configurer les API
+                          </div>
+                        }
+                      />
+                    </div>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             
@@ -128,7 +177,7 @@ const Navbar = () => {
           </div>
           
           <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-            MRC<span className="text-mrc-blue"> en Poche</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-mrc-blue via-mrc-red to-mrc-blue">MRC en Poche</span>
           </Link>
         </div>
 
@@ -137,11 +186,12 @@ const Navbar = () => {
           {navLinks.map((link) => (
             <Link to={link.path} key={link.path}>
               <Button
-                variant={isActive(link.path) ? "default" : "ghost"}
+                variant={isActive(link.path) ? "default" : link.highlight ? "destructive" : "ghost"}
                 className="flex items-center gap-1"
               >
                 {link.icon}
                 <span>{link.label}</span>
+                {link.badge && <Badge variant="outline" className="ml-1 text-[10px] py-0">API</Badge>}
               </Button>
             </Link>
           ))}
@@ -155,7 +205,7 @@ const Navbar = () => {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
+            <SheetContent side="right" className="w-full sm:w-80">
               <div className="flex flex-col space-y-4 mt-8">
                 {navLinks.map((link) => (
                   <Link 
@@ -164,14 +214,40 @@ const Navbar = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Button
-                      variant={isActive(link.path) ? "default" : "ghost"}
+                      variant={isActive(link.path) ? "default" : link.highlight ? "destructive" : "ghost"}
                       className="w-full justify-start"
                     >
                       {link.icon}
                       <span className="ml-2">{link.label}</span>
+                      {link.badge && <Badge variant="outline" className="ml-auto text-xs">API Requise</Badge>}
                     </Button>
                   </Link>
                 ))}
+                
+                <Button
+                  variant="outline"
+                  className="w-full justify-start mt-4"
+                  onClick={() => {
+                    navigate('/settings');
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Paramètres
+                </Button>
+                
+                {!isApiKeySet && (
+                  <div className="w-full mt-4">
+                    <ApiKeysDialog 
+                      triggerButton={
+                        <Button variant="outline" className="w-full justify-start bg-blue-500/10 border-blue-500/30 text-blue-500">
+                          <Server className="h-4 w-4 mr-2" />
+                          Configurer les API
+                        </Button>
+                      }
+                    />
+                  </div>
+                )}
               </div>
             </SheetContent>
           </Sheet>

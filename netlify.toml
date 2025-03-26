@@ -45,3 +45,31 @@
 # Define custom domain
 [context.production]
   environment = { NETLIFY_CUSTOM_DOMAIN = "mrcenpoche.xyz" }
+
+# Custom domain redirects
+[[redirects]]
+  from = "https://mrcenpoche.netlify.app/*"
+  to = "https://mrcenpoche.xyz/:splat"
+  status = 301
+  force = true
+
+# Specific optimizations for Netlify
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.images]
+  compress = true
+
+# Custom 404 page
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 404

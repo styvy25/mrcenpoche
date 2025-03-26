@@ -4,31 +4,67 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HomeContent from "@/components/home/HomeContent";
 import { useSEO } from "@/hooks/useSEO";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ChatButton from "@/components/chat/ChatButton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ChevronUp, Info } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useApiKeys } from "@/hooks/useApiKeys";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import ApiKeysDialog from "@/components/settings/ApiKeysDialog";
+import DomainAnnouncement from "@/components/layout/DomainAnnouncement";
 
 const Index = () => {
   const { setPageTitle, setPageDescription } = useSEO();
   const isMobile = useIsMobile();
-
+  const { keyStatus } = useApiKeys();
+  
   useEffect(() => {
     setPageTitle("MRC en Poche - Votre application pour rester informé et engagé");
     setPageDescription("MRC en Poche vous permet de rester informé et engagé grâce à des outils interactifs et des ressources à jour.");
+    
+    // Enregistrer le domaine dans le localStorage pour confirmer le déploiement
+    const currentHost = window.location.hostname;
+    localStorage.setItem('deployment_domain', currentHost);
   }, [setPageTitle, setPageDescription]);
+
+  const isApiConfigured = keyStatus.perplexity || keyStatus.youtube || keyStatus.stripe;
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       <Navbar />
-      <main className="flex-grow relative">
+      <main className="flex-grow relative mt-16 px-4 sm:px-8">
+        {/* Annonce de domaine personnalisé */}
+        <DomainAnnouncement customDomain="mrcenpoche.xyz" />
+        
+        {/* Alerte de configuration API si nécessaire */}
+        {!isApiConfigured && (
+          <div className="mb-6">
+            <Alert className="bg-amber-500/10 border-amber-500/30">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="flex flex-col gap-2">
+                <p>Certaines fonctionnalités nécessitent une configuration API</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  <ApiKeysDialog 
+                    triggerButton={
+                      <Button variant="outline" size="sm" className="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/10 dark:to-amber-800/10 border-amber-500/30 text-amber-700 dark:text-amber-400">
+                        Configurer les API
+                      </Button>
+                    }
+                  />
+                </div>
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+        
+        {/* Contenu principal */}
         <HomeContent />
         
         {/* Interface améliorée pour les boutons d'action */}
-        <div className="fixed bottom-0 left-0 right-0 z-50">
-          <Collapsible>
+        <div className="fixed bottom-0 left-0 right-0 z-40">
+          <Collapsible defaultOpen>
             <div className="bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-sm border-t border-gray-700/50 py-2 px-4 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Info size={16} className="text-blue-400" />
@@ -61,7 +97,7 @@ const Index = () => {
                   colorClass="from-purple-600 to-purple-800"
                 />
                 <ActionButton 
-                  onClick={() => window.open('/alerte-fraude', '_blank')}
+                  href="/alerte-fraude"
                   label="Signaler une fraude"
                   colorClass="from-mrc-red to-rose-700"
                   icon={<AlertTriangle size={14} className="mr-1" />}
@@ -72,7 +108,7 @@ const Index = () => {
         </div>
         
         {/* Position optimisée du bouton de chat */}
-        <div className="fixed bottom-16 right-6 z-40">
+        <div className="fixed bottom-20 right-6 z-30">
           <ChatButton />
         </div>
       </main>
