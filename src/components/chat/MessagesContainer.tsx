@@ -3,7 +3,7 @@ import { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatMessage from "./ChatMessage";
 import { Message } from "./hooks/types";
-import { Users } from "lucide-react";
+import { Users, Calendar } from "lucide-react";
 
 interface MessagesContainerProps {
   messages: Message[];
@@ -54,22 +54,25 @@ const MessagesContainer = ({ messages, currentUserId, formatTime }: MessagesCont
   });
 
   return (
-    <ScrollArea className="flex-1 p-2 sm:p-4">
-      <div className="space-y-4">
+    <ScrollArea className="flex-1 p-3 sm:p-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+      <div className="space-y-6">
         {messages.length === 0 ? (
-          <div className="flex flex-col h-full items-center justify-center p-6 text-center text-gray-400">
-            <p className="mb-4">Aucun message. Commencez la conversation!</p>
-            <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mb-3">
+          <div className="flex flex-col h-full items-center justify-center p-8 text-center">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center mb-4 shadow-inner">
               <Users size={32} className="text-purple-400" />
             </div>
-            <p className="text-sm max-w-xs">Partagez vos questions, expériences ou ressources avec les autres apprenants.</p>
+            <h3 className="text-lg font-medium mb-2 text-white">Discussion vide</h3>
+            <p className="text-sm max-w-xs text-gray-400">
+              Partagez vos questions, expériences ou ressources avec les autres apprenants.
+            </p>
           </div>
         ) : (
           Object.keys(groupedMessages).map(dateKey => (
-            <div key={dateKey} className="space-y-3">
-              <div className="relative flex items-center justify-center">
-                <div className="absolute w-full border-t border-gray-700"></div>
-                <span className="relative bg-gray-800 px-3 py-1 text-xs text-gray-400 rounded-full mx-auto">
+            <div key={dateKey} className="space-y-4">
+              <div className="relative flex items-center justify-center my-6">
+                <div className="absolute w-full border-t border-gray-700/50"></div>
+                <span className="relative px-4 py-1.5 bg-gradient-to-r from-gray-800 to-gray-900 text-xs text-gray-400 rounded-full flex items-center gap-2 shadow-sm border border-gray-700/30">
+                  <Calendar className="h-3 w-3" />
                   {dateKey}
                 </span>
               </div>
@@ -85,7 +88,7 @@ const MessagesContainer = ({ messages, currentUserId, formatTime }: MessagesCont
             </div>
           ))
         )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-4" />
       </div>
     </ScrollArea>
   );
