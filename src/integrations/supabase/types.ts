@@ -2346,6 +2346,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ui_settings: {
+        Row: {
+          component_name: string
+          created_at: string
+          id: string
+          is_visible: boolean
+          style_options: Json
+          updated_at: string
+        }
+        Insert: {
+          component_name: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          style_options?: Json
+          updated_at?: string
+        }
+        Update: {
+          component_name?: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          style_options?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_interactions: {
         Row: {
           context_data: Json | null
