@@ -66,6 +66,26 @@
     100% { transform: scale(0.95); opacity: 0.9; }
   }
 
+  @keyframes fadeInBottom {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shine {
+    from {
+      background-position: -100% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
@@ -90,9 +110,14 @@
     animation: pulse 2s infinite ease-in-out;
   }
 
-  .editorial-fade-in {
-    opacity: 0;
-    animation: fadeIn 0.5s ease-out forwards;
+  .animate-fade-in {
+    animation: fadeInBottom 0.7s ease-out forwards;
+  }
+
+  .animate-shine {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background-size: 200% 100%;
+    animation: shine 1.5s infinite linear;
   }
   
   /* Performance optimized animations */
@@ -112,7 +137,7 @@
     
     .animate-float,
     .scale-in,
-    .editorial-fade-in,
+    .animate-fade-in,
     .chat-bubble-in,
     .typing-dot,
     .animate-pulse-subtle {
