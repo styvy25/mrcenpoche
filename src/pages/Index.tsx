@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import HomeContent from "@/components/home/HomeContent";
 import { useSEO } from "@/hooks/useSEO";
 import { useEffect } from "react";
+import FraudAlertButton from "@/components/electoral/FraudAlertButton";
 
 const Index = () => {
   const { setPageTitle, setPageDescription } = useSEO();
@@ -19,6 +20,10 @@ const Index = () => {
       <Navbar />
       <main className="flex-grow">
         <HomeContent />
+        {/* Ajout du bouton d'alerte flottant */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <FraudAlertButton />
+        </div>
       </main>
       <Footer />
     </div>
