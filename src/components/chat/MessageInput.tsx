@@ -58,7 +58,7 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
     <div className="p-3 bg-gray-900/80 border-t border-gray-700/50 backdrop-blur-sm">
       {isMediaCaptureOpen ? (
         <MediaCapture 
-          onCancel={() => setIsMediaCaptureOpen(false)}
+          onClose={() => setIsMediaCaptureOpen(false)}
           onCapture={handleMediaCapture}
         />
       ) : (
