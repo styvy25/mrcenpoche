@@ -13,6 +13,7 @@ export interface PlanLimits {
   accessAllModules: boolean;
   certificatesEnabled: boolean;
   webinarsAccess: boolean;
+  livestreamingEnabled: boolean;
 }
 
 // Définition des limites par plan
@@ -22,21 +23,24 @@ const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     pdfGenerationsPerMonth: 3,
     accessAllModules: false,
     certificatesEnabled: false,
-    webinarsAccess: false
+    webinarsAccess: false,
+    livestreamingEnabled: false
   },
   premium: {
     chatMessagesPerDay: Infinity,
     pdfGenerationsPerMonth: Infinity,
     accessAllModules: true,
     certificatesEnabled: true,
-    webinarsAccess: true
+    webinarsAccess: true,
+    livestreamingEnabled: true
   },
   group: {
     chatMessagesPerDay: Infinity,
     pdfGenerationsPerMonth: Infinity,
     accessAllModules: true,
     certificatesEnabled: true,
-    webinarsAccess: true
+    webinarsAccess: true,
+    livestreamingEnabled: true
   }
 };
 
@@ -53,144 +57,117 @@ export function usePlanLimits() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [userPlan, setUserPlan] = useState<PlanType>('free');
-  const [chatMessagesToday, setChatMessagesToday] = useState(0);
-  const [pdfGenerationsThisMonth, setPdfGenerationsThisMonth] = useState(0);
-  
-  // Charger et initialiser les compteurs à partir du localStorage
+  const [limits, setLimits] = useState<PlanLimits>(PLAN_LIMITS.free);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    if (!user) return;
-    
-    // Chargement du plan utilisateur
-    const savedPlan = localStorage.getItem(STORAGE_KEYS.USER_PLAN) as PlanType || 'free';
-    setUserPlan(savedPlan);
-    
-    // Réinitialiser le compteur de messages quotidien si nécessaire
-    const lastChatDate = localStorage.getItem(STORAGE_KEYS.CHAT_MESSAGES_DATE);
-    const today = new Date().toDateString();
-    
-    if (lastChatDate !== today) {
-      localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY, '0');
-      localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES_DATE, today);
-      setChatMessagesToday(0);
-    } else {
-      const count = parseInt(localStorage.getItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY) || '0', 10);
-      setChatMessagesToday(count);
-    }
-    
-    // Réinitialiser le compteur mensuel de génération PDF si nécessaire
-    const lastPdfMonth = localStorage.getItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH_DATE);
-    const currentMonth = new Date().toISOString().slice(0, 7); // Format YYYY-MM
-    
-    if (lastPdfMonth !== currentMonth) {
-      localStorage.setItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH, '0');
-      localStorage.setItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH_DATE, currentMonth);
-      setPdfGenerationsThisMonth(0);
-    } else {
-      const count = parseInt(localStorage.getItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH) || '0', 10);
-      setPdfGenerationsThisMonth(count);
-    }
-  }, [user]);
-  
-  // Vérifier si l'utilisateur peut envoyer un message chat
-  const canSendChatMessage = () => {
-    if (userPlan !== 'free') return true;
-    
-    return chatMessagesToday < PLAN_LIMITS.free.chatMessagesPerDay;
-  };
-  
-  // Incrémenter le compteur de messages chat
-  const incrementChatMessages = () => {
-    if (!user) return false;
-    
-    if (!canSendChatMessage()) {
-      toast({
-        title: "Limite atteinte",
-        description: "Vous avez atteint votre limite de messages quotidienne. Passez à l'offre premium pour un accès illimité.",
-        variant: "destructive"
-      });
-      return false;
-    }
-    
-    const newCount = chatMessagesToday + 1;
-    localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY, newCount.toString());
-    setChatMessagesToday(newCount);
-    return true;
-  };
-  
-  // Vérifier si l'utilisateur peut générer un PDF
-  const canGeneratePdf = () => {
-    if (userPlan !== 'free') return true;
-    
-    return pdfGenerationsThisMonth < PLAN_LIMITS.free.pdfGenerationsPerMonth;
-  };
-  
-  // Incrémenter le compteur de génération PDF
-  const incrementPdfGenerations = () => {
-    if (!user) return false;
-    
-    if (!canGeneratePdf()) {
-      toast({
-        title: "Limite atteinte",
-        description: "Vous avez atteint votre limite de génération de PDF mensuelle. Passez à l'offre premium pour un accès illimité.",
-        variant: "destructive"
-      });
-      return false;
-    }
-    
-    const newCount = pdfGenerationsThisMonth + 1;
-    localStorage.setItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH, newCount.toString());
-    setPdfGenerationsThisMonth(newCount);
-    return true;
-  };
-  
-  // Vérifier si l'utilisateur a accès à tous les modules
-  const canAccessAllModules = () => {
-    return userPlan !== 'free' || PLAN_LIMITS.free.accessAllModules;
-  };
-  
-  // Vérifier si l'utilisateur a accès aux certificats
-  const canAccessCertificates = () => {
-    return userPlan !== 'free' || PLAN_LIMITS.free.certificatesEnabled;
-  };
-  
-  // Mettre à jour le plan de l'utilisateur
-  const updateUserPlan = (plan: PlanType) => {
-    localStorage.setItem(STORAGE_KEYS.USER_PLAN, plan);
-    setUserPlan(plan);
-    
-    toast({
-      title: "Plan mis à jour",
-      description: `Votre plan a été mis à jour vers ${plan === 'premium' ? 'Premium' : plan === 'group' ? 'Groupe' : 'Gratuit'}.`,
-      variant: "default"
-    });
-  };
-  
-  // Obtenir les limites du plan actuel
-  const getCurrentPlanLimits = (): PlanLimits => {
-    return PLAN_LIMITS[userPlan];
-  };
-  
-  // Statistiques d'utilisation
-  const getUsageStats = () => {
-    return {
-      chatMessagesToday,
-      chatMessagesLimit: PLAN_LIMITS[userPlan].chatMessagesPerDay,
-      pdfGenerationsThisMonth,
-      pdfGenerationsLimit: PLAN_LIMITS[userPlan].pdfGenerationsPerMonth,
-      userPlan
+    const loadUserPlan = async () => {
+      try {
+        // Essayer de charger depuis localStorage d'abord
+        const savedPlan = localStorage.getItem(STORAGE_KEYS.USER_PLAN) as PlanType;
+        if (savedPlan && Object.keys(PLAN_LIMITS).includes(savedPlan)) {
+          setUserPlan(savedPlan);
+          setLimits(PLAN_LIMITS[savedPlan]);
+        } else {
+          // Si aucun plan n'est sauvegardé, définir sur 'free'
+          setUserPlan('free');
+          setLimits(PLAN_LIMITS.free);
+        }
+      } catch (error) {
+        console.error('Error loading user plan:', error);
+        setUserPlan('free');
+        setLimits(PLAN_LIMITS.free);
+      } finally {
+        setIsLoading(false);
+      }
     };
+
+    loadUserPlan();
+  }, [user]);
+
+  // Mettre à jour le plan de l'utilisateur
+  const updateUserPlan = (newPlan: PlanType) => {
+    if (!Object.keys(PLAN_LIMITS).includes(newPlan)) {
+      toast({
+        title: "Erreur",
+        description: `Plan non reconnu: ${newPlan}`,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    try {
+      localStorage.setItem(STORAGE_KEYS.USER_PLAN, newPlan);
+      setUserPlan(newPlan);
+      setLimits(PLAN_LIMITS[newPlan]);
+      
+      toast({
+        title: "Plan mis à jour",
+        description: `Votre plan a été mis à jour vers ${newPlan}`,
+      });
+      
+      return true;
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour votre plan",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
-  
+
+  // Vérifier si l'utilisateur peut utiliser une fonctionnalité spécifique
+  const canUseFeature = (feature: keyof PlanLimits): boolean => {
+    return !!limits[feature];
+  };
+
+  // Vérifier si l'utilisateur a atteint la limite quotidienne de messages de chat
+  const hasChatLimit = (): boolean => {
+    return limits.chatMessagesPerDay !== Infinity;
+  };
+
+  // Obtenir le nombre de messages de chat utilisés aujourd'hui
+  const getChatMessagesUsedToday = (): number => {
+    const today = new Date().toDateString();
+    const savedDate = localStorage.getItem(STORAGE_KEYS.CHAT_MESSAGES_DATE);
+    
+    if (savedDate !== today) {
+      localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES_DATE, today);
+      localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY, '0');
+      return 0;
+    }
+    
+    return parseInt(localStorage.getItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY) || '0');
+  };
+
+  // Incrémenter le compteur de messages de chat
+  const incrementChatMessages = (): boolean => {
+    const usedToday = getChatMessagesUsedToday();
+    
+    if (usedToday >= limits.chatMessagesPerDay) {
+      toast({
+        title: "Limite atteinte",
+        description: "Vous avez atteint votre limite quotidienne de messages. Passez à Premium pour un accès illimité.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY, (usedToday + 1).toString());
+    return true;
+  };
+
   return {
     userPlan,
+    limits,
+    isLoading,
     updateUserPlan,
-    canSendChatMessage,
-    incrementChatMessages,
-    canGeneratePdf,
-    incrementPdfGenerations,
-    canAccessAllModules,
-    canAccessCertificates,
-    getCurrentPlanLimits,
-    getUsageStats
+    canUseFeature,
+    hasChatLimit,
+    getChatMessagesUsedToday,
+    incrementChatMessages
   };
 }
+
+export default usePlanLimits;

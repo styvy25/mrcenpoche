@@ -16,6 +16,7 @@ interface StripePaymentPopupProps {
   onClose: () => void;
 }
 
+// Lien Stripe fourni par l'utilisateur
 const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/28odUe9Cx4skbVS9AW";
 
 const StripePaymentPopup: React.FC<StripePaymentPopupProps> = ({ isOpen, onClose }) => {
