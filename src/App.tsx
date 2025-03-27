@@ -13,6 +13,7 @@ import SettingsPage from './pages/SettingsPage';
 import AuthPage from './pages/AuthPage';
 import NotFound from './pages/NotFound';
 import Index from './pages/Index';
+import LivestreamingPage from './pages/LivestreamingPage';
 import './App.css';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './components/auth/AuthContext';
@@ -41,15 +42,13 @@ const App = () => {
               <Route path="/payment" element={<PaymentPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/livestreaming" element={<LivestreamingPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <TourPopup />
             <Toaster />
-            {/* Add the fraud alert notification component */}
             <FraudAlertNotification />
-            {/* Add the continuous recorder for background recording */}
             <ContinuousRecorder />
-            {/* Ajout du bouton de chat flottant */}
             <ChatButton />
           </BrowserRouter>
         </TourProvider>

@@ -8,17 +8,20 @@ import { useEffect, useState } from "react";
 import ChatButton from "@/components/chat/ChatButton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ChevronUp, Info } from "lucide-react";
+import { AlertTriangle, ChevronUp, Info, Video } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ApiKeysDialog from "@/components/settings/ApiKeysDialog";
 import DomainAnnouncement from "@/components/layout/DomainAnnouncement";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LivestreamingView from "@/components/streaming/LivestreamingView";
 
 const Index = () => {
   const { setPageTitle, setPageDescription } = useSEO();
   const isMobile = useIsMobile();
   const { keyStatus } = useApiKeys();
+  const [activeTab, setActiveTab] = useState<string>("home");
   
   useEffect(() => {
     setPageTitle("MRC en Poche - Votre application pour rester informé et engagé");
@@ -59,8 +62,25 @@ const Index = () => {
           </div>
         )}
         
-        {/* Contenu principal */}
-        <HomeContent />
+        {/* Navigation par onglets */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-6">
+          <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto">
+            <TabsTrigger value="home" className="flex items-center gap-1">
+              <Info className="h-4 w-4" /> Accueil
+            </TabsTrigger>
+            <TabsTrigger value="live" className="flex items-center gap-1">
+              <Video className="h-4 w-4" /> Livestreams
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="home" className="mt-4">
+            <HomeContent />
+          </TabsContent>
+          
+          <TabsContent value="live" className="mt-4">
+            <LivestreamingView />
+          </TabsContent>
+        </Tabs>
         
         {/* Interface améliorée pour les boutons d'action */}
         <div className="fixed bottom-0 left-0 right-0 z-40">
