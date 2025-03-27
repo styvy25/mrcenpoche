@@ -103,7 +103,7 @@ const UserChat = ({ isInDialog = false }: UserChatProps) => {
       )}
       
       <FraudAlertModal
-        open={isFraudAlertOpen}
+        isOpen={isFraudAlertOpen}
         onOpenChange={setFraudAlertOpen}
       />
     </div>

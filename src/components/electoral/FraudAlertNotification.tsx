@@ -3,17 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/custom-dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Circle } from "lucide-react";
-import { subscribeToFraudAlerts } from './services/alertService';
+import { subscribeToFraudAlerts, FraudAlert } from './services/alertService';
 import { useMediaQuery } from '@/hooks/use-media-query';
-
-interface FraudAlert {
-  id?: string;
-  description: string;
-  location: string;
-  mediaUrl?: string | null;
-  mediaType?: 'photo' | 'audio' | null;
-  timestamp: string;
-}
 
 const FraudAlertNotification = () => {
   const [isOpen, setIsOpen] = useState(false);

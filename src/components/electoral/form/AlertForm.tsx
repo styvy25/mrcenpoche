@@ -93,7 +93,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
 
         {mediaFile ? (
           <RecordingStatusSection 
-            mediaType={mediaType} 
+            mediaType={mediaType || 'photo'} 
             onReset={() => {
               setMediaFile(null);
               setMediaType(null);

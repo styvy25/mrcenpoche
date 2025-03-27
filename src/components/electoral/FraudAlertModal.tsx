@@ -1,66 +1,110 @@
 
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { AlertTriangle } from "lucide-react";
-import AlertForm from "./form/AlertForm";
-import MediaCapture from "../chat/MediaCapture";
+import AlertForm from './form/AlertForm';
+import MediaCapture from '../chat/MediaCapture';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import BackButton from '../shared/BackButton';
 
-interface FraudAlertModalProps {
+export interface FraudAlertModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
-const FraudAlertModal: React.FC<FraudAlertModalProps> = ({ isOpen, onClose }) => {
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
+const FraudAlertModal: React.FC<FraudAlertModalProps> = ({ 
+  isOpen, 
+  onOpenChange 
+}) => {
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
   const [mediaFile, setMediaFile] = useState<Blob | null>(null);
   const [mediaType, setMediaType] = useState<'photo' | 'audio' | null>(null);
-  const [showMediaCapture, setShowMediaCapture] = useState(false);
-
-  const handleOpenMediaCapture = () => {
-    setShowMediaCapture(true);
+  const [isCapturingMedia, setIsCapturingMedia] = useState(false);
+  
+  const { isMobile } = useMediaQuery();
+  
+  const handleCaptureComplete = (file: Blob, type: 'photo' | 'audio') => {
+    setMediaFile(file);
+    setMediaType(type);
+    setIsCapturingMedia(false);
   };
 
-  const handleCloseMediaCapture = () => {
-    setShowMediaCapture(false);
+  const handleCaptureCancel = () => {
+    setIsCapturingMedia(false);
   };
-
-  const handleMediaCapture = async (
-    capturedMedia: Blob,
-    capturedMediaType: 'photo' | 'audio'
-  ) => {
-    setMediaFile(capturedMedia);
-    setMediaType(capturedMediaType);
-    setShowMediaCapture(false);
+  
+  const handleStartCapture = () => {
+    setIsCapturingMedia(true);
   };
-
+  
+  // Utiliser Sheet sur mobile et Dialog sur desktop
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <SheetContent className="pt-6 px-0">
+          <SheetHeader className="px-4">
+            <div className="flex items-center gap-2">
+              <BackButton 
+                to="#" 
+                onClick={() => onOpenChange(false)} 
+                label="Fermer" 
+                className="mb-2" 
+              />
+            </div>
+            <SheetTitle className="flex items-center text-mrc-red">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              Signaler une fraude électorale
+            </SheetTitle>
+          </SheetHeader>
+          
+          <div className="px-4 pt-3">
+            {isCapturingMedia ? (
+              <MediaCapture
+                mediaType={mediaType || 'photo'}
+                onCapture={handleCaptureComplete}
+                onCancel={handleCaptureCancel}
+              />
+            ) : (
+              <AlertForm
+                onClose={() => onOpenChange(false)}
+                description={description}
+                setDescription={setDescription}
+                location={location}
+                setLocation={setLocation}
+                mediaFile={mediaFile}
+                setMediaFile={setMediaFile}
+                mediaType={mediaType}
+                setMediaType={setMediaType}
+                onCaptureMedia={handleStartCapture}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-red-600">
-            <AlertTriangle className="h-5 w-5" />
+          <DialogTitle className="flex items-center text-mrc-red">
+            <AlertTriangle className="h-5 w-5 mr-2" />
             Signaler une fraude électorale
           </DialogTitle>
-          <DialogDescription>
-            Utilisez ce formulaire pour signaler une fraude électorale dont vous êtes témoin.
-          </DialogDescription>
         </DialogHeader>
-
-        {showMediaCapture ? (
+        
+        {isCapturingMedia ? (
           <MediaCapture
-            onClose={handleCloseMediaCapture}
-            onCapture={handleMediaCapture}
+            mediaType={mediaType || 'photo'}
+            onCapture={handleCaptureComplete}
+            onCancel={handleCaptureCancel}
           />
         ) : (
           <AlertForm
-            onClose={onClose}
+            onClose={() => onOpenChange(false)}
             description={description}
             setDescription={setDescription}
             location={location}
@@ -69,7 +113,7 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({ isOpen, onClose }) =>
             setMediaFile={setMediaFile}
             mediaType={mediaType}
             setMediaType={setMediaType}
-            onCaptureMedia={handleOpenMediaCapture}
+            onCaptureMedia={handleStartCapture}
           />
         )}
       </DialogContent>

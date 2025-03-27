@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from '@/hooks/use-toast';
-import { User } from 'lucide-react';
 
 interface ChatNotificationProps {
   unreadMessages: number;
@@ -31,7 +30,6 @@ const ChatNotification: React.FC<ChatNotificationProps> = ({
       toast({
         title: "Nouveaux utilisateurs en ligne",
         description: `${onlineUsers} utilisateur${onlineUsers > 1 ? 's' : ''} actuellement en ligne`,
-        icon: <User className="h-4 w-4" />
       });
     }
     setPreviousOnline(onlineUsers);
