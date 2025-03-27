@@ -19,7 +19,7 @@ interface AlertFormProps {
   setMediaFile: React.Dispatch<React.SetStateAction<Blob | null>>;
   mediaType: 'photo' | 'audio' | null;
   setMediaType: React.Dispatch<React.SetStateAction<'photo' | 'audio' | null>>;
-  onCaptureMedia: () => void;
+  onCaptureMedia: (type: 'photo' | 'audio') => void;
 }
 
 const AlertForm: React.FC<AlertFormProps> = ({
@@ -91,9 +91,9 @@ const AlertForm: React.FC<AlertFormProps> = ({
           />
         </div>
 
-        {mediaFile ? (
+        {mediaFile && mediaType ? (
           <RecordingStatusSection 
-            mediaType={mediaType || 'photo'} 
+            mediaType={mediaType} 
             onReset={() => {
               setMediaFile(null);
               setMediaType(null);
@@ -103,10 +103,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
           <div className="flex gap-2">
             <Button
               type="button"
-              onClick={() => {
-                setMediaType('photo');
-                onCaptureMedia();
-              }}
+              onClick={() => onCaptureMedia('photo')}
               variant="outline"
               className="flex-1"
             >
@@ -115,10 +112,7 @@ const AlertForm: React.FC<AlertFormProps> = ({
             </Button>
             <Button
               type="button"
-              onClick={() => {
-                setMediaType('audio');
-                onCaptureMedia();
-              }}
+              onClick={() => onCaptureMedia('audio')}
               variant="outline"
               className="flex-1"
             >

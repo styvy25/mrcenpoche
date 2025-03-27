@@ -13,6 +13,7 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [isMediaCaptureOpen, setIsMediaCaptureOpen] = useState(false);
+  const [captureType, setCaptureType] = useState<'photo' | 'audio'>('photo');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -54,12 +55,23 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
     }
   };
 
+  const openPhotoCapture = () => {
+    setCaptureType('photo');
+    setIsMediaCaptureOpen(true);
+  };
+
+  const openAudioCapture = () => {
+    setCaptureType('audio');
+    setIsMediaCaptureOpen(true);
+  };
+
   return (
     <div className="p-3 bg-gray-900/80 border-t border-gray-700/50 backdrop-blur-sm">
       {isMediaCaptureOpen ? (
         <MediaCapture 
-          onClose={() => setIsMediaCaptureOpen(false)}
+          mediaType={captureType}
           onCapture={handleMediaCapture}
+          onCancel={() => setIsMediaCaptureOpen(false)}
         />
       ) : (
         <div className="flex gap-2 items-end">
@@ -68,7 +80,7 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
               type="button" 
               variant="ghost" 
               size="icon"
-              onClick={() => setIsMediaCaptureOpen(true)}
+              onClick={openPhotoCapture}
               className="rounded-full text-gray-400 hover:text-gray-200 hover:bg-gray-700/50"
             >
               <Image className="h-5 w-5" />

@@ -36,7 +36,8 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({
     setIsCapturingMedia(false);
   };
   
-  const handleStartCapture = () => {
+  const handleStartCapture = (type: 'photo' | 'audio') => {
+    setMediaType(type);
     setIsCapturingMedia(true);
   };
   
@@ -50,6 +51,7 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({
               <BackButton 
                 label="Fermer" 
                 className="mb-2"
+                to="#"
                 onClick={() => onOpenChange(false)}
               />
             </div>
@@ -63,9 +65,7 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({
             {isCapturingMedia ? (
               <MediaCapture
                 mediaType={mediaType || 'photo'}
-                onCapture={(blob, type) => {
-                  return handleCaptureComplete(blob, type);
-                }}
+                onCapture={handleCaptureComplete}
                 onCancel={handleCaptureCancel}
               />
             ) : (
@@ -101,9 +101,7 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({
         {isCapturingMedia ? (
           <MediaCapture
             mediaType={mediaType || 'photo'}
-            onCapture={(blob, type) => {
-              return handleCaptureComplete(blob, type);
-            }}
+            onCapture={handleCaptureComplete}
             onCancel={handleCaptureCancel}
           />
         ) : (

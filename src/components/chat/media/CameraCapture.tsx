@@ -1,6 +1,5 @@
 
-import React, { useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import React from "react";
 
 interface CameraCaptureProps {
   previewUrl: string | null;
