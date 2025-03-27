@@ -1,94 +1,155 @@
 
 import React, { useState } from 'react';
-import { Textarea } from "@/components/ui/textarea";
-import { AlertTriangle } from "lucide-react";
-import MediaCapture from "../../chat/MediaCapture";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Camera, Mic } from "lucide-react";
+import { submitAlert } from "../services/alertService";
+import { useToast } from "@/hooks/use-toast";
+import RecordingStatusSection from "./RecordingStatusSection";
+import AlertSubmitSection from "./AlertSubmitSection";
+import MediaCapture from '@/components/chat/MediaCapture';
 
-interface AlertFormProps {
-  description: string;
-  setDescription: (value: string) => void;
-  location: string;
-  setLocation: (value: string) => void;
-  mediaFile: Blob | null;
-  setMediaFile: (file: Blob | null) => void;
-  mediaType: 'photo' | 'audio' | null;
-  setMediaType: (type: 'photo' | 'audio' | null) => void;
-}
+const AlertForm = () => {
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+  const [type, setType] = useState("irregularity");
+  const [submitting, setSubmitting] = useState(false);
+  const [isMediaCaptureOpen, setIsMediaCaptureOpen] = useState(false);
+  const [mediaAttachment, setMediaAttachment] = useState<Blob | null>(null);
+  const [mediaType, setMediaType] = useState<'photo' | 'audio' | null>(null);
+  const { toast } = useToast();
 
-const AlertForm = ({
-  description, 
-  setDescription, 
-  location, 
-  setLocation,
-  mediaFile,
-  setMediaFile,
-  mediaType,
-  setMediaType
-}: AlertFormProps) => {
-  
-  const handleMediaCapture = (blob: Blob, type: 'photo' | 'audio') => {
-    setMediaFile(blob);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    
+    try {
+      await submitAlert({
+        location, 
+        description, 
+        type, 
+        media: mediaAttachment,
+        mediaType
+      });
+      
+      toast({
+        title: "Alerte envoyée",
+        description: "Votre alerte a été transmise avec succès.",
+      });
+      
+      // Reset form
+      setLocation("");
+      setDescription("");
+      setType("irregularity");
+      setMediaAttachment(null);
+      setMediaType(null);
+      
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer l'alerte. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleMediaCapture = async (blob: Blob, type: 'photo' | 'audio'): Promise<void> => {
+    setMediaAttachment(blob);
     setMediaType(type);
+    setIsMediaCaptureOpen(false);
+    return Promise.resolve();
   };
 
   return (
-    <div className="grid gap-4 py-4">
-      <div className="flex items-center text-mrc-red mb-2">
-        <AlertTriangle className="h-5 w-5 mr-2" />
-        <h3 className="text-lg font-medium">Signaler une fraude électorale</h3>
-      </div>
-      
-      <Textarea
-        placeholder="Décrivez la fraude observée..."
-        className="resize-none min-h-[100px]"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-      
-      <Textarea
-        placeholder="Lieu (bureau de vote, ville...)"
-        className="resize-none"
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-      />
-      
-      <div className="flex items-center gap-2">
-        <p className="text-sm text-gray-500">Ajouter une preuve:</p>
-        <div className="flex gap-2">
-          <MediaCapture onCapture={handleMediaCapture} type="photo" />
-        </div>
-      </div>
-      
-      {mediaFile && (
-        <div className="border rounded-md p-3 bg-gray-100">
-          <p className="text-sm font-medium mb-2">
-            {mediaType === 'photo' ? 'Photo attachée' : 'Audio attaché'}
-          </p>
-          {mediaType === 'photo' && (
-            <img 
-              src={URL.createObjectURL(mediaFile)} 
-              alt="Evidence" 
-              className="w-full h-32 object-cover rounded"
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {isMediaCaptureOpen ? (
+        <MediaCapture 
+          onClose={() => setIsMediaCaptureOpen(false)}
+          onCapture={handleMediaCapture}
+        />
+      ) : (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="location">Lieu</Label>
+            <Input
+              id="location"
+              placeholder="Bureau de vote, quartier, ville..."
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              required
             />
-          )}
-          {mediaType === 'audio' && (
-            <audio src={URL.createObjectURL(mediaFile)} controls className="w-full" />
-          )}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mt-2 text-red-500 hover:text-red-700"
-            onClick={() => {
-              setMediaFile(null);
-              setMediaType(null);
-            }}
-          >
-            Supprimer
-          </Button>
-        </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="alert-type">Type d'alerte</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger id="alert-type">
+                <SelectValue placeholder="Sélectionnez le type d'alerte" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="irregularity">Irrégularité</SelectItem>
+                <SelectItem value="intimidation">Intimidation</SelectItem>
+                <SelectItem value="violence">Violence</SelectItem>
+                <SelectItem value="fraud">Fraude</SelectItem>
+                <SelectItem value="other">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Décrivez ce que vous avez observé..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Ajouter un média (optionnel)</Label>
+            <div className="flex gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsMediaCaptureOpen(true)}
+                className="flex-1"
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                {mediaType === 'photo' ? 'Changer la photo' : 'Ajouter une photo'}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsMediaCaptureOpen(true)}
+                className="flex-1"
+              >
+                <Mic className="mr-2 h-4 w-4" />
+                {mediaType === 'audio' ? 'Changer l\'audio' : 'Ajouter un audio'}
+              </Button>
+            </div>
+            
+            {mediaAttachment && (
+              <div className="mt-2 p-2 border rounded bg-background">
+                <p className="text-sm">
+                  {mediaType === 'photo' ? 'Photo ajoutée' : 'Audio ajouté'}
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <RecordingStatusSection />
+          <AlertSubmitSection submitting={submitting} />
+        </>
       )}
-    </div>
+    </form>
   );
 };
 
