@@ -4,9 +4,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useSEO } from "@/hooks/useSEO";
 import LivestreamingView from "@/components/streaming/LivestreamingView";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import BackButton from "@/components/shared/BackButton";
+import SocialShareButton from "@/components/shared/SocialShareButton";
 
 const LivestreamingPage = () => {
   const { setPageTitle, setPageDescription } = useSEO();
@@ -25,11 +24,13 @@ const LivestreamingPage = () => {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Studio de Diffusion</h1>
             <p className="text-gray-600 dark:text-gray-400">Créez et gérez vos diffusions en direct</p>
           </div>
-          <Link to="/">
-            <Button variant="outline" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" /> Retour à l'accueil
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <SocialShareButton 
+              title="Studio de Diffusion MRC en Poche" 
+              description="Rejoignez ma diffusion en direct sur MRC en Poche"
+            />
+            <BackButton to="/" label="Retour à l'accueil" />
+          </div>
         </div>
         <LivestreamingView />
       </main>

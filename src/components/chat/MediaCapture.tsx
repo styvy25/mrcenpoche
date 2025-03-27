@@ -1,7 +1,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Camera, X, Mic, Send, Image as ImageIcon } from "lucide-react";
+import MediaCaptureHeader from "./media/MediaCaptureHeader";
+import CameraCapture from "./media/CameraCapture";
+import AudioCapture from "./media/AudioCapture";
+import MediaCaptureFooter from "./media/MediaCaptureFooter";
 
 interface MediaCaptureProps {
   onClose: () => void;
@@ -137,125 +139,38 @@ const MediaCapture = ({ onClose, onCapture }: MediaCaptureProps) => {
 
   return (
     <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-      <div className="flex justify-between items-center p-3 border-b border-gray-700">
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={mode === 'photo' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => {
-              setMode('photo');
-              setCapturedMedia(null);
-              setPreviewUrl(null);
-              setIsCapturing(false);
-            }}
-            className="flex items-center gap-1"
-          >
-            <Camera size={16} />
-            Photo
-          </Button>
-          <Button
-            type="button"
-            variant={mode === 'audio' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => {
-              setMode('audio');
-              setCapturedMedia(null);
-              setPreviewUrl(null);
-              setIsCapturing(false);
-            }}
-            className="flex items-center gap-1"
-          >
-            <Mic size={16} />
-            Audio
-          </Button>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="rounded-full"
-        >
-          <X size={18} />
-        </Button>
-      </div>
+      <MediaCaptureHeader 
+        mode={mode} 
+        setMode={setMode} 
+        onClose={onClose} 
+        resetCapture={resetCapture} 
+      />
       
       <div className="p-4">
-        {mode === 'photo' && !capturedMedia ? (
-          <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-            />
-            <canvas ref={canvasRef} className="hidden" />
-          </div>
-        ) : mode === 'audio' && !capturedMedia ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className={`mb-4 p-4 rounded-full ${isCapturing ? 'bg-red-500/20 animate-pulse' : 'bg-gray-700'}`}>
-              <Mic size={32} className={isCapturing ? 'text-red-500' : 'text-gray-300'} />
-            </div>
-            <p className="text-gray-300 mb-2">
-              {isCapturing ? 'Enregistrement en cours...' : 'Prêt à enregistrer'}
-            </p>
-          </div>
+        {mode === 'photo' ? (
+          <CameraCapture 
+            previewUrl={previewUrl} 
+            onCapture={capturePhoto} 
+            onReset={resetCapture} 
+            videoRef={videoRef} 
+            canvasRef={canvasRef} 
+          />
         ) : (
-          <div className="flex flex-col items-center justify-center">
-            {mode === 'photo' && previewUrl ? (
-              <img src={previewUrl} alt="Captured" className="w-full rounded-lg" />
-            ) : mode === 'audio' && previewUrl ? (
-              <div className="w-full flex flex-col items-center py-4">
-                <div className="bg-gray-700 p-4 rounded-full mb-4">
-                  <ImageIcon size={32} className="text-gray-300" />
-                </div>
-                <audio src={previewUrl} controls className="w-full" />
-              </div>
-            ) : null}
-          </div>
+          <AudioCapture 
+            isCapturing={isCapturing} 
+            previewUrl={previewUrl} 
+          />
         )}
       </div>
       
-      <div className="flex justify-between p-3 border-t border-gray-700">
-        {capturedMedia ? (
-          <>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={resetCapture}
-              className="text-gray-300"
-            >
-              Reprendre
-            </Button>
-            <Button
-              type="button"
-              variant="default"
-              onClick={handleSend}
-              className="bg-mrc-blue text-white hover:bg-mrc-blue/90 flex items-center gap-1"
-            >
-              <Send size={16} />
-              Envoyer
-            </Button>
-          </>
-        ) : (
-          <Button
-            type="button"
-            variant={isCapturing ? "destructive" : "default"}
-            onClick={handleCapture}
-            className="mx-auto"
-          >
-            {mode === 'photo' ? (
-              'Prendre une photo'
-            ) : isCapturing ? (
-              'Arrêter l\'enregistrement'
-            ) : (
-              'Démarrer l\'enregistrement'
-            )}
-          </Button>
-        )}
-      </div>
+      <MediaCaptureFooter 
+        capturedMedia={capturedMedia}
+        isCapturing={isCapturing}
+        mode={mode}
+        onCapture={handleCapture}
+        onReset={resetCapture}
+        onSend={handleSend}
+      />
     </div>
   );
 };

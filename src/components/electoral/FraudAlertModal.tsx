@@ -1,132 +1,66 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import AlertForm from './form/AlertForm';
-import { submitFraudAlert, startContinuousRecording } from './services/alertService';
-import RecordingManager from './recording/RecordingManager';
-import AlertSubmitSection from './form/AlertSubmitSection';
-import RecordingStatusSection from './form/RecordingStatusSection';
+
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { AlertTriangle } from "lucide-react";
+import AlertForm from "./form/AlertForm";
+import MediaCapture from "../chat/MediaCapture";
 
 interface FraudAlertModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const FraudAlertModal = ({ open, onOpenChange }: FraudAlertModalProps) => {
-  const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const FraudAlertModal: React.FC<FraudAlertModalProps> = ({ isOpen, onClose }) => {
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
   const [mediaFile, setMediaFile] = useState<Blob | null>(null);
   const [mediaType, setMediaType] = useState<'photo' | 'audio' | null>(null);
-  
-  const [recordingStarted, setRecordingStarted] = useState(false);
-  const [alertId, setAlertId] = useState<string | null>(null);
-  const [recordingId, setRecordingId] = useState<string | null>(null);
-  
-  const { toast } = useToast();
+  const [showMediaCapture, setShowMediaCapture] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!description || !location) {
-      toast({
-        title: "Information manquante",
-        description: "Veuillez fournir une description et un lieu",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    try {
-      // Submit the alert
-      const alertResult = await submitFraudAlert({
-        description,
-        location,
-        mediaFile,
-        mediaType
-      });
-      
-      if (!alertResult.success) {
-        throw new Error(alertResult.error);
-      }
-      
-      // Start continuous recording
-      if (alertResult.alertId) {
-        setAlertId(alertResult.alertId);
-        
-        const recordingResult = await startContinuousRecording(alertResult.alertId);
-        
-        if (recordingResult.success && recordingResult.recordingId) {
-          setRecordingId(recordingResult.recordingId);
-          setRecordingStarted(true);
-          
-          // Initialize the event to start recording
-          const event = new CustomEvent('start-fraud-recording', { 
-            detail: { 
-              alertId: alertResult.alertId,
-              recordingId: recordingResult.recordingId 
-            } 
-          });
-          document.dispatchEvent(event);
-        }
-      }
-      
-      toast({
-        title: "Alerte envoyée",
-        description: "Votre signalement a été transmis. Merci pour votre vigilance!",
-      });
-      
-      // Reset form but keep modal open for recording
-      setDescription('');
-      setLocation('');
-      setMediaFile(null);
-      setMediaType(null);
-      
-    } catch (error: any) {
-      console.error('Error in alert submission process:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de l'envoi de l'alerte",
-        variant: "destructive",
-      });
-      onOpenChange(false);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleOpenMediaCapture = () => {
+    setShowMediaCapture(true);
   };
 
-  const handleCloseModal = () => {
-    if (recordingStarted) {
-      // If recording is active, ask for confirmation
-      if (confirm("Fermer cette fenêtre arrêtera l'enregistrement en arrière-plan. Êtes-vous sûr?")) {
-        setRecordingStarted(false);
-        onOpenChange(false);
-      }
-    } else {
-      onOpenChange(false);
-    }
+  const handleCloseMediaCapture = () => {
+    setShowMediaCapture(false);
+  };
+
+  const handleMediaCapture = async (
+    capturedMedia: Blob,
+    capturedMediaType: 'photo' | 'audio'
+  ) => {
+    setMediaFile(capturedMedia);
+    setMediaType(capturedMediaType);
+    setShowMediaCapture(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleCloseModal}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {recordingStarted ? "Enregistrement en cours" : "Signaler une fraude électorale"}
+          <DialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertTriangle className="h-5 w-5" />
+            Signaler une fraude électorale
           </DialogTitle>
           <DialogDescription>
-            {recordingStarted 
-              ? "La caméra et le microphone enregistrent en arrière-plan."
-              : "Décrivez la situation et ajoutez une preuve photo ou audio si possible"
-            }
+            Utilisez ce formulaire pour signaler une fraude électorale dont vous êtes témoin.
           </DialogDescription>
         </DialogHeader>
-        
-        {!recordingStarted ? (
-          // Show form when not recording
-          <AlertForm 
+
+        {showMediaCapture ? (
+          <MediaCapture
+            onClose={handleCloseMediaCapture}
+            onCapture={handleMediaCapture}
+          />
+        ) : (
+          <AlertForm
+            onClose={onClose}
             description={description}
             setDescription={setDescription}
             location={location}
@@ -135,37 +69,7 @@ const FraudAlertModal = ({ open, onOpenChange }: FraudAlertModalProps) => {
             setMediaFile={setMediaFile}
             mediaType={mediaType}
             setMediaType={setMediaType}
-          />
-        ) : (
-          // Show recording status when recording
-          <RecordingStatusSection />
-        )}
-        
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCloseModal}
-          >
-            {recordingStarted ? "Arrêter l'enregistrement" : "Annuler"}
-          </Button>
-          
-          {!recordingStarted && (
-            <AlertSubmitSection 
-              isSubmitting={isSubmitting}
-              description={description}
-              location={location}
-              onSubmit={handleSubmit}
-            />
-          )}
-        </DialogFooter>
-        
-        {/* Hidden recording manager component */}
-        {recordingStarted && alertId && recordingId && (
-          <RecordingManager 
-            alertId={alertId} 
-            recordingId={recordingId}
-            onStop={() => setRecordingStarted(false)}
+            onCaptureMedia={handleOpenMediaCapture}
           />
         )}
       </DialogContent>

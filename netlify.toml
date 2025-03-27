@@ -1,75 +1,17 @@
 
 [build]
   publish = "dist"
-  command = "npm ci --legacy-peer-deps && npm run build"
+  command = "npm run build"
 
-# Define redirects so that client-side routing works with SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Custom headers for performance and security
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "upgrade-insecure-requests"
-    Cache-Control = "public, max-age=31536000"
-
-# Environment variable configuration
 [build.environment]
-  NODE_VERSION = "18.18.0"
-  NPM_VERSION = "9.8.1"
-  NODE_ENV = "production"
+  NODE_VERSION = "18"
 
-# Split test for different deployment branches
-[context.main]
-  command = "npm ci --legacy-peer-deps && npm run build"
-  
-[context.staging]
-  command = "npm ci --legacy-peer-deps && npm run build:staging"
-
-# Production configuration
+# Configuration du domaine personnalisé
 [context.production]
-  environment = { NODE_ENV = "production" }
-  command = "npm ci --legacy-peer-deps && npm run build"
-
-# Domain settings
-[build.processing.html]
-  pretty_urls = true
-
-# Define custom domain
-[context.production]
-  environment = { NETLIFY_CUSTOM_DOMAIN = "mrcenpoche.xyz" }
-
-# Custom domain redirects
-[[redirects]]
-  from = "https://mrcenpoche.netlify.app/*"
-  to = "https://mrcenpoche.xyz/:splat"
-  status = 301
-  force = true
-
-# Specific optimizations for Netlify
-[build.processing]
-  skip_processing = false
-
-[build.processing.css]
-  bundle = true
-  minify = true
-
-[build.processing.js]
-  bundle = true
-  minify = true
-
-[build.processing.images]
-  compress = true
-
-# Custom 404 page
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 404
+  [context.production.environment]
+    CUSTOM_DOMAIN = "mrcenpoche.xyz"
