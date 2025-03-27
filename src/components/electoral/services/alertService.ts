@@ -28,8 +28,7 @@ export const submitAlert = async (data: AlertData): Promise<boolean> => {
     // Simulation de succès
     toast({
       title: "Alerte soumise avec succès",
-      description: "Votre signalement a été enregistré et sera examiné rapidement.",
-      variant: "default"
+      description: "Votre signalement a été enregistré et sera examiné rapidement."
     });
     
     return true;

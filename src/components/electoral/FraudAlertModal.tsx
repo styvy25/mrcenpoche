@@ -25,10 +25,11 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({
   
   const { isMobile } = useMediaQuery();
   
-  const handleCaptureComplete = (file: Blob, type: 'photo' | 'audio') => {
+  const handleCaptureComplete = async (file: Blob, type: 'photo' | 'audio') => {
     setMediaFile(file);
     setMediaType(type);
     setIsCapturingMedia(false);
+    return Promise.resolve();
   };
 
   const handleCaptureCancel = () => {
@@ -47,10 +48,9 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({
           <SheetHeader className="px-4">
             <div className="flex items-center gap-2">
               <BackButton 
-                to="#" 
-                onClick={() => onOpenChange(false)} 
                 label="Fermer" 
-                className="mb-2" 
+                className="mb-2"
+                onClick={() => onOpenChange(false)}
               />
             </div>
             <SheetTitle className="flex items-center text-mrc-red">
@@ -63,7 +63,9 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({
             {isCapturingMedia ? (
               <MediaCapture
                 mediaType={mediaType || 'photo'}
-                onCapture={handleCaptureComplete}
+                onCapture={(blob, type) => {
+                  return handleCaptureComplete(blob, type);
+                }}
                 onCancel={handleCaptureCancel}
               />
             ) : (
@@ -99,7 +101,9 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({
         {isCapturingMedia ? (
           <MediaCapture
             mediaType={mediaType || 'photo'}
-            onCapture={handleCaptureComplete}
+            onCapture={(blob, type) => {
+              return handleCaptureComplete(blob, type);
+            }}
             onCancel={handleCaptureCancel}
           />
         ) : (

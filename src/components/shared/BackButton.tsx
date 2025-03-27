@@ -8,13 +8,27 @@ interface BackButtonProps {
   to?: string;
   label?: string;
   className?: string;
+  onClick?: () => void;
 }
 
 const BackButton: React.FC<BackButtonProps> = ({
   to = "/",
   label = "Retour",
-  className = ""
+  className = "",
+  onClick
 }) => {
+  if (onClick) {
+    return (
+      <Button 
+        variant="outline" 
+        className={`flex items-center gap-2 ${className}`}
+        onClick={onClick}
+      >
+        <ArrowLeft className="h-4 w-4" /> {label}
+      </Button>
+    );
+  }
+  
   return (
     <Link to={to}>
       <Button 

@@ -30,7 +30,7 @@ const FraudAlertButton = () => {
       </Button>
       
       <FraudAlertModal
-        open={isOpen}
+        isOpen={isOpen}
         onOpenChange={setIsOpen}
       />
     </>
