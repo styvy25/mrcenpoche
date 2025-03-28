@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Lock } from "lucide-react";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 interface StripePaymentPopupProps {
   isOpen: boolean;
@@ -20,8 +21,16 @@ interface StripePaymentPopupProps {
 const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/28odUe9Cx4skbVS9AW";
 
 const StripePaymentPopup: React.FC<StripePaymentPopupProps> = ({ isOpen, onClose }) => {
+  const { updateUserPlan } = usePlanLimits();
+
   const handlePaymentClick = () => {
     window.open(STRIPE_PAYMENT_LINK, "_blank");
+    
+    // Only for demo purposes - in a real app this would be triggered by the Stripe webhook
+    setTimeout(() => {
+      updateUserPlan('premium');
+    }, 2000);
+    
     onClose();
   };
 
@@ -41,15 +50,15 @@ const StripePaymentPopup: React.FC<StripePaymentPopupProps> = ({ isOpen, onClose
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2">
                 <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                Livestreaming illimité
+                Messages illimités avec l'assistant
               </li>
               <li className="flex items-center gap-2">
                 <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                Création de contenu avancée
+                Génération illimitée de documents
               </li>
               <li className="flex items-center gap-2">
                 <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                Outils de communauté
+                Tous les quiz disponibles
               </li>
               <li className="flex items-center gap-2">
                 <div className="h-2 w-2 bg-green-500 rounded-full"></div>

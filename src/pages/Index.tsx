@@ -1,166 +1,101 @@
 
-import React from "react";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import HomeContent from "@/components/home/HomeContent";
-import { useSEO } from "@/hooks/useSEO";
-import { useEffect, useState } from "react";
-import ChatButton from "@/components/chat/ChatButton";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, ChevronUp, Info, Video } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useApiKeys } from "@/hooks/useApiKeys";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import ApiKeysDialog from "@/components/settings/ApiKeysDialog";
-import DomainAnnouncement from "@/components/layout/DomainAnnouncement";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import LivestreamingView from "@/components/streaming/LivestreamingView";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import MainLayout from '@/components/layout/MainLayout';
+import { Button } from '@/components/ui/button';
+import { FileText, MessageSquare, ScrollText, ArrowRight } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/components/auth/AuthContext';
+import StripeButton from '@/components/payment/StripeButton';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 
 const Index = () => {
-  const { setPageTitle, setPageDescription } = useSEO();
-  const isMobile = useIsMobile();
-  const { keyStatus } = useApiKeys();
-  const [activeTab, setActiveTab] = useState<string>("home");
-  
-  useEffect(() => {
-    setPageTitle("MRC en Poche - Votre application pour rester informé et engagé");
-    setPageDescription("MRC en Poche vous permet de rester informé et engagé grâce à des outils interactifs et des ressources à jour.");
-    
-    // Enregistrer le domaine dans le localStorage pour confirmer le déploiement
-    const currentHost = window.location.hostname;
-    localStorage.setItem('deployment_domain', currentHost);
-  }, [setPageTitle, setPageDescription]);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { userPlan } = usePlanLimits();
 
-  const isApiConfigured = keyStatus.perplexity || keyStatus.youtube || keyStatus.stripe;
+  const features = [
+    {
+      icon: <MessageSquare className="h-10 w-10 text-mrc-blue" />,
+      title: "Assistant IA",
+      description: "Posez toutes vos questions à notre assistant spécialisé",
+      link: "/assistant",
+      color: "from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20"
+    },
+    {
+      icon: <FileText className="h-10 w-10 text-mrc-green" />,
+      title: "Documents",
+      description: "Générez des documents et procédures légales",
+      link: "/documents",
+      color: "from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20"
+    },
+    {
+      icon: <ScrollText className="h-10 w-10 text-mrc-red" />,
+      title: "Quiz",
+      description: "Testez vos connaissances et progressez",
+      link: "/quiz",
+      color: "from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20"
+    }
+  ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-      <Navbar />
-      <main className="flex-grow relative mt-16 px-4 sm:px-8">
-        {/* Annonce de domaine personnalisé */}
-        <DomainAnnouncement customDomain="mrcenpoche.xyz" />
-        
-        {/* Alerte de configuration API si nécessaire */}
-        {!isApiConfigured && (
-          <div className="mb-6">
-            <Alert className="bg-amber-500/10 border-amber-500/30">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-              <AlertDescription className="flex flex-col gap-2">
-                <p>Certaines fonctionnalités nécessitent une configuration API</p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  <ApiKeysDialog 
-                    triggerButton={
-                      <Button variant="outline" size="sm" className="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/10 dark:to-amber-800/10 border-amber-500/30 text-amber-700 dark:text-amber-400">
-                        Configurer les API
-                      </Button>
-                    }
-                  />
+    <MainLayout>
+      <div className="py-10">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+            Bienvenue sur MRC en Poche
+          </h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
+            Votre assistant personnel pour tout ce qui concerne le MRC et les actualités du Cameroun
+          </p>
+          
+          {(!isAuthenticated || userPlan !== 'premium') && (
+            <div className="flex justify-center">
+              <StripeButton 
+                variant="gradient" 
+                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+              >
+                {userPlan === 'premium' ? 'Gérer mon abonnement' : 'Passer à Premium'}
+              </StripeButton>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {features.map((feature, index) => (
+            <Card key={index} className="overflow-hidden">
+              <CardHeader className={`bg-gradient-to-r ${feature.color}`}>
+                <div className="flex justify-center">
+                  {feature.icon}
                 </div>
-              </AlertDescription>
-            </Alert>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <CardTitle className="text-xl text-center mb-2">{feature.title}</CardTitle>
+                <CardDescription className="text-center">{feature.description}</CardDescription>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full" 
+                  onClick={() => navigate(feature.link)}
+                >
+                  Accéder <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+
+        {!isAuthenticated && (
+          <div className="mt-10 text-center">
+            <h2 className="text-xl font-semibold mb-4">Vous n'avez pas encore de compte ?</h2>
+            <Button variant="outline" onClick={() => navigate('/auth')}>
+              S'inscrire gratuitement
+            </Button>
           </div>
         )}
-        
-        {/* Navigation par onglets */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-6">
-          <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto">
-            <TabsTrigger value="home" className="flex items-center gap-1">
-              <Info className="h-4 w-4" /> Accueil
-            </TabsTrigger>
-            <TabsTrigger value="live" className="flex items-center gap-1">
-              <Video className="h-4 w-4" /> Livestreams
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="home" className="mt-4">
-            <HomeContent />
-          </TabsContent>
-          
-          <TabsContent value="live" className="mt-4">
-            <LivestreamingView />
-          </TabsContent>
-        </Tabs>
-        
-        {/* Interface améliorée pour les boutons d'action */}
-        <div className="fixed bottom-0 left-0 right-0 z-40">
-          <Collapsible defaultOpen>
-            <div className="bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-sm border-t border-gray-700/50 py-2 px-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Info size={16} className="text-blue-400" />
-                <p className="text-xs text-gray-200">
-                  {isMobile ? "Actions rapides" : "Accédez rapidement aux fonctionnalités importantes"}
-                </p>
-              </div>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 rounded-full">
-                  <ChevronUp size={14} className="text-gray-400" />
-                  <span className="sr-only">Afficher/Masquer les actions</span>
-                </Button>
-              </CollapsibleTrigger>
-            </div>
-            <CollapsibleContent>
-              <div className="bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-sm p-4 border-t border-gray-800/50 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <ActionButton 
-                  href="/assistant"
-                  label="Assistant IA"
-                  colorClass="from-blue-600 to-blue-800"
-                />
-                <ActionButton 
-                  href="/news"
-                  label="Actualités"
-                  colorClass="from-green-600 to-green-800"
-                />
-                <ActionButton 
-                  href="/quiz"
-                  label="Quiz"
-                  colorClass="from-purple-600 to-purple-800"
-                />
-                <ActionButton 
-                  href="/alerte-fraude"
-                  label="Signaler une fraude"
-                  colorClass="from-mrc-red to-rose-700"
-                  icon={<AlertTriangle size={14} className="mr-1" />}
-                />
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-        
-        {/* Position optimisée du bouton de chat */}
-        <div className="fixed bottom-20 right-6 z-30">
-          <ChatButton />
-        </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </MainLayout>
   );
-};
-
-interface ActionButtonProps {
-  href?: string;
-  onClick?: () => void;
-  label: string;
-  colorClass: string;
-  icon?: React.ReactNode;
-}
-
-const ActionButton = ({ href, onClick, label, colorClass, icon }: ActionButtonProps) => {
-  const buttonContent = (
-    <Button 
-      size="sm"
-      className={`w-full text-xs font-medium py-2 bg-gradient-to-br ${colorClass} hover:shadow-lg transition-all duration-300`}
-      onClick={onClick}
-    >
-      {icon}{label}
-    </Button>
-  );
-  
-  if (href) {
-    return <a href={href}>{buttonContent}</a>;
-  }
-  
-  return buttonContent;
 };
 
 export default Index;

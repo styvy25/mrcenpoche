@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/components/auth/AuthContext';
+import { supabase } from "@/integrations/supabase/client";
 
 // Types de plans disponibles
 export type PlanType = 'free' | 'premium' | 'group';
@@ -72,13 +73,35 @@ export function usePlanLimits() {
   useEffect(() => {
     const loadUserPlan = async () => {
       try {
-        // Essayer de charger depuis localStorage d'abord
+        // First try to load from Supabase if the user is logged in
+        if (user?.id) {
+          const { data, error } = await supabase
+            .from('user_subscriptions')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .single();
+            
+          if (data && !error) {
+            // Convert the plan_type to our PlanType
+            const planType = data.plan_type as PlanType;
+            if (Object.keys(PLAN_LIMITS).includes(planType)) {
+              setUserPlan(planType);
+              setLimits(PLAN_LIMITS[planType]);
+              localStorage.setItem(STORAGE_KEYS.USER_PLAN, planType);
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+        
+        // Try to load from localStorage as fallback
         const savedPlan = localStorage.getItem(STORAGE_KEYS.USER_PLAN) as PlanType;
         if (savedPlan && Object.keys(PLAN_LIMITS).includes(savedPlan)) {
           setUserPlan(savedPlan);
           setLimits(PLAN_LIMITS[savedPlan]);
         } else {
-          // Si aucun plan n'est sauvegardé, définir sur 'free'
+          // If no plan is saved, set to 'free'
           setUserPlan('free');
           setLimits(PLAN_LIMITS.free);
         }
@@ -94,8 +117,8 @@ export function usePlanLimits() {
     loadUserPlan();
   }, [user]);
 
-  // Mettre à jour le plan de l'utilisateur
-  const updateUserPlan = (newPlan: PlanType) => {
+  // Update the user's plan
+  const updateUserPlan = async (newPlan: PlanType) => {
     if (!Object.keys(PLAN_LIMITS).includes(newPlan)) {
       toast({
         title: "Erreur",
@@ -106,6 +129,25 @@ export function usePlanLimits() {
     }
 
     try {
+      // Update in Supabase if logged in
+      if (user?.id) {
+        const { error } = await supabase
+          .from('user_subscriptions')
+          .upsert({
+            user_id: user.id,
+            plan_type: newPlan,
+            status: 'active',
+            start_date: new Date().toISOString(),
+            // For premium plans, set end date to 1 month from now
+            end_date: newPlan !== 'free' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null
+          });
+          
+        if (error) {
+          throw error;
+        }
+      }
+      
+      // Update in localStorage
       localStorage.setItem(STORAGE_KEYS.USER_PLAN, newPlan);
       setUserPlan(newPlan);
       setLimits(PLAN_LIMITS[newPlan]);
@@ -117,6 +159,7 @@ export function usePlanLimits() {
       
       return true;
     } catch (error) {
+      console.error('Error updating user plan:', error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour votre plan",
@@ -126,17 +169,17 @@ export function usePlanLimits() {
     }
   };
 
-  // Vérifier si l'utilisateur peut utiliser une fonctionnalité spécifique
+  // Check if the user can use a specific feature
   const canUseFeature = (feature: keyof PlanLimits): boolean => {
     return !!limits[feature];
   };
 
-  // Vérifier si l'utilisateur a atteint la limite quotidienne de messages de chat
+  // Check if the user has reached the daily chat message limit
   const hasChatLimit = (): boolean => {
     return limits.chatMessagesPerDay !== Infinity;
   };
 
-  // Obtenir le nombre de messages de chat utilisés aujourd'hui
+  // Get the number of chat messages used today
   const getChatMessagesUsedToday = (): number => {
     const today = new Date().toDateString();
     const savedDate = localStorage.getItem(STORAGE_KEYS.CHAT_MESSAGES_DATE);
@@ -150,7 +193,7 @@ export function usePlanLimits() {
     return parseInt(localStorage.getItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY) || '0');
   };
 
-  // Incrémenter le compteur de messages de chat
+  // Increment the chat message counter
   const incrementChatMessages = (): boolean => {
     const usedToday = getChatMessagesUsedToday();
     
@@ -167,7 +210,7 @@ export function usePlanLimits() {
     return true;
   };
 
-  // Obtenir le nombre de PDF générés ce mois-ci
+  // Get the number of PDFs generated this month
   const getPdfGenerationsThisMonth = (): number => {
     const currentMonth = new Date().getMonth() + '-' + new Date().getFullYear();
     const savedMonth = localStorage.getItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH_DATE);
@@ -181,7 +224,7 @@ export function usePlanLimits() {
     return parseInt(localStorage.getItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH) || '0');
   };
 
-  // Vérifier si l'utilisateur peut générer un PDF
+  // Check if the user can generate a PDF
   const canGeneratePdf = (): boolean => {
     if (userPlan !== 'free') return true;
     
@@ -189,7 +232,7 @@ export function usePlanLimits() {
     return generationsThisMonth < limits.pdfGenerationsPerMonth;
   };
 
-  // Incrémenter le compteur de générations de PDF
+  // Increment the PDF generations counter
   const incrementPdfGenerations = (): boolean => {
     if (userPlan !== 'free') return true;
     
@@ -208,12 +251,12 @@ export function usePlanLimits() {
     return true;
   };
   
-  // Vérifier si l'utilisateur peut accéder à tous les modules
+  // Check if the user can access all modules
   const canAccessAllModules = (): boolean => {
     return limits.accessAllModules;
   };
 
-  // Récupérer toutes les statistiques d'utilisation
+  // Get all usage statistics
   const getUsageStats = (): UsageStats => {
     return {
       userPlan,
@@ -224,7 +267,7 @@ export function usePlanLimits() {
     };
   };
 
-  // Vérifier si l'utilisateur peut envoyer un message dans le chat
+  // Check if the user can send a chat message
   const canSendChatMessage = (): boolean => {
     if (userPlan !== 'free') return true;
     return getChatMessagesUsedToday() < limits.chatMessagesPerDay;

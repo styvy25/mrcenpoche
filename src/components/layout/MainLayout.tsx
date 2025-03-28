@@ -1,25 +1,31 @@
 
 import React from 'react';
-import Navbar from './Navbar';
+import Header from './Header';
 import Footer from './Footer';
-import ResponsiveContainer from './ResponsiveContainer';
-import ApplicationStatus from './ApplicationStatus';
+import { cn } from '@/lib/utils';
 
 interface MainLayoutProps {
   children: React.ReactNode;
+  className?: string;
+  showHeader?: boolean;
+  showFooter?: boolean;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({
+  children,
+  className = '',
+  showHeader = true,
+  showFooter = true
+}) => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
-      <main className="flex-grow py-8">
-        <ResponsiveContainer>
-          <ApplicationStatus />
-          {children}
-        </ResponsiveContainer>
+    <div className="flex flex-col min-h-screen bg-background">
+      {showHeader && <Header />}
+      
+      <main className={cn('flex-1 container mx-auto px-4 pb-24', className)}>
+        {children}
       </main>
-      <Footer />
+      
+      {showFooter && <Footer />}
     </div>
   );
 };

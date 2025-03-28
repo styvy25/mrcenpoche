@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
 
 interface PremiumDialogProps {
   isOpen: boolean;
@@ -12,17 +11,12 @@ interface PremiumDialogProps {
 }
 
 const PremiumDialog: React.FC<PremiumDialogProps> = ({ isOpen, onClose }) => {
-  const { userPlan } = usePlanLimits();
-  
-  if (userPlan !== 'free') return null;
-  
   const features = [
     "Messages illimités avec l'assistant IA",
-    "Accès à tous les modules de formation",
     "Création illimitée de documents PDF",
-    "Accès aux webinaires et événements",
-    "Fonctionnalités livestreaming avancées",
-    "Certificats de compétence"
+    "Accès à tous les quiz et examens",
+    "Pas de publicités",
+    "Support prioritaire"
   ];
   
   return (

@@ -4,7 +4,7 @@ import { Sparkles } from 'lucide-react';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 
 interface PremiumBannerProps {
-  type: 'chat' | 'pdf' | 'modules' | 'general';
+  type: 'chat' | 'pdf' | 'quiz' | 'general';
   className?: string;
 }
 
@@ -23,8 +23,8 @@ const PremiumBanner: React.FC<PremiumBannerProps> = ({ type, className = '' }) =
     case 'pdf':
       message = `Générations PDF: ${stats.pdfGenerationsThisMonth}/${stats.pdfGenerationsLimit} ce mois-ci`;
       break;
-    case 'modules':
-      message = 'Accédez à tous les modules avec Premium';
+    case 'quiz':
+      message = 'Débloquez tous les quiz avec Premium';
       break;
     case 'general':
       message = 'Débloquez toutes les fonctionnalités avec Premium';
