@@ -1,129 +1,71 @@
 
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
-import { CheckCircle, X, ExternalLink } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 
 interface PremiumDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/9AQ17sdSNgb25xufZi";
-
 const PremiumDialog: React.FC<PremiumDialogProps> = ({ isOpen, onClose }) => {
-  const { updateUserPlan } = usePlanLimits();
-  const { toast } = useToast();
-  const [isRedirecting, setIsRedirecting] = useState(false);
-
-  const premiumFeatures = [
-    "Accès illimité à tous les modules",
-    "Assistant IA Styvy237 sans limite",
-    "Génération de PDF illimitée",
-    "Suivi de progression avancé",
-    "Accès aux webinaires exclusifs",
-    "Certificats de formation"
+  const { userPlan } = usePlanLimits();
+  
+  if (userPlan !== 'free') return null;
+  
+  const features = [
+    "Messages illimités avec l'assistant IA",
+    "Accès à tous les modules de formation",
+    "Création illimitée de documents PDF",
+    "Accès aux webinaires et événements",
+    "Fonctionnalités livestreaming avancées",
+    "Certificats de compétence"
   ];
-
-  const handleUpgradeClick = () => {
-    setIsRedirecting(true);
-    
-    // Simuler un délai avant la redirection
-    setTimeout(() => {
-      // Dans un environnement de production, vous devriez
-      // idéalement rediriger vers une page de paiement et
-      // attendre une confirmation avant de mettre à jour le plan
-      window.open(STRIPE_CHECKOUT_URL, '_blank');
-      
-      // Pour la démonstration, nous mettons à jour le plan après 
-      // l'ouverture de la fenêtre (dans un cas réel, cela se ferait 
-      // après confirmation du paiement via webhook)
-      toast({
-        title: "Redirection vers la page de paiement",
-        description: "Une nouvelle fenêtre a été ouverte pour finaliser votre achat.",
-      });
-      
-      setIsRedirecting(false);
-      onClose();
-    }, 1000);
-  };
-
-  const handleDemoUpgrade = () => {
-    // Uniquement pour la démonstration - en production, cela viendrait après confirmation du paiement
-    updateUserPlan('premium');
-    toast({
-      title: "Mode premium activé",
-      description: "Pour la démonstration uniquement. En production, cela se ferait après confirmation du paiement.",
-    });
-    onClose();
-  };
-
+  
   return (
-    <Dialog open={isOpen} onOpenChange={() => !isRedirecting && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
-            Passez à l'offre Premium
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-yellow-400" />
+            Passez à Premium
           </DialogTitle>
-          <DialogDescription className="text-center">
-            Débloquez toutes les fonctionnalités de MRC en Poche pour seulement 9,99€/mois
+          <DialogDescription>
+            Débloquez toutes les fonctionnalités de MRC en Poche
           </DialogDescription>
         </DialogHeader>
         
-        <div className="mt-4 space-y-4">
-          <div className="space-y-2">
-            {premiumFeatures.map((feature, index) => (
-              <div key={index} className="flex items-start">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                <span>{feature}</span>
-              </div>
-            ))}
+        <div className="space-y-4">
+          <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-gray-800 dark:to-gray-900 rounded-lg p-4">
+            <h3 className="font-medium mb-2">Fonctionnalités Premium</h3>
+            <ul className="space-y-2">
+              {features.map((feature, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-green-500 mt-0.5" />
+                  <span className="text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
           </div>
           
-          <div className="bg-muted/50 p-4 rounded-lg mt-6">
-            <h4 className="font-medium mb-2">Votre soutien compte</h4>
-            <p className="text-sm text-muted-foreground">
-              En choisissant l'offre premium, vous soutenez directement le MRC et contribuez à la diffusion de ses idées.
-            </p>
+          <div className="text-center py-2">
+            <div className="text-2xl font-bold">9,99 €/mois</div>
+            <p className="text-xs text-gray-500">Annulation possible à tout moment</p>
           </div>
         </div>
         
-        <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-            className="w-full sm:w-auto"
-            disabled={isRedirecting}
-          >
-            <X className="h-4 w-4 mr-2" />
-            Pas maintenant
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+            Plus tard
           </Button>
-          
-          <Button 
-            onClick={handleUpgradeClick}
-            className="w-full sm:w-auto bg-gradient-to-r from-mrc-blue to-mrc-green text-white hover:from-mrc-green hover:to-mrc-blue"
-            disabled={isRedirecting}
-          >
-            {isRedirecting ? (
-              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
-            ) : (
-              <ExternalLink className="h-4 w-4 mr-2" />
-            )}
-            Passer à Premium
+          <Button className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600" asChild>
+            <Link to="/payment">
+              Passer à Premium <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
-          
-          {process.env.NODE_ENV !== 'production' && (
-            <Button 
-              onClick={handleDemoUpgrade}
-              variant="secondary"
-              className="w-full sm:w-auto"
-              disabled={isRedirecting}
-            >
-              (Demo) Activer Premium
-            </Button>
-          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

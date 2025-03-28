@@ -53,6 +53,15 @@ const STORAGE_KEYS = {
   USER_PLAN: 'mrc_user_plan'
 };
 
+// Interface pour les statistiques d'utilisation
+interface UsageStats {
+  userPlan: PlanType;
+  chatMessagesLimit: number;
+  chatMessagesToday: number;
+  pdfGenerationsLimit: number;
+  pdfGenerationsThisMonth: number;
+}
+
 export function usePlanLimits() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -158,6 +167,69 @@ export function usePlanLimits() {
     return true;
   };
 
+  // Obtenir le nombre de PDF générés ce mois-ci
+  const getPdfGenerationsThisMonth = (): number => {
+    const currentMonth = new Date().getMonth() + '-' + new Date().getFullYear();
+    const savedMonth = localStorage.getItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH_DATE);
+    
+    if (savedMonth !== currentMonth) {
+      localStorage.setItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH_DATE, currentMonth);
+      localStorage.setItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH, '0');
+      return 0;
+    }
+    
+    return parseInt(localStorage.getItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH) || '0');
+  };
+
+  // Vérifier si l'utilisateur peut générer un PDF
+  const canGeneratePdf = (): boolean => {
+    if (userPlan !== 'free') return true;
+    
+    const generationsThisMonth = getPdfGenerationsThisMonth();
+    return generationsThisMonth < limits.pdfGenerationsPerMonth;
+  };
+
+  // Incrémenter le compteur de générations de PDF
+  const incrementPdfGenerations = (): boolean => {
+    if (userPlan !== 'free') return true;
+    
+    const generationsThisMonth = getPdfGenerationsThisMonth();
+    
+    if (generationsThisMonth >= limits.pdfGenerationsPerMonth) {
+      toast({
+        title: "Limite atteinte",
+        description: "Vous avez atteint votre limite mensuelle de générations PDF. Passez à Premium pour un accès illimité.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    localStorage.setItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH, (generationsThisMonth + 1).toString());
+    return true;
+  };
+  
+  // Vérifier si l'utilisateur peut accéder à tous les modules
+  const canAccessAllModules = (): boolean => {
+    return limits.accessAllModules;
+  };
+
+  // Récupérer toutes les statistiques d'utilisation
+  const getUsageStats = (): UsageStats => {
+    return {
+      userPlan,
+      chatMessagesLimit: limits.chatMessagesPerDay,
+      chatMessagesToday: getChatMessagesUsedToday(),
+      pdfGenerationsLimit: limits.pdfGenerationsPerMonth,
+      pdfGenerationsThisMonth: getPdfGenerationsThisMonth()
+    };
+  };
+
+  // Vérifier si l'utilisateur peut envoyer un message dans le chat
+  const canSendChatMessage = (): boolean => {
+    if (userPlan !== 'free') return true;
+    return getChatMessagesUsedToday() < limits.chatMessagesPerDay;
+  };
+
   return {
     userPlan,
     limits,
@@ -166,7 +238,13 @@ export function usePlanLimits() {
     canUseFeature,
     hasChatLimit,
     getChatMessagesUsedToday,
-    incrementChatMessages
+    incrementChatMessages,
+    getPdfGenerationsThisMonth,
+    canGeneratePdf,
+    incrementPdfGenerations,
+    canAccessAllModules,
+    getUsageStats,
+    canSendChatMessage
   };
 }
 

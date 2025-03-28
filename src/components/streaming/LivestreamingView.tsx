@@ -23,7 +23,7 @@ const LivestreamingView = () => {
   // Shared state between tabs
   const [selectedStream, setSelectedStream] = useState(null);
 
-  const handleStreamSelect = (stream) => {
+  const handleStreamSelect = (stream: any) => {
     setSelectedStream(stream);
     
     // Vérifier le plan de l'utilisateur
@@ -39,7 +39,7 @@ const LivestreamingView = () => {
     }
   };
 
-  const handleYoutubeUrlChange = (url) => {
+  const handleYoutubeUrlChange = (url: string) => {
     setYoutubeUrl(url);
   };
 
