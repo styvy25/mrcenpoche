@@ -65,8 +65,8 @@ const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
     
     // Track the current user's presence
     const userPresence = {
-      user_id: user.id,
-      name: user.username || 'Utilisateur',
+      user_id: user.uid || user.id || 'anonymous',
+      name: user.username || user.displayName || 'Utilisateur',
       avatar: user.avatar || '',
       online_at: new Date().toISOString(),
       challenge_id: dailyChallenge?.id || 'daily',

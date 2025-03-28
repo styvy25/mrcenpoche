@@ -1,101 +1,150 @@
 
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/auth/AuthContext";
-import { PDFGenerationOptions, generatePDF, checkAPIKeysConfigured } from "../services/pdfGenerationService";
+import { useState } from 'react';
+import { jsPDF } from 'jspdf';
+import { useAuth } from '@/components/auth/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+
+interface UserFormData {
+  name: string;
+  email: string;
+  organization?: string;
+}
+
+interface PDFOptions {
+  title: string;
+  includeHeader: boolean;
+  includeFooter: boolean;
+  includeDate: boolean;
+  pageSize: 'a4' | 'letter';
+  orientation: 'portrait' | 'landscape';
+}
 
 export const usePDFGenerator = () => {
-  const [selectedModule, setSelectedModule] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [pdfGenerated, setPdfGenerated] = useState(false);
-  const [activeTab, setActiveTab] = useState("content");
-  const [userName, setUserName] = useState("");
-  const [options, setOptions] = useState<PDFGenerationOptions>({
-    includeExercises: true,
-    includeImages: true,
-    includeSummary: true
-  });
-  const [showAPIKeyDialog, setShowAPIKeyDialog] = useState(false);
+  const [generatedPDFUrl, setGeneratedPDFUrl] = useState<string | null>(null);
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { isAuthenticated, user } = useAuth();
+  const { incrementPDFGenerationCount, checkPDFGenerationLimit } = usePlanLimits();
 
-  // Appliquer automatiquement le nom d'utilisateur s'il est connecté
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      setUserName(user.username);
-    }
-  }, [isAuthenticated, user]);
-
-  // Vérifier si les clés API sont définies
-  useEffect(() => {
-    if (isAuthenticated && !checkAPIKeysConfigured()) {
-      setShowAPIKeyDialog(true);
-    }
-  }, [isAuthenticated]);
-
-  const handleGeneratePDF = async () => {
-    if (!selectedModule) {
+  const generatePDF = async (
+    content: string,
+    userInfo: UserFormData,
+    options: PDFOptions
+  ) => {
+    // Check if user has reached the PDF generation limit
+    const canGenerate = checkPDFGenerationLimit();
+    if (!canGenerate) {
       toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner un module avant de générer un PDF.",
+        title: "Limite atteinte",
+        description: "Vous avez atteint votre limite de génération de PDF. Passez à Premium pour des générations illimitées.",
         variant: "destructive",
       });
-      return;
-    }
-
-    // Vérifier les clés API
-    if (!checkAPIKeysConfigured()) {
-      setShowAPIKeyDialog(true);
-      return;
+      return null;
     }
 
     setIsGenerating(true);
-    toast({
-      title: "Génération en cours",
-      description: "Votre PDF est en cours de génération. Veuillez patienter...",
-    });
-
     try {
-      // Call the API service
-      await generatePDF(selectedModule, options);
-      
-      setIsGenerating(false);
-      setPdfGenerated(true);
-      toast({
-        title: "PDF généré avec succès",
-        description: "Votre document a été généré et est prêt à être visualisé ou téléchargé.",
-        variant: "default",
+      // Create a new PDF document
+      const doc = new jsPDF({
+        orientation: options.orientation,
+        unit: 'mm',
+        format: options.pageSize,
       });
+
+      // Set document properties
+      doc.setProperties({
+        title: options.title,
+        subject: 'MRC Formation Document',
+        author: userInfo.name || user?.username || user?.displayName || 'Utilisateur MRC',
+        creator: 'MRC LearnScape',
+      });
+
+      // Add header if enabled
+      if (options.includeHeader) {
+        doc.setFontSize(12);
+        doc.setTextColor(100, 100, 100);
+        doc.text('MRC LearnScape', 14, 10);
+        doc.text(options.title, 14, 16);
+        
+        if (options.includeDate) {
+          const today = new Date().toLocaleDateString();
+          doc.text('Date: ' + today, doc.internal.pageSize.width - 60, 10);
+        }
+        
+        doc.line(14, 20, doc.internal.pageSize.width - 14, 20);
+      }
+
+      // Add content
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      
+      // Calculate start position based on whether header is included
+      const startY = options.includeHeader ? 30 : 14;
+      
+      // Split text into lines and add to PDF
+      const splitText = doc.splitTextToSize(content, doc.internal.pageSize.width - 28);
+      doc.text(splitText, 14, startY);
+      
+      // Add footer if enabled
+      if (options.includeFooter) {
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          
+          // Add page number
+          doc.text(`Page ${i} / ${pageCount}`, doc.internal.pageSize.width / 2, 
+                  doc.internal.pageSize.height - 10, { align: 'center' });
+          
+          // Add user info
+          doc.text(`Généré pour: ${userInfo.name} | ${userInfo.email}`,
+                  doc.internal.pageSize.width / 2, 
+                  doc.internal.pageSize.height - 5, 
+                  { align: 'center' });
+        }
+      }
+
+      // Convert the PDF to a data URL
+      const pdfDataUrl = doc.output('datauristring');
+      setGeneratedPDFUrl(pdfDataUrl);
+      
+      // Increment PDF generation count
+      incrementPDFGenerationCount();
+      
+      return pdfDataUrl;
     } catch (error) {
-      setIsGenerating(false);
+      console.error('Error generating PDF:', error);
       toast({
-        title: "Erreur de génération",
-        description: "Une erreur s'est produite lors de la génération du PDF.",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la génération du PDF.",
         variant: "destructive",
       });
+      return null;
+    } finally {
+      setIsGenerating(false);
     }
   };
 
+  const downloadPDF = (filename: string) => {
+    if (!generatedPDFUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = generatedPDFUrl;
+    link.download = `${filename}.pdf`;
+    link.click();
+  };
+
+  const clearPDF = () => {
+    setGeneratedPDFUrl(null);
+  };
+
   return {
-    selectedModule,
-    setSelectedModule,
     isGenerating,
-    setIsGenerating,
-    showPreview,
-    setShowPreview,
-    pdfGenerated,
-    setPdfGenerated,
-    activeTab,
-    setActiveTab,
-    userName,
-    setUserName,
-    options,
-    setOptions,
-    showAPIKeyDialog,
-    setShowAPIKeyDialog,
-    handleGeneratePDF,
-    isAuthenticated,
-    user
+    generatedPDFUrl,
+    generatePDF,
+    downloadPDF,
+    clearPDF,
   };
 };

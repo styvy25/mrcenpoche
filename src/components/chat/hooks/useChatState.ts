@@ -1,96 +1,131 @@
 
-import { useState } from "react";
+import { useEffect, useCallback, useRef } from "react";
+import { useYouTubeSearch } from "./useYouTubeSearch";
+import { useMessageHandler } from "./useMessageHandler";
+import { useOfflineMode } from "./useOfflineMode";
+import { Message } from "../types/message";
 import { useAuth } from "@/components/auth/AuthContext";
-import { Message, User } from "./types";
-import { useMessageManagement } from "./useMessageManagement";
-import { usePresenceManagement } from "./usePresenceManagement";
-import { useMessageSubscription } from "./useMessageSubscription";
-import { useDemoData } from "./useDemoData";
-import { useUISettings } from "@/hooks/useUISettings";
+import { supabase } from "@/integrations/supabase/client";
 
-export const useChatState = () => {
+export function useChatState() {
+  const { 
+    messages, 
+    isLoading, 
+    setIsLoading,
+    handleSendMessage: baseHandleSendMessage, 
+    clearConversation,
+    initializeMessages,
+    setMessages
+  } = useMessageHandler();
+  
+  const {
+    youtubeResults,
+    isSearchingYouTube,
+    handleYouTubeSearch,
+    handleVideoSelect: baseHandleVideoSelect,
+    setYoutubeResults
+  } = useYouTubeSearch();
+  
+  const { isOnline } = useOfflineMode();
   const { user } = useAuth();
   
-  // Generate a current user ID (either from auth or a default)
-  const CURRENT_USER_ID = user?.id || "user_1";
-  
-  // Get UI settings for chat visibility
-  const { getComponentSettings } = useUISettings();
-  const chatSettings = getComponentSettings('ChatButton');
+  // Use a ref to track if we've already initialized messages
+  const hasInitialized = useRef(false);
 
-  // Use our new modular hooks
-  const {
-    messages,
-    setMessages,
-    handleSendMessage: baseHandleSendMessage,
-    formatTime,
-    formatLastSeen
-  } = useMessageManagement();
+  // Update presence when user is online
+  useEffect(() => {
+    if (!user || !isOnline) return;
 
-  const {
-    activeUsers,
-    setActiveUsers
-  } = usePresenceManagement(CURRENT_USER_ID);
+    // Create a unique channel name for this user
+    const userId = user.uid || user.id || 'anonymous';
+    const channelName = `chat_presence_${userId}`;
+    const channel = supabase.channel(channelName);
+    
+    const userPresence = {
+      user_id: userId,
+      username: user.username || user.displayName || 'Anonymous',
+      avatar: user.avatar || '',
+      status: 'online',
+      last_seen: new Date().toISOString(),
+    };
+    
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        // Handle presence sync
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track(userPresence);
+        }
+      });
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, isOnline]);
 
-  // Set up real-time message subscription if authenticated
-  if (user) {
-    useMessageSubscription(setMessages);
-  }
-
-  // Set up demo data for non-authenticated preview
-  const { triggerDemoResponse } = useDemoData(user, setMessages, setActiveUsers, 
-    (content, senderId, senderName, senderAvatar) => 
-      baseHandleSendMessage(content, senderId, senderName, senderAvatar)
-  );
-
-  // Message count for demo responses
-  const [messageCount, setMessageCount] = useState(0);
-
-  // Wrapper for sendMessage to handle both auth and demo cases
-  const handleSendMessage = async (content: string, mediaBlob?: Blob, mediaType?: 'photo' | 'audio') => {
-    try {
-      // Update message counter for demo responses
-      const newCount = messageCount + 1;
-      setMessageCount(newCount);
-
-      if (user) {
-        // Authenticated flow
-        return await baseHandleSendMessage(
-          content, 
-          user.id, 
-          user.username || 'You', 
-          user.avatar,
-          mediaBlob, 
-          mediaType
-        );
-      } else {
-        // Demo flow
-        const result = await baseHandleSendMessage(
-          content, 
-          CURRENT_USER_ID, 
-          "Vous", 
-          activeUsers.find(u => u.id === CURRENT_USER_ID)?.avatar,
-          mediaBlob, 
-          mediaType
-        );
-        
-        // Trigger demo response
-        triggerDemoResponse(newCount);
-        return result;
+  // Ensure all messages have a timestamp that's a Date object
+  const normalizeMessages = useCallback((msgs: Message[]) => {
+    return msgs.map(msg => {
+      if (msg.timestamp && typeof msg.timestamp === 'string') {
+        return {
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        };
+      } else if (!msg.timestamp) {
+        return {
+          ...msg,
+          timestamp: new Date()
+        };
       }
-    } catch (error) {
-      console.error('Error in handleSendMessage:', error);
-      return null;
+      return msg;
+    });
+  }, []);
+
+  // Initialize messages from localStorage if available
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      initializeMessages();
+      hasInitialized.current = true;
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  // Save messages to localStorage whenever they change - with debounce
+  useEffect(() => {
+    if (messages.length === 0) return;
+    
+    const timeoutId = setTimeout(() => {
+      // Make sure all messages have proper timestamps before saving
+      const normalizedMessages = normalizeMessages(messages);
+      localStorage.setItem('mrc_chat_messages', JSON.stringify(normalizedMessages));
+      
+      // Update messages with normalized timestamps if needed
+      if (JSON.stringify(messages) !== JSON.stringify(normalizedMessages)) {
+        setMessages(normalizedMessages);
+      }
+    }, 500); // Add debounce to prevent excessive writes
+    
+    return () => clearTimeout(timeoutId);
+  }, [messages, normalizeMessages, setMessages]);
+
+  const handleSendMessage = useCallback((input: string) => {
+    return baseHandleSendMessage(input, isOnline, handleYouTubeSearch);
+  }, [baseHandleSendMessage, isOnline, handleYouTubeSearch]);
+
+  const handleVideoSelect = useCallback((videoId: string) => {
+    return baseHandleVideoSelect(videoId, isOnline, setIsLoading, setMessages);
+  }, [baseHandleVideoSelect, isOnline, setIsLoading, setMessages]);
 
   return {
-    messages,
-    activeUsers,
-    CURRENT_USER_ID,
+    messages: normalizeMessages(messages),
+    isLoading,
+    youtubeResults,
+    isSearchingYouTube,
+    isOnline,
     handleSendMessage,
-    formatTime,
-    formatLastSeen,
-    chatSettings
+    handleVideoSelect,
+    handleYouTubeSearch: useCallback((query: string) => handleYouTubeSearch(query, isOnline), [handleYouTubeSearch, isOnline]),
+    clearConversation
   };
-};
+}

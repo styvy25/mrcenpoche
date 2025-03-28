@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "./AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -16,12 +17,19 @@ const LoginForm = ({ onSuccess, onSwitchToRegister }: LoginFormProps) => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (login(email, password, rememberMe)) {
       onSuccess();
+    } else {
+      toast({
+        title: "Erreur de connexion",
+        description: "Email ou mot de passe incorrect.",
+        variant: "destructive",
+      });
     }
   };
 

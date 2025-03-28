@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "./AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -15,12 +16,19 @@ const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { register } = useAuth();
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (register(username, email, password)) {
       onSuccess();
+    } else {
+      toast({
+        title: "Erreur d'inscription",
+        description: "Impossible de créer le compte. Veuillez vérifier vos informations.",
+        variant: "destructive",
+      });
     }
   };
 

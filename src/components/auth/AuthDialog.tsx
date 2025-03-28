@@ -13,17 +13,27 @@ import {
 import { useAuth } from "./AuthContext";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import { useToast } from "@/components/ui/use-toast";
 
 // Updated Auth Dialog component
 const AuthDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const { toast } = useToast();
 
   const handleDialogClose = () => {
     setIsOpen(false);
     // Reset to login view when dialog closes
     setIsLogin(true);
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Déconnexion réussie",
+      description: "Vous avez été déconnecté avec succès.",
+    });
   };
 
   const switchToRegister = () => setIsLogin(false);
@@ -42,7 +52,7 @@ const AuthDialog = () => {
     return (
       <div className="flex items-center gap-2">
         <span className="text-sm hidden md:inline-block">{user?.username}</span>
-        <Button variant="outline" size="sm" onClick={logout} className="flex items-center gap-1">
+        <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-1">
           <Shield className="h-3.5 w-3.5" />
           <span className="hidden md:inline-block">Déconnexion</span>
         </Button>
