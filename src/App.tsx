@@ -11,6 +11,7 @@ import './App.css';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './components/auth/AuthContext';
 import { Toaster } from "@/components/ui/toaster";
+import SettingsPage from './pages/SettingsPage';
 
 const App = () => {
   return (
@@ -23,6 +24,7 @@ const App = () => {
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/quiz" element={<QuizPage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

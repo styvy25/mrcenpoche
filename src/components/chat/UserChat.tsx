@@ -65,9 +65,7 @@ const UserChat = ({ isInDialog = false }: UserChatProps) => {
             formatTime={formatTime}
           />
           <MessageInput 
-            onSendMessage={(content, mediaBlob, mediaType) => 
-              handleSendMessage(content, mediaBlob, mediaType)
-            } 
+            onSendMessage={handleSendMessage} 
           />
           
           {/* Bouton flottant de signalement de fraude */}

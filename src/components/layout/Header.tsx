@@ -1,83 +1,72 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import Logo from '@/components/branding/Logo';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { User, Menu, X } from 'lucide-react';
+import Logo from '@/components/branding/Logo';
 import { useAuth } from '@/components/auth/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
+import AuthNavItem from './AuthNavItem';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import MobileNav from './MobileNav';
+import { useTheme } from 'next-themes';
+import InstallButton from '../mobileApp/InstallButton';
 
 const Header = () => {
-  const { isAuthenticated, user, logout } = useAuth();
-  const { userPlan } = usePlanLimits();
+  const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
+  const { theme } = useTheme();
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   return (
-    <header className="border-b bg-background sticky top-0 z-10">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <Logo size="small" />
-            <span className="hidden sm:inline-block font-semibold text-lg">MRC en Poche</span>
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Link to="/" className="flex items-center space-x-2">
+            <Logo size={32} />
+            <span className="font-bold text-xl hidden sm:inline-block">MRC en Poche</span>
           </Link>
         </div>
 
-        <div className="flex items-center gap-2">
-          {userPlan === 'premium' && (
-            <div className="hidden sm:flex items-center gap-1 px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-full border border-amber-200 dark:border-amber-700/50 mr-2">
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-xs font-medium text-amber-800 dark:text-amber-400">Premium</span>
-            </div>
-          )}
+        <nav className="hidden md:flex items-center space-x-1">
+          <Link to="/">
+            <Button variant={location.pathname === '/' ? "default" : "ghost"}>
+              Accueil
+            </Button>
+          </Link>
+          <Link to="/assistant">
+            <Button variant={location.pathname === '/assistant' ? "default" : "ghost"}>
+              Assistant
+            </Button>
+          </Link>
+          <Link to="/documents">
+            <Button variant={location.pathname === '/documents' ? "default" : "ghost"}>
+              Documents
+            </Button>
+          </Link>
+          <Link to="/quiz">
+            <Button variant={location.pathname === '/quiz' ? "default" : "ghost"}>
+              Quiz
+            </Button>
+          </Link>
+          
+          <div className="ml-2">
+            <InstallButton />
+          </div>
+        </nav>
 
-          {!isAuthenticated ? (
-            <Link to="/auth">
-              <Button size="sm" variant="default">Se connecter</Button>
-            </Link>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar className={cn("h-8 w-8 cursor-pointer", userPlan === 'premium' && "ring-2 ring-amber-500 ring-offset-2")}>
-                  <AvatarImage src={user?.avatar} />
-                  <AvatarFallback>{user?.username?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
-                {userPlan === 'premium' && (
-                  <div className="flex items-center gap-1 px-2 py-1 mx-2 bg-amber-100 dark:bg-amber-900/30 rounded text-xs">
-                    <Sparkles className="h-3 w-3 text-amber-500" />
-                    <span className="font-medium text-amber-800 dark:text-amber-400">Premium</span>
-                  </div>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">Profil</Link>
-                </DropdownMenuItem>
-                {userPlan !== 'premium' && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/payment" className="flex items-center">
-                      <Sparkles className="h-4 w-4 mr-2 text-amber-500" />
-                      <span>Passer à Premium</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => logout()}>
-                  Déconnexion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+        <div className="flex items-center space-x-2">
+          <AuthNavItem />
+          
+          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="md:hidden">
+              <MobileNav onClose={() => setIsMenuOpen(false)} />
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

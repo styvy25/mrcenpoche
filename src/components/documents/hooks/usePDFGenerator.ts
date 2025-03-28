@@ -1,150 +1,148 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
-import { useAuth } from '@/components/auth/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
-
-interface UserFormData {
-  name: string;
-  email: string;
-  organization?: string;
-}
-
-interface PDFOptions {
-  title: string;
-  includeHeader: boolean;
-  includeFooter: boolean;
-  includeDate: boolean;
-  pageSize: 'a4' | 'letter';
-  orientation: 'portrait' | 'landscape';
-}
+import { useToast } from '@/components/ui/use-toast';
 
 export const usePDFGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPDFUrl, setGeneratedPDFUrl] = useState<string | null>(null);
-  const { user } = useAuth();
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const { canGeneratePDF } = usePlanLimits();
   const { toast } = useToast();
-  const { incrementPDFGenerationCount, checkPDFGenerationLimit } = usePlanLimits();
 
-  const generatePDF = async (
-    content: string,
-    userInfo: UserFormData,
-    options: PDFOptions
-  ) => {
-    // Check if user has reached the PDF generation limit
-    const canGenerate = checkPDFGenerationLimit();
-    if (!canGenerate) {
+  // Fonction pour générer un PDF à partir des messages
+  const generatePDF = useCallback(async (messages: any[]) => {
+    if (!canGeneratePDF()) {
       toast({
         title: "Limite atteinte",
-        description: "Vous avez atteint votre limite de génération de PDF. Passez à Premium pour des générations illimitées.",
+        description: "Vous avez atteint votre limite mensuelle de génération de PDF. Passez à Premium pour un accès illimité.",
         variant: "destructive",
       });
       return null;
     }
 
-    setIsGenerating(true);
     try {
+      setIsGenerating(true);
+      
       // Create a new PDF document
       const doc = new jsPDF({
-        orientation: options.orientation,
+        orientation: 'portrait',
         unit: 'mm',
-        format: options.pageSize,
+        format: 'a4'
       });
-
-      // Set document properties
-      doc.setProperties({
-        title: options.title,
-        subject: 'MRC Formation Document',
-        author: userInfo.name || user?.username || user?.displayName || 'Utilisateur MRC',
-        creator: 'MRC LearnScape',
-      });
-
-      // Add header if enabled
-      if (options.includeHeader) {
-        doc.setFontSize(12);
-        doc.setTextColor(100, 100, 100);
-        doc.text('MRC LearnScape', 14, 10);
-        doc.text(options.title, 14, 16);
-        
-        if (options.includeDate) {
-          const today = new Date().toLocaleDateString();
-          doc.text('Date: ' + today, doc.internal.pageSize.width - 60, 10);
-        }
-        
-        doc.line(14, 20, doc.internal.pageSize.width - 14, 20);
-      }
-
-      // Add content
+      
+      // Add a title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("Conversation MRC en Poche", 105, 20, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      
+      // Add date
+      doc.setFontSize(12);
+      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 105, 30, { align: "center" });
+      
+      // Add a separator line
+      doc.setDrawColor(0, 102, 204);
+      doc.setLineWidth(0.5);
+      doc.line(20, 35, 190, 35);
+      
+      // Configure text settings
       doc.setFontSize(11);
       doc.setTextColor(0, 0, 0);
       
-      // Calculate start position based on whether header is included
-      const startY = options.includeHeader ? 30 : 14;
+      // Set variables for text position
+      let y = 45;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const textWidth = pageWidth - (2 * margin);
       
-      // Split text into lines and add to PDF
-      const splitText = doc.splitTextToSize(content, doc.internal.pageSize.width - 28);
-      doc.text(splitText, 14, startY);
-      
-      // Add footer if enabled
-      if (options.includeFooter) {
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-          doc.setPage(i);
-          doc.setFontSize(8);
-          doc.setTextColor(150, 150, 150);
-          
-          // Add page number
-          doc.text(`Page ${i} / ${pageCount}`, doc.internal.pageSize.width / 2, 
-                  doc.internal.pageSize.height - 10, { align: 'center' });
-          
-          // Add user info
-          doc.text(`Généré pour: ${userInfo.name} | ${userInfo.email}`,
-                  doc.internal.pageSize.width / 2, 
-                  doc.internal.pageSize.height - 5, 
-                  { align: 'center' });
+      // Add messages
+      for (const message of messages) {
+        // Skip system messages
+        if (message.sender === 'system') continue;
+        
+        // Check if we need a new page
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
         }
+        
+        // Set font based on sender
+        if (message.sender === 'user') {
+          doc.setFont("helvetica", "bold");
+          doc.text("Vous:", margin, y);
+        } else {
+          doc.setFont("helvetica", "bold");
+          doc.text("Assistant MRC:", margin, y);
+        }
+        
+        y += 7;
+        doc.setFont("helvetica", "normal");
+        
+        // Split text into lines to fit width
+        const lines = doc.splitTextToSize(message.content, textWidth);
+        
+        // Add lines to PDF
+        doc.text(lines, margin, y);
+        
+        // Update y position based on number of lines
+        y += 7 * lines.length;
+        
+        // Add timestamp
+        const timestamp = new Date(message.timestamp).toLocaleString('fr-FR');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text(timestamp, pageWidth - margin, y - 4, { align: "right" });
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        
+        // Add spacing
+        y += 10;
       }
+      
+      // Add footer with page count
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Page ${i} sur ${pageCount} - MRC en Poche`, 105, 290, { align: "center" });
+      }
+      
+      // Generate PDF blob
+      const pdfBlob = doc.output('blob');
+      const url = URL.createObjectURL(pdfBlob);
+      setPdfUrl(url);
+      
+      toast({
+        title: "PDF généré avec succès",
+        description: "Votre conversation a été convertie en PDF",
+      });
 
-      // Convert the PDF to a data URL
-      const pdfDataUrl = doc.output('datauristring');
-      setGeneratedPDFUrl(pdfDataUrl);
+      // Trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `conversation-mrc-${new Date().toISOString().split('T')[0]}.pdf`;
+      link.click();
       
-      // Increment PDF generation count
-      incrementPDFGenerationCount();
-      
-      return pdfDataUrl;
+      return url;
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la génération du PDF.",
+        description: "Impossible de générer le PDF. Veuillez réessayer.",
         variant: "destructive",
       });
       return null;
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const downloadPDF = (filename: string) => {
-    if (!generatedPDFUrl) return;
-    
-    const link = document.createElement('a');
-    link.href = generatedPDFUrl;
-    link.download = `${filename}.pdf`;
-    link.click();
-  };
-
-  const clearPDF = () => {
-    setGeneratedPDFUrl(null);
-  };
+  }, [canGeneratePDF, toast]);
 
   return {
-    isGenerating,
-    generatedPDFUrl,
     generatePDF,
-    downloadPDF,
-    clearPDF,
+    isGenerating,
+    pdfUrl,
+    clearPdfUrl: () => setPdfUrl(null),
   };
 };

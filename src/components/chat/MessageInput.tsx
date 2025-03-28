@@ -2,18 +2,15 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendHorizonal, PaperclipIcon, Mic, MicOff, Image } from "lucide-react";
-import MediaCapture from "./MediaCapture";
+import { SendHorizonal, Image, Mic, MicOff } from "lucide-react";
 
 interface MessageInputProps {
-  onSendMessage: (content: string, mediaBlob?: Blob, mediaType?: 'photo' | 'audio') => Promise<any>;
+  onSendMessage: (content: string, mediaBlob?: Blob, mediaType?: 'photo' | 'audio') => void;
 }
 
 const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const [isMediaCaptureOpen, setIsMediaCaptureOpen] = useState(false);
-  const [captureType, setCaptureType] = useState<'photo' | 'audio'>('photo');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -27,7 +24,7 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
     if (!message.trim()) return;
     
     try {
-      await onSendMessage(message);
+      onSendMessage(message);
       setMessage("");
       
       // Reset textarea height
@@ -46,78 +43,50 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
     }
   };
 
-  const handleMediaCapture = async (mediaBlob: Blob, mediaType: 'photo' | 'audio') => {
-    try {
-      await onSendMessage("", mediaBlob, mediaType);
-      setIsMediaCaptureOpen(false);
-    } catch (error) {
-      console.error("Error sending media:", error);
-    }
-  };
-
-  const openPhotoCapture = () => {
-    setCaptureType('photo');
-    setIsMediaCaptureOpen(true);
-  };
-
-  const openAudioCapture = () => {
-    setCaptureType('audio');
-    setIsMediaCaptureOpen(true);
-  };
-
   return (
     <div className="p-3 bg-gray-900/80 border-t border-gray-700/50 backdrop-blur-sm">
-      {isMediaCaptureOpen ? (
-        <MediaCapture 
-          mediaType={captureType}
-          onCapture={handleMediaCapture}
-          onCancel={() => setIsMediaCaptureOpen(false)}
-        />
-      ) : (
-        <div className="flex gap-2 items-end">
-          <div className="flex items-center gap-2">
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="icon"
-              onClick={openPhotoCapture}
-              className="rounded-full text-gray-400 hover:text-gray-200 hover:bg-gray-700/50"
-            >
-              <Image className="h-5 w-5" />
-            </Button>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsRecording(!isRecording)}
-              className={`rounded-full ${isRecording ? 'text-red-500' : 'text-gray-400 hover:text-gray-200'} hover:bg-gray-700/50`}
-            >
-              {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-            </Button>
-          </div>
-          
-          <Textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Écrivez un message..."
-            className="resize-none bg-gray-800 border-gray-700 rounded-lg focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[44px] max-h-[120px] placeholder:text-gray-500"
-            rows={1}
-          />
-          
-          <Button
-            type="button"
-            variant={message.trim() ? "default" : "ghost"}
+      <div className="flex gap-2 items-end">
+        <div className="flex items-center gap-2">
+          <Button 
+            type="button" 
+            variant="ghost" 
             size="icon"
-            onClick={handleSendMessage}
-            disabled={!message.trim()}
-            className={`rounded-full transition-all ${message.trim() ? 'bg-mrc-blue text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'}`}
+            className="rounded-full text-gray-400 hover:text-gray-200 hover:bg-gray-700/50"
           >
-            <SendHorizonal className="h-5 w-5" />
+            <Image className="h-5 w-5" />
+          </Button>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setIsRecording(!isRecording)}
+            className={`rounded-full ${isRecording ? 'text-red-500' : 'text-gray-400 hover:text-gray-200'} hover:bg-gray-700/50`}
+          >
+            {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           </Button>
         </div>
-      )}
+        
+        <Textarea
+          ref={textareaRef}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Écrivez un message..."
+          className="resize-none bg-gray-800 border-gray-700 rounded-lg focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[44px] max-h-[120px] placeholder:text-gray-500"
+          rows={1}
+        />
+        
+        <Button
+          type="button"
+          variant={message.trim() ? "default" : "ghost"}
+          size="icon"
+          onClick={handleSendMessage}
+          disabled={!message.trim()}
+          className={`rounded-full transition-all ${message.trim() ? 'bg-mrc-blue text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'}`}
+        >
+          <SendHorizonal className="h-5 w-5" />
+        </Button>
+      </div>
     </div>
   );
 };

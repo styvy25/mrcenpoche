@@ -1,11 +1,9 @@
 
-import { useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useYouTubeSearch } from "./useYouTubeSearch";
 import { useMessageHandler } from "./useMessageHandler";
 import { useOfflineMode } from "./useOfflineMode";
 import { Message } from "../types/message";
-import { useAuth } from "@/components/auth/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 
 export function useChatState() {
   const { 
@@ -27,42 +25,9 @@ export function useChatState() {
   } = useYouTubeSearch();
   
   const { isOnline } = useOfflineMode();
-  const { user } = useAuth();
   
   // Use a ref to track if we've already initialized messages
   const hasInitialized = useRef(false);
-
-  // Update presence when user is online
-  useEffect(() => {
-    if (!user || !isOnline) return;
-
-    // Create a unique channel name for this user
-    const userId = user.uid || user.id || 'anonymous';
-    const channelName = `chat_presence_${userId}`;
-    const channel = supabase.channel(channelName);
-    
-    const userPresence = {
-      user_id: userId,
-      username: user.username || user.displayName || 'Anonymous',
-      avatar: user.avatar || '',
-      status: 'online',
-      last_seen: new Date().toISOString(),
-    };
-    
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        // Handle presence sync
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track(userPresence);
-        }
-      });
-      
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, isOnline]);
 
   // Ensure all messages have a timestamp that's a Date object
   const normalizeMessages = useCallback((msgs: Message[]) => {
@@ -117,6 +82,36 @@ export function useChatState() {
     return baseHandleVideoSelect(videoId, isOnline, setIsLoading, setMessages);
   }, [baseHandleVideoSelect, isOnline, setIsLoading, setMessages]);
 
+  // Mock active users for demo
+  const activeUsers = [
+    { id: '1', name: 'Jean Doe', status: 'online', lastSeen: new Date(), avatar: '' },
+    { id: '2', name: 'Pierre Smith', status: 'online', lastSeen: new Date(), avatar: '' },
+    { id: '3', name: 'Marie Johnson', status: 'away', lastSeen: new Date(Date.now() - 30 * 60000), avatar: '' },
+  ];
+
+  // Helper functions for time formatting
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatLastSeen = (date: Date) => {
+    const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+    if (minutes < 1) return 'à l\'instant';
+    if (minutes < 60) return `il y a ${minutes} min`;
+    
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `il y a ${hours} h`;
+    
+    return date.toLocaleDateString('fr-FR');
+  };
+
+  // Chat settings
+  const chatSettings = {
+    isVisible: true,
+    allowAttachments: true,
+    allowVoiceMessages: true
+  };
+
   return {
     messages: normalizeMessages(messages),
     isLoading,
@@ -126,6 +121,11 @@ export function useChatState() {
     handleSendMessage,
     handleVideoSelect,
     handleYouTubeSearch: useCallback((query: string) => handleYouTubeSearch(query, isOnline), [handleYouTubeSearch, isOnline]),
-    clearConversation
+    clearConversation,
+    activeUsers,
+    CURRENT_USER_ID: '1',
+    formatTime,
+    formatLastSeen,
+    chatSettings
   };
 }
