@@ -3,7 +3,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AssistantPage from './pages/AssistantPage';
 import DocumentsPage from './pages/DocumentsPage';
-import QuizPage from './pages/QuizPage';
 import PaymentPage from './pages/PaymentPage';
 import AuthPage from './pages/AuthPage';
 import NotFound from './pages/NotFound';
@@ -23,7 +22,6 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/assistant" element={<AssistantPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/quiz" element={<QuizPage />} />
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="*" element={<NotFound />} />

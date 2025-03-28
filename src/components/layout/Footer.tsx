@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, MessageSquare, ScrollText } from 'lucide-react';
+import { FileText, MessageSquare } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel } from '@/components/ui/dock';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -19,12 +19,6 @@ const Footer = () => {
       icon: <FileText className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
       href: '/documents',
       active: location.pathname === '/documents'
-    },
-    {
-      title: 'Quiz',
-      icon: <ScrollText className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-      href: '/quiz',
-      active: location.pathname === '/quiz'
     }
   ];
 

@@ -1,98 +1,60 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, MessageSquare, ScrollText, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/components/auth/AuthContext';
-import StripeButton from '@/components/payment/StripeButton';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { MessageSquare, FileText, CreditCard } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const { userPlan } = usePlanLimits();
-
-  const features = [
-    {
-      icon: <MessageSquare className="h-10 w-10 text-mrc-blue" />,
-      title: "Assistant IA",
-      description: "Posez toutes vos questions à notre assistant spécialisé",
-      link: "/assistant",
-      color: "from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20"
-    },
-    {
-      icon: <FileText className="h-10 w-10 text-mrc-green" />,
-      title: "Documents",
-      description: "Générez des documents et procédures légales",
-      link: "/documents",
-      color: "from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20"
-    },
-    {
-      icon: <ScrollText className="h-10 w-10 text-mrc-red" />,
-      title: "Quiz",
-      description: "Testez vos connaissances et progressez",
-      link: "/quiz",
-      color: "from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20"
-    }
-  ];
-
   return (
     <MainLayout>
-      <div className="py-10">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-            Bienvenue sur MRC en Poche
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
-            Votre assistant personnel pour tout ce qui concerne le MRC et les actualités du Cameroun
-          </p>
+      <div className="py-8">
+        <h1 className="text-3xl font-bold mb-2 text-center">MRC en Poche</h1>
+        <p className="text-center text-muted-foreground mb-8">
+          Votre assistant politique personnel
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow">
+            <MessageSquare className="h-12 w-12 text-mrc-blue mb-4" />
+            <h2 className="text-xl font-semibold mb-3">Assistant IA</h2>
+            <p className="text-center mb-6 text-muted-foreground">
+              Posez vos questions sur le MRC, la politique camerounaise et obtenez des réponses instantanées.
+            </p>
+            <Link to="/assistant" className="mt-auto">
+              <Button className="w-full">
+                Discuter avec l'assistant
+              </Button>
+            </Link>
+          </Card>
           
-          {(!isAuthenticated || userPlan !== 'premium') && (
-            <div className="flex justify-center">
-              <StripeButton 
-                variant="gradient" 
-                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
-              >
-                {userPlan === 'premium' ? 'Gérer mon abonnement' : 'Passer à Premium'}
-              </StripeButton>
-            </div>
-          )}
+          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow">
+            <FileText className="h-12 w-12 text-mrc-green mb-4" />
+            <h2 className="text-xl font-semibold mb-3">Documents</h2>
+            <p className="text-center mb-6 text-muted-foreground">
+              Générez des documents officiels, des rapports et des formulaires personnalisés.
+            </p>
+            <Link to="/documents" className="mt-auto">
+              <Button className="w-full">
+                Créer un document
+              </Button>
+            </Link>
+          </Card>
+          
+          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow md:col-span-2">
+            <CreditCard className="h-12 w-12 text-amber-500 mb-4" />
+            <h2 className="text-xl font-semibold mb-3">Premium</h2>
+            <p className="text-center mb-6 text-muted-foreground">
+              Accédez à toutes les fonctionnalités sans limite avec notre abonnement premium.
+            </p>
+            <Link to="/payment" className="mt-auto">
+              <Button variant="outline" className="w-full border-amber-500 text-amber-700 hover:bg-amber-50">
+                Découvrir les avantages
+              </Button>
+            </Link>
+          </Card>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <Card key={index} className="overflow-hidden">
-              <CardHeader className={`bg-gradient-to-r ${feature.color}`}>
-                <div className="flex justify-center">
-                  {feature.icon}
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <CardTitle className="text-xl text-center mb-2">{feature.title}</CardTitle>
-                <CardDescription className="text-center">{feature.description}</CardDescription>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full" 
-                  onClick={() => navigate(feature.link)}
-                >
-                  Accéder <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-
-        {!isAuthenticated && (
-          <div className="mt-10 text-center">
-            <h2 className="text-xl font-semibold mb-4">Vous n'avez pas encore de compte ?</h2>
-            <Button variant="outline" onClick={() => navigate('/auth')}>
-              S'inscrire gratuitement
-            </Button>
-          </div>
-        )}
       </div>
     </MainLayout>
   );
