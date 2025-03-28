@@ -3,10 +3,8 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Bot, Send, Video, YoutubeIcon } from 'lucide-react';
 import { ChatMessageList } from '@/components/ui/chat-message-list';
-import { ChatInput } from '@/components/ui/chat-input';
 import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from '@/components/ui/chat-bubble';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import PremiumBanner from '@/components/premium/PremiumBanner';
@@ -267,12 +265,18 @@ const AssistantPage = () => {
                   }}
                   className="flex items-center gap-2"
                 >
-                  <ChatInput
+                  <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Posez votre question ou demandez des vidéos..."
-                    onSubmit={handleSendMessage}
-                    className="flex-1"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    className="flex-1 resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    rows={1}
                   />
                   <Button type="submit" disabled={isLoading || !input.trim() || isSearchingYouTube}>
                     <Send className="h-4 w-4" />

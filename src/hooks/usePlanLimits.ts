@@ -1,203 +1,153 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthContext';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/lib/supabase';
 
-// Types de plans disponibles
-export type PlanType = 'free' | 'premium' | 'group';
+export type PlanType = 'free' | 'premium';
 
-// Structure définissant les limites pour chaque plan
 export interface PlanLimits {
   chatMessagesPerDay: number;
   pdfGenerationsPerMonth: number;
-  accessAllModules: boolean;
-  certificatesEnabled: boolean;
-  webinarsAccess: boolean;
-  livestreamingEnabled: boolean;
+  quizzesPerDay?: number;
 }
 
-// Définition des limites par plan
-const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
-  free: {
-    chatMessagesPerDay: 10,
-    pdfGenerationsPerMonth: 3,
-    accessAllModules: false,
-    certificatesEnabled: false,
-    webinarsAccess: false,
-    livestreamingEnabled: false
-  },
-  premium: {
-    chatMessagesPerDay: Infinity,
-    pdfGenerationsPerMonth: Infinity,
-    accessAllModules: true,
-    certificatesEnabled: true,
-    webinarsAccess: true,
-    livestreamingEnabled: true
-  },
-  group: {
-    chatMessagesPerDay: Infinity,
-    pdfGenerationsPerMonth: Infinity,
-    accessAllModules: true,
-    certificatesEnabled: true,
-    webinarsAccess: true,
-    livestreamingEnabled: true
-  }
+const FREE_PLAN_LIMITS: PlanLimits = {
+  chatMessagesPerDay: 10,
+  pdfGenerationsPerMonth: 3,
+  quizzesPerDay: 5,
 };
 
-// Clés localStorage pour le suivi de l'utilisation
-const STORAGE_KEYS = {
-  CHAT_MESSAGES_TODAY: 'mrc_chat_messages_today',
-  CHAT_MESSAGES_DATE: 'mrc_chat_messages_date',
-  PDF_GENERATIONS_MONTH: 'mrc_pdf_generations_month',
-  PDF_GENERATIONS_MONTH_DATE: 'mrc_pdf_generations_month_date',
-  USER_PLAN: 'mrc_user_plan'
+const PREMIUM_PLAN_LIMITS: PlanLimits = {
+  chatMessagesPerDay: -1, // unlimited
+  pdfGenerationsPerMonth: -1, // unlimited
+  quizzesPerDay: -1, // unlimited
 };
 
-// Interface pour les statistiques d'utilisation
-interface UsageStats {
-  userPlan: PlanType;
-  chatMessagesLimit: number;
+interface UsageData {
   chatMessagesToday: number;
-  pdfGenerationsLimit: number;
   pdfGenerationsThisMonth: number;
+  quizzesToday: number;
 }
 
-export function usePlanLimits() {
-  const { user } = useAuth();
-  const { toast } = useToast();
+export const usePlanLimits = () => {
   const [userPlan, setUserPlan] = useState<PlanType>('free');
-  const [limits, setLimits] = useState<PlanLimits>(PLAN_LIMITS.free);
+  const [limits, setLimits] = useState<PlanLimits>(FREE_PLAN_LIMITS);
+  const [usage, setUsage] = useState<UsageData>({
+    chatMessagesToday: 0,
+    pdfGenerationsThisMonth: 0,
+    quizzesToday: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+  const { user } = useAuth();
 
+  // Load user plan and usage from localStorage on initial render
   useEffect(() => {
-    const loadUserPlan = async () => {
+    const loadPlanAndUsage = async () => {
       try {
-        // First try to load from Supabase if the user is logged in
-        if (user?.id) {
+        // First check localStorage for cached data
+        const storedPlan = localStorage.getItem('userPlan');
+        if (storedPlan) {
+          setUserPlan(storedPlan as PlanType);
+          setLimits(storedPlan === 'premium' ? PREMIUM_PLAN_LIMITS : FREE_PLAN_LIMITS);
+        }
+
+        // Get usage data from localStorage
+        const today = new Date().toISOString().split('T')[0];
+        const month = new Date().toISOString().slice(0, 7);
+        
+        const chatUsage = JSON.parse(localStorage.getItem('chatUsage') || '{}');
+        const pdfUsage = JSON.parse(localStorage.getItem('pdfUsage') || '{}');
+        const quizUsage = JSON.parse(localStorage.getItem('quizUsage') || '{}');
+        
+        setUsage({
+          chatMessagesToday: chatUsage[today] || 0,
+          pdfGenerationsThisMonth: Object.entries(pdfUsage)
+            .filter(([key]) => key.startsWith(month))
+            .reduce((sum, [_, count]) => sum + (count as number), 0),
+          quizzesToday: quizUsage[today] || 0,
+        });
+
+        // If user is logged in, fetch plan from Supabase
+        if (user) {
           const { data, error } = await supabase
             .from('user_subscriptions')
-            .select('*')
+            .select('plan_type, is_active')
             .eq('user_id', user.id)
-            .eq('status', 'active')
             .single();
-            
-          if (data && !error) {
-            // Convert the plan_type to our PlanType
-            const planType = data.plan_type as PlanType;
-            if (Object.keys(PLAN_LIMITS).includes(planType)) {
-              setUserPlan(planType);
-              setLimits(PLAN_LIMITS[planType]);
-              localStorage.setItem(STORAGE_KEYS.USER_PLAN, planType);
-              setIsLoading(false);
-              return;
-            }
+
+          if (error) {
+            console.error('Error fetching subscription:', error);
+          } else if (data) {
+            const plan = data.is_active && data.plan_type === 'premium' ? 'premium' : 'free';
+            setUserPlan(plan);
+            setLimits(plan === 'premium' ? PREMIUM_PLAN_LIMITS : FREE_PLAN_LIMITS);
+            localStorage.setItem('userPlan', plan);
           }
         }
-        
-        // Try to load from localStorage as fallback
-        const savedPlan = localStorage.getItem(STORAGE_KEYS.USER_PLAN) as PlanType;
-        if (savedPlan && Object.keys(PLAN_LIMITS).includes(savedPlan)) {
-          setUserPlan(savedPlan);
-          setLimits(PLAN_LIMITS[savedPlan]);
-        } else {
-          // If no plan is saved, set to 'free'
-          setUserPlan('free');
-          setLimits(PLAN_LIMITS.free);
-        }
       } catch (error) {
-        console.error('Error loading user plan:', error);
-        setUserPlan('free');
-        setLimits(PLAN_LIMITS.free);
+        console.error('Error loading plan data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadUserPlan();
+    loadPlanAndUsage();
   }, [user]);
 
-  // Update the user's plan
-  const updateUserPlan = async (newPlan: PlanType) => {
-    if (!Object.keys(PLAN_LIMITS).includes(newPlan)) {
-      toast({
-        title: "Erreur",
-        description: `Plan non reconnu: ${newPlan}`,
-        variant: "destructive",
-      });
-      return false;
-    }
-
+  // Update user plan in both state and localStorage
+  const updateUserPlan = async (newPlan: PlanType): Promise<boolean> => {
     try {
-      // Update in Supabase if logged in
-      if (user?.id) {
+      setUserPlan(newPlan);
+      setLimits(newPlan === 'premium' ? PREMIUM_PLAN_LIMITS : FREE_PLAN_LIMITS);
+      localStorage.setItem('userPlan', newPlan);
+      
+      // If user is logged in, update plan in Supabase
+      if (user) {
         const { error } = await supabase
           .from('user_subscriptions')
           .upsert({
             user_id: user.id,
             plan_type: newPlan,
-            status: 'active',
-            start_date: new Date().toISOString(),
-            // For premium plans, set end date to 1 month from now
-            end_date: newPlan !== 'free' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null
+            is_active: true,
           });
-          
+
         if (error) {
-          throw error;
+          console.error('Error updating subscription:', error);
+          return false;
         }
       }
       
-      // Update in localStorage
-      localStorage.setItem(STORAGE_KEYS.USER_PLAN, newPlan);
-      setUserPlan(newPlan);
-      setLimits(PLAN_LIMITS[newPlan]);
-      
-      toast({
-        title: "Plan mis à jour",
-        description: `Votre plan a été mis à jour vers ${newPlan}`,
-      });
-      
       return true;
     } catch (error) {
-      console.error('Error updating user plan:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour votre plan",
-        variant: "destructive",
-      });
+      console.error('Error updating plan:', error);
       return false;
     }
   };
 
-  // Check if the user can use a specific feature
+  // Check if user can use a feature
   const canUseFeature = (feature: keyof PlanLimits): boolean => {
-    return !!limits[feature];
-  };
-
-  // Check if the user has reached the daily chat message limit
-  const hasChatLimit = (): boolean => {
-    return limits.chatMessagesPerDay !== Infinity;
-  };
-
-  // Get the number of chat messages used today
-  const getChatMessagesUsedToday = (): number => {
-    const today = new Date().toDateString();
-    const savedDate = localStorage.getItem(STORAGE_KEYS.CHAT_MESSAGES_DATE);
+    if (userPlan === 'premium') return true;
     
-    if (savedDate !== today) {
-      localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES_DATE, today);
-      localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY, '0');
-      return 0;
+    const limit = limits[feature];
+    if (limit === -1) return true; // Unlimited
+    
+    if (feature === 'chatMessagesPerDay') {
+      return usage.chatMessagesToday < limit;
+    } else if (feature === 'pdfGenerationsPerMonth') {
+      return usage.pdfGenerationsThisMonth < limit;
+    } else if (feature === 'quizzesPerDay') {
+      return usage.quizzesToday < limit;
     }
     
-    return parseInt(localStorage.getItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY) || '0');
+    return false;
   };
 
-  // Increment the chat message counter
+  // Increment chat message count
   const incrementChatMessages = (): boolean => {
-    const usedToday = getChatMessagesUsedToday();
-    
-    if (usedToday >= limits.chatMessagesPerDay) {
+    const feature = 'chatMessagesPerDay';
+    if (!canUseFeature(feature)) {
       toast({
         title: "Limite atteinte",
         description: "Vous avez atteint votre limite quotidienne de messages. Passez à Premium pour un accès illimité.",
@@ -206,71 +156,100 @@ export function usePlanLimits() {
       return false;
     }
     
-    localStorage.setItem(STORAGE_KEYS.CHAT_MESSAGES_TODAY, (usedToday + 1).toString());
+    const today = new Date().toISOString().split('T')[0];
+    const chatUsage = JSON.parse(localStorage.getItem('chatUsage') || '{}');
+    chatUsage[today] = (chatUsage[today] || 0) + 1;
+    localStorage.setItem('chatUsage', JSON.stringify(chatUsage));
+    
+    setUsage(prev => ({
+      ...prev,
+      chatMessagesToday: prev.chatMessagesToday + 1,
+    }));
+    
     return true;
   };
 
-  // Get the number of PDFs generated this month
-  const getPdfGenerationsThisMonth = (): number => {
-    const currentMonth = new Date().getMonth() + '-' + new Date().getFullYear();
-    const savedMonth = localStorage.getItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH_DATE);
-    
-    if (savedMonth !== currentMonth) {
-      localStorage.setItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH_DATE, currentMonth);
-      localStorage.setItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH, '0');
-      return 0;
-    }
-    
-    return parseInt(localStorage.getItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH) || '0');
-  };
-
-  // Check if the user can generate a PDF
-  const canGeneratePdf = (): boolean => {
-    if (userPlan !== 'free') return true;
-    
-    const generationsThisMonth = getPdfGenerationsThisMonth();
-    return generationsThisMonth < limits.pdfGenerationsPerMonth;
-  };
-
-  // Increment the PDF generations counter
+  // Increment PDF generation count
   const incrementPdfGenerations = (): boolean => {
-    if (userPlan !== 'free') return true;
-    
-    const generationsThisMonth = getPdfGenerationsThisMonth();
-    
-    if (generationsThisMonth >= limits.pdfGenerationsPerMonth) {
+    const feature = 'pdfGenerationsPerMonth';
+    if (!canUseFeature(feature)) {
       toast({
         title: "Limite atteinte",
-        description: "Vous avez atteint votre limite mensuelle de générations PDF. Passez à Premium pour un accès illimité.",
+        description: "Vous avez atteint votre limite mensuelle de générations de PDF. Passez à Premium pour un accès illimité.",
         variant: "destructive",
       });
       return false;
     }
     
-    localStorage.setItem(STORAGE_KEYS.PDF_GENERATIONS_MONTH, (generationsThisMonth + 1).toString());
+    const today = new Date().toISOString().split('T')[0];
+    const pdfUsage = JSON.parse(localStorage.getItem('pdfUsage') || '{}');
+    pdfUsage[today] = (pdfUsage[today] || 0) + 1;
+    localStorage.setItem('pdfUsage', JSON.stringify(pdfUsage));
+    
+    setUsage(prev => ({
+      ...prev,
+      pdfGenerationsThisMonth: prev.pdfGenerationsThisMonth + 1,
+    }));
+    
     return true;
   };
-  
-  // Check if the user can access all modules
-  const canAccessAllModules = (): boolean => {
-    return limits.accessAllModules;
+
+  // Increment quiz count
+  const incrementQuizzes = (): boolean => {
+    const feature = 'quizzesPerDay';
+    if (!canUseFeature(feature)) {
+      toast({
+        title: "Limite atteinte",
+        description: "Vous avez atteint votre limite quotidienne de quiz. Passez à Premium pour un accès illimité.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
+    const quizUsage = JSON.parse(localStorage.getItem('quizUsage') || '{}');
+    quizUsage[today] = (quizUsage[today] || 0) + 1;
+    localStorage.setItem('quizUsage', JSON.stringify(quizUsage));
+    
+    setUsage(prev => ({
+      ...prev,
+      quizzesToday: prev.quizzesToday + 1,
+    }));
+    
+    return true;
   };
 
-  // Get all usage statistics
-  const getUsageStats = (): UsageStats => {
+  // Check if user can send a chat message
+  const canSendChatMessage = (): boolean => {
+    return canUseFeature('chatMessagesPerDay');
+  };
+
+  // Check if user can generate a PDF
+  const canGeneratePdf = (): boolean => {
+    return canUseFeature('pdfGenerationsPerMonth');
+  };
+
+  // Check if user can take a quiz
+  const canTakeQuiz = (): boolean => {
+    return canUseFeature('quizzesPerDay');
+  };
+
+  // Check if user has a chat message limit
+  const hasChatLimit = (): boolean => {
+    return userPlan === 'free' && limits.chatMessagesPerDay !== -1;
+  };
+
+  // Get usage statistics
+  const getUsageStats = () => {
     return {
       userPlan,
+      chatMessagesToday: usage.chatMessagesToday,
       chatMessagesLimit: limits.chatMessagesPerDay,
-      chatMessagesToday: getChatMessagesUsedToday(),
+      pdfGenerationsThisMonth: usage.pdfGenerationsThisMonth,
       pdfGenerationsLimit: limits.pdfGenerationsPerMonth,
-      pdfGenerationsThisMonth: getPdfGenerationsThisMonth()
+      quizzesToday: usage.quizzesToday,
+      quizzesLimit: limits.quizzesPerDay,
     };
-  };
-
-  // Check if the user can send a chat message
-  const canSendChatMessage = (): boolean => {
-    if (userPlan !== 'free') return true;
-    return getChatMessagesUsedToday() < limits.chatMessagesPerDay;
   };
 
   return {
@@ -279,16 +258,13 @@ export function usePlanLimits() {
     isLoading,
     updateUserPlan,
     canUseFeature,
-    hasChatLimit,
-    getChatMessagesUsedToday,
     incrementChatMessages,
-    getPdfGenerationsThisMonth,
-    canGeneratePdf,
     incrementPdfGenerations,
-    canAccessAllModules,
+    incrementQuizzes,
+    canSendChatMessage,
+    canGeneratePdf,
+    canTakeQuiz,
+    hasChatLimit,
     getUsageStats,
-    canSendChatMessage
   };
-}
-
-export default usePlanLimits;
+};

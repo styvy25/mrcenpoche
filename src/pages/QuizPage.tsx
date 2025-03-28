@@ -3,10 +3,8 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Award, CheckCircle, Clock, Play, ScrollText, Trophy, XCircle } from 'lucide-react';
+import { Award, Brain, CheckCircle, Clock, Play, Trophy, XCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import PremiumBanner from '@/components/premium/PremiumBanner';
 import PremiumDialog from '@/components/premium/PremiumDialog';
@@ -19,28 +17,28 @@ const quizCategories = [
     id: 'history',
     title: 'Histoire du MRC',
     description: 'Quiz sur l\'histoire du MRC et ses fondateurs',
-    icon: <ScrollText className="h-10 w-10 text-mrc-blue" />,
+    icon: <Brain className="h-10 w-10 text-mrc-blue" />,
     premium: false
   },
   {
     id: 'ideology',
     title: 'Idéologie politique',
     description: 'Questions sur les idées et valeurs du MRC',
-    icon: <ScrollText className="h-10 w-10 text-mrc-green" />,
+    icon: <Brain className="h-10 w-10 text-mrc-green" />,
     premium: false
   },
   {
     id: 'program',
     title: 'Programme électoral',
     description: 'Quiz sur les propositions politiques du MRC',
-    icon: <ScrollText className="h-10 w-10 text-mrc-red" />,
+    icon: <Brain className="h-10 w-10 text-mrc-red" />,
     premium: true
   },
   {
     id: 'leaders',
     title: 'Leaders du MRC',
     description: 'Questions sur les personnalités importantes du MRC',
-    icon: <ScrollText className="h-10 w-10 text-purple-500" />,
+    icon: <Brain className="h-10 w-10 text-purple-500" />,
     premium: true
   }
 ];
@@ -49,197 +47,165 @@ const quizCategories = [
 const quizQuestions = [
   {
     id: 1,
-    category: 'history',
     question: 'En quelle année le MRC a-t-il été fondé ?',
     options: ['2008', '2010', '2012', '2015'],
-    correctAnswer: '2012',
-    explanation: 'Le Mouvement pour la Renaissance du Cameroun (MRC) a été fondé en 2012 par Maurice Kamto et d\'autres personnalités politiques camerounaises.'
+    correctAnswer: 2,
+    explanation: 'Le Mouvement pour la Renaissance du Cameroun (MRC) a été fondé en 2012 par Maurice Kamto.'
   },
   {
     id: 2,
-    category: 'history',
-    question: 'Qui est le fondateur du MRC ?',
-    options: ['Paul Biya', 'Maurice Kamto', 'John Fru Ndi', 'Cabral Libii'],
-    correctAnswer: 'Maurice Kamto',
-    explanation: 'Maurice Kamto est le fondateur et président du MRC depuis sa création.'
+    question: 'Qui est le président du MRC ?',
+    options: ['John Fru Ndi', 'Maurice Kamto', 'Cabral Libii', 'Akere Muna'],
+    correctAnswer: 1,
+    explanation: 'Maurice Kamto est le président du MRC depuis sa fondation en 2012.'
   },
   {
     id: 3,
-    category: 'history',
-    question: 'Quel poste Maurice Kamto a-t-il occupé dans le gouvernement camerounais avant de fonder le MRC ?',
-    options: ['Ministre de la Justice', 'Ministre de l\'Éducation', 'Ministre délégué à la Justice', 'Ministre des Finances'],
-    correctAnswer: 'Ministre délégué à la Justice',
-    explanation: 'Maurice Kamto a occupé le poste de Ministre délégué à la Justice du Cameroun de 2004 à 2011, avant de fonder le MRC en 2012.'
+    question: 'Quelle est la couleur principale du MRC ?',
+    options: ['Rouge', 'Bleu', 'Vert', 'Jaune'],
+    correctAnswer: 1,
+    explanation: 'Le bleu est la couleur principale du MRC, symbolisant l\'espoir et la paix.'
   },
   {
     id: 4,
-    category: 'history',
-    question: 'En quelle année Maurice Kamto s\'est-il présenté pour la première fois à l\'élection présidentielle camerounaise ?',
-    options: ['2011', '2013', '2018', '2020'],
-    correctAnswer: '2018',
-    explanation: 'Maurice Kamto s\'est présenté pour la première fois à l\'élection présidentielle camerounaise en 2018.'
+    question: 'Quel poste ministériel Maurice Kamto a-t-il occupé avant de fonder le MRC ?',
+    options: ['Ministre de la Justice', 'Ministre de l\'Économie', 'Ministre des Affaires Étrangères', 'Ministre délégué à la Justice'],
+    correctAnswer: 3,
+    explanation: 'Maurice Kamto a été Ministre délégué à la Justice du Cameroun de 2004 à 2011.'
   },
   {
     id: 5,
-    category: 'history',
-    question: 'Quel slogan a été utilisé par le MRC lors de l\'élection présidentielle de 2018 ?',
-    options: ['Cameroun d\'abord', 'L\'heure du changement', 'Ensemble, changeons le Cameroun', 'La solution pour le Cameroun'],
-    correctAnswer: 'L\'heure du changement',
-    explanation: 'Le slogan "L\'heure du changement" a été utilisé par le MRC et Maurice Kamto lors de la campagne présidentielle de 2018.'
+    question: 'Quelle est la devise du MRC ?',
+    options: ['Le Cameroun d\'abord', 'L\'avenir est maintenant', 'Le changement est possible', 'Unis dans la diversité'],
+    correctAnswer: 0,
+    explanation: 'La devise du MRC est "Le Cameroun d\'abord", mettant l\'accent sur la priorité des intérêts nationaux.'
   }
 ];
 
-type QuizStep = 'categories' | 'instructions' | 'questions' | 'results';
-
-type EarnedBadge = {
-  id: string;
-  title: string;
-  icon: React.ReactNode;
-};
-
 const QuizPage = () => {
-  const [currentStep, setCurrentStep] = useState<QuizStep>('categories');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [questions, setQuestions] = useState<typeof quizQuestions>([]);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState('');
-  const [answers, setAnswers] = useState<{[key: number]: string}>({});
-  const [showExplanation, setShowExplanation] = useState(false);
-  const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
-  const [quizEndTime, setQuizEndTime] = useState<number | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [answers, setAnswers] = useState<number[]>([]);
   const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
-  const [earnedBadges, setEarnedBadges] = useState<EarnedBadge[]>([]);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [quizStarted, setQuizStarted] = useState(false);
   
-  const { userPlan, canUseFeature } = usePlanLimits();
+  const { canTakeQuiz, incrementQuizzes } = usePlanLimits();
   const { toast } = useToast();
 
-  const handleSelectCategory = (categoryId: string) => {
+  // Timer for quiz
+  useEffect(() => {
+    if (quizStarted && !showResults && timeLeft > 0) {
+      const timerId = setTimeout(() => {
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+      
+      return () => clearTimeout(timerId);
+    } else if (quizStarted && timeLeft === 0 && !showResults) {
+      // Time's up, show results
+      calculateResults();
+    }
+  }, [quizStarted, timeLeft, showResults]);
+
+  const handleStartQuiz = (categoryId: string) => {
     const category = quizCategories.find(cat => cat.id === categoryId);
     
-    if (category?.premium && userPlan === 'free') {
+    if (category?.premium) {
       setIsPremiumDialogOpen(true);
       return;
     }
     
+    if (!canTakeQuiz()) {
+      toast({
+        title: "Limite atteinte",
+        description: "Vous avez atteint votre limite quotidienne de quiz. Passez à Premium pour un accès illimité.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Increment quiz counter
+    incrementQuizzes();
+    
     setSelectedCategory(categoryId);
-    
-    // Filter questions by selected category
-    const categoryQuestions = quizQuestions.filter(q => q.category === categoryId);
-    // Shuffle questions
-    const shuffledQuestions = [...categoryQuestions].sort(() => Math.random() - 0.5);
-    // Take first 5 questions or all if less than 5
-    const selectedQuestions = shuffledQuestions.slice(0, 5);
-    
-    setQuestions(selectedQuestions);
-    setCurrentStep('instructions');
-  };
-
-  const startQuiz = () => {
-    setCurrentStep('questions');
+    setShowQuiz(true);
     setCurrentQuestionIndex(0);
-    setAnswers({});
-    setSelectedAnswer('');
-    setShowExplanation(false);
-    setQuizStartTime(Date.now());
-    setQuizEndTime(null);
+    setSelectedAnswer(null);
+    setScore(0);
+    setShowResults(false);
+    setAnswers([]);
+    setTimeLeft(30);
+    setQuizStarted(true);
   };
 
-  const handleSelectAnswer = (answer: string) => {
-    setSelectedAnswer(answer);
+  const handleSelectAnswer = (answerIndex: number) => {
+    setSelectedAnswer(answerIndex);
+    
+    // Check if answer is correct
+    const currentQuestion = quizQuestions[currentQuestionIndex];
+    if (answerIndex === currentQuestion.correctAnswer) {
+      setScore(score + 1);
+    }
+    
+    // Save the answer
+    const newAnswers = [...answers];
+    newAnswers[currentQuestionIndex] = answerIndex;
+    setAnswers(newAnswers);
   };
 
   const handleNextQuestion = () => {
-    // Save the current answer
-    setAnswers(prev => ({
-      ...prev,
-      [currentQuestionIndex]: selectedAnswer
-    }));
-    
-    if (showExplanation) {
-      // Move to next question after showing explanation
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(prev => prev + 1);
-        setSelectedAnswer('');
-        setShowExplanation(false);
-      } else {
-        // End of quiz
-        setQuizEndTime(Date.now());
-        setCurrentStep('results');
-        
-        // Calculate badges
-        const correctAnswersCount = countCorrectAnswers();
-        calculateEarnedBadges(correctAnswersCount);
-      }
+    if (currentQuestionIndex < quizQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(null);
     } else {
-      // Show explanation before moving to next question
-      setShowExplanation(true);
+      calculateResults();
     }
   };
 
-  const countCorrectAnswers = () => {
-    let count = 0;
+  const calculateResults = () => {
+    setShowResults(true);
+    setQuizStarted(false);
     
-    for (let i = 0; i < questions.length; i++) {
-      if (answers[i] === questions[i].correctAnswer) {
-        count++;
-      }
-    }
+    // Display result toast
+    const percentage = Math.round((score / quizQuestions.length) * 100);
+    const message = percentage >= 70 
+      ? "Félicitations pour votre score !" 
+      : "Continuez à vous améliorer !";
     
-    return count;
+    toast({
+      title: `Quiz terminé : ${score}/${quizQuestions.length}`,
+      description: message,
+    });
   };
-  
-  const calculateEarnedBadges = (correctCount: number) => {
-    const newBadges: EarnedBadge[] = [];
-    const scorePercentage = (correctCount / questions.length) * 100;
-    
-    if (scorePercentage === 100) {
-      newBadges.push({
-        id: 'perfect-score',
-        title: 'Score Parfait',
-        icon: <Trophy className="h-8 w-8 text-yellow-500" />
-      });
-    } else if (scorePercentage >= 80) {
-      newBadges.push({
-        id: 'expert',
-        title: 'Expert',
-        icon: <Award className="h-8 w-8 text-blue-500" />
-      });
-    } else if (scorePercentage >= 60) {
-      newBadges.push({
-        id: 'advanced',
-        title: 'Avancé',
-        icon: <Award className="h-8 w-8 text-green-500" />
-      });
-    }
-    
-    // Time-based badge
-    if (quizStartTime && quizEndTime) {
-      const timeSpent = (quizEndTime - quizStartTime) / 1000; // in seconds
-      if (timeSpent < 60) {
-        newBadges.push({
-          id: 'quick-thinker',
-          title: 'Esprit Rapide',
-          icon: <Clock className="h-8 w-8 text-purple-500" />
-        });
-      }
-    }
-    
-    setEarnedBadges(newBadges);
-    
-    // Show toast for badges
-    if (newBadges.length > 0) {
+
+  const handleRestartQuiz = () => {
+    if (!canTakeQuiz()) {
       toast({
-        title: "Badge débloqué !",
-        description: `Vous avez gagné le badge ${newBadges[0].title}`,
+        title: "Limite atteinte",
+        description: "Vous avez atteint votre limite quotidienne de quiz. Passez à Premium pour un accès illimité.",
+        variant: "destructive",
       });
+      return;
     }
+    
+    incrementQuizzes();
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setScore(0);
+    setShowResults(false);
+    setAnswers([]);
+    setTimeLeft(30);
+    setQuizStarted(true);
   };
 
-  const startNewQuiz = () => {
-    setCurrentStep('categories');
-    setSelectedCategory('');
-    setQuestions([]);
-    setEarnedBadges([]);
+  const handleBackToCategories = () => {
+    setShowQuiz(false);
+    setSelectedCategory(null);
+    setQuizStarted(false);
   };
 
   return (
@@ -247,256 +213,186 @@ const QuizPage = () => {
       <div className="py-8">
         <h1 className="text-3xl font-bold mb-8 text-center">Quiz MRC</h1>
         
-        <div className="max-w-4xl mx-auto">
-          {currentStep === 'categories' && (
-            <div>
-              <p className="text-center text-muted-foreground mb-6">
-                Testez vos connaissances sur le MRC avec nos quiz thématiques
-              </p>
-              
-              <PremiumBanner type="quiz" className="mb-6" />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {quizCategories.map((category) => (
-                  <Card 
-                    key={category.id} 
-                    className={`hover:shadow-md transition-shadow cursor-pointer ${
-                      category.premium && userPlan === 'free' ? 'bg-gray-50 dark:bg-gray-900/50' : ''
-                    }`}
-                    onClick={() => handleSelectCategory(category.id)}
-                  >
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
+        {!showQuiz ? (
+          <div className="max-w-4xl mx-auto">
+            <p className="text-center text-muted-foreground mb-6">
+              Testez vos connaissances sur le MRC et la politique camerounaise
+            </p>
+            
+            <PremiumBanner type="quiz" className="mb-6" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {quizCategories.map((category) => (
+                <Card 
+                  key={category.id}
+                  className={`hover:shadow-md transition-shadow ${category.premium ? 'border-amber-300' : ''}`}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
                         {category.icon}
-                        {category.premium && (
-                          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
-                            Premium
-                          </Badge>
-                        )}
+                        <div>
+                          <CardTitle>{category.title}</CardTitle>
+                          <CardDescription>{category.description}</CardDescription>
+                        </div>
                       </div>
-                      <CardTitle>{category.title}</CardTitle>
-                      <CardDescription>{category.description}</CardDescription>
-                    </CardHeader>
-                    <CardFooter>
-                      <Button variant={category.premium && userPlan === 'free' ? 'outline' : 'default'}>
-                        {category.premium && userPlan === 'free' ? 'Débloquer' : 'Commencer'}
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {currentStep === 'instructions' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Instructions</CardTitle>
-                <CardDescription>
-                  Préparez-vous à tester vos connaissances sur {quizCategories.find(c => c.id === selectedCategory)?.title}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="bg-mrc-blue text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mt-0.5">1</span>
-                    <span>Ce quiz contient {questions.length} questions à choix multiples.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="bg-mrc-blue text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mt-0.5">2</span>
-                    <span>Sélectionnez la réponse que vous pensez être correcte pour chaque question.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="bg-mrc-blue text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mt-0.5">3</span>
-                    <span>Après chaque question, une explication vous sera présentée.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="bg-mrc-blue text-white rounded-full h-5 w-5 flex items-center justify-center text-xs mt-0.5">4</span>
-                    <span>À la fin du quiz, vous recevrez votre score et pourrez gagner des badges.</span>
-                  </li>
-                </ul>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={() => setCurrentStep('categories')}>
-                  Retour
-                </Button>
-                <Button onClick={startQuiz}>
-                  <Play className="mr-2 h-4 w-4" />
-                  Commencer le quiz
-                </Button>
-              </CardFooter>
-            </Card>
-          )}
-          
-          {currentStep === 'questions' && questions.length > 0 && (
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center mb-2">
-                  <CardTitle>Question {currentQuestionIndex + 1}/{questions.length}</CardTitle>
-                  <Badge variant="outline">
-                    {quizCategories.find(c => c.id === selectedCategory)?.title}
-                  </Badge>
-                </div>
-                <Progress value={(currentQuestionIndex / questions.length) * 100} className="h-2" />
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <h3 className="text-lg font-semibold">{questions[currentQuestionIndex].question}</h3>
-                
-                <RadioGroup value={selectedAnswer} onValueChange={handleSelectAnswer}>
-                  {questions[currentQuestionIndex].options.map((option, index) => (
-                    <div 
-                      key={index} 
-                      className={`flex items-center space-x-2 border rounded-md p-3 ${
-                        showExplanation && option === questions[currentQuestionIndex].correctAnswer
-                          ? 'border-green-500 bg-green-50 dark:bg-green-950/30'
-                          : showExplanation && option === selectedAnswer && option !== questions[currentQuestionIndex].correctAnswer
-                          ? 'border-red-500 bg-red-50 dark:bg-red-950/30'
-                          : 'border-gray-200 dark:border-gray-700'
-                      }`}
-                    >
-                      <RadioGroupItem 
-                        value={option} 
-                        id={`option-${index}`} 
-                        disabled={showExplanation}
-                      />
-                      <Label 
-                        htmlFor={`option-${index}`}
-                        className="flex-1 cursor-pointer py-2"
-                      >
-                        {option}
-                      </Label>
-                      {showExplanation && option === questions[currentQuestionIndex].correctAnswer && (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      )}
-                      {showExplanation && option === selectedAnswer && option !== questions[currentQuestionIndex].correctAnswer && (
-                        <XCircle className="h-5 w-5 text-red-500" />
+                      {category.premium && (
+                        <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          Premium
+                        </Badge>
                       )}
                     </div>
-                  ))}
-                </RadioGroup>
-                
-                {showExplanation && (
-                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-4 rounded-md">
-                    <h4 className="font-semibold mb-1">Explication :</h4>
-                    <p>{questions[currentQuestionIndex].explanation}</p>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="ml-auto" 
-                  onClick={handleNextQuestion}
-                  disabled={!selectedAnswer}
-                >
-                  {!showExplanation ? 'Valider' : 
-                    currentQuestionIndex < questions.length - 1 ? 'Question suivante' : 'Voir les résultats'}
-                </Button>
-              </CardFooter>
-            </Card>
-          )}
-          
-          {currentStep === 'results' && (
+                  </CardHeader>
+                  <CardFooter>
+                    <Button 
+                      onClick={() => handleStartQuiz(category.id)}
+                      className="w-full"
+                    >
+                      <Play className="mr-2 h-4 w-4" />
+                      Commencer
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-3xl mx-auto">
+            <Button 
+              variant="ghost" 
+              onClick={handleBackToCategories}
+              className="mb-4"
+            >
+              ← Retour aux catégories
+            </Button>
+            
             <Card>
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-2">
-                  <Trophy className="h-12 w-12 text-yellow-500" />
-                </div>
-                <CardTitle>Résultats du Quiz</CardTitle>
-                <CardDescription>
-                  {quizCategories.find(c => c.id === selectedCategory)?.title}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-md p-4 text-center">
-                    <h3 className="text-lg font-semibold">Score</h3>
-                    <div className="text-3xl font-bold text-mrc-blue">
-                      {countCorrectAnswers()}/{questions.length}
+              {!showResults ? (
+                <>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle>
+                          {quizCategories.find(cat => cat.id === selectedCategory)?.title}
+                        </CardTitle>
+                        <CardDescription>
+                          Question {currentQuestionIndex + 1} sur {quizQuestions.length}
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-amber-500" />
+                        <span className="font-mono">{timeLeft}s</span>
+                      </div>
                     </div>
                     <Progress 
-                      value={(countCorrectAnswers() / questions.length) * 100} 
-                      className="h-2 mt-2" 
+                      value={((currentQuestionIndex + 1) / quizQuestions.length) * 100} 
+                      className="mt-2"
                     />
-                  </div>
+                  </CardHeader>
                   
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-md p-4 text-center">
-                    <h3 className="text-lg font-semibold">Pourcentage</h3>
-                    <div className="text-3xl font-bold text-mrc-green">
-                      {Math.round((countCorrectAnswers() / questions.length) * 100)}%
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      {(countCorrectAnswers() / questions.length) * 100 >= 70 ? 'Excellent !' : 
-                       (countCorrectAnswers() / questions.length) * 100 >= 50 ? 'Bien !' : 
-                       'Continuez à apprendre !'}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-md p-4 text-center">
-                    <h3 className="text-lg font-semibold">Temps</h3>
-                    <div className="text-3xl font-bold text-mrc-red">
-                      {quizStartTime && quizEndTime ? 
-                        Math.round((quizEndTime - quizStartTime) / 1000) : 0}s
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      {quizStartTime && quizEndTime && (quizEndTime - quizStartTime) / 1000 < 60 ? 
-                        'Très rapide !' : 'Bien joué !'}
-                    </div>
-                  </div>
-                </div>
-                
-                {earnedBadges.length > 0 && (
-                  <div className="border rounded-md p-4">
-                    <h3 className="font-semibold mb-3">Badges gagnés</h3>
-                    <div className="flex flex-wrap gap-4">
-                      {earnedBadges.map((badge) => (
-                        <div key={badge.id} className="text-center">
-                          <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto">
-                            {badge.icon}
+                  <CardContent>
+                    <div className="py-4">
+                      <h3 className="text-lg font-medium mb-4">
+                        {quizQuestions[currentQuestionIndex].question}
+                      </h3>
+                      
+                      <div className="space-y-2">
+                        {quizQuestions[currentQuestionIndex].options.map((option, index) => (
+                          <div
+                            key={index}
+                            className={`
+                              p-3 border rounded-lg cursor-pointer transition-colors
+                              ${selectedAnswer === index 
+                                ? 'bg-mrc-blue text-white' 
+                                : 'hover:bg-gray-100 dark:hover:bg-gray-800'}
+                            `}
+                            onClick={() => handleSelectAnswer(index)}
+                          >
+                            {option}
                           </div>
-                          <div className="mt-2 text-sm font-medium">{badge.title}</div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                  
+                  <CardFooter className="flex justify-end">
+                    <Button
+                      onClick={handleNextQuestion}
+                      disabled={selectedAnswer === null}
+                    >
+                      {currentQuestionIndex < quizQuestions.length - 1 
+                        ? 'Question suivante' 
+                        : 'Terminer le quiz'}
+                    </Button>
+                  </CardFooter>
+                </>
+              ) : (
+                <>
+                  <CardHeader className="text-center">
+                    <div className="mx-auto mb-4">
+                      {score >= quizQuestions.length / 2 
+                        ? <Trophy className="h-16 w-16 text-amber-500" /> 
+                        : <Award className="h-16 w-16 text-gray-400" />}
+                    </div>
+                    <CardTitle className="text-2xl">Résultats du Quiz</CardTitle>
+                    <CardDescription>
+                      {score >= quizQuestions.length / 2 
+                        ? 'Félicitations pour votre score !' 
+                        : 'Continuez à vous améliorer !'}
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-6">
+                    <div className="text-center">
+                      <div className="text-4xl font-bold mb-2">
+                        {score}/{quizQuestions.length}
+                      </div>
+                      <p className="text-muted-foreground">
+                        Score obtenu
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <h3 className="font-medium">Résumé des questions</h3>
+                      
+                      {quizQuestions.map((question, index) => (
+                        <div key={index} className="border rounded-lg p-4">
+                          <div className="flex items-start gap-2 mb-2">
+                            {answers[index] === question.correctAnswer 
+                              ? <CheckCircle className="h-5 w-5 text-green-500 shrink-0 mt-0.5" /> 
+                              : <XCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />}
+                            <h4 className="font-medium">{question.question}</h4>
+                          </div>
+                          
+                          <div className="pl-7 text-sm">
+                            <p>Votre réponse: {answers[index] !== undefined ? question.options[answers[index]] : 'Aucune réponse'}</p>
+                            <p className="text-green-600">Réponse correcte: {question.options[question.correctAnswer]}</p>
+                            <p className="text-muted-foreground mt-1">{question.explanation}</p>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-                
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Résumé des questions</h3>
-                  {questions.map((question, index) => (
-                    <div 
-                      key={index}
-                      className="border rounded-md p-3"
+                  </CardContent>
+                  
+                  <CardFooter className="flex justify-between flex-wrap gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleBackToCategories}
                     >
-                      <div className="flex justify-between">
-                        <div className="font-medium">{index + 1}. {question.question}</div>
-                        {answers[index] === question.correctAnswer ? (
-                          <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-red-500 shrink-0" />
-                        )}
-                      </div>
-                      <div className="text-sm mt-1">
-                        Votre réponse: <span className={answers[index] === question.correctAnswer ? 'text-green-600' : 'text-red-600'}>
-                          {answers[index]}
-                        </span>
-                      </div>
-                      {answers[index] !== question.correctAnswer && (
-                        <div className="text-sm text-green-600">
-                          Réponse correcte: {question.correctAnswer}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter className="justify-center">
-                <Button onClick={startNewQuiz}>
-                  Nouveau Quiz
-                </Button>
-              </CardFooter>
+                      Retour aux catégories
+                    </Button>
+                    <Button 
+                      onClick={handleRestartQuiz}
+                    >
+                      Recommencer le quiz
+                    </Button>
+                  </CardFooter>
+                </>
+              )}
             </Card>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       
       <PremiumDialog 

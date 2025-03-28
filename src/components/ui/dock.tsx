@@ -1,221 +1,180 @@
 
-'use client';
+import * as React from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { motion, useMotionValue, useSpring, type MotionValue } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-import {
-  motion,
-  MotionValue,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  type SpringOptions,
-  AnimatePresence,
-} from 'framer-motion';
-import {
-  Children,
-  cloneElement,
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { cn } from '@/lib/utils';
-
-const DOCK_HEIGHT = 128;
-const DEFAULT_MAGNIFICATION = 80;
-const DEFAULT_DISTANCE = 150;
-const DEFAULT_PANEL_HEIGHT = 64;
-
-type DockProps = {
-  children: React.ReactNode;
-  className?: string;
-  distance?: number;
-  panelHeight?: number;
-  magnification?: number;
-  spring?: SpringOptions;
-};
-type DockItemProps = {
-  className?: string;
-  children: React.ReactNode;
-};
-type DockLabelProps = {
-  className?: string;
-  children: React.ReactNode;
-};
-type DockIconProps = {
-  className?: string;
-  children: React.ReactNode;
-};
-
-type DocContextType = {
-  mouseX: MotionValue;
-  spring: SpringOptions;
-  magnification: number;
-  distance: number;
-};
-type DockProviderProps = {
-  children: React.ReactNode;
-  value: DocContextType;
-};
-
-const DockContext = createContext<DocContextType | undefined>(undefined);
-
-function DockProvider({ children, value }: DockProviderProps) {
-  return <DockContext.Provider value={value}>{children}</DockContext.Provider>;
+interface DockContextProps {
+  mouseX: MotionValue<number>;
+  width: number;
+  focused: boolean;
+  setFocused: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function useDock() {
+// Create a context for Dock
+const DockContext = createContext<DockContextProps | null>(null);
+
+// Custom hook to use the DockContext
+const useDock = () => {
   const context = useContext(DockContext);
   if (!context) {
-    throw new Error('useDock must be used within an DockProvider');
+    throw new Error("Dock components must be used within a Dock");
   }
   return context;
+};
+
+interface DockProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
 }
 
-function Dock({
-  children,
-  className,
-  spring = { mass: 0.1, stiffness: 150, damping: 12 },
-  magnification = DEFAULT_MAGNIFICATION,
-  distance = DEFAULT_DISTANCE,
-  panelHeight = DEFAULT_PANEL_HEIGHT,
-}: DockProps) {
-  const mouseX = useMotionValue(Infinity);
-  const isHovered = useMotionValue(0);
-
-  const maxHeight = useMemo(() => {
-    return Math.max(DOCK_HEIGHT, magnification + magnification / 2 + 4);
-  }, [magnification]);
-
-  const heightRow = useTransform(isHovered, [0, 1], [panelHeight, maxHeight]);
-  const height = useSpring(heightRow, spring);
-
+const Dock = ({ children, className, ...props }: DockProps) => {
+  const [width, setWidth] = useState(0);
+  const [focused, setFocused] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      if (ref.current) {
+        setWidth(ref.current.offsetWidth);
+      }
+    };
+    
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+  
   return (
-    <motion.div
-      style={{
-        height: height,
-        scrollbarWidth: 'none',
-      }}
-      className='mx-2 flex max-w-full items-end overflow-x-auto'
-    >
+    <DockContext.Provider value={{ mouseX, width, focused, setFocused }}>
       <motion.div
-        onMouseMove={({ pageX }) => {
-          isHovered.set(1);
-          mouseX.set(pageX);
-        }}
-        onMouseLeave={() => {
-          isHovered.set(0);
-          mouseX.set(Infinity);
-        }}
+        ref={ref}
         className={cn(
-          'mx-auto flex w-fit gap-4 rounded-2xl bg-gray-50 px-4 dark:bg-neutral-900',
+          "flex justify-center items-center gap-2 w-fit mx-auto p-2 bg-white/20 dark:bg-black/20 backdrop-blur rounded-full shadow-lg",
           className
         )}
-        style={{ height: panelHeight }}
-        role='toolbar'
-        aria-label='Application dock'
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          mouseX.set(e.clientX - rect.left);
+        }}
+        onMouseLeave={() => mouseX.set(0)}
+        {...props}
       >
-        <DockProvider value={{ mouseX, spring, distance, magnification }}>
-          {children}
-        </DockProvider>
+        {children}
       </motion.div>
-    </motion.div>
+    </DockContext.Provider>
   );
+};
+
+interface DockItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
 }
 
-function DockItem({ children, className }: DockItemProps) {
+const DockItem = ({ children, className, ...props }: DockItemProps) => {
+  const { mouseX, width, focused, setFocused } = useDock();
   const ref = useRef<HTMLDivElement>(null);
-
-  const { distance, magnification, mouseX, spring } = useDock();
-
-  const isHovered = useMotionValue(0);
-
-  const mouseDistance = useTransform(mouseX, (val) => {
-    const domRect = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
-    return val - domRect.x - domRect.width / 2;
+  
+  const defaultSize = 45;
+  const maxSize = 65;
+  
+  const distanceFromCursor = useMotionValue(width);
+  const widthSync = useMotionValue(defaultSize);
+  
+  const widthSpring = useSpring(widthSync, {
+    damping: 10,
+    stiffness: 150,
   });
-
-  const widthTransform = useTransform(
-    mouseDistance,
-    [-distance, 0, distance],
-    [40, magnification, 40]
-  );
-
-  const width = useSpring(widthTransform, spring);
-
+  
+  useEffect(() => {
+    return mouseX.onChange((latestX) => {
+      if (!ref.current || !latestX) return;
+      
+      const rect = ref.current.getBoundingClientRect();
+      const itemCenterX = rect.left + rect.width / 2;
+      
+      const distance = Math.abs(itemCenterX - latestX);
+      const maxDistance = width / 2;
+      
+      let scale = 1 - Math.min(1, distance / maxDistance) * 0.5;
+      
+      if (focused) {
+        scale = Math.min(scale, 1);
+      }
+      
+      const newWidth = defaultSize + (maxSize - defaultSize) * scale;
+      widthSync.set(newWidth);
+    });
+  }, [mouseX, width, widthSync, focused]);
+  
   return (
     <motion.div
       ref={ref}
-      style={{ width }}
-      onHoverStart={() => isHovered.set(1)}
-      onHoverEnd={() => isHovered.set(0)}
-      onFocus={() => isHovered.set(1)}
-      onBlur={() => isHovered.set(0)}
+      style={{
+        width: widthSpring,
+        height: widthSpring,
+      }}
       className={cn(
-        'relative inline-flex items-center justify-center',
+        "flex items-center justify-center relative cursor-pointer transition-colors",
         className
       )}
-      tabIndex={0}
-      role='button'
-      aria-haspopup='true'
-    >
-      {Children.map(children, (child) =>
-        cloneElement(child as React.ReactElement, { width, isHovered })
-      )}
-    </motion.div>
-  );
-}
-
-function DockLabel({ children, className, ...rest }: DockLabelProps) {
-  const restProps = rest as Record<string, unknown>;
-  const isHovered = restProps['isHovered'] as MotionValue<number>;
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = isHovered.on('change', (latest) => {
-      setIsVisible(latest === 1);
-    });
-
-    return () => unsubscribe();
-  }, [isHovered]);
-
-  return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: 0 }}
-          animate={{ opacity: 1, y: -10 }}
-          exit={{ opacity: 0, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className={cn(
-            'absolute -top-6 left-1/2 w-fit whitespace-pre rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs text-neutral-700 dark:border-neutral-900 dark:bg-neutral-800 dark:text-white',
-            className
-          )}
-          role='tooltip'
-          style={{ x: '-50%' }}
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-function DockIcon({ children, className, ...rest }: DockIconProps) {
-  const restProps = rest as Record<string, unknown>;
-  const width = restProps['width'] as MotionValue<number>;
-
-  const widthTransform = useTransform(width, (val) => val / 2);
-
-  return (
-    <motion.div
-      style={{ width: widthTransform }}
-      className={cn('flex items-center justify-center', className)}
+      {...props}
     >
       {children}
     </motion.div>
   );
+};
+
+interface DockLabelProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
 }
 
-export { Dock, DockIcon, DockItem, DockLabel };
+const DockLabel = ({ children, className, ...props }: DockLabelProps) => {
+  const [hover, setHover] = useState(false);
+  
+  return (
+    <>
+      <div
+        className="absolute w-full h-full"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 0 }}
+        animate={{ opacity: hover ? 1 : 0, y: hover ? -40 : 0 }}
+        transition={{ duration: 0.2 }}
+        className={cn(
+          "absolute px-2 py-1 bg-black/80 text-white rounded text-sm whitespace-nowrap shadow-md",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </motion.div>
+    </>
+  );
+};
+
+interface DockIconProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+const DockIcon = ({ children, className, ...props }: DockIconProps) => {
+  return (
+    <div
+      className={cn("w-7 h-7", className)}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
+
+Dock.displayName = "Dock";
+DockItem.displayName = "DockItem";
+DockLabel.displayName = "DockLabel";
+DockIcon.displayName = "DockIcon";
+
+export { Dock, DockItem, DockLabel, DockIcon };

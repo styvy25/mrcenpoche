@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AssistantPage from './pages/AssistantPage';
 import DocumentsPage from './pages/DocumentsPage';
-import PaymentPage from './pages/PaymentPage';
+import QuizPage from './pages/QuizPage';
 import AuthPage from './pages/AuthPage';
 import NotFound from './pages/NotFound';
 import Index from './pages/Index';
@@ -11,7 +11,6 @@ import './App.css';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './components/auth/AuthContext';
 import { Toaster } from "@/components/ui/toaster";
-import ChatButton from './components/chat/ChatButton';
 
 const App = () => {
   return (
@@ -22,12 +21,11 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/assistant" element={<AssistantPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/payment" element={<PaymentPage />} />
+            <Route path="/quiz" element={<QuizPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
-          <ChatButton />
         </BrowserRouter>
       </AppProvider>
     </AuthProvider>
