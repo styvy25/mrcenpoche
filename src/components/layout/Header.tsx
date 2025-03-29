@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
+import UserAvatar from "@/components/auth/UserAvatar";
 import AuthDialog from "../auth/AuthDialog";
 import InstallAppButton from "../pwa/InstallAppButton";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,12 +57,16 @@ const Header = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <InstallAppButton />
           
           {isAuthenticated ? (
-            <Button variant="outline" size="sm">
-              Mon Compte
-            </Button>
+            <div className="flex items-center gap-2">
+              <UserAvatar />
+              <Button variant="outline" size="sm">
+                Mon Compte
+              </Button>
+            </div>
           ) : (
             <AuthDialog />
           )}

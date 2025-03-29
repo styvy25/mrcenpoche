@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Award, Brain, CheckCircle, Clock, Play, Trophy, XCircle } from 'lucide-react';
+import { Award, Brain, CheckCircle, Clock, Play, Trophy, XCircle, Star } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import PremiumBanner from '@/components/premium/PremiumBanner';
@@ -238,7 +238,7 @@ const QuizPage = () => {
                       </div>
                       {category.premium && (
                         <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
-                          <Sparkles className="h-3 w-3 mr-1" />
+                          <Star className="h-3 w-3 mr-1" />
                           Premium
                         </Badge>
                       )}

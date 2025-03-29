@@ -1,19 +1,31 @@
 
 import React from "react";
-import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Key } from "lucide-react";
+import { CardDescription, CardTitle } from "@/components/ui/card";
+import { useApiKeys } from "@/hooks/useApiKeys";
 
 const APIKeyManagerHeader = () => {
+  const { keyStatus } = useApiKeys();
+  
+  // Count active services
+  const activeServiceCount = Object.values(keyStatus).filter(Boolean).length;
+  const totalServices = Object.keys(keyStatus).length;
+  
   return (
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <Key className="h-5 w-5 text-mrc-blue" />
-        Gestionnaire de clés API
-      </CardTitle>
+    <div className="p-6 pb-2 border-b">
+      <CardTitle className="mb-2">Clés API</CardTitle>
       <CardDescription>
-        Configurez vos clés API pour activer les fonctionnalités en ligne de MRC en Poche
+        Configurez vos clés API pour activer toutes les fonctionnalités. 
+        {activeServiceCount > 0 ? (
+          <span className="ml-1">
+            {activeServiceCount}/{totalServices} services actifs.
+          </span>
+        ) : (
+          <span className="ml-1">
+            Aucun service n'est actuellement activé.
+          </span>
+        )}
       </CardDescription>
-    </CardHeader>
+    </div>
   );
 };
 

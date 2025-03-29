@@ -1,17 +1,13 @@
 
 import { testPerplexityApiKey } from "@/components/assistant/services/perplexityChat";
-import { testYouTubeApiKey, refreshYouTubeCache } from "@/components/assistant/services/youtubeService";
-import { useToast } from "@/hooks/use-toast";
+import { testYouTubeApiKey } from "@/components/assistant/services/youtubeService";
 
-// Validation simple des clés Stripe basée sur le format
+// Simple validation for Stripe key based on format
 export const testStripeKey = async (key: string): Promise<boolean> => {
   if (!key) return false;
   
-  // Vérification basique que la clé a le bon format
+  // Basic check that the key has the right format
   const isValidFormat = key.startsWith("pk_") || key.startsWith("sk_");
-  
-  // Dans une application réelle, vous pourriez faire une requête de test à l'API Stripe
-  // En utilisant une fonction Edge ou un backend sécurisé
   
   return isValidFormat;
 };
@@ -29,7 +25,7 @@ export const validateApiKeys = async (
 
   const validationPromises = [];
 
-  // Valider la clé Perplexity si fournie
+  // Validate Perplexity key if provided
   if (perplexityKey) {
     validationPromises.push(
       testPerplexityApiKey(perplexityKey)
@@ -37,29 +33,25 @@ export const validateApiKeys = async (
           results.perplexity = isValid;
         })
         .catch(error => {
-          console.error("Erreur lors du test de la clé Perplexity:", error);
+          console.error("Error testing Perplexity key:", error);
         })
     );
   }
   
-  // Valider la clé YouTube si fournie
+  // Validate YouTube key if provided
   if (youtubeKey) {
     validationPromises.push(
       testYouTubeApiKey(youtubeKey)
         .then(isValid => {
           results.youtube = isValid;
-          if (isValid) {
-            // Rafraîchir le cache si la clé est valide
-            return refreshYouTubeCache(youtubeKey);
-          }
         })
         .catch(error => {
-          console.error("Erreur lors du test de la clé YouTube:", error);
+          console.error("Error testing YouTube key:", error);
         })
     );
   }
   
-  // Valider la clé Stripe si fournie
+  // Validate Stripe key if provided
   if (stripeKey) {
     validationPromises.push(
       testStripeKey(stripeKey)
@@ -67,12 +59,12 @@ export const validateApiKeys = async (
           results.stripe = isValid;
         })
         .catch(error => {
-          console.error("Erreur lors du test de la clé Stripe:", error);
+          console.error("Error testing Stripe key:", error);
         })
     );
   }
 
-  // Attendre que toutes les validations soient terminées
+  // Wait for all validations to complete
   await Promise.allSettled(validationPromises);
 
   return results;

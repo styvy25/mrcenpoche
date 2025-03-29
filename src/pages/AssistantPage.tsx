@@ -3,19 +3,25 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bot, Send, Video, YoutubeIcon } from 'lucide-react';
+import { Bot, Download, Send, Video, YoutubeIcon } from 'lucide-react';
 import { ChatMessageList } from '@/components/ui/chat-message-list';
 import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from '@/components/ui/chat-bubble';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import PremiumBanner from '@/components/premium/PremiumBanner';
 import PremiumDialog from '@/components/premium/PremiumDialog';
 import { useToast } from '@/components/ui/use-toast';
+import { getPerplexityResponse } from '@/components/assistant/services/perplexityChat';
+import { searchMRCVideos } from '@/components/assistant/services/youtubeService';
+import { useApiKeys } from '@/hooks/useApiKeys';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 type Message = {
   id: number;
   content: string;
   sender: 'user' | 'ai';
   timestamp: Date;
+  downloadable?: boolean;
 };
 
 type YouTubeResult = {
@@ -29,7 +35,7 @@ const AssistantPage = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      content: "Bonjour ! Je suis votre assistant MRC. Je peux vous aider avec des informations sur le MRC, Maurice Kamto, et les actualités du Cameroun. Je peux aussi rechercher des vidéos YouTube pour vous. Comment puis-je vous aider aujourd'hui ?",
+      content: "Bonjour ! Je suis Styvy-237, votre assistant MRC. Je peux vous aider avec des informations sur le MRC, Maurice Kamto, et les actualités du Cameroun. Je peux aussi rechercher des vidéos YouTube pour vous. Comment puis-je vous aider aujourd'hui ?",
       sender: "ai",
       timestamp: new Date()
     }
@@ -41,6 +47,7 @@ const AssistantPage = () => {
   const { canSendChatMessage, incrementChatMessages, hasChatLimit } = usePlanLimits();
   const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { keys, keyStatus } = useApiKeys();
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -76,8 +83,34 @@ const AssistantPage = () => {
       
       handleYouTubeSearch(searchTerms);
     } else {
-      // Regular message response
-      setTimeout(() => {
+      // Use Perplexity API if key is available
+      if (keyStatus.perplexity && keys.perplexity) {
+        try {
+          const aiResponse = await getPerplexityResponse(keys.perplexity, input);
+          
+          const responseMessage: Message = {
+            id: messages.length + 2,
+            content: aiResponse,
+            sender: 'ai',
+            timestamp: new Date(),
+            downloadable: true
+          };
+          
+          setMessages(prev => [...prev, responseMessage]);
+        } catch (error) {
+          console.error("Error getting Perplexity response:", error);
+          // Fallback to offline response
+          const fallbackResponse: Message = {
+            id: messages.length + 2,
+            content: getAiResponse(input),
+            sender: 'ai',
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, fallbackResponse]);
+        }
+      } else {
+        // Fallback to offline response if no API key
         const aiResponse: Message = {
           id: messages.length + 2,
           content: getAiResponse(input),
@@ -86,17 +119,80 @@ const AssistantPage = () => {
         };
         
         setMessages(prev => [...prev, aiResponse]);
-        setIsLoading(false);
-      }, 1000);
+      }
+      setIsLoading(false);
     }
   };
   
-  const handleYouTubeSearch = (query: string) => {
+  const handleYouTubeSearch = async (query: string) => {
     setIsSearchingYouTube(true);
     
-    // Mock YouTube search - in a real app, this would call an API
-    setTimeout(() => {
-      // Mock results for MRC and Kamto videos
+    if (keyStatus.youtube && keys.youtube) {
+      try {
+        const results = await searchMRCVideos(keys.youtube, query);
+        
+        if (results && results.length > 0) {
+          // Format results for display
+          const formattedResults: YouTubeResult[] = results.map(video => ({
+            id: video.id,
+            title: video.title,
+            thumbnail: video.thumbnail,
+            channelTitle: video.channelTitle
+          }));
+          
+          setYoutubeResults(formattedResults);
+          
+          // Add AI response about the search
+          const aiResponse: Message = {
+            id: messages.length + 2,
+            content: `Voici quelques vidéos sur "${query}" que j'ai trouvées pour vous :`,
+            sender: 'ai',
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, aiResponse]);
+        } else {
+          // No results found
+          const aiResponse: Message = {
+            id: messages.length + 2,
+            content: `Je n'ai pas trouvé de vidéos concernant "${query}". Pouvez-vous essayer avec d'autres termes de recherche ?`,
+            sender: 'ai',
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, aiResponse]);
+        }
+      } catch (error) {
+        console.error("Error searching YouTube:", error);
+        // Fallback to mock response
+        const mockResults: YouTubeResult[] = [
+          {
+            id: "abc123",
+            title: "Maurice Kamto - Discours officiel MRC 2023",
+            thumbnail: "https://via.placeholder.com/120x90.png?text=MRC+Kamto",
+            channelTitle: "MRC Officiel"
+          },
+          {
+            id: "def456",
+            title: "Analyse politique: La situation au Cameroun avec le MRC",
+            thumbnail: "https://via.placeholder.com/120x90.png?text=Analyse+MRC",
+            channelTitle: "Politique Africaine"
+          }
+        ];
+        
+        setYoutubeResults(mockResults);
+        
+        const aiResponse: Message = {
+          id: messages.length + 2,
+          content: `Voici quelques vidéos sur ${query} que j'ai trouvées pour vous (mode hors-ligne) :`,
+          sender: 'ai',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+      }
+    } else {
+      // No YouTube API key, use mock data
       const mockResults: YouTubeResult[] = [
         {
           id: "abc123",
@@ -109,36 +205,30 @@ const AssistantPage = () => {
           title: "Analyse politique: La situation au Cameroun avec le MRC",
           thumbnail: "https://via.placeholder.com/120x90.png?text=Analyse+MRC",
           channelTitle: "Politique Africaine"
-        },
-        {
-          id: "ghi789",
-          title: "Interview exclusive avec Maurice Kamto",
-          thumbnail: "https://via.placeholder.com/120x90.png?text=Interview+Kamto",
-          channelTitle: "Afrique Media"
         }
       ];
       
       setYoutubeResults(mockResults);
       
-      // Add AI response about the search
       const aiResponse: Message = {
         id: messages.length + 2,
-        content: `Voici quelques vidéos sur ${query} que j'ai trouvées pour vous :`,
+        content: `Voici quelques vidéos sur ${query} que j'ai trouvées pour vous (mode démo) :`,
         sender: 'ai',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, aiResponse]);
-      setIsLoading(false);
-      setIsSearchingYouTube(false);
-    }, 1500);
+    }
+    
+    setIsLoading(false);
+    setIsSearchingYouTube(false);
   };
   
   const handleVideoSelect = (videoId: string, title: string) => {
     // In a real app, this would play the video or redirect to YouTube
     const aiResponse: Message = {
       id: messages.length + 1,
-      content: `Voici la vidéo "${title}" que vous avez sélectionnée.`,
+      content: `Voici la vidéo "${title}" que vous avez sélectionnée. Vous pouvez la regarder sur YouTube: https://www.youtube.com/watch?v=${videoId}`,
       sender: 'ai',
       timestamp: new Date()
     };
@@ -152,7 +242,57 @@ const AssistantPage = () => {
     });
   };
   
-  // Simple AI response generator
+  const handleDownloadPDF = (content: string) => {
+    try {
+      const doc = new jsPDF();
+      
+      // Add MRC logo and title
+      doc.setFontSize(22);
+      doc.setTextColor(0, 82, 164); // MRC blue
+      doc.text("MRC en Poche", 105, 20, { align: "center" });
+      
+      doc.setFontSize(16);
+      doc.setTextColor(100, 100, 100);
+      doc.text("Rapport généré par Styvy-237", 105, 30, { align: "center" });
+      
+      // Add date
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      const date = new Date().toLocaleDateString('fr-FR', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      doc.text(`Généré le ${date}`, 105, 40, { align: "center" });
+      
+      // Add content
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      
+      // Split content into paragraphs and format for PDF
+      const splitText = doc.splitTextToSize(content, 180);
+      doc.text(splitText, 15, 60);
+      
+      // Save the PDF
+      doc.save("MRC_Rapport.pdf");
+      
+      toast({
+        title: "PDF généré",
+        description: "Le rapport a été téléchargé avec succès",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la génération du PDF",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Simple AI response generator for offline mode
   const getAiResponse = (query: string): string => {
     const lowercaseQuery = query.toLowerCase();
     
@@ -175,6 +315,27 @@ const AssistantPage = () => {
     return "Je n'ai pas d'information spécifique sur ce sujet. Pourriez-vous préciser votre question concernant le MRC ou le Cameroun ? Je peux aussi rechercher des vidéos YouTube pour vous si vous le souhaitez.";
   };
 
+  // Load configuration from API keys
+  useEffect(() => {
+    // Check if we have valid API keys
+    if (!keyStatus.perplexity && !keyStatus.youtube) {
+      toast({
+        title: "Configuration requise",
+        description: "Pour une expérience optimale, configurez vos clés API dans les paramètres.",
+        variant: "default",
+        action: (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => window.location.href = '/settings'}
+          >
+            Configurer
+          </Button>
+        )
+      });
+    }
+  }, [keyStatus, toast]);
+
   return (
     <MainLayout>
       <div className="py-8">
@@ -186,7 +347,7 @@ const AssistantPage = () => {
               <div className="flex items-center gap-2">
                 <Bot className="h-6 w-6 text-mrc-blue" />
                 <div>
-                  <CardTitle className="text-lg">Assistant MRC</CardTitle>
+                  <CardTitle className="text-lg">Styvy-237</CardTitle>
                   <CardDescription>Posez vos questions sur le MRC et le Cameroun</CardDescription>
                 </div>
               </div>
@@ -204,11 +365,27 @@ const AssistantPage = () => {
                       src={message.sender === "user" ? undefined : "/assets/mrc-logo.png"}
                       fallback={message.sender === "user" ? "U" : "MRC"}
                     />
-                    <ChatBubbleMessage
-                      variant={message.sender === "user" ? "sent" : "received"}
-                    >
-                      {message.content}
-                    </ChatBubbleMessage>
+                    <div className="flex flex-col w-full">
+                      <ChatBubbleMessage
+                        variant={message.sender === "user" ? "sent" : "received"}
+                      >
+                        {message.content}
+                      </ChatBubbleMessage>
+                      
+                      {message.downloadable && message.sender === 'ai' && (
+                        <div className="flex justify-end mt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-1 text-xs"
+                            onClick={() => handleDownloadPDF(message.content)}
+                          >
+                            <Download className="h-3 w-3" />
+                            Télécharger en PDF
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </ChatBubble>
                 ))}
                 
