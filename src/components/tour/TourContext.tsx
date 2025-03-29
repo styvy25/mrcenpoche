@@ -2,36 +2,9 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
-
-type TourStep = {
-  id: string;
-  title: string;
-  content: string;
-  target?: string;
-  placement?: 'top' | 'right' | 'bottom' | 'left';
-  nextLabel?: string;
-  backLabel?: string;
-};
-
-type TourData = {
-  id: string;
-  name: string;
-  steps: TourStep[];
-};
-
-interface TourContextType {
-  isOpen: boolean;
-  currentStep: number;
-  steps: TourStep[];
-  currentTour: TourData | null;
-  showTour: boolean;
-  setShowTour: (show: boolean) => void;
-  nextStep: () => void;
-  prevStep: () => void;
-  goToStep: (step: number) => void;
-  completeTour: () => void;
-  resetTour: () => void;
-}
+import { TourContextType, TourData, TourStep } from './types';
+import { availableTours } from './tourData';
+import { useTourStorage } from './useTourStorage';
 
 const defaultTourContext: TourContextType = {
   isOpen: false,
@@ -55,69 +28,6 @@ interface TourProviderProps {
   children: ReactNode;
 }
 
-// Mock tours data for demonstration
-const availableTours: TourData[] = [
-  {
-    id: 'intro-tour',
-    name: 'Introduction Tour',
-    steps: [
-      {
-        id: 'welcome',
-        title: 'Bienvenue sur MRC en Poche!',
-        content: 'Découvrez toutes les fonctionnalités de notre application pour vous aider dans votre parcours politique.',
-        placement: 'bottom',
-      },
-      {
-        id: 'assistant',
-        title: 'Assistant IA',
-        content: 'Posez toutes vos questions à notre assistant IA spécialisé dans les questions politiques.',
-        target: '.assistant-link',
-        placement: 'right',
-      },
-      {
-        id: 'documents',
-        title: 'Documents et PDFs',
-        content: 'Accédez à tous les documents et créez des PDF personnalisés pour votre formation.',
-        target: '.documents-link',
-        placement: 'right',
-      },
-      {
-        id: 'quiz',
-        title: 'Quiz et Tests',
-        content: 'Testez vos connaissances avec nos quiz interactifs sur divers sujets politiques.',
-        target: '.quiz-link',
-        placement: 'right',
-      },
-    ],
-  },
-  {
-    id: 'assistant-tour',
-    name: 'Assistant Tour',
-    steps: [
-      {
-        id: 'assistant-intro',
-        title: 'Votre Assistant IA',
-        content: 'Cet assistant spécialisé est là pour répondre à toutes vos questions sur le MRC et la politique.',
-        placement: 'top',
-      },
-      {
-        id: 'assistant-input',
-        title: 'Posez vos Questions',
-        content: 'Tapez votre question ici et notre IA vous répondra avec des informations précises.',
-        target: '.assistant-input',
-        placement: 'top',
-      },
-      {
-        id: 'assistant-features',
-        title: 'Fonctionnalités Spéciales',
-        content: 'Vous pouvez rechercher des vidéos, générer des documents et obtenir des informations à jour.',
-        target: '.assistant-features',
-        placement: 'left',
-      },
-    ],
-  },
-];
-
 export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   const [activeTour, setActiveTour] = useState<TourData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -125,27 +35,16 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const location = useLocation();
   const { user } = useAuth();
+  const { checkCompletedTours, markTourAsCompleted, removeTourFromCompleted } = useTourStorage();
 
-  // Check for completed tours in localStorage
-  const checkCompletedTours = () => {
-    const completedTours = localStorage.getItem('completed_tours');
-    return completedTours ? JSON.parse(completedTours) : [];
-  };
-
-  const markTourAsCompleted = (tourId: string) => {
-    const completedTours = checkCompletedTours();
-    if (!completedTours.includes(tourId)) {
-      localStorage.setItem('completed_tours', JSON.stringify([...completedTours, tourId]));
-    }
+  // Map of paths to tour IDs
+  const pathToTour: Record<string, string> = {
+    '/': 'intro-tour',
+    '/assistant': 'assistant-tour',
   };
 
   // Show appropriate tour based on the current page
   useEffect(() => {
-    const pathToTour: Record<string, string> = {
-      '/': 'intro-tour',
-      '/assistant': 'assistant-tour',
-    };
-
     const path = location.pathname;
     
     if (pathToTour[path]) {
@@ -192,18 +91,11 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   };
 
   const resetTour = () => {
-    const pathToTour: Record<string, string> = {
-      '/': 'intro-tour',
-      '/assistant': 'assistant-tour',
-    };
-    
     const path = location.pathname;
     if (pathToTour[path]) {
       const tourId = pathToTour[path];
       // Remove from completed tours
-      const completedTours = checkCompletedTours();
-      const updatedTours = completedTours.filter((id: string) => id !== tourId);
-      localStorage.setItem('completed_tours', JSON.stringify(updatedTours));
+      removeTourFromCompleted(tourId);
       
       // Show the tour
       const tour = availableTours.find(t => t.id === tourId);

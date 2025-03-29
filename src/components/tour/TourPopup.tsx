@@ -6,18 +6,20 @@ import { useTour } from './TourContext';
 import { X } from 'lucide-react';
 
 const TourPopup: React.FC = () => {
-  const { currentTour, showTour, setShowTour, nextStep, completeTour } = useTour();
+  const { currentTour, showTour, setShowTour, nextStep, completeTour, currentStep } = useTour();
 
   if (!currentTour || !showTour) {
     return null;
   }
+
+  const currentStepData = currentTour.steps[currentStep];
 
   return (
     <Dialog open={showTour} onOpenChange={setShowTour}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            {currentTour.title}
+            {currentStepData.title}
             <Button 
               variant="ghost" 
               size="icon" 
@@ -29,7 +31,7 @@ const TourPopup: React.FC = () => {
           </DialogTitle>
         </DialogHeader>
         <div className="py-4">
-          <p>{currentTour.content}</p>
+          <p>{currentStepData.content}</p>
         </div>
         <DialogFooter className="flex justify-between sm:justify-between">
           <Button 
