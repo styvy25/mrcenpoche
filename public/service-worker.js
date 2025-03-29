@@ -4,7 +4,9 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/assets/mrc-logo.png'
+  '/assets/mrc-logo.png',
+  '/assets/icons/icon-192x192.png',
+  '/assets/icons/icon-512x512.png'
 ];
 
 // Installation du Service Worker
@@ -60,4 +62,11 @@ self.addEventListener('fetch', event => {
         );
       })
   );
+});
+
+// Gestion des messages provenant de l'application
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

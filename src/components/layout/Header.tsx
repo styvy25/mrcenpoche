@@ -1,74 +1,111 @@
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { User, Menu, X } from 'lucide-react';
-import Logo from '@/components/branding/Logo';
-import { useAuth } from '@/components/auth/AuthContext';
-import AuthNavItem from './AuthNavItem';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import MobileNav from './MobileNav';
-import { useTheme } from 'next-themes';
-import InstallButton from '../mobileApp/InstallButton';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { NavLink } from "react-router-dom";
+import { Menu, X } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useAuth } from "@/components/auth/AuthContext";
+import UserAvatar from "../auth/UserAvatar";
+import AuthDialog from "../auth/AuthDialog";
+import InstallAppButton from "../pwa/InstallAppButton";
 
 const Header = () => {
-  const { isAuthenticated, user } = useAuth();
-  const location = useLocation();
-  const { theme } = useTheme();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  const handleToggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-background/80 border-b border-border">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link to="/" className="flex items-center space-x-2">
-            <Logo size={32} />
-            <span className="font-bold text-xl hidden sm:inline-block">MRC en Poche</span>
-          </Link>
-        </div>
-
-        <nav className="hidden md:flex items-center space-x-1">
-          <Link to="/">
-            <Button variant={location.pathname === '/' ? "default" : "ghost"}>
-              Accueil
-            </Button>
-          </Link>
-          <Link to="/assistant">
-            <Button variant={location.pathname === '/assistant' ? "default" : "ghost"}>
+        <div className="flex items-center gap-4">
+          <NavLink to="/" className="flex items-center gap-2">
+            <img src="/assets/mrc-logo.png" alt="MRC Logo" className="h-8 w-8" />
+            <span className="font-bold text-xl hidden sm:inline-block text-transparent bg-clip-text bg-gradient-to-r from-mrc-blue to-mrc-green">
+              MRC en Poche
+            </span>
+          </NavLink>
+          
+          <nav className="hidden md:flex gap-4 ml-4">
+            <NavLink 
+              to="/assistant" 
+              className={({ isActive }) => 
+                `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`
+              }
+            >
               Assistant
-            </Button>
-          </Link>
-          <Link to="/documents">
-            <Button variant={location.pathname === '/documents' ? "default" : "ghost"}>
+            </NavLink>
+            <NavLink 
+              to="/documents" 
+              className={({ isActive }) => 
+                `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`
+              }
+            >
               Documents
-            </Button>
-          </Link>
-          <Link to="/quiz">
-            <Button variant={location.pathname === '/quiz' ? "default" : "ghost"}>
+            </NavLink>
+            <NavLink 
+              to="/quiz" 
+              className={({ isActive }) => 
+                `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`
+              }
+            >
               Quiz
-            </Button>
-          </Link>
+            </NavLink>
+          </nav>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <InstallAppButton />
           
-          <div className="ml-2">
-            <InstallButton />
-          </div>
-        </nav>
-
-        <div className="flex items-center space-x-2">
-          <AuthNavItem />
+          <ThemeToggle />
           
-          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="md:hidden">
-              <MobileNav onClose={() => setIsMenuOpen(false)} />
-            </SheetContent>
-          </Sheet>
+          {isAuthenticated ? (
+            <UserAvatar />
+          ) : (
+            <AuthDialog />
+          )}
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={handleToggleMenu}
+          >
+            {isOpen ? <X /> : <Menu />}
+          </Button>
         </div>
       </div>
+      
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-background z-30 md:hidden pt-16">
+          <nav className="container py-8 flex flex-col gap-6">
+            <NavLink 
+              to="/assistant" 
+              className="text-xl font-medium py-2 border-b border-border"
+              onClick={() => setIsOpen(false)}
+            >
+              Assistant
+            </NavLink>
+            <NavLink 
+              to="/documents" 
+              className="text-xl font-medium py-2 border-b border-border"
+              onClick={() => setIsOpen(false)}
+            >
+              Documents
+            </NavLink>
+            <NavLink 
+              to="/quiz" 
+              className="text-xl font-medium py-2 border-b border-border"
+              onClick={() => setIsOpen(false)}
+            >
+              Quiz
+            </NavLink>
+          </nav>
+        </div>
+      )}
     </header>
   );
 };
