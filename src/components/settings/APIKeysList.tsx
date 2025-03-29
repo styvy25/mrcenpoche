@@ -2,7 +2,13 @@
 import React from "react";
 import { CardContent } from "@/components/ui/card";
 import APIKeyInput from "./APIKeyInput";
-import { ApiKeyStatus } from "@/hooks/useApiKeys";
+import { useApiKeys } from "@/hooks/useApiKeys";
+
+interface ApiKeyStatus {
+  perplexity: boolean;
+  youtube: boolean;
+  stripe: boolean;
+}
 
 interface APIKeysListProps {
   perplexityKey: string;

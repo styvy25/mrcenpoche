@@ -2,7 +2,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 
 type TourStep = {
   id: string;
@@ -24,24 +23,28 @@ interface TourContextType {
   isOpen: boolean;
   currentStep: number;
   steps: TourStep[];
-  showTour: (tourId: string) => void;
-  closeTour: () => void;
+  currentTour: TourData | null;
+  showTour: boolean;
+  setShowTour: (show: boolean) => void;
   nextStep: () => void;
   prevStep: () => void;
   goToStep: (step: number) => void;
   completeTour: () => void;
+  resetTour: () => void;
 }
 
 const defaultTourContext: TourContextType = {
   isOpen: false,
   currentStep: 0,
   steps: [],
-  showTour: () => {},
-  closeTour: () => {},
+  currentTour: null,
+  showTour: false,
+  setShowTour: () => {},
   nextStep: () => {},
   prevStep: () => {},
   goToStep: () => {},
   completeTour: () => {},
+  resetTour: () => {}
 };
 
 const TourContext = createContext<TourContextType>(defaultTourContext);
@@ -118,11 +121,12 @@ const availableTours: TourData[] = [
 export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   const [activeTour, setActiveTour] = useState<TourData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const location = useLocation();
   const { user } = useAuth();
 
-  // Check for completed tours in localStorage or a database
+  // Check for completed tours in localStorage
   const checkCompletedTours = () => {
     const completedTours = localStorage.getItem('completed_tours');
     return completedTours ? JSON.parse(completedTours) : [];
@@ -132,58 +136,6 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
     const completedTours = checkCompletedTours();
     if (!completedTours.includes(tourId)) {
       localStorage.setItem('completed_tours', JSON.stringify([...completedTours, tourId]));
-    }
-  };
-
-  // Save tour progress to the database
-  const saveTourProgress = async (tourId: string) => {
-    if (!user) return;
-    
-    try {
-      const userId = user.uid || user.id;
-      if (!userId) return;
-      
-      const { data, error } = await supabase
-        .from('user_tours')
-        .upsert({
-          user_id: userId,
-          tour_id: tourId,
-          completed: true,
-          completed_at: new Date().toISOString()
-        });
-        
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error saving tour progress:', error);
-    }
-  };
-
-  // Load user's tour progress from the database
-  const loadTourProgress = async () => {
-    if (!user) return;
-    
-    try {
-      const userId = user.uid || user.id;
-      if (!userId) return;
-      
-      const { data, error } = await supabase
-        .from('user_tours')
-        .select('*')
-        .eq('user_id', userId);
-        
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        // Convert database tour progress to the format used by localStorage
-        const completedTours = data
-          .filter(tour => tour.completed)
-          .map(tour => tour.tour_id);
-        
-        // Update localStorage for offline access
-        localStorage.setItem('completed_tours', JSON.stringify(completedTours));
-      }
-    } catch (error) {
-      console.error('Error loading tour progress:', error);
     }
   };
 
@@ -205,32 +157,12 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
         const tour = availableTours.find(t => t.id === tourId);
         if (tour) {
           setActiveTour(tour);
-          setIsOpen(true);
+          setShowTour(true);
           setCurrentStep(0);
         }
       }
     }
   }, [location.pathname]);
-  
-  // Load tour progress when user info changes
-  useEffect(() => {
-    if (user) {
-      loadTourProgress();
-    }
-  }, [user]);
-
-  const showTour = (tourId: string) => {
-    const tour = availableTours.find(t => t.id === tourId);
-    if (tour) {
-      setActiveTour(tour);
-      setIsOpen(true);
-      setCurrentStep(0);
-    }
-  };
-
-  const closeTour = () => {
-    setIsOpen(false);
-  };
 
   const nextStep = () => {
     if (activeTour && currentStep < activeTour.steps.length - 1) {
@@ -255,13 +187,31 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   const completeTour = () => {
     if (activeTour) {
       markTourAsCompleted(activeTour.id);
+      setShowTour(false);
+    }
+  };
+
+  const resetTour = () => {
+    const pathToTour: Record<string, string> = {
+      '/': 'intro-tour',
+      '/assistant': 'assistant-tour',
+    };
+    
+    const path = location.pathname;
+    if (pathToTour[path]) {
+      const tourId = pathToTour[path];
+      // Remove from completed tours
+      const completedTours = checkCompletedTours();
+      const updatedTours = completedTours.filter((id: string) => id !== tourId);
+      localStorage.setItem('completed_tours', JSON.stringify(updatedTours));
       
-      // Save to database if user is authenticated
-      if (user) {
-        saveTourProgress(activeTour.id);
+      // Show the tour
+      const tour = availableTours.find(t => t.id === tourId);
+      if (tour) {
+        setActiveTour(tour);
+        setShowTour(true);
+        setCurrentStep(0);
       }
-      
-      setIsOpen(false);
     }
   };
 
@@ -271,12 +221,14 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
         isOpen,
         currentStep,
         steps: activeTour?.steps || [],
+        currentTour: activeTour,
         showTour,
-        closeTour,
+        setShowTour,
         nextStep,
         prevStep,
         goToStep,
         completeTour,
+        resetTour
       }}
     >
       {children}
