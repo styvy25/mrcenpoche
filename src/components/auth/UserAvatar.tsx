@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "@/components/auth/AuthContext";
 
 const UserAvatar = () => {
   const { user } = useAuth();
