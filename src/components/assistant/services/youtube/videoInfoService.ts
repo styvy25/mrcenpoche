@@ -1,6 +1,6 @@
 
 import { VideoInfo, YouTubeErrorType } from './types';
-import { getCachedVideoInfo, cacheVideoInfo } from './cacheManager';
+import { retrieveVideoInfoFromCache, cacheVideoInfo } from './cacheManager';
 import { isOnline, getVideoDetails } from './searchService';
 
 /**
@@ -40,7 +40,7 @@ export const getVideoInfo = async (
     }
 
     // Check cache first
-    const cachedInfo = getCachedVideoInfo(videoId);
+    const cachedInfo = await retrieveVideoInfoFromCache(videoId);
     if (cachedInfo) {
       console.log("Using cached video info for", videoId);
       return cachedInfo;
@@ -57,7 +57,7 @@ export const getVideoInfo = async (
     };
 
     // Cache the result
-    cacheVideoInfo(videoId, videoInfo);
+    await cacheVideoInfo(videoId, videoInfo);
     
     return videoInfo;
   } catch (error: any) {

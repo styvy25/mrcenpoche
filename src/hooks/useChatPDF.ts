@@ -1,14 +1,16 @@
 
-import { jsPDF } from "jspdf";
-import { Message } from "../types/message";
-import { useToast } from "@/hooks/use-toast";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { useState } from 'react';
+import { jsPDF } from 'jspdf';
+import { Message } from '@/components/assistant/types/message';
+import { useToast } from '@/hooks/use-toast';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 
-export const usePdfGenerator = () => {
+export const useChatPDF = () => {
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const { canGeneratePdf, incrementPdfGenerations } = usePlanLimits();
 
-  const generatePDF = (messages: Message[]) => {
+  const generatePDF = async (messages: Message[]) => {
     if (!messages || messages.length === 0) {
       toast({
         title: "Erreur",
@@ -18,14 +20,17 @@ export const usePdfGenerator = () => {
       return;
     }
 
+    // Check if user can generate PDFs
     if (!canGeneratePdf()) {
       toast({
         title: "Limite atteinte",
-        description: "Vous avez atteint votre limite de génération de PDF. Passez à Premium pour un accès illimité.",
+        description: "Vous avez atteint votre limite de PDFs. Passez à Premium pour plus de générations.",
         variant: "destructive",
       });
       return;
     }
+
+    setIsGenerating(true);
 
     try {
       // Create a new PDF document
@@ -37,7 +42,7 @@ export const usePdfGenerator = () => {
       // Add title
       doc.setFontSize(20);
       doc.setTextColor(31, 87, 164); // MRC blue
-      doc.text("Conversation avec Styvy237", pageWidth / 2, margin, { align: "center" });
+      doc.text("Conversation avec MRC+", pageWidth / 2, margin, { align: "center" });
       
       // Add date
       doc.setFontSize(10);
@@ -62,7 +67,7 @@ export const usePdfGenerator = () => {
         }
         
         const isAssistant = message.role === "assistant";
-        const messageHeader = isAssistant ? "Assistant Styvy237" : "Vous";
+        const messageHeader = isAssistant ? "Assistant MRC" : "Vous";
         const messageDate = message.timestamp ? (
           new Date(message.timestamp).toLocaleDateString('fr-FR') + ' ' + 
           new Date(message.timestamp).toLocaleTimeString('fr-FR', { 
@@ -117,7 +122,7 @@ export const usePdfGenerator = () => {
         doc.setFontSize(8);
         doc.setTextColor(150);
         doc.text(
-          `MRC LearnScape - Page ${i} sur ${pageCount}`,
+          `MRC+ - Page ${i} sur ${pageCount}`,
           pageWidth / 2,
           doc.internal.pageSize.getHeight() - 10,
           { align: "center" }
@@ -125,7 +130,7 @@ export const usePdfGenerator = () => {
       }
       
       // Save the PDF
-      doc.save("Conversation-Styvy237.pdf");
+      doc.save("Conversation-MRC.pdf");
       
       // Update usage counter
       incrementPdfGenerations();
@@ -142,8 +147,10 @@ export const usePdfGenerator = () => {
         description: "Une erreur s'est produite lors de la génération du PDF",
         variant: "destructive",
       });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  return { generatePDF };
+  return { generatePDF, isGenerating };
 };

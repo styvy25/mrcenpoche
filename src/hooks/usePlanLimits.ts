@@ -1,147 +1,93 @@
 
 import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
-// Types for plan management
 export type PlanType = 'free' | 'premium';
 
 export interface PlanLimits {
-  chatMessages: {
-    daily: number;
-    used: number;
-  };
-  pdfGenerations: {
-    daily: number;
-    used: number;
-  };
-  quizAttempts: {
-    daily: number;
-    used: number;
-  };
+  chatMessages: number;
+  pdfGenerations: number;
+  quizzes: number;
+  youtubeAnalysis: number;
 }
 
-// Define the limits for each plan
-const PLAN_DEFINITIONS = {
+interface UsageStats {
+  userPlan: PlanType;
+  chatMessagesLimit: number;
+  chatMessagesToday: number;
+  pdfGenerationsLimit: number;
+  pdfGenerationsToday: number;
+  quizzesLimit: number;
+  quizzesToday: number;
+  youtubeAnalysisLimit: number;
+  youtubeAnalysisToday: number;
+}
+
+const PLAN_CONFIGS: Record<PlanType, PlanLimits> = {
   free: {
-    chatMessages: {
-      daily: 10,
-    },
-    pdfGenerations: {
-      daily: 3,
-    },
-    quizAttempts: {
-      daily: 5,
-    }
+    chatMessages: 20,
+    pdfGenerations: 5,
+    quizzes: 10,
+    youtubeAnalysis: 3
   },
   premium: {
-    chatMessages: {
-      daily: 100,
-    },
-    pdfGenerations: {
-      daily: 30,
-    },
-    quizAttempts: {
-      daily: 50,
-    }
+    chatMessages: 1000,
+    pdfGenerations: 50,
+    quizzes: 200,
+    youtubeAnalysis: 30
   }
 };
 
-// Hook for managing user plan limits
+// Initialize local storage with usage data
+const initializeUsageData = () => {
+  const today = new Date().toISOString().split('T')[0];
+  const existingData = localStorage.getItem('mrc_usage_data');
+  
+  if (!existingData || JSON.parse(existingData).date !== today) {
+    const initialData = {
+      date: today,
+      chatMessages: 0,
+      pdfGenerations: 0,
+      quizzes: 0,
+      youtubeAnalysis: 0
+    };
+    localStorage.setItem('mrc_usage_data', JSON.stringify(initialData));
+    return initialData;
+  }
+  
+  return JSON.parse(existingData);
+};
+
 export const usePlanLimits = () => {
   const [userPlan, setUserPlan] = useState<PlanType>('free');
-  const [limits, setLimits] = useState<PlanLimits>({
-    chatMessages: {
-      daily: PLAN_DEFINITIONS.free.chatMessages.daily,
-      used: 0
-    },
-    pdfGenerations: {
-      daily: PLAN_DEFINITIONS.free.pdfGenerations.daily,
-      used: 0
-    },
-    quizAttempts: {
-      daily: PLAN_DEFINITIONS.free.quizAttempts.daily,
-      used: 0
-    }
-  });
+  const [usageData, setUsageData] = useState(() => initializeUsageData());
   const [isLoading, setIsLoading] = useState(true);
+  const [limits, setLimits] = useState<PlanLimits>(PLAN_CONFIGS.free);
+  const { toast } = useToast();
 
-  // Load user plan and usage from localStorage
+  // Initialize the user's plan and limits from localStorage
   useEffect(() => {
-    const loadPlanData = () => {
-      try {
-        const savedPlan = localStorage.getItem('userPlan');
-        const savedLimits = localStorage.getItem('userLimits');
-        
-        // Check if saved data exists and was stored today
-        const today = new Date().toDateString();
-        const lastUpdated = localStorage.getItem('limitsLastUpdated');
-        
-        if (savedPlan) {
-          setUserPlan(savedPlan as PlanType);
-        }
-        
-        if (savedLimits && lastUpdated && lastUpdated === today) {
-          setLimits(JSON.parse(savedLimits));
-        } else {
-          // Reset usage counts if it's a new day
-          const planType = savedPlan as PlanType || 'free';
-          setLimits({
-            chatMessages: {
-              daily: PLAN_DEFINITIONS[planType].chatMessages.daily,
-              used: 0
-            },
-            pdfGenerations: {
-              daily: PLAN_DEFINITIONS[planType].pdfGenerations.daily,
-              used: 0
-            },
-            quizAttempts: {
-              daily: PLAN_DEFINITIONS[planType].quizAttempts.daily,
-              used: 0
-            }
-          });
-          
-          // Update last updated date
-          localStorage.setItem('limitsLastUpdated', today);
-        }
-      } catch (error) {
-        console.error('Error loading plan data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    const storedPlan = localStorage.getItem('mrc_user_plan');
+    const plan: PlanType = (storedPlan === 'premium') ? 'premium' : 'free';
+    setUserPlan(plan);
+    setLimits(PLAN_CONFIGS[plan]);
+    setIsLoading(false);
     
-    loadPlanData();
+    // Re-initialize usage data at the start of a new day
+    setUsageData(initializeUsageData());
   }, []);
-
-  // Save limits to localStorage whenever they change
+  
+  // Update localStorage when usage data changes
   useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('userPlan', userPlan);
-      localStorage.setItem('userLimits', JSON.stringify(limits));
-      localStorage.setItem('limitsLastUpdated', new Date().toDateString());
-    }
-  }, [limits, userPlan, isLoading]);
+    localStorage.setItem('mrc_usage_data', JSON.stringify(usageData));
+  }, [usageData]);
 
-  // Update user plan (e.g., when upgrading to premium)
+  // Update user plan
   const updateUserPlan = async (newPlan: PlanType): Promise<boolean> => {
     try {
+      localStorage.setItem('mrc_user_plan', newPlan);
       setUserPlan(newPlan);
-      
-      // Update limits based on new plan
-      setLimits(prev => ({
-        chatMessages: {
-          daily: PLAN_DEFINITIONS[newPlan].chatMessages.daily,
-          used: prev.chatMessages.used
-        },
-        pdfGenerations: {
-          daily: PLAN_DEFINITIONS[newPlan].pdfGenerations.daily,
-          used: prev.pdfGenerations.used
-        },
-        quizAttempts: {
-          daily: PLAN_DEFINITIONS[newPlan].quizAttempts.daily,
-          used: prev.quizAttempts.used
-        }
-      }));
-      
+      setLimits(PLAN_CONFIGS[newPlan]);
       return true;
     } catch (error) {
       console.error('Error updating user plan:', error);
@@ -149,68 +95,60 @@ export const usePlanLimits = () => {
     }
   };
 
-  // Check if user can use a feature based on their plan
+  // Check if user can use a specific feature
   const canUseFeature = (feature: keyof PlanLimits): boolean => {
-    return limits[feature].used < limits[feature].daily;
+    const limit = limits[feature];
+    const used = usageData[feature as keyof typeof usageData];
+    return used < limit;
   };
 
-  // Generic function to increment a counter for a specific feature
-  const incrementFeatureUsage = (feature: keyof PlanLimits): boolean => {
-    if (canUseFeature(feature)) {
-      setLimits(prev => ({
-        ...prev,
-        [feature]: {
-          ...prev[feature],
-          used: prev[feature].used + 1
-        }
-      }));
-      return true;
+  // Increment usage counters
+  const incrementUsage = (feature: keyof PlanLimits): boolean => {
+    if (!canUseFeature(feature)) {
+      toast({
+        title: "Limite atteinte",
+        description: `Vous avez atteint votre limite quotidienne pour cette fonctionnalité. Passez à Premium pour un accès illimité.`,
+        variant: "destructive",
+      });
+      return false;
     }
-    return false;
+    
+    setUsageData(prev => ({
+      ...prev,
+      [feature]: prev[feature as keyof typeof prev] + 1
+    }));
+    
+    return true;
   };
 
-  // Check if user has reached limit for specific features
-  const hasChatLimit = (): boolean => {
-    return userPlan === 'free';
+  // Helper methods for specific features
+  const canSendChatMessage = () => canUseFeature('chatMessages');
+  const canGeneratePdf = () => canUseFeature('pdfGenerations');
+  const canTakeQuiz = () => canUseFeature('quizzes');
+  const canAnalyzeYoutube = () => canUseFeature('youtubeAnalysis');
+  
+  const incrementChatMessages = () => incrementUsage('chatMessages');
+  const incrementPdfGenerations = () => incrementUsage('pdfGenerations');
+  const incrementQuizzes = () => incrementUsage('quizzes');
+  const incrementYoutubeAnalysis = () => incrementUsage('youtubeAnalysis');
+  
+  // Get current usage statistics
+  const getUsageStats = (): UsageStats => {
+    return {
+      userPlan,
+      chatMessagesLimit: limits.chatMessages,
+      chatMessagesToday: usageData.chatMessages,
+      pdfGenerationsLimit: limits.pdfGenerations,
+      pdfGenerationsToday: usageData.pdfGenerations,
+      quizzesLimit: limits.quizzes,
+      quizzesToday: usageData.quizzes,
+      youtubeAnalysisLimit: limits.youtubeAnalysis,
+      youtubeAnalysisToday: usageData.youtubeAnalysis
+    };
   };
-
-  const hasPdfLimit = (): boolean => {
-    return userPlan === 'free';
-  };
-
-  const hasQuizLimit = (): boolean => {
-    return userPlan === 'free';
-  };
-
-  // Feature-specific increment functions
-  const incrementChatMessages = (): boolean => {
-    return incrementFeatureUsage('chatMessages');
-  };
-
-  const incrementPdfGenerations = (): boolean => {
-    return incrementFeatureUsage('pdfGenerations');
-  };
-
-  const incrementQuizzes = (): boolean => {
-    return incrementFeatureUsage('quizAttempts');
-  };
-
-  // Additional functions for specific features
-  const canSendChatMessage = (): boolean => {
-    return canUseFeature('chatMessages');
-  };
-
-  const canGeneratePdf = (): boolean => {
-    return canUseFeature('pdfGenerations');
-  };
-
-  const canTakeQuiz = (): boolean => {
-    return canUseFeature('quizAttempts');
-  };
-
-  const canAccessAllModules = (): boolean => {
-    return userPlan === 'premium';
-  };
+  
+  // Check if user can access all modules
+  const canAccessAllModules = () => userPlan === 'premium';
 
   return {
     userPlan,
@@ -218,15 +156,15 @@ export const usePlanLimits = () => {
     isLoading,
     updateUserPlan,
     canUseFeature,
-    hasChatLimit,
-    hasPdfLimit,
-    hasQuizLimit,
-    incrementChatMessages,
-    incrementPdfGenerations,
-    incrementQuizzes,
     canSendChatMessage,
     canGeneratePdf,
     canTakeQuiz,
+    canAnalyzeYoutube,
+    incrementChatMessages,
+    incrementPdfGenerations,
+    incrementQuizzes,
+    incrementYoutubeAnalysis,
+    getUsageStats,
     canAccessAllModules
   };
 };

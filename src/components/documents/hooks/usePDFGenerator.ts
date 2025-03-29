@@ -7,12 +7,12 @@ import { useToast } from '@/components/ui/use-toast';
 export const usePDFGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const { canGeneratePDF } = usePlanLimits();
+  const { canGeneratePdf, incrementPdfGenerations } = usePlanLimits();
   const { toast } = useToast();
 
   // Fonction pour générer un PDF à partir des messages
   const generatePDF = useCallback(async (messages: any[]) => {
-    if (!canGeneratePDF()) {
+    if (!canGeneratePdf()) {
       toast({
         title: "Limite atteinte",
         description: "Vous avez atteint votre limite mensuelle de génération de PDF. Passez à Premium pour un accès illimité.",
@@ -114,6 +114,9 @@ export const usePDFGenerator = () => {
       const url = URL.createObjectURL(pdfBlob);
       setPdfUrl(url);
       
+      // Update usage counter
+      incrementPdfGenerations();
+      
       toast({
         title: "PDF généré avec succès",
         description: "Votre conversation a été convertie en PDF",
@@ -137,7 +140,7 @@ export const usePDFGenerator = () => {
     } finally {
       setIsGenerating(false);
     }
-  }, [canGeneratePDF, toast]);
+  }, [canGeneratePdf, incrementPdfGenerations, toast]);
 
   return {
     generatePDF,
