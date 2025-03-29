@@ -3,9 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/components/auth/AuthContext";
-import UserAvatar from "../auth/UserAvatar";
 import AuthDialog from "../auth/AuthDialog";
 import InstallAppButton from "../pwa/InstallAppButton";
 
@@ -59,10 +57,10 @@ const Header = () => {
         <div className="flex items-center gap-2">
           <InstallAppButton />
           
-          <ThemeToggle />
-          
           {isAuthenticated ? (
-            <UserAvatar />
+            <Button variant="outline" size="sm">
+              Mon Compte
+            </Button>
           ) : (
             <AuthDialog />
           )}

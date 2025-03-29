@@ -12,25 +12,28 @@ import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './components/auth/AuthContext';
 import { Toaster } from "@/components/ui/toaster";
 import SettingsPage from './pages/SettingsPage';
+import { ThemeProvider } from './components/ui/theme-provider';
 
 const App = () => {
   return (
-    <AuthProvider>
-      <AppProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/assistant" element={<AssistantPage />} />
-            <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/quiz" element={<QuizPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </BrowserRouter>
-      </AppProvider>
-    </AuthProvider>
+    <ThemeProvider defaultTheme="light">
+      <AuthProvider>
+        <AppProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/assistant" element={<AssistantPage />} />
+              <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </BrowserRouter>
+        </AppProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

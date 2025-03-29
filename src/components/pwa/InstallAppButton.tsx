@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Download, Check } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -11,6 +12,7 @@ interface BeforeInstallPromptEvent extends Event {
 const InstallAppButton = () => {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const { toast } = useToast();
   
   useEffect(() => {
     // Check if app is already installed
@@ -34,13 +36,18 @@ const InstallAppButton = () => {
       setIsInstalled(true);
       setInstallPrompt(null);
       console.log('MRC en Poche: Application installée avec succès!');
+      toast({
+        title: "Installation réussie",
+        description: "L'application MRC en Poche a été installée avec succès.",
+        duration: 5000,
+      });
     });
     
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', () => {});
     };
-  }, []);
+  }, [toast]);
   
   const handleInstallClick = async () => {
     if (!installPrompt) return;
@@ -53,8 +60,19 @@ const InstallAppButton = () => {
     
     if (choiceResult.outcome === 'accepted') {
       console.log('MRC en Poche: Utilisateur a accepté l\'installation');
+      toast({
+        title: "Installation en cours",
+        description: "L'application MRC en Poche est en cours d'installation.",
+        duration: 3000,
+      });
     } else {
       console.log('MRC en Poche: Utilisateur a refusé l\'installation');
+      toast({
+        title: "Installation annulée",
+        description: "L'installation de l'application a été annulée.",
+        variant: "destructive",
+        duration: 3000,
+      });
     }
     
     // Clear the saved prompt as it can't be used again
