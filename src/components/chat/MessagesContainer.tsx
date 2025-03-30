@@ -2,7 +2,7 @@
 import { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatMessage from "./ChatMessage";
-import { Message } from "./hooks/types";
+import { Message } from "./types";
 import { Users, Calendar } from "lucide-react";
 
 interface MessagesContainerProps {
