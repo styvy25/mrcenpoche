@@ -10,6 +10,7 @@ import DocumentsPage from './pages/DocumentsPage';
 import YouTubeAnalyzerPage from './pages/YouTubeAnalyzerPage';
 import YouTubeDownloadPage from './pages/YouTubeDownloadPage';
 import ForumPage from './pages/ForumPage';
+import DashboardPage from './pages/DashboardPage';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
           <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
           <Route path="/forum" element={<ForumPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
         </Routes>
       </Router>
     </AuthProvider>

@@ -33,7 +33,7 @@ const MessagesContainer: React.FC<MessagesContainerProps> = ({
   });
 
   return (
-    <ScrollArea className="h-[calc(100vh-15rem)] md:h-[calc(80vh-12rem)] p-4">
+    <ScrollArea className="h-[calc(100vh-15rem)] md:h-[calc(80vh-12rem)] p-4 bg-gradient-to-b from-gray-900/80 to-black/90 backdrop-blur-md rounded-lg">
       <div className="flex flex-col gap-4">
         {normalizedMessages.map((message, index) => (
           <ChatMessage

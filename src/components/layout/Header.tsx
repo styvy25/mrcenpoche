@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Menu, X, MessageCircle, Download, YoutubeIcon } from "lucide-react";
+import { Menu, X, MessageCircle, Download, YoutubeIcon, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import UserAvatar from "@/components/auth/UserAvatar";
 import AuthDialog from "../auth/AuthDialog";
@@ -65,6 +65,14 @@ const Header = () => {
                 YouTube
               </span>
             </NavLink>
+            <NavLink to="/dashboard" className={({
+            isActive
+          }) => `text-sm font-medium ${isActive ? 'text-primary text-purple-600' : 'text-muted-foreground hover:text-purple-600'}`}>
+              <span className="flex items-center">
+                <LayoutDashboard className="h-3 w-3 mr-1" />
+                Tableau de bord
+              </span>
+            </NavLink>
           </nav>
         </div>
         
@@ -80,6 +88,13 @@ const Header = () => {
             <NavLink to="/chat-237">
               <MessageCircle className="h-4 w-4 mr-1" />
               Chat 237
+            </NavLink>
+          </Button>
+          
+          <Button variant="outline" size="sm" asChild className="hidden sm:flex">
+            <NavLink to="/dashboard">
+              <LayoutDashboard className="h-4 w-4 mr-1 text-purple-600" />
+              Tableau de bord
             </NavLink>
           </Button>
           
@@ -125,6 +140,10 @@ const Header = () => {
             <NavLink to="/youtube-analyzer" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
               <YoutubeIcon className="h-4 w-4 mr-2 text-red-600" />
               Analyser des vidéos YouTube
+            </NavLink>
+            <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border flex items-center text-purple-600" onClick={() => setIsOpen(false)}>
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              Tableau de bord
             </NavLink>
             {isAuthenticated && (
               <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>

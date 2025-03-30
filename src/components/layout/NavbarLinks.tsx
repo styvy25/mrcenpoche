@@ -70,8 +70,8 @@ export const navLinks: NavLinkItem[] = [
     path: '/dashboard',
     icon: <LayoutDashboard className="h-4 w-4" />,
     label: 'Tableau de bord',
-    highlight: false,
-    badge: false
+    highlight: true,
+    badge: 'New'
   }
 ];
 
