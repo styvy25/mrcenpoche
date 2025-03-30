@@ -4,7 +4,6 @@ import MessageDisplay from "./MessageDisplay";
 import LoadingIndicator from "./LoadingIndicator";
 import YouTubeResults from "./YouTubeResults";
 import { Message } from "./types/message";
-import { useDeviceDetect } from "@/hooks/useDeviceDetect";
 
 interface ChatContentProps {
   messages: Message[];
@@ -23,7 +22,6 @@ const ChatContent = memo(({
 }: ChatContentProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const { isMobile } = useDeviceDetect();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -53,18 +51,13 @@ const ChatContent = memo(({
   return (
     <div 
       ref={contentRef}
-      className={`
-        flex-1 overflow-y-auto space-y-4 
-        bg-gradient-to-b from-gray-900/80 to-black/40 
-        scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent
-        ${isMobile ? 'p-2' : 'p-4'}
-      `}
+      className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900/80 to-black/40 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
     >
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full opacity-70">
-          <div className="text-center p-6 rounded-lg border border-gray-700/50 bg-gray-800/30 backdrop-blur-sm">
-            <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-medium mb-2`}>Assistant IA à votre service</h3>
-            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-300`}>
+          <div className="text-center p-8 rounded-lg border border-gray-700/50 bg-gray-800/30 backdrop-blur-sm">
+            <h3 className="text-lg font-medium mb-2">Assistant IA à votre service</h3>
+            <p className="text-sm text-gray-300">
               Posez vos questions concernant le MRC, la politique, ou vos besoins de formation.
             </p>
           </div>

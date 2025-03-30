@@ -14,13 +14,14 @@ export { getVideoInfo, getVideoTranscript } from './videoInfoService';
 
 // Re-export cache utilities
 export { 
+  refreshCache as refreshYouTubeCache, 
   clearYouTubeCache, 
-  testYouTubeApiKey,
-  refreshCache
+  testYouTubeApiKey 
 } from './cacheUtilities';
 
 // Re-export cache manager functions
 export {
   retrieveVideoInfoFromCache,
-  cacheVideoInfo
+  cacheVideoInfo,
+  refreshCache
 } from './cacheManager';
