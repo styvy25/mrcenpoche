@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import QuizContainer from "@/components/quiz/QuizContainer";
-import { categoriesData } from "@/components/quiz/data/categories";
+import { categories } from "@/components/quiz/data/categories";
 import { useToast } from "@/hooks/use-toast";
 import SocialShareButtons from "@/components/shared/SocialShareButtons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,7 +60,7 @@ const QuizPage = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
-            <QuizContainer categories={categoriesData} />
+            <QuizContainer categories={categories} />
           </div>
           
           <div className="space-y-6">

@@ -6,6 +6,7 @@ import { histoireQuestions } from "./data/histoireQuestions";
 import { politiqueQuestions } from "./data/politiqueQuestions";
 import { traditionsQuestions } from "./data/traditionsQuestions";
 import { testQuestions } from "./data/test";
+import { categories as categoryData } from "./data/categories";
 
 // Combine all culture-related questions
 export const culturalQuizQuestions: QuizQuestion[] = [
@@ -39,6 +40,9 @@ export const culturalQuizData = {
     { id: "test", name: "Test", badge: "test_expert", color: "gray", icon: "check", description: "Questions de test" }
   ]
 };
+
+// Make sure to export the known category data from categories.ts for consistency
+export { categoryData as categoriesData };
 
 // Make sure to export the culturalQuizData as default as well
 export default culturalQuizData;

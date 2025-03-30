@@ -20,6 +20,7 @@ export interface NavLinkItem {
   requiresApiKey?: boolean;
 }
 
+// Define the navigation links configuration
 export const navLinks: NavLinkItem[] = [
   {
     path: '/assistant',
@@ -75,6 +76,7 @@ interface NavbarLinkProps {
   onClick?: () => void;
 }
 
+// Individual navigation link component
 const NavbarLink: React.FC<NavbarLinkProps> = ({ 
   to, 
   icon, 
@@ -108,6 +110,7 @@ interface NavbarLinksProps {
   onNavClick?: () => void;
 }
 
+// Main navigation links component
 const NavbarLinks: React.FC<NavbarLinksProps> = ({ 
   isApiKeySet, 
   isMobile = false, 
