@@ -14,7 +14,7 @@ export { getVideoInfo, getVideoTranscript } from './videoInfoService';
 
 // Re-export cache utilities
 export { 
-  refreshYouTubeCache as refreshYouTubeCache, 
+  refreshCache as refreshYouTubeCache, 
   clearYouTubeCache, 
   testYouTubeApiKey 
 } from './cacheUtilities';

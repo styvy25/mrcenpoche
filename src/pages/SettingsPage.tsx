@@ -3,8 +3,7 @@ import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useApiKeys } from '@/hooks/useApiKeys';
-import { APIKeyManager } from '@/components/settings';
+import APIKeysSection from '@/components/settings/sections/APIKeysSection';
 
 const SettingsPage = () => {
   return (
@@ -28,7 +27,7 @@ const SettingsPage = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <APIKeyManager />
+                  <APIKeysSection />
                 </CardContent>
               </Card>
             </TabsContent>

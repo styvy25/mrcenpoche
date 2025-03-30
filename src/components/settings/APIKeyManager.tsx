@@ -6,7 +6,6 @@ import APIKeyManagerHeader from "./APIKeyManagerHeader";
 import APIKeysList from "./APIKeysList";
 import APIKeyActions from "./APIKeyActions";
 import { useApiKeys } from "@/hooks/useApiKeys";
-import { refreshYouTubeCache } from "@/components/assistant/services/youtubeService";
 
 const APIKeyManager = () => {
   const { keys, keyStatus, isTesting, updateKey, saveKeys } = useApiKeys();

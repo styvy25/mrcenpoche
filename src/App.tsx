@@ -11,6 +11,7 @@ import YouTubeAnalyzerPage from './pages/YouTubeAnalyzerPage';
 import YouTubeDownloadPage from './pages/YouTubeDownloadPage';
 import ForumPage from './pages/ForumPage';
 import DashboardPage from './pages/DashboardPage';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
           <Route path="/forum" element={<ForumPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </Router>
     </AuthProvider>

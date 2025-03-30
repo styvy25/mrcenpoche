@@ -1,50 +1,48 @@
 
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { WifiOff, Check } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, Wifi, WifiOff } from "lucide-react";
 
 const OfflineFeaturesCard = () => {
   return (
-    <Card className="mt-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <WifiOff className="h-5 w-5 text-blue-500" />
-          Fonctionnalités disponibles hors-ligne
+    <Card className="mt-4 bg-gradient-to-r from-blue-50 to-white dark:from-blue-950/30 dark:to-gray-900">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-md flex items-center gap-2">
+          <WifiOff className="h-4 w-4 text-gray-500" />
+          Fonctionnalités hors-ligne
         </CardTitle>
-        <CardDescription>
-          Ces fonctionnalités restent disponibles même sans connexion internet
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-2">
-          <li className="flex items-start gap-2">
-            <Check className="h-5 w-5 text-green-500 mt-0.5" />
-            <div>
-              <span className="font-medium">Assistant IA en mode hors-ligne</span>
-              <p className="text-sm text-muted-foreground">
-                L'assistant utilise des réponses en cache lorsque vous êtes hors-ligne
-              </p>
-            </div>
-          </li>
-          <li className="flex items-start gap-2">
-            <Check className="h-5 w-5 text-green-500 mt-0.5" />
-            <div>
-              <span className="font-medium">Documents téléchargés</span>
-              <p className="text-sm text-muted-foreground">
-                Accédez aux documents et vidéos que vous avez téléchargés précédemment
-              </p>
-            </div>
-          </li>
-          <li className="flex items-start gap-2">
-            <Check className="h-5 w-5 text-green-500 mt-0.5" />
-            <div>
-              <span className="font-medium">Quiz et modules éducatifs</span>
-              <p className="text-sm text-muted-foreground">
-                Continuez votre apprentissage même sans connexion internet
-              </p>
-            </div>
-          </li>
-        </ul>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Ces fonctionnalités sont disponibles même sans clés API configurées.
+        </p>
+        
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Check className="h-4 w-4 text-green-500" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Assistant IA en mode de base (réponses génériques)
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Check className="h-4 w-4 text-green-500" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Générateur de documents de base
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Check className="h-4 w-4 text-green-500" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Consulter les modules et quizzes MRC
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Check className="h-4 w-4 text-green-500" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Chat en mode texte
+            </span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
