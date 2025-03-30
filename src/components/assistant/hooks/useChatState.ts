@@ -80,8 +80,8 @@ export function useChatState() {
   }, [messages, normalizeMessages, setHandlerMessages]);
 
   const handleSendMessage = useCallback(async (input: string): Promise<boolean> => {
-    return await baseHandleSendMessage(input, isOnline, handleYouTubeSearch);
-  }, [baseHandleSendMessage, isOnline, handleYouTubeSearch]);
+    return await baseHandleSendMessage(input, isOnline);
+  }, [baseHandleSendMessage, isOnline]);
 
   const handleVideoSelect = useCallback((videoId: string) => {
     return baseHandleVideoSelect(videoId);

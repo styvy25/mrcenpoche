@@ -36,15 +36,10 @@ export interface QuizResult {
   date: Date;
 }
 
-export interface BadgeIcon {
-  name: string;
-  color: string;
-}
-
 export interface BadgeProps {
   id: string;
   name: string;
   description: string;
   icon: string;
-  color: string;
+  color?: string;
 }

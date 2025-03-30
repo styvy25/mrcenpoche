@@ -4,12 +4,6 @@ import { useYouTubeSearch } from "./useYouTubeSearch";
 import { useMessageHandler } from "./useMessageHandler";
 import { useOfflineMode } from "./useOfflineMode";
 import { Message } from "@/types/message";
-import { 
-  normalizeMessages, 
-  formatMessageTime, 
-  formatLastSeen,
-  saveMessagesToStorage 
-} from "@/utils/MessageUtils";
 
 export function useChatState() {
   const { 
@@ -42,8 +36,9 @@ export function useChatState() {
       const normalizedMessages = handlerMessages.map(msg => ({
         ...msg,
         timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp),
-        sender: msg.sender || "user",
-        text: msg.text || msg.content || ""
+        type: msg.type || "text",
+        senderId: msg.senderId || "user",
+        content: msg.content || ""
       }));
       setMessages(normalizedMessages);
     }
@@ -69,7 +64,7 @@ export function useChatState() {
         timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)
       }));
       
-      saveMessagesToStorage(normalizedMessages);
+      localStorage.setItem('mrc_chat_messages', JSON.stringify(normalizedMessages));
       
       // Update messages with normalized timestamps if needed
       if (JSON.stringify(messages) !== JSON.stringify(normalizedMessages)) {
@@ -114,8 +109,16 @@ export function useChatState() {
     clearConversation,
     activeUsers,
     CURRENT_USER_ID: '1',
-    formatTime: formatMessageTime,
-    formatLastSeen,
+    formatTime: (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    formatLastSeen: (date: Date) => {
+      const now = new Date();
+      const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+      if (diffMinutes < 1) return 'just now';
+      if (diffMinutes < 60) return `${diffMinutes}m ago`;
+      const diffHours = Math.floor(diffMinutes / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      return date.toLocaleDateString();
+    },
     chatSettings
   };
 }

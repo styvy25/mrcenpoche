@@ -1,6 +1,5 @@
 
 import { BadgeProps } from "./types";
-import { Award, Star, Medal, Trophy, Crown } from "lucide-react";
 
 // Define badges with their criteria
 const badges: BadgeProps[] = [
