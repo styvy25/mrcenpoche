@@ -3,20 +3,68 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, FileText, Loader2, YoutubeIcon } from 'lucide-react';
+import { AlertCircle, FileDown, FileText, Loader2, YoutubeIcon } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import YouTubeURLInput from './YouTubeURLInput';
 import { useYoutubeAnalyzer } from '@/utils/youtubeAnalyzer';
 import YouTubeAnalysisPDF from './YouTubeAnalysisPDF';
-import VideoInfoPanel from './VideoInfoPanel';
-import AnalysisContent from './AnalysisContent';
-import VideoDownloadButton from './VideoDownloadButton';
 
 interface VideoInfo {
   id: string;
   title: string;
   description: string;
 }
+
+const VideoInfoPanel = ({ videoInfo, error }: { videoInfo: VideoInfo | null, error: string | null }) => {
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erreur</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!videoInfo) return null;
+
+  return (
+    <div className="mt-4 space-y-2">
+      <h3 className="font-medium text-lg">{videoInfo.title}</h3>
+      <p className="text-sm text-gray-500">{videoInfo.description}</p>
+    </div>
+  );
+};
+
+const AnalysisContent = ({ analysis }: { analysis: string | null }) => {
+  if (!analysis) {
+    return <p>Aucune analyse disponible. Veuillez d'abord analyser une vidéo.</p>;
+  }
+
+  return (
+    <div className="prose dark:prose-invert max-w-none">
+      {analysis.split('\n').map((line, index) => {
+        if (line.startsWith('# ')) {
+          return <h1 key={index} className="text-2xl font-bold mt-4 mb-2">{line.replace('# ', '')}</h1>;
+        } else if (line.startsWith('## ')) {
+          return <h2 key={index} className="text-xl font-bold mt-4 mb-2">{line.replace('## ', '')}</h2>;
+        } else if (line.startsWith('- ')) {
+          return <li key={index} className="ml-5">{line.replace('- ', '')}</li>;
+        } else if (line.match(/^\d+\./)) {
+          return <div key={index} className="flex gap-2 ml-2 mb-1">
+            <span className="font-bold">{line.split('.')[0]}.</span>
+            <span>{line.split('.').slice(1).join('.')}</span>
+          </div>;
+        } else if (line === '') {
+          return <br key={index} />;
+        } else {
+          return <p key={index} className="my-2">{line}</p>;
+        }
+      })}
+    </div>
+  );
+};
 
 const YouTubeAnalyzer = () => {
   const [videoUrl, setVideoUrl] = useState('');
@@ -132,13 +180,13 @@ Il aborde également les questions économiques et sociales, en proposant des so
             <CardHeader>
               <CardTitle>Analyser une vidéo YouTube</CardTitle>
               <CardDescription>
-                Entrez l'URL d'une vidéo YouTube pour l'analyser, l'extraire ou la télécharger
+                Entrez l'URL d'une vidéo YouTube pour l'analyser et extraire les points clés
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <YouTubeURLInput 
                 onVideoSelect={(id) => setVideoUrl(`https://youtube.com/watch?v=${id}`)}
-                onSubmit={handleValidateUrl}
+                onSubmit={handleValidateUrl} 
                 isLoading={isVideoLoading}
                 disabled={isLoading}
               />
@@ -147,15 +195,6 @@ Il aborde également les questions économiques et sociales, en proposant des so
                 videoInfo={videoInfo} 
                 error={error} 
               />
-
-              {videoInfo && (
-                <div className="mt-4">
-                  <VideoDownloadButton 
-                    videoId={videoInfo.id} 
-                    title={videoInfo.title}
-                  />
-                </div>
-              )}
             </CardContent>
             <CardFooter className="flex justify-between">
               <p className="text-sm text-muted-foreground">
@@ -192,20 +231,13 @@ Il aborde également les questions économiques et sociales, en proposant des so
             <CardContent>
               <AnalysisContent analysis={analysis} />
             </CardContent>
-            <CardFooter className="flex flex-col sm:flex-row gap-3">
+            <CardFooter>
               {videoInfo && analysis && (
-                <>
-                  <YouTubeAnalysisPDF
-                    videoId={videoInfo.id}
-                    videoTitle={videoInfo.title}
-                    analysis={analysis}
-                  />
-                  <VideoDownloadButton 
-                    videoId={videoInfo.id} 
-                    title={videoInfo.title}
-                    variant="outline"
-                  />
-                </>
+                <YouTubeAnalysisPDF
+                  videoId={videoInfo.id}
+                  videoTitle={videoInfo.title}
+                  analysis={analysis}
+                />
               )}
             </CardFooter>
           </Card>

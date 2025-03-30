@@ -69,7 +69,7 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
 
   return (
     <div className={className}>
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           type="text"
           placeholder="Collez l'URL YouTube ici (ex: https://youtube.com/watch?v=...)"
@@ -78,16 +78,12 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
           className="flex-1"
           disabled={isLoading || disabled}
         />
-        <Button 
-          type="submit" a
-          disabled={!url.trim() || isLoading || disabled}
-        >
+        <Button type="submit" disabled={!url.trim() || isLoading || disabled}>
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <ArrowRight className="h-4 w-4" />
           )}
-          <span className="ml-2 hidden sm:inline">Analyser</span>
         </Button>
       </form>
     </div>
