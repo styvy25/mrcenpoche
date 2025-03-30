@@ -29,6 +29,7 @@ export interface AuthContextType {
   updateLastLogin: () => Promise<void>;
 }
 
+// Create the context with default values
 const AuthContext = createContext<AuthContextType>({
   session: null,
   currentUser: null,
@@ -39,6 +40,26 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => ({ error: null }),
   updateLastLogin: async () => {},
 });
+
+// Helper function to get user subscription from local storage or other source
+const getUserSubscription = (userId: string): UserSubscription => {
+  try {
+    const storedPlan = localStorage.getItem('user_plan');
+    
+    return {
+      plan: (storedPlan === 'premium') ? 'premium' : 'free',
+      startDate: new Date(),
+      active: true
+    };
+  } catch (error) {
+    console.error('Error getting user subscription:', error);
+    return {
+      plan: 'free',
+      startDate: new Date(),
+      active: true
+    };
+  }
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -88,27 +109,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
     };
   }, []);
-
-  // Get user subscription from local storage or other source
-  // In a real app, this would come from the database
-  const getUserSubscription = (userId: string): UserSubscription => {
-    try {
-      const storedPlan = localStorage.getItem('user_plan');
-      
-      return {
-        plan: (storedPlan === 'premium') ? 'premium' : 'free',
-        startDate: new Date(),
-        active: true
-      };
-    } catch (error) {
-      console.error('Error getting user subscription:', error);
-      return {
-        plan: 'free',
-        startDate: new Date(),
-        active: true
-      };
-    }
-  };
 
   const login = async (email: string, password: string) => {
     try {
