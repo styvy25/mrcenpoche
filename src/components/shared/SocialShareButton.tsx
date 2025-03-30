@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface SocialShareButtonProps {
   title?: string;
@@ -35,8 +36,12 @@ const SocialShareButton: React.FC<SocialShareButtonProps> = ({
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
   };
 
-  const openShareWindow = (url: string) => {
+  const openShareWindow = (url: string, platform: string) => {
     window.open(url, '_blank', 'width=600,height=400');
+    toast.success(`Partagé sur ${platform}`, {
+      description: "Merci d'avoir partagé notre contenu !",
+      duration: 3000,
+    });
   };
 
   return (
@@ -48,19 +53,19 @@ const SocialShareButton: React.FC<SocialShareButtonProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.facebook)}>
+        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.facebook, "Facebook")}>
           Facebook
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.twitter)}>
+        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.twitter, "Twitter")}>
           Twitter
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.whatsapp)}>
+        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.whatsapp, "WhatsApp")}>
           WhatsApp
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.telegram)}>
+        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.telegram, "Telegram")}>
           Telegram
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.linkedin)}>
+        <DropdownMenuItem onClick={() => openShareWindow(shareLinks.linkedin, "LinkedIn")}>
           LinkedIn
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -1,144 +1,181 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { QuizResult as QuizResultType } from "./types";
-import { Award, RotateCcw, Share2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { RefreshCcw, Trophy, Award, Share2 } from "lucide-react";
+import SocialShareButtons from "../shared/SocialShareButtons";
+import QuizAchievement from "./QuizAchievement";
+import QuizNotification from "./QuizNotification";
+import { BadgeProps, QuizResultProps } from "./types";
 
-interface QuizResultProps {
-  score: number;
-  totalQuestions: number;
-  categoryName: string;
-  onRestart: () => void;
-  result: QuizResultType;
-}
+const QuizResult: React.FC<QuizResultProps> = ({
+  score,
+  totalQuestions,
+  categoryName,
+  onRestart,
+  result
+}) => {
+  const [showNotification, setShowNotification] = useState(false);
+  const [showShareButtons, setShowShareButtons] = useState(false);
+  const percentage = Math.round((score / totalQuestions) * 100);
+  const [newAchievements, setNewAchievements] = useState<string[]>([]);
+  
+  // Determine performance level
+  const getPerformanceLevel = () => {
+    if (percentage >= 90) return "excellent";
+    if (percentage >= 70) return "good";
+    if (percentage >= 50) return "average";
+    return "needsImprovement";
+  };
+  
+  const performanceLevel = getPerformanceLevel();
+  
+  // User-friendly messages based on performance
+  const messages = {
+    excellent: {
+      title: "Félicitations !",
+      message: "Vous avez excellé dans ce quiz. Votre connaissance est impressionnante !"
+    },
+    good: {
+      title: "Bon travail !",
+      message: "Vous avez une bonne maîtrise du sujet. Continuez comme ça !"
+    },
+    average: {
+      title: "Pas mal !",
+      message: "Vous avez une connaissance de base du sujet. Continuez à apprendre !"
+    },
+    needsImprovement: {
+      title: "Continuez vos efforts !",
+      message: "Avec plus de pratique, vous améliorerez vos résultats."
+    }
+  };
 
-const QuizResult = ({ result, onRestart, categoryName }: QuizResultProps) => {
-  const [showConfetti, setShowConfetti] = useState(false);
-
+  // Show achievement notification when component mounts
   useEffect(() => {
-    if (result.score >= 80) {
-      setShowConfetti(true);
-      const timer = setTimeout(() => {
-        setShowConfetti(false);
-      }, 5000);
+    if (result?.unlockedBadges && result.unlockedBadges.length > 0) {
+      // Track which achievements are new
+      setNewAchievements(result.unlockedBadges.map(b => b.id));
       
-      return () => clearTimeout(timer);
-    }
-  }, [result.score]);
-
-  const getScoreColor = () => {
-    if (result.score >= 80) return "text-green-600";
-    if (result.score >= 60) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const getScoreText = () => {
-    if (result.score >= 90) return "Excellent !";
-    if (result.score >= 80) return "Très bien !";
-    if (result.score >= 70) return "Bien !";
-    if (result.score >= 50) return "Peut mieux faire";
-    return "À améliorer";
-  };
-
-  const shareResult = () => {
-    // Using navigator.share if available, otherwise copy to clipboard
-    if (navigator.share) {
-      navigator.share({
-        title: 'MRC LearnScape - Résultat du Quiz Culturel',
-        text: `J'ai obtenu un score de ${result.score.toFixed(0)}% au Quiz Culturel Camerounais sur MRC LearnScape !`,
-        url: window.location.href,
-      }).catch(err => {
-        console.error('Failed to share', err);
-      });
-    } else {
-      // Fallback to copy to clipboard
-      const shareText = `J'ai obtenu un score de ${result.score.toFixed(0)}% au Quiz Culturel Camerounais sur MRC LearnScape !`;
-      navigator.clipboard.writeText(shareText).then(() => {
-        toast.success('Résultat copié dans le presse-papier !');
-      }).catch(err => {
-        console.error('Failed to copy', err);
-        toast.error('Impossible de copier le résultat');
+      // Show notification for first achievement
+      setShowNotification(true);
+      
+      // Also show toast notification
+      toast.success("Nouveau badge débloqué !", {
+        description: `Vous avez débloqué : ${result.unlockedBadges[0].name}`,
+        duration: 4000,
       });
     }
-  };
+  }, [result?.unlockedBadges]);
 
   return (
-    <Card className="shadow-xl overflow-hidden">
-      {showConfetti && (
-        <div className="confetti-container absolute inset-0 overflow-hidden pointer-events-none">
-          {Array.from({ length: 100 }).map((_, i) => (
-            <div
-              key={i}
-              className="confetti"
-              style={{
-                left: `${Math.random() * 100}%`,
-                width: `${Math.random() * 10 + 5}px`,
-                height: `${Math.random() * 10 + 5}px`,
-                backgroundColor: ['#005BAA', '#E30016', '#009A44', '#FCD116'][Math.floor(Math.random() * 4)],
-                opacity: Math.random() + 0.5,
-                animation: `fall ${Math.random() * 3 + 2}s linear`,
-                top: `-${Math.random() * 20 + 10}px`,
-                transform: `rotate(${Math.random() * 360}deg)`,
-              }}
-            />
-          ))}
-        </div>
+    <div className="relative">
+      {showNotification && result?.unlockedBadges && result.unlockedBadges.length > 0 && (
+        <QuizNotification
+          type="achievement"
+          title="Nouveau badge débloqué !"
+          message={`Vous avez débloqué : ${result.unlockedBadges[0].name}`}
+          isVisible={showNotification}
+          onClose={() => setShowNotification(false)}
+          duration={5000}
+        />
       )}
-      
-      <CardHeader className="bg-gradient-to-r from-mrc-blue to-blue-600 text-white">
-        <CardTitle className="text-center">Résultat du Quiz</CardTitle>
-      </CardHeader>
-      
-      <CardContent className="p-6">
-        <div className="text-center mb-6">
-          <h3 className={`text-3xl font-bold ${getScoreColor()}`}>
-            {result.score.toFixed(0)}%
-          </h3>
-          <p className="text-gray-600">{getScoreText()}</p>
-          <p className="text-sm text-gray-500 mt-1">
-            {result.correctAnswers} bonnes réponses sur {result.totalQuestions} questions
+    
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-6 rounded-lg shadow-md text-center"
+      >
+        <motion.div
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          transition={{ delay: 0.2, type: "spring" }}
+        >
+          <Trophy className="h-16 w-16 mx-auto text-yellow-500 mb-4" />
+          <h2 className="text-2xl font-bold mb-2">{messages[performanceLevel].title}</h2>
+          <p className="text-gray-600 mb-4">{messages[performanceLevel].message}</p>
+        </motion.div>
+        
+        <div className="mb-6">
+          <div className="flex justify-between mb-2">
+            <span className="font-semibold">Votre score:</span>
+            <span className="font-bold text-xl">{score}/{totalQuestions}</span>
+          </div>
+          <Progress value={percentage} className="h-3" />
+          <p className="mt-2 text-sm text-gray-500">
+            Catégorie: {categoryName}
           </p>
         </div>
-        
-        <Progress value={result.score} className="h-3 mb-8" />
-        
-        {result.unlockedBadges.length > 0 && (
-          <div className="mb-6">
-            <h4 className="font-semibold text-lg mb-3 flex items-center">
-              <Award className="mr-2 h-5 w-5 text-yellow-500" />
+
+        {result?.unlockedBadges && result.unlockedBadges.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-6"
+          >
+            <h3 className="font-semibold mb-3 flex items-center justify-center gap-2">
+              <Award className="h-5 w-5 text-purple-500" />
               Badges débloqués
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {result.unlockedBadges.map(badge => (
-                <div key={badge.id} className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${badge.colorClass} text-white mr-3`}>
-                    <Award className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">{badge.name}</p>
-                    <p className="text-xs text-gray-500">{badge.description}</p>
-                  </div>
-                </div>
+            </h3>
+            <div className="space-y-2">
+              {result.unlockedBadges.map((badge: BadgeProps) => (
+                <QuizAchievement
+                  key={badge.id}
+                  type={badge.id.includes('perfect') ? 'perfect' : 
+                        badge.id.includes('expert') ? 'master' : 
+                        badge.id.includes('quick') ? 'fast' : 'streak'}
+                  title={badge.name}
+                  description={badge.description}
+                  isNew={newAchievements.includes(badge.id)}
+                  points={15}
+                />
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
-      </CardContent>
-      
-      <CardFooter className="flex justify-between p-6 pt-0">
-        <Button onClick={onRestart} variant="outline" className="flex items-center">
-          <RotateCcw className="mr-2 h-4 w-4" />
-          Recommencer
-        </Button>
-        <Button onClick={shareResult} className="bg-mrc-blue hover:bg-blue-700 flex items-center">
-          <Share2 className="mr-2 h-4 w-4" />
-          Partager
-        </Button>
-      </CardFooter>
-    </Card>
+        
+        <div className="flex flex-col sm:flex-row gap-3 mt-6">
+          <Button 
+            onClick={onRestart} 
+            variant="outline" 
+            className="w-full sm:w-auto"
+          >
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Recommencer
+          </Button>
+          
+          {!showShareButtons && (
+            <Button 
+              onClick={() => setShowShareButtons(true)}
+              className="w-full sm:w-auto bg-mrc-blue"
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              Partager mes résultats
+            </Button>
+          )}
+        </div>
+        
+        {showShareButtons && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mt-6"
+          >
+            <p className="mb-3 text-sm text-gray-600">
+              Partagez votre score avec vos amis !
+            </p>
+            <SocialShareButtons 
+              title={`J'ai obtenu ${score}/${totalQuestions} au quiz sur ${categoryName} !`}
+              description={`Rejoignez MRC en Poche et testez vos connaissances !`}
+              type="quiz"
+            />
+          </motion.div>
+        )}
+      </motion.div>
+    </div>
   );
 };
 
