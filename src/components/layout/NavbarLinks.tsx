@@ -7,7 +7,8 @@ import {
   Brain, 
   MessageCircle, 
   Youtube as YoutubeIcon, 
-  LayoutDashboard 
+  LayoutDashboard,
+  Download 
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -49,6 +50,13 @@ export const navLinks: NavLinkItem[] = [
     label: 'Chat 237',
     highlight: false,
     badge: false
+  },
+  {
+    path: '/youtube-download',
+    icon: <Download className="h-4 w-4 text-red-600" />,
+    label: 'Télécharger Vidéos',
+    highlight: true,
+    badge: 'New'
   },
   {
     path: '/youtube-analysis',
