@@ -3,7 +3,7 @@ import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, FileText, Brain, CreditCard, YoutubeIcon, Users } from 'lucide-react';
+import { MessageSquare, FileText, Brain, CreditCard, YoutubeIcon, Users, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MRCLogoNew from '@/components/branding/MRCLogoNew';
 import VoteCard from '@/components/electoral/VoteCard';
@@ -77,6 +77,19 @@ const Index = () => {
             </Link>
           </Card>
           
+          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow">
+            <Download className="h-12 w-12 text-red-500 mb-4" />
+            <h2 className="text-xl font-semibold mb-3">Téléchargeur YouTube</h2>
+            <p className="text-center mb-6 text-muted-foreground">
+              Téléchargez facilement des vidéos YouTube pour une consultation hors-ligne.
+            </p>
+            <Link to="/documents?tab=youtube" className="mt-auto w-full">
+              <Button variant="default" className="w-full bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800">
+                Télécharger des vidéos
+              </Button>
+            </Link>
+          </Card>
+          
           <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow md:col-span-2">
             <YoutubeIcon className="h-12 w-12 text-red-500 mb-4" />
             <h2 className="text-xl font-semibold mb-3">Analyse Vidéos YouTube</h2>
@@ -88,19 +101,6 @@ const Index = () => {
                 Analyser une vidéo
               </Button>
             </Link>
-          </Card>
-          
-          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow">
-            <CreditCard className="h-12 w-12 text-amber-500 mb-4" />
-            <h2 className="text-xl font-semibold mb-3">Premium</h2>
-            <p className="text-center mb-6 text-muted-foreground">
-              Accédez à toutes les fonctionnalités sans limite avec notre abonnement premium.
-            </p>
-            <a href="https://buy.stripe.com/14kcQabKFbUM9NK8wT" target="_blank" rel="noopener noreferrer" className="mt-auto w-full">
-              <Button variant="outline" className="w-full border-amber-500 text-amber-700 hover:bg-amber-50">
-                Découvrir les avantages
-              </Button>
-            </a>
           </Card>
         </div>
       </div>

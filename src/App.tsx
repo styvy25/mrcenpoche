@@ -1,25 +1,21 @@
+
 import React from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import HomePage from './pages/HomePage';
+import Index from './pages/Index';
 import AssistantPage from './pages/AssistantPage';
-import DocumentsPage from './pages/DocumentsPage';
 import SettingsPage from './pages/SettingsPage';
-import StreamingPage from './pages/StreamingPage';
-import PricingPage from './pages/PricingPage';
 import YoutubeAnalysisPage from './pages/YoutubeAnalysisPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import { AuthProvider } from './hooks/useAuth';
 import DocumentsPageRoute from './pages/DocumentsPage';
 import DashboardPage from './pages/DashboardPage';
+import { AuthProvider } from './components/auth/AuthContext';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <HomePage />,
+    element: <Index />,
   },
   {
     path: '/assistant',
@@ -34,24 +30,8 @@ const router = createBrowserRouter([
     element: <SettingsPage />,
   },
   {
-    path: '/streaming',
-    element: <StreamingPage />,
-  },
-  {
-    path: '/pricing',
-    element: <PricingPage />,
-  },
-  {
     path: '/youtube-analysis',
     element: <YoutubeAnalysisPage />,
-  },
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/register',
-    element: <RegisterPage />,
   },
   {
     path: '/dashboard',

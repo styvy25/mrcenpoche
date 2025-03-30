@@ -1,4 +1,6 @@
+
 import React from 'react';
+
 interface MRCLogoNewProps {
   className?: string;
   width?: number;
@@ -6,33 +8,41 @@ interface MRCLogoNewProps {
   size?: 'small' | 'medium' | 'large';
   withTagline?: boolean;
 }
-const MRCLogoNew: React.FC<MRCLogoNewProps> = ({
-  className = '',
-  width,
-  height,
-  size = 'medium',
-  withTagline = false
-}) => {
-  // Calculate dimensions based on size prop
-  let calculatedWidth = width;
-  let calculatedHeight = height;
-  if (!width || !height) {
+
+const MRCLogoNew: React.FC<MRCLogoNewProps> = ({ className, width, height, size = 'medium', withTagline = false }) => {
+  let sizeValues = {
+    width: width,
+    height: height
+  };
+
+  if (!width && !height) {
     switch (size) {
       case 'small':
-        calculatedWidth = 32;
-        calculatedHeight = 32;
-        break;
-      case 'large':
-        calculatedWidth = 64;
-        calculatedHeight = 64;
+        sizeValues = { width: 40, height: 40 };
         break;
       case 'medium':
-      default:
-        calculatedWidth = 48;
-        calculatedHeight = 48;
+        sizeValues = { width: 80, height: 80 };
+        break;
+      case 'large':
+        sizeValues = { width: 120, height: 120 };
         break;
     }
   }
-  return;
+
+  return (
+    <div className={`flex flex-col items-center ${className || ''}`}>
+      <img
+        src="/assets/mrc-logo.png"
+        alt="MRC Logo"
+        width={sizeValues.width}
+        height={sizeValues.height}
+        className="object-contain"
+      />
+      {withTagline && (
+        <p className="text-xs mt-1 text-muted-foreground">Cameroun Renaissance</p>
+      )}
+    </div>
+  );
 };
+
 export default MRCLogoNew;

@@ -1,13 +1,23 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PDFGenerator from './PDFGenerator';
-import { CertificateGenerator } from './CertificateGenerator';
+import CertificateGenerator from './CertificateGenerator';
 import MRCContentManager from './MRCContentManager';
 import YouTubeDownloader from './YouTubeDownloader';
 
-const DocumentsPage = () => {
-  const [activeTab, setActiveTab] = useState('generator');
+interface DocumentsPageProps {
+  initialTab?: string;
+}
+
+const DocumentsPage = ({ initialTab }: DocumentsPageProps) => {
+  const [activeTab, setActiveTab] = useState(initialTab || 'generator');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   return (
     <div className="container mx-auto py-6">
