@@ -1,16 +1,16 @@
 
 import React from "react";
 import QuizResult from "./QuizResult";
-import QuizQuestionComponent from "./QuizQuestion";
+import QuizQuestion from "./QuestionScreen";
 import QuizBadgesDisplay from "./QuizBadgesDisplay";
-import { BadgeProps, QuizQuestion } from "./types";
+import { BadgeProps, QuizQuestion as QuizQuestionType } from "./types";
 
 interface ResultsScreenProps {
   score: number;
   totalQuestions: number;
   categoryName: string;
-  selectedAnswers: (number | undefined)[];
-  questions: QuizQuestion[];
+  selectedAnswers: (string | undefined)[];
+  questions: QuizQuestionType[];
   onRestart: () => void;
   earnedBadges: BadgeProps[];
 }
@@ -52,12 +52,26 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
         <h3 className="text-xl font-bold mb-4 text-mrc-blue">Revue des questions</h3>
         {questions.map((question, index) => (
           <div key={index} className="mb-6 bg-white p-4 rounded-lg shadow">
-            <QuizQuestionComponent
-              question={question}
-              onAnswer={() => {}}
-              selectedAnswer={selectedAnswers[index]}
-              showFeedback={true}
-            />
+            <h4 className="text-lg font-medium mb-2">{question.question}</h4>
+            <div className="space-y-2">
+              {question.options.map((option, optionIndex) => (
+                <div 
+                  key={optionIndex}
+                  className={`p-3 border rounded-lg ${
+                    optionIndex.toString() === question.correctAnswer
+                      ? "border-green-500 bg-green-50"
+                      : selectedAnswers[index] === optionIndex.toString() && optionIndex.toString() !== question.correctAnswer
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-200"
+                  }`}
+                >
+                  {option}
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-gray-700">{question.explanation}</p>
+            </div>
           </div>
         ))}
       </div>

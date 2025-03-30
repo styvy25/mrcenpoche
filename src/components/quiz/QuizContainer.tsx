@@ -7,51 +7,85 @@ import { calculateEarnedBadges } from "./badgeUtils";
 import { ChevronLeft, ChevronRight, Play, Award, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { fetchCategories } from "@/services/quizService";
+import { useToast } from "@/hooks/use-toast";
 
 interface QuizContainerProps {
-  categories: Category[];
+  initialCategories?: Category[];
 }
 
-const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
+const QuizContainer: React.FC<QuizContainerProps> = ({ initialCategories = [] }) => {
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setLoading(true);
+        const fetchedCategories = await fetchCategories();
+        setCategories(fetchedCategories);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error loading quiz categories:", err);
+        setError("Impossible de charger les quiz. Veuillez réessayer plus tard.");
+        setLoading(false);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les quiz. Veuillez réessayer plus tard.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    loadCategories();
+  }, [toast]);
+  
   // Find the first category with questions
   const initialCategory = categories.find(cat => 
     cat.questions && cat.questions.length > 0
   ) || categories[0];
   
-  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(categories.indexOf(initialCategory));
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(categories.indexOf(initialCategory) >= 0 ? categories.indexOf(initialCategory) : 0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<(number | undefined)[]>([]);
+  const [selectedAnswers, setSelectedAnswers] = useState<(string | undefined)[]>([]);
   const [quizResults, setQuizResults] = useState<{ score: number } | null>(null);
   const [currentCategory, setCurrentCategory] = useState<Category | undefined>(initialCategory);
   const [isStarted, setIsStarted] = useState(false);
   const [isCategorySelectionOpen, setIsCategorySelectionOpen] = useState(false);
   const isSmallScreen = useMediaQuery("(max-width: 640px)");
 
-  // Validate that we have a valid category
+  // Update current category when categories change
   useEffect(() => {
-    if (!currentCategory) {
-      setCurrentCategory(initialCategory);
+    if (categories.length > 0) {
+      const initialCat = categories.find(cat => 
+        cat.questions && cat.questions.length > 0
+      ) || categories[0];
+      
+      setCurrentCategory(initialCat);
+      setCurrentCategoryIndex(categories.indexOf(initialCat) >= 0 ? categories.indexOf(initialCat) : 0);
     }
-  }, [currentCategory, initialCategory]);
+  }, [categories]);
 
   const handleCategoryChange = (index: number) => {
-    setCurrentCategoryIndex(index);
-    setCurrentCategory(categories[index]);
-    setCurrentQuestionIndex(0);
-    setSelectedAnswers([]);
-    setQuizResults(null);
-    setIsStarted(false);
+    if (index >= 0 && index < categories.length) {
+      setCurrentCategoryIndex(index);
+      setCurrentCategory(categories[index]);
+      setCurrentQuestionIndex(0);
+      setSelectedAnswers([]);
+      setQuizResults(null);
+      setIsStarted(false);
+    }
   };
 
-  const handleAnswer = (answerIndex: number) => {
-    const category = categories[currentCategoryIndex];
-
-    if (!category) {
+  const handleAnswer = (answerIndex: string) => {
+    if (!currentCategory) {
       console.error("No current category found");
       return;
     }
 
-    const question = category.questions[currentQuestionIndex];
+    const question = currentCategory.questions[currentQuestionIndex];
 
     if (!question) {
       console.error("No current question found");
@@ -64,7 +98,7 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
     setSelectedAnswers(updatedAnswers);
 
     // Check if this is the last question
-    const isLastQuestion = currentQuestionIndex === category.questions.length - 1;
+    const isLastQuestion = currentQuestionIndex === currentCategory.questions.length - 1;
 
     if (isLastQuestion) {
       calculateResults();
@@ -78,14 +112,12 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
   };
 
   const calculateResults = () => {
-    const category = categories[currentCategoryIndex];
-
-    if (!category) {
+    if (!currentCategory) {
       console.error("No current category found");
       return;
     }
 
-    const questions = category.questions;
+    const questions = currentCategory.questions;
     let score = 0;
 
     questions.forEach((question, index) => {
@@ -95,6 +127,11 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
     });
 
     setQuizResults({ score: score });
+    
+    toast({
+      title: "Quiz terminé !",
+      description: `Votre score: ${score}/${questions.length}`,
+    });
   };
 
   const restartQuiz = () => {
@@ -103,6 +140,25 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
     setQuizResults(null);
     setIsStarted(false);
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-48">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-mrc-blue"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-xl font-semibold text-red-500 mb-4">{error}</h2>
+        <Button onClick={() => window.location.reload()} className="bg-mrc-blue">
+          Réessayer
+        </Button>
+      </div>
+    );
+  }
 
   // If no category with questions is found
   if (!currentCategory || !currentCategory.questions || currentCategory.questions.length === 0) {

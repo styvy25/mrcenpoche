@@ -1,15 +1,14 @@
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import QuizQuestionComponent from "./QuizQuestion";
+import React, { useState } from "react";
 import { QuizQuestion } from "./types";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, XCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface QuestionScreenProps {
   currentQuestion: QuizQuestion;
-  onAnswer: (answerIndex: number) => void;
-  selectedAnswer?: number;
+  onAnswer: (answerIndex: string) => void;
+  selectedAnswer?: string;
   isLastQuestion: boolean;
   onNextQuestion: () => void;
   onCalculateResults: () => void;
@@ -23,47 +22,86 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
   onNextQuestion,
   onCalculateResults,
 }) => {
-  const { isMobile } = useMediaQuery("(max-width: 640px)");
-  const [animateButton, setAnimateButton] = useState(false);
-  
-  // Animate button when answer is selected
-  useEffect(() => {
-    if (selectedAnswer !== undefined) {
-      setAnimateButton(true);
+  const [localSelectedAnswer, setLocalSelectedAnswer] = useState<string | undefined>(selectedAnswer);
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  const handleOptionClick = (answerIndex: string) => {
+    if (localSelectedAnswer !== undefined) return; // Prevent changing answer
+    
+    setLocalSelectedAnswer(answerIndex);
+    setShowFeedback(true);
+    onAnswer(answerIndex);
+  };
+
+  const handleNextClick = () => {
+    if (isLastQuestion) {
+      onCalculateResults();
+    } else {
+      onNextQuestion();
+      setLocalSelectedAnswer(undefined);
+      setShowFeedback(false);
     }
-  }, [selectedAnswer]);
+  };
+
+  const isCorrect = localSelectedAnswer === currentQuestion.correctAnswer;
 
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <div className={`w-full transition-all duration-300 ${isMobile ? 'px-2' : 'p-4'}`}>
-        <QuizQuestionComponent
-          question={currentQuestion}
-          onAnswer={onAnswer}
-          selectedAnswer={selectedAnswer}
-        />
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        {currentQuestion.question}
+      </h2>
+
+      <div className="space-y-3">
+        {currentQuestion.options.map((option, index) => (
+          <motion.div
+            key={index}
+            whileHover={{ scale: localSelectedAnswer === undefined ? 1.02 : 1 }}
+            whileTap={{ scale: localSelectedAnswer === undefined ? 0.98 : 1 }}
+            onClick={() => handleOptionClick(index.toString())}
+            className={`p-4 border rounded-lg cursor-pointer transition-all ${
+              localSelectedAnswer === index.toString()
+                ? index.toString() === currentQuestion.correctAnswer
+                  ? "border-green-500 bg-green-50"
+                  : "border-red-500 bg-red-50"
+                : "hover:border-blue-300 hover:shadow-sm"
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <span>{option}</span>
+              {localSelectedAnswer === index.toString() && (
+                <>
+                  {index.toString() === currentQuestion.correctAnswer ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-red-500" />
+                  )}
+                </>
+              )}
+            </div>
+          </motion.div>
+        ))}
       </div>
-      
-      {selectedAnswer !== undefined && (
-        <div className={`mt-4 md:mt-6 transition-all duration-300 transform ${animateButton ? 'scale-in' : 'opacity-0 scale-95'}`}>
-          {!isLastQuestion ? (
-            <Button 
-              onClick={onNextQuestion} 
-              className="bg-mrc-blue hover:bg-blue-700 transition-colors flex items-center gap-2 px-4 md:px-6"
-              size={isMobile ? "default" : "lg"}
-            >
-              <span>Question Suivante</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button 
-              onClick={onCalculateResults}
-              className="bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2 px-4 md:px-6"
-              size={isMobile ? "default" : "lg"}
-            >
-              <span>Voir les résultats</span>
-              <CheckCircle2 className="h-4 w-4" />
-            </Button>
-          )}
+
+      {showFeedback && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`mt-4 p-4 rounded-lg ${
+            isCorrect ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
+          }`}
+        >
+          <h3 className={`font-medium ${isCorrect ? "text-green-700" : "text-red-700"}`}>
+            {isCorrect ? "Bonne réponse !" : "Réponse incorrecte"}
+          </h3>
+          <p className="text-gray-600 mt-1">{currentQuestion.explanation}</p>
+        </motion.div>
+      )}
+
+      {localSelectedAnswer !== undefined && (
+        <div className="flex justify-end mt-4">
+          <Button onClick={handleNextClick} className="bg-mrc-blue">
+            {isLastQuestion ? "Voir les résultats" : "Question suivante"}
+          </Button>
         </div>
       )}
     </div>
