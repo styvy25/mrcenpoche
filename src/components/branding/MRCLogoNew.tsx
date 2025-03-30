@@ -1,6 +1,4 @@
-
 import React from 'react';
-
 interface MRCLogoNewProps {
   className?: string;
   width?: number;
@@ -8,18 +6,16 @@ interface MRCLogoNewProps {
   size?: 'small' | 'medium' | 'large';
   withTagline?: boolean;
 }
-
-const MRCLogoNew: React.FC<MRCLogoNewProps> = ({ 
-  className = '', 
-  width, 
-  height, 
+const MRCLogoNew: React.FC<MRCLogoNewProps> = ({
+  className = '',
+  width,
+  height,
   size = 'medium',
   withTagline = false
 }) => {
   // Calculate dimensions based on size prop
   let calculatedWidth = width;
   let calculatedHeight = height;
-  
   if (!width || !height) {
     switch (size) {
       case 'small':
@@ -37,23 +33,6 @@ const MRCLogoNew: React.FC<MRCLogoNewProps> = ({
         break;
     }
   }
-  
-  return (
-    <div className={`flex flex-col items-center ${className}`}>
-      <img 
-        src="/lovable-uploads/cc9f79c8-5602-4c13-adb4-d6ef44e8a7cd.png" 
-        alt="CADE-SHARING Logo" 
-        width={calculatedWidth} 
-        height={calculatedHeight} 
-        className="object-contain rounded-md" 
-      />
-      {withTagline && (
-        <span className="text-xs font-medium mt-1 text-gray-600 dark:text-gray-300">
-          CADE-SHARING
-        </span>
-      )}
-    </div>
-  );
+  return;
 };
-
 export default MRCLogoNew;
