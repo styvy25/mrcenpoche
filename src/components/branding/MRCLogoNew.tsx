@@ -23,17 +23,17 @@ const MRCLogoNew: React.FC<MRCLogoNewProps> = ({
   if (!width || !height) {
     switch (size) {
       case 'small':
-        calculatedWidth = 30;
-        calculatedHeight = 30;
+        calculatedWidth = 32;
+        calculatedHeight = 32;
         break;
       case 'large':
-        calculatedWidth = 60;
-        calculatedHeight = 60;
+        calculatedWidth = 64;
+        calculatedHeight = 64;
         break;
       case 'medium':
       default:
-        calculatedWidth = 40;
-        calculatedHeight = 40;
+        calculatedWidth = 48;
+        calculatedHeight = 48;
         break;
     }
   }
@@ -41,15 +41,15 @@ const MRCLogoNew: React.FC<MRCLogoNewProps> = ({
   return (
     <div className={`flex flex-col items-center ${className}`}>
       <img 
-        src="/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png" 
-        alt="MRC Logo" 
+        src="/lovable-uploads/cc9f79c8-5602-4c13-adb4-d6ef44e8a7cd.png" 
+        alt="CADE-SHARING Logo" 
         width={calculatedWidth} 
         height={calculatedHeight} 
-        className="object-contain" 
+        className="object-contain rounded-md" 
       />
       {withTagline && (
         <span className="text-xs font-medium mt-1 text-gray-600 dark:text-gray-300">
-          En Poche
+          CADE-SHARING
         </span>
       )}
     </div>

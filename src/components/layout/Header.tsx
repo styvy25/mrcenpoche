@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "react-router-dom";
@@ -8,14 +9,17 @@ import AuthDialog from "../auth/AuthDialog";
 import InstallAppButton from "../pwa/InstallAppButton";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import MRCLogoNew from "@/components/branding/MRCLogoNew";
+
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const {
     isAuthenticated
   } = useAuth();
+  
   const handleToggleMenu = () => {
     setIsOpen(!isOpen);
   };
+  
   return <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-background/80 border-b border-border">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-4">
@@ -78,4 +82,5 @@ const Header = () => {
         </div>}
     </header>;
 };
+
 export default Header;
