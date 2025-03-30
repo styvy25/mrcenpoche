@@ -100,27 +100,42 @@ export interface Match {
   winner?: string;
 }
 
-// Appointment types
+// Updated Appointment types to match the actual usage in the components
 export interface Appointment {
   id: string;
   title: string;
   description?: string;
-  startDate: Date;
-  endDate: Date;
-  location?: string;
-  organizerName?: string;
-  organizerEmail?: string;
-  type: 'event' | 'meeting' | 'training';
-  status: 'scheduled' | 'completed' | 'cancelled';
-  attendees?: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  participant: {
+    name: string;
+    email: string;
+    phone?: string;
+  };
+  status: 'pending' | 'confirmed' | 'scheduled' | 'completed' | 'cancelled';
+  isVirtual: boolean;
+  link?: string;
+  duration: number;
+  participantsCount: number;
+  maxParticipants: number;
+  type: 'public' | 'private' | 'event' | 'meeting' | 'training';
 }
 
 export interface AppointmentRequest {
-  date: Date;
-  time: string;
-  duration: number;
-  reason: string;
+  preferredDate?: Date;
+  topic?: string;
+  message?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  type?: 'public' | 'private' | 'event' | 'meeting' | 'training';
+  date?: Date;
+  time?: string;
+  duration?: number;
+  reason?: string;
   notes?: string;
-  contactMethod: 'email' | 'phone' | 'video';
-  contactInfo: string;
+  contactMethod?: 'email' | 'phone' | 'video';
+  contactInfo?: string;
 }

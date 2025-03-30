@@ -35,7 +35,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onEventAction }) => {
         </Badge>
       </div>
       <div className="mt-1 text-xs text-gray-500">
-        {format(event.date, "EEEE d MMMM, HH'h'mm", { locale: fr })}
+        {format(new Date(event.date), "EEEE d MMMM, HH'h'mm", { locale: fr })}
         <span className="mx-1">•</span>
         {event.duration} min
       </div>

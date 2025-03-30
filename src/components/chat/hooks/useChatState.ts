@@ -50,7 +50,11 @@ export function useChatState() {
     
     const timeoutId = setTimeout(() => {
       // Make sure all messages have proper timestamps before saving
-      const normalizedMessages = normalizeMessages(messages);
+      const normalizedMessages = messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)
+      }));
+      
       saveMessagesToStorage(normalizedMessages);
       
       // Update messages with normalized timestamps if needed
@@ -63,14 +67,12 @@ export function useChatState() {
   }, [messages, setMessages]);
 
   const handleSendMessage = useCallback((input: string) => {
-    return baseHandleSendMessage(input, isOnline, (query) => {
-      return handleYouTubeSearch(query, isOnline);
-    });
-  }, [baseHandleSendMessage, isOnline, handleYouTubeSearch]);
+    return baseHandleSendMessage(input);
+  }, [baseHandleSendMessage]);
 
   const handleVideoSelect = useCallback((videoId: string) => {
-    return baseHandleVideoSelect(videoId, isOnline, setIsLoading, setMessages);
-  }, [baseHandleVideoSelect, isOnline, setIsLoading, setMessages]);
+    return baseHandleVideoSelect(videoId);
+  }, [baseHandleVideoSelect]);
 
   // Mock active users for demo
   const activeUsers = [
@@ -87,14 +89,14 @@ export function useChatState() {
   };
 
   return {
-    messages: normalizeMessages(messages),
+    messages,
     isLoading,
     youtubeResults,
     isSearchingYouTube,
     isOnline,
     handleSendMessage,
     handleVideoSelect,
-    handleYouTubeSearch: useCallback((query: string) => handleYouTubeSearch(query, isOnline), [handleYouTubeSearch, isOnline]),
+    handleYouTubeSearch,
     clearConversation,
     activeUsers,
     CURRENT_USER_ID: '1',

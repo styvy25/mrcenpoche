@@ -20,7 +20,7 @@ const AppointmentList = ({ appointments }: AppointmentListProps) => {
     } else {
       toast({
         title: "Information de session",
-        description: `Cette session se tiendra à ${appointment.location} le ${format(appointment.date, "dd MMMM yyyy 'à' HH'h'mm", { locale: fr })}`,
+        description: `Cette session se tiendra à ${appointment.location} le ${format(new Date(appointment.date), "dd MMMM yyyy 'à' HH'h'mm", { locale: fr })}`,
       });
     }
   };
@@ -36,7 +36,7 @@ const AppointmentList = ({ appointments }: AppointmentListProps) => {
                 <div>
                   <CardTitle className="text-base">{appointment.title}</CardTitle>
                   <CardDescription className="text-xs">
-                    {format(appointment.date, "dd MMMM yyyy 'à' HH'h'mm", { locale: fr })}
+                    {format(new Date(appointment.date), "dd MMMM yyyy 'à' HH'h'mm", { locale: fr })}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-1 text-xs bg-mrc-blue/10 text-mrc-blue py-1 px-2 rounded-full">

@@ -6,7 +6,6 @@ import { useAuth } from "@/components/auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { createMatch } from "@/services/matchService";
-import { UserWithSubscription } from "../auth/AuthContext";
 
 interface Challenge {
   id: string;
@@ -15,9 +14,13 @@ interface Challenge {
   questions: any[];
 }
 
+interface DailyChallengeProps {
+  onComplete?: () => void;
+}
+
 const defaultAvatar = 'https://ui-avatars.com/api/?name=User&background=random';
 
-const DailyChallenge: React.FC = () => {
+const DailyChallenge: React.FC<DailyChallengeProps> = ({ onComplete }) => {
   const { currentUser: user } = useAuth();
   const navigate = useNavigate();
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -76,6 +79,10 @@ const DailyChallenge: React.FC = () => {
       if (newMatch) {
         toast.success("Défi lancé !");
         navigate(`/quiz-match/${newMatch.id}`);
+        // Call onComplete if provided
+        if (onComplete) {
+          onComplete();
+        }
       } else {
         toast.error("Erreur lors du lancement du défi.");
       }

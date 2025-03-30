@@ -3,7 +3,7 @@ import { Lightbulb } from "lucide-react";
 import DailyChallenge from "@/components/challenge/DailyChallenge";
 
 interface DailyChallengeSectionProps {
-  onChallengeComplete: () => void;
+  onChallengeComplete?: () => void;
 }
 
 const DailyChallengeSection = ({ onChallengeComplete }: DailyChallengeSectionProps) => {

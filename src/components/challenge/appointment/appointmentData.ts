@@ -26,13 +26,13 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
       name: "Styvy-237",
       email: "styvy237@example.com"
     },
-    status: "confirmed",
+    status: "scheduled", // Changed from "confirmed" to match allowed types
     isVirtual: true,
     link: "https://meet.google.com/abc-defg-hij",
     duration: 120,
     participantsCount: 0,
     maxParticipants: 20,
-    type: "public"
+    type: "event" // Changed from "public" to match allowed types
   },
   {
     id: "event-2",
@@ -46,13 +46,13 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
       name: "Styvy-237",
       email: "styvy237@example.com"
     },
-    status: "confirmed",
+    status: "scheduled", // Changed from "confirmed" to match allowed types
     isVirtual: true,
     link: "https://meet.google.com/abc-defg-hij",
     duration: 120,
     participantsCount: 5,
     maxParticipants: 15,
-    type: "public"
+    type: "event" // Changed from "public" to match allowed types
   },
   {
     id: "event-3",
@@ -66,12 +66,12 @@ export const UPCOMING_APPOINTMENTS: Appointment[] = [
       name: "Styvy-237",
       email: "styvy237@example.com"
     },
-    status: "confirmed",
+    status: "scheduled", // Changed from "confirmed" to match allowed types
     isVirtual: true,
     link: "https://meet.google.com/abc-defg-hij",
     duration: 120,
     participantsCount: 2,
     maxParticipants: 20,
-    type: "public"
+    type: "event" // Changed from "public" to match allowed types
   }
 ];

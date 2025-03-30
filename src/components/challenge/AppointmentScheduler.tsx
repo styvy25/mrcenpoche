@@ -16,12 +16,12 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
   const [step, setStep] = useState<"calendar" | "form" | "confirmation">("calendar");
   const [appointmentType, setAppointmentType] = useState<"private" | "public">("private");
   const [formData, setFormData] = useState<Partial<AppointmentRequest>>({
-    topic: "",
-    message: "",
     name: "",
     email: "",
     phone: "",
-    type: "private"
+    topic: "",
+    message: "",
+    type: "training" // Changed from "private" to match allowed types
   });
   const { toast } = useToast();
 
@@ -39,7 +39,7 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
 
   const handleAppointmentTypeChange = (value: "private" | "public") => {
     setAppointmentType(value);
-    setFormData(prev => ({ ...prev, type: value }));
+    setFormData(prev => ({ ...prev, type: value === "private" ? "training" : "event" }));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
