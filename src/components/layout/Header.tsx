@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Menu, X, MessageCircle } from "lucide-react";
+import { Menu, X, MessageCircle, Download, YoutubeIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 import UserAvatar from "@/components/auth/UserAvatar";
 import AuthDialog from "../auth/AuthDialog";
@@ -57,10 +57,25 @@ const Header = () => {
           }) => `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
               Chat 237
             </NavLink>
+            <NavLink to="/youtube-download" className={({
+            isActive
+          }) => `text-sm font-medium ${isActive ? 'text-primary text-red-600' : 'text-muted-foreground hover:text-red-600'}`}>
+              <span className="flex items-center">
+                <Download className="h-3 w-3 mr-1" />
+                YouTube
+              </span>
+            </NavLink>
           </nav>
         </div>
         
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild className="hidden sm:flex">
+            <NavLink to="/youtube-download">
+              <YoutubeIcon className="h-4 w-4 mr-1 text-red-600" />
+              Télécharger Vidéos
+            </NavLink>
+          </Button>
+          
           <Button variant="outline" size="sm" asChild className="hidden sm:flex">
             <NavLink to="/chat-237">
               <MessageCircle className="h-4 w-4 mr-1" />
@@ -102,6 +117,14 @@ const Header = () => {
             </NavLink>
             <NavLink to="/chat-237" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
               Chat 237
+            </NavLink>
+            <NavLink to="/youtube-download" className="text-xl font-medium py-2 border-b border-border flex items-center text-red-600" onClick={() => setIsOpen(false)}>
+              <Download className="h-4 w-4 mr-2" />
+              Télécharger des vidéos YouTube
+            </NavLink>
+            <NavLink to="/youtube-analyzer" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
+              <YoutubeIcon className="h-4 w-4 mr-2 text-red-600" />
+              Analyser des vidéos YouTube
             </NavLink>
             {isAuthenticated && (
               <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>

@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Save, Trash } from "lucide-react";
+import { RefreshCw, Save, Trash, Shield, Video } from "lucide-react";
 
 interface APIKeyActionsProps {
   onSave: () => Promise<any>;
@@ -25,7 +25,7 @@ const APIKeyActions: React.FC<APIKeyActionsProps> = ({
             size="sm"
             onClick={onRefreshCache}
             disabled={isTesting}
-            className="mr-2"
+            className="mr-2 flex items-center"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Rafraîchir le cache YouTube
@@ -34,10 +34,19 @@ const APIKeyActions: React.FC<APIKeyActionsProps> = ({
       </div>
       <div className="flex gap-2">
         <Button
+          variant="outline"
+          size="sm"
+          disabled={isTesting}
+          className="bg-red-50 border-red-200 hover:bg-red-100 text-red-700 flex items-center"
+        >
+          <Video className="mr-2 h-4 w-4" />
+          Tester les fonctionnalités YouTube
+        </Button>
+        <Button
           variant="default"
           onClick={onSave}
           disabled={isTesting}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700 flex items-center"
         >
           {isTesting ? (
             <>

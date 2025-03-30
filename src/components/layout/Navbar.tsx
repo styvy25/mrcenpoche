@@ -9,6 +9,8 @@ import NavbarNavigationButtons from "./NavbarNavigationButtons";
 import NavbarLinks from "./NavbarLinks";
 import NavbarMobileMenu from "./NavbarMobileMenu";
 import MRCLogoNew from "@/components/branding/MRCLogoNew";
+import { Button } from "@/components/ui/button";
+import { Download, YoutubeIcon } from "lucide-react";
 
 const Navbar = () => {
   const location = useLocation();
@@ -54,6 +56,13 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-1">
           <NavbarLinks isApiKeySet={isApiKeySet} />
+          
+          <Link to="/youtube-download">
+            <Button variant="outline" size="sm" className="ml-2 text-red-600 border-red-200 hover:bg-red-50">
+              <Download className="mr-1 h-4 w-4" />
+              Télécharger Vidéos
+            </Button>
+          </Link>
         </nav>
 
         {/* Mobile Navigation */}

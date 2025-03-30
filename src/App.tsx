@@ -1,59 +1,26 @@
-
 import React from 'react';
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import HomePage from './pages/HomePage';
 import Index from './pages/Index';
 import AssistantPage from './pages/AssistantPage';
-import SettingsPage from './pages/SettingsPage';
-import YoutubeAnalysisPage from './pages/YoutubeAnalysisPage';
-import DocumentsPageRoute from './pages/DocumentsPage';
-import DashboardPage from './pages/DashboardPage';
-import { AuthProvider } from './components/auth/AuthContext';
-import QuizPage from './pages/QuizPage';
-import AuthPage from './pages/AuthPage';
-
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <Index />,
-  },
-  {
-    path: '/assistant',
-    element: <AssistantPage />,
-  },
-  {
-    path: '/documents',
-    element: <DocumentsPageRoute />,
-  },
-  {
-    path: '/settings',
-    element: <SettingsPage />,
-  },
-  {
-    path: '/youtube-analysis',
-    element: <YoutubeAnalysisPage />,
-  },
-  {
-    path: '/dashboard',
-    element: <DashboardPage />,
-  },
-  {
-    path: '/quiz',
-    element: <QuizPage />,
-  },
-  {
-    path: '/auth',
-    element: <AuthPage />,
-  },
-]);
+import Chat237Page from './pages/Chat237Page';
+import DocumentsPage from './pages/DocumentsPage';
+import YouTubeAnalyzerPage from './pages/YouTubeAnalyzerPage';
+import YouTubeDownloadPage from './pages/YouTubeDownloadPage';
 
 function App() {
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/index" element={<Index />} />
+        <Route path="/assistant" element={<AssistantPage />} />
+        <Route path="/chat-237" element={<Chat237Page />} />
+        <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
+        <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
+      </Routes>
+    </Router>
   );
 }
 

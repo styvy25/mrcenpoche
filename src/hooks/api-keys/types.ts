@@ -24,6 +24,7 @@ export enum Feature {
   
   // Analysis features
   YOUTUBE_ANALYSIS = "youtubeAnalysis",
+  YOUTUBE_DOWNLOAD = "youtubeDownload",
   AI_ASSISTANT = "aiAssistant",
   
   // Premium features

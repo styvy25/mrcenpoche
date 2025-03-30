@@ -77,27 +77,28 @@ const Index = () => {
             </Link>
           </Card>
           
-          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow">
+          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow bg-gradient-to-br from-red-50 to-white dark:from-red-950/30 dark:to-gray-900">
             <Download className="h-12 w-12 text-red-500 mb-4" />
             <h2 className="text-xl font-semibold mb-3">Téléchargeur YouTube</h2>
             <p className="text-center mb-6 text-muted-foreground">
               Téléchargez facilement des vidéos YouTube pour une consultation hors-ligne.
             </p>
-            <Link to="/documents?tab=youtube" className="mt-auto w-full">
+            <Link to="/youtube-download" className="mt-auto w-full">
               <Button variant="default" className="w-full bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800">
+                <Download className="mr-2 h-4 w-4" />
                 Télécharger des vidéos
               </Button>
             </Link>
           </Card>
           
-          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow md:col-span-2">
+          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-gray-900">
             <YoutubeIcon className="h-12 w-12 text-red-500 mb-4" />
             <h2 className="text-xl font-semibold mb-3">Analyse Vidéos YouTube</h2>
             <p className="text-center mb-6 text-muted-foreground">
               Analysez les vidéos du MRC pour en extraire les points clés et générer des rapports PDF détaillés.
             </p>
             <Link to="/youtube-analyzer" className="mt-auto w-full">
-              <Button variant="default" className="w-full bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800">
+              <Button variant="default" className="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800">
                 Analyser une vidéo
               </Button>
             </Link>
