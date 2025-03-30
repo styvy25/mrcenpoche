@@ -23,3 +23,8 @@ export interface BadgeIcon {
   icon: LucideIcon;
   className?: string;
 }
+
+export interface WidgetProps {
+  widget: Widget;
+  onRemove: (id: string) => void;
+}
