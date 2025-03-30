@@ -1,55 +1,77 @@
 
 import React, { useState } from 'react';
-import CourseList from "./course/CourseList";
-import ModuleDetail from "./ModuleDetail";
-import { modulesData } from "./data/modulesData";
-import { useModuleSelection } from "./hooks/useModuleSelection";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
-import PremiumDialog from "@/components/premium/PremiumDialog";
-import PremiumBanner from "@/components/premium/PremiumBanner";
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CourseCard from './CourseCard';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { LockKeyhole, Sparkles } from 'lucide-react';
 
-const CoursesGrid = () => {
-  const { selectedModuleId, handleModuleClick, handleBackClick } = useModuleSelection();
-  const { canAccessAllModules, userPlan } = usePlanLimits();
-  const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
-  
-  const selectedModule = modulesData.find(module => module.id === selectedModuleId);
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  image?: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  duration: string;
+  lessons: number;
+  premium: boolean;
+}
 
-  // Filtrer les modules en fonction du plan de l'utilisateur
-  const accessibleModules = modulesData.map(module => ({
-    ...module,
-    isPremium: typeof module.id === 'number' && module.id > 3 && !canAccessAllModules() // Fix: ensure module.id is a number before comparison
-  }));
+interface CoursesGridProps {
+  courses: Course[];
+  onCourseClick: (courseId: number) => void;
+}
 
-  const handleModuleSelection = (moduleId: number) => { // Fix: Changed type from string to number
-    const module = accessibleModules.find(m => m.id === moduleId);
-    
-    if (module?.isPremium) {
-      setIsPremiumDialogOpen(true);
-    } else {
-      handleModuleClick(moduleId); // Fix: handleModuleClick expects a number
-    }
-  };
+const CoursesGrid: React.FC<CoursesGridProps> = ({ courses, onCourseClick }) => {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { canAccessAllModules } = usePlanLimits();
 
-  if (selectedModule) {
-    return <ModuleDetail module={selectedModule} onBack={handleBackClick} />;
-  }
+  const categories = [
+    { id: 'all', name: 'Tous' },
+    { id: 'general', name: 'Général' },
+    { id: 'chat', name: 'Discussions' },
+    { id: 'pdf', name: 'Documents' },
+    { id: 'quiz', name: 'Quiz' }
+  ];
+
+  const filteredCourses = courses.filter(course => {
+    if (selectedCategory === 'all') return true;
+    return course.category === selectedCategory;
+  });
 
   return (
-    <div className="space-y-6">
-      {userPlan === 'free' && (
-        <PremiumBanner type="modules" />
+    <div>
+      <Tabs defaultValue={selectedCategory} onValueChange={setSelectedCategory} className="mb-6">
+        <TabsList className="grid" style={{ gridTemplateColumns: `repeat(${categories.length}, minmax(0, 1fr))` }}>
+          {categories.map((category) => (
+            <TabsTrigger key={category.id} value={category.id}>
+              {category.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
+      {filteredCourses.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">Aucun cours disponible dans cette catégorie</p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCourses.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={course}
+              onClick={() => onCourseClick(course.id)}
+              locked={course.premium && !canAccessAllModules()}
+              badge={course.premium ? { 
+                icon: canAccessAllModules() ? <Sparkles className="h-3 w-3" /> : <LockKeyhole className="h-3 w-3" />, 
+                text: 'Premium'
+              } : undefined}
+            />
+          ))}
+        </div>
       )}
-      
-      <CourseList 
-        modules={accessibleModules} 
-        onModuleClick={handleModuleSelection} 
-      />
-      
-      <PremiumDialog 
-        isOpen={isPremiumDialogOpen} 
-        onClose={() => setIsPremiumDialogOpen(false)} 
-      />
     </div>
   );
 };

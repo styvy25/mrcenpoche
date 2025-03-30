@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2, YouTube } from 'lucide-react';
+import { ArrowRight, Loader2, Youtube } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface YouTubeURLInputProps {
@@ -64,7 +64,7 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <YouTube className="h-5 w-5 text-red-500" />
+          <Youtube className="h-5 w-5 text-red-500" />
           {title}
         </CardTitle>
       </CardHeader>

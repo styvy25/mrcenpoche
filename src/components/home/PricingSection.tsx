@@ -1,222 +1,211 @@
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle } from "lucide-react";
-import { useState } from "react";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
-import PremiumDialog from "@/components/premium/PremiumDialog";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Check, CreditCard, Users } from 'lucide-react';
+import { usePlanLimits, PlanType } from '@/hooks/usePlanLimits';
 
 const PricingSection = () => {
-  const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
-  const [selectedPriceId, setSelectedPriceId] = useState("");
   const { userPlan, updateUserPlan } = usePlanLimits();
+  const [isYearly, setIsYearly] = useState(true);
   
-  const handlePremiumClick = (priceId: string) => {
-    setSelectedPriceId(priceId);
-    setIsPremiumDialogOpen(true);
+  const handleSelectPlan = (plan: PlanType) => {
+    updateUserPlan(plan);
   };
   
-  const handleFreeTierClick = () => {
-    // Pour la démo, activer directement le plan gratuit
-    updateUserPlan('free');
-  };
+  const discountPercentage = 20;
+  const monthlyPricePremium = 1000;
+  const yearlyPricePremium = (monthlyPricePremium * 12) * ((100 - discountPercentage) / 100);
+  const monthlyPriceGroup = 5000;
+  const yearlyPriceGroup = (monthlyPriceGroup * 12) * ((100 - discountPercentage) / 100);
   
-  // Pour la démo seulement
-  const handleDemoClick = (plan: 'free' | 'premium' | 'group') => {
-    if (process.env.NODE_ENV !== 'production') {
-      updateUserPlan(plan);
-    }
-  };
+  const premiumPrice = isYearly ? yearlyPricePremium : monthlyPricePremium;
+  const groupPrice = isYearly ? yearlyPriceGroup : monthlyPriceGroup;
   
   return (
-    <section className="py-12 md:py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-            Tarifs simples et transparents
-          </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Choisissez l'offre qui correspond à vos besoins et commencez votre formation dès aujourd'hui.
-          </p>
+    <section className="py-12 md:py-24" id="pricing">
+      <div className="container px-4 md:px-6">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+              Tarifs simples et transparents
+            </h2>
+            <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              Choisissez le plan qui correspond à vos besoins
+            </p>
+          </div>
+          
+          <div className="flex items-center space-x-2 mt-6">
+            <span className={!isYearly ? "font-bold" : "text-muted-foreground"}>Mensuel</span>
+            <button
+              onClick={() => setIsYearly(!isYearly)}
+              className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary"
+            >
+              <span
+                className={`${
+                  isYearly ? "translate-x-5" : "translate-x-0"
+                } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
+              />
+            </button>
+            <span className={isYearly ? "font-bold" : "text-muted-foreground"}>Annuel</span>
+            <span className="ml-2 rounded-full bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 dark:bg-green-900 dark:text-green-100">
+              -{discountPercentage}%
+            </span>
+          </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
           {/* Free Plan */}
-          <Card className="border-t-4 border-t-gray-500">
+          <Card className={`${userPlan === 'free' ? 'border-primary' : ''} flex flex-col`}>
             <CardHeader>
-              <CardTitle className="text-xl">Gratuit</CardTitle>
-              <div className="mt-4">
-                <span className="text-4xl font-bold">0€</span>
-                <span className="text-gray-500 ml-2">/ mois</span>
-              </div>
-              <CardDescription className="mt-2">
-                L'essentiel pour démarrer
-              </CardDescription>
+              <CardTitle>Gratuit</CardTitle>
+              <CardDescription>Fonctionnalités essentielles pour démarrer</CardDescription>
+              <div className="mt-4 text-4xl font-bold">0 FCFA</div>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Accès à 3 modules de formation</span>
+            <CardContent className="flex-grow">
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>10 conversations avec l'assistant</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Assistant IA (limité à 10 questions/jour)</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>3 documents générés</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Génération de PDF (limité à 3/mois)</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>5 quiz politiques</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Suivi de progression basique</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Modules de base</span>
                 </li>
               </ul>
             </CardContent>
             <CardFooter>
               <Button 
-                variant="outline" 
+                variant={userPlan === 'free' ? 'outline' : 'default'} 
                 className="w-full"
-                onClick={handleFreeTierClick}
+                onClick={() => handleSelectPlan('free')}
                 disabled={userPlan === 'free'}
               >
-                {userPlan === 'free' ? 'Plan actuel' : 'Commencer gratuitement'}
+                {userPlan === 'free' ? 'Plan actuel' : 'Choisir ce plan'}
               </Button>
             </CardFooter>
           </Card>
           
           {/* Premium Plan */}
-          <Card className="border-t-4 border-t-mrc-blue relative lg:scale-105 z-10 shadow-xl">
-            <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2 bg-mrc-blue text-white text-xs py-1 px-2 rounded">
+          <Card className={`${userPlan === 'premium' ? 'border-primary' : ''} flex flex-col relative`}>
+            {/* Popular badge */}
+            <div className="absolute top-0 right-0 -mt-3 -mr-3 px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full">
               Populaire
             </div>
+            
             <CardHeader>
-              <CardTitle className="text-xl">Premium</CardTitle>
+              <CardTitle>Premium</CardTitle>
+              <CardDescription>Toutes les fonctionnalités pour les militants</CardDescription>
               <div className="mt-4">
-                <span className="text-4xl font-bold">9,99€</span>
-                <span className="text-gray-500 ml-2">/ mois</span>
+                <div className="text-4xl font-bold">{premiumPrice.toLocaleString()} FCFA</div>
+                <p className="text-sm text-muted-foreground">
+                  {isYearly ? 'par an' : 'par mois'}
+                </p>
               </div>
-              <CardDescription className="mt-2">
-                L'offre complète pour les militants actifs
-              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Accès illimité à tous les modules</span>
+            <CardContent className="flex-grow">
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Conversations illimitées avec l'assistant</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Assistant IA Styvy237 sans limite</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Documents illimités</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Génération de PDF illimitée</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Tous les modules de formation</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Suivi de progression avancé</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Statistiques électorales avancées</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Accès aux webinaires exclusifs</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Fonctionnement hors connexion</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Certificats de formation</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Exportation PDF</span>
                 </li>
               </ul>
             </CardContent>
             <CardFooter>
               <Button 
-                className="w-full bg-mrc-blue hover:bg-blue-700"
-                onClick={() => handlePremiumClick('price_premium_monthly')}
+                variant={userPlan === 'premium' ? 'outline' : 'default'} 
+                className="w-full"
+                onClick={() => handleSelectPlan('premium')}
                 disabled={userPlan === 'premium'}
               >
-                {userPlan === 'premium' ? 'Plan actuel' : "S'abonner maintenant"}
+                <CreditCard className="mr-2 h-4 w-4" />
+                {userPlan === 'premium' ? 'Plan actuel' : 'Choisir ce plan'}
               </Button>
-              
-              {process.env.NODE_ENV !== 'production' && userPlan !== 'premium' && (
-                <Button 
-                  variant="outline"
-                  className="w-full mt-2"
-                  onClick={() => handleDemoClick('premium')}
-                >
-                  (Demo) Activer Premium
-                </Button>
-              )}
             </CardFooter>
           </Card>
           
-          {/* Groupe Plan */}
-          <Card className="border-t-4 border-t-mrc-green">
+          {/* Group Plan */}
+          <Card className={`${userPlan === 'group' ? 'border-primary' : ''} flex flex-col`}>
             <CardHeader>
-              <CardTitle className="text-xl">Groupe</CardTitle>
+              <CardTitle>Groupe</CardTitle>
+              <CardDescription>Pour les comités MRC et les groupes</CardDescription>
               <div className="mt-4">
-                <span className="text-4xl font-bold">99€</span>
-                <span className="text-gray-500 ml-2">/ mois</span>
+                <div className="text-4xl font-bold">{groupPrice.toLocaleString()} FCFA</div>
+                <p className="text-sm text-muted-foreground">
+                  {isYearly ? 'par an' : 'par mois'}
+                </p>
               </div>
-              <CardDescription className="mt-2">
-                Idéal pour les comités locaux du MRC
-              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Jusqu'à 15 utilisateurs</span>
+            <CardContent className="flex-grow">
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Toutes les fonctionnalités Premium</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Tous les avantages Premium</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Jusqu'à 10 utilisateurs</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Espace de discussion collaboratif</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Administration centralisée</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Tableau de bord pour coordinateurs</span>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Formation collective</span>
                 </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Formation sur mesure pour votre région</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
                   <span>Support prioritaire</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  <span>Analyse de données électorales</span>
                 </li>
               </ul>
             </CardContent>
             <CardFooter>
               <Button 
-                variant="outline"
+                variant={userPlan === 'group' ? 'outline' : 'default'} 
                 className="w-full"
-                onClick={() => handlePremiumClick('price_group_monthly')}
+                onClick={() => handleSelectPlan('group')}
                 disabled={userPlan === 'group'}
               >
-                {userPlan === 'group' ? 'Plan actuel' : 'Contacter pour groupe'}
+                <Users className="mr-2 h-4 w-4" />
+                {userPlan === 'group' ? 'Plan actuel' : 'Choisir ce plan'}
               </Button>
-              
-              {process.env.NODE_ENV !== 'production' && userPlan !== 'group' && (
-                <Button 
-                  variant="outline"
-                  className="w-full mt-2"
-                  onClick={() => handleDemoClick('group')}
-                >
-                  (Demo) Activer Groupe
-                </Button>
-              )}
             </CardFooter>
           </Card>
         </div>
       </div>
-      
-      <PremiumDialog 
-        isOpen={isPremiumDialogOpen} 
-        onClose={() => setIsPremiumDialogOpen(false)} 
-      />
     </section>
   );
 };

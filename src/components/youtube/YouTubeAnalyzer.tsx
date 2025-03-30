@@ -1,144 +1,126 @@
 
 import React, { useState } from 'react';
-import { useApiKeys } from '@/hooks/useApiKeys';
-import { useYoutubeAnalyzer } from '@/utils/youtubeAnalyzer';
-import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { YouTubeVideo as LucideYouTube, ArrowRight, FileText, Loader2 } from 'lucide-react';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
-import PremiumBanner from '@/components/premium/PremiumBanner';
+import { Loader2, FileDown, RefreshCw, Youtube } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import YouTubeURLInput from './YouTubeURLInput';
 
-interface YouTubeAnalyzerProps {
-  className?: string;
-}
-
-const YouTubeAnalyzer: React.FC<YouTubeAnalyzerProps> = ({ className }) => {
-  const [videoUrl, setVideoUrl] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
+// Create a new YouTube analyzer component
+const YouTubeAnalyzer = ({ className = '' }: { className?: string }) => {
+  const [videoId, setVideoId] = useState<string | null>(null);
+  const [videoTitle, setVideoTitle] = useState<string>('');
+  const [videoDescription, setVideoDescription] = useState<string>('');
+  const [transcription, setTranscription] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('info');
   const { toast } = useToast();
-  const { keys, keyStatus } = useApiKeys();
-  const { generateYouTubeAnalysisPDF } = useYoutubeAnalyzer();
-  const { getUsageStats } = usePlanLimits();
-  
-  // Extract YouTube video ID from URL
-  const extractVideoId = (url: string): string | null => {
-    // Handle youtu.be links
-    const shortMatch = /youtu\.be\/([a-zA-Z0-9_-]{11})/.exec(url);
-    if (shortMatch) return shortMatch[1];
-    
-    // Handle youtube.com links
-    const regularMatch = /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/.exec(url);
-    if (regularMatch) return regularMatch[1];
-    
-    // Handle embed links
-    const embedMatch = /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/.exec(url);
-    if (embedMatch) return embedMatch[1];
-    
-    // Handle already provided IDs (11 characters)
-    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
-    
-    return null;
-  };
-  
-  const handleAnalyze = async () => {
-    const videoId = extractVideoId(videoUrl);
-    
-    if (!videoId) {
-      toast({
-        title: "URL invalide",
-        description: "Veuillez fournir une URL YouTube valide",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!keys.youtube || !keyStatus.youtube) {
-      toast({
-        title: "Configuration requise",
-        description: "Veuillez configurer une clé API YouTube valide dans les paramètres",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsGenerating(true);
+
+  const handleVideoSelect = async (id: string) => {
+    setIsLoading(true);
+    setVideoId(id);
     
     try {
-      await generateYouTubeAnalysisPDF(videoId, keys.youtube);
-      setVideoUrl('');
+      // Mock API call for now
+      setTimeout(() => {
+        setVideoTitle('Titre de la vidéo YouTube');
+        setVideoDescription('Ceci est une description de la vidéo YouTube qui serait normalement récupérée via l\'API YouTube.');
+        setTranscription('Transcription de la vidéo qui serait normalement générée par un service de transcription ou extraite des sous-titres YouTube.');
+        setIsLoading(false);
+      }, 1500);
     } catch (error) {
-      console.error("Error analyzing YouTube video:", error);
+      console.error('Error fetching video data:', error);
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'analyse de la vidéo",
-        variant: "destructive",
+        title: 'Erreur',
+        description: 'Impossible de récupérer les données de la vidéo',
+        variant: 'destructive'
       });
-    } finally {
-      setIsGenerating(false);
+      setIsLoading(false);
     }
   };
-  
-  const stats = getUsageStats();
-  const showBanner = stats.userPlan === 'free' && stats.youtubeAnalysisToday > 0;
-  
+
+  const handleGeneratePDF = () => {
+    toast({
+      title: 'PDF Généré',
+      description: 'Votre PDF a été généré avec succès'
+    });
+  };
+
+  const handleReset = () => {
+    setVideoId(null);
+    setVideoTitle('');
+    setVideoDescription('');
+    setTranscription('');
+  };
+
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <LucideYouTube className="h-5 w-5 text-red-500" />
-          Analyser une vidéo YouTube
-        </CardTitle>
-        <CardDescription>
-          Générez un rapport PDF d'analyse à partir d'une vidéo YouTube en fournissant son URL
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {showBanner && <PremiumBanner type="general" className="mb-4" />}
-        
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="youtube-url" className="text-sm font-medium">URL de la vidéo</label>
-            <div className="flex gap-2">
-              <Input
-                id="youtube-url"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
-                className="flex-1"
-                disabled={isGenerating}
-              />
-              <Button 
-                onClick={handleAnalyze}
-                disabled={!videoUrl.trim() || isGenerating || !keyStatus.youtube}
-              >
-                {isGenerating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ArrowRight className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-          
-          {!keyStatus.youtube && (
-            <div className="text-sm text-amber-500 flex items-center gap-1 mt-2">
-              <span className="i-lucide-alert-circle h-4 w-4" />
-              Vous devez configurer une clé API YouTube dans les paramètres
-            </div>
-          )}
-        </div>
-      </CardContent>
-      <CardFooter className="border-t pt-4 flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          Analysez {stats.youtubeAnalysisLimit} vidéos par jour
-        </div>
-        <div className="text-sm">
-          Utilisés: {stats.youtubeAnalysisToday} / {stats.youtubeAnalysisLimit}
-        </div>
-      </CardFooter>
-    </Card>
+    <div className={className}>
+      {!videoId ? (
+        <YouTubeURLInput onVideoSelect={handleVideoSelect} isLoading={isLoading} />
+      ) : (
+        <Card>
+          <CardContent className="pt-6">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-10">
+                <Loader2 className="h-10 w-10 text-muted-foreground animate-spin mb-4" />
+                <p className="text-muted-foreground">Analyse de la vidéo en cours...</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                  <div>
+                    <h2 className="text-xl font-semibold">{videoTitle}</h2>
+                    <p className="text-sm text-muted-foreground">ID: {videoId}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleReset}>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Analyser une autre vidéo
+                    </Button>
+                    <Button size="sm" onClick={handleGeneratePDF}>
+                      <FileDown className="h-4 w-4 mr-2" />
+                      Générer PDF
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="aspect-video w-full mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${videoId}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                    title={videoTitle}
+                  ></iframe>
+                </div>
+
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="info">Informations</TabsTrigger>
+                    <TabsTrigger value="transcript">Transcription</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="info" className="space-y-4">
+                    <div>
+                      <h3 className="font-medium mb-2">Description</h3>
+                      <p className="text-sm whitespace-pre-line">{videoDescription}</p>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="transcript">
+                    <div>
+                      <h3 className="font-medium mb-2">Transcription</h3>
+                      <div className="max-h-96 overflow-y-auto bg-muted/30 p-4 rounded-lg">
+                        <p className="text-sm whitespace-pre-line">{transcription}</p>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

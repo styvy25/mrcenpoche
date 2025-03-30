@@ -1,93 +1,79 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
-export type PlanType = 'free' | 'premium';
+// Define plan types
+export type PlanType = 'free' | 'premium' | 'group';
 
+// Define plan limits
 export interface PlanLimits {
-  chatMessages: number;
-  pdfGenerations: number;
-  quizzes: number;
-  youtubeAnalysis: number;
+  maxChats: number;
+  maxDocuments: number;
+  maxQuizzes: number;
+  offlineMode: boolean;
+  pdfExport: boolean;
+  youtubeAnalysis: boolean;
+  advancedAnalytics: boolean;
+  allModules: boolean;
+  customDocuments: boolean;
 }
 
-interface UsageStats {
-  userPlan: PlanType;
-  chatMessagesLimit: number;
-  chatMessagesToday: number;
-  pdfGenerationsLimit: number;
-  pdfGenerationsToday: number;
-  quizzesLimit: number;
-  quizzesToday: number;
-  youtubeAnalysisLimit: number;
-  youtubeAnalysisToday: number;
-}
-
-const PLAN_CONFIGS: Record<PlanType, PlanLimits> = {
+// Plan limits configuration
+const planLimitsConfig: Record<PlanType, PlanLimits> = {
   free: {
-    chatMessages: 20,
-    pdfGenerations: 5,
-    quizzes: 10,
-    youtubeAnalysis: 3
+    maxChats: 10,
+    maxDocuments: 3,
+    maxQuizzes: 5,
+    offlineMode: false,
+    pdfExport: false,
+    youtubeAnalysis: false,
+    advancedAnalytics: false,
+    allModules: false,
+    customDocuments: false
   },
   premium: {
-    chatMessages: 1000,
-    pdfGenerations: 50,
-    quizzes: 200,
-    youtubeAnalysis: 30
+    maxChats: Infinity,
+    maxDocuments: Infinity,
+    maxQuizzes: Infinity,
+    offlineMode: true,
+    pdfExport: true,
+    youtubeAnalysis: true,
+    advancedAnalytics: true,
+    allModules: true,
+    customDocuments: true
+  },
+  group: {
+    maxChats: Infinity,
+    maxDocuments: Infinity,
+    maxQuizzes: Infinity,
+    offlineMode: true,
+    pdfExport: true,
+    youtubeAnalysis: true,
+    advancedAnalytics: true,
+    allModules: true,
+    customDocuments: true
   }
-};
-
-// Initialize local storage with usage data
-const initializeUsageData = () => {
-  const today = new Date().toISOString().split('T')[0];
-  const existingData = localStorage.getItem('mrc_usage_data');
-  
-  if (!existingData || JSON.parse(existingData).date !== today) {
-    const initialData = {
-      date: today,
-      chatMessages: 0,
-      pdfGenerations: 0,
-      quizzes: 0,
-      youtubeAnalysis: 0
-    };
-    localStorage.setItem('mrc_usage_data', JSON.stringify(initialData));
-    return initialData;
-  }
-  
-  return JSON.parse(existingData);
 };
 
 export const usePlanLimits = () => {
   const [userPlan, setUserPlan] = useState<PlanType>('free');
-  const [usageData, setUsageData] = useState(() => initializeUsageData());
+  const [limits, setLimits] = useState<PlanLimits>(planLimitsConfig.free);
   const [isLoading, setIsLoading] = useState(true);
-  const [limits, setLimits] = useState<PlanLimits>(PLAN_CONFIGS.free);
-  const { toast } = useToast();
 
-  // Initialize the user's plan and limits from localStorage
   useEffect(() => {
-    const storedPlan = localStorage.getItem('mrc_user_plan');
-    const plan: PlanType = (storedPlan === 'premium') ? 'premium' : 'free';
-    setUserPlan(plan);
-    setLimits(PLAN_CONFIGS[plan]);
+    // Get stored plan from localStorage
+    const storedPlan = localStorage.getItem('userPlan') as PlanType | null;
+    if (storedPlan && planLimitsConfig[storedPlan]) {
+      setUserPlan(storedPlan);
+      setLimits(planLimitsConfig[storedPlan]);
+    }
     setIsLoading(false);
-    
-    // Re-initialize usage data at the start of a new day
-    setUsageData(initializeUsageData());
   }, []);
-  
-  // Update localStorage when usage data changes
-  useEffect(() => {
-    localStorage.setItem('mrc_usage_data', JSON.stringify(usageData));
-  }, [usageData]);
 
-  // Update user plan
   const updateUserPlan = async (newPlan: PlanType): Promise<boolean> => {
     try {
-      localStorage.setItem('mrc_user_plan', newPlan);
       setUserPlan(newPlan);
-      setLimits(PLAN_CONFIGS[newPlan]);
+      setLimits(planLimitsConfig[newPlan]);
+      localStorage.setItem('userPlan', newPlan);
       return true;
     } catch (error) {
       console.error('Error updating user plan:', error);
@@ -95,60 +81,62 @@ export const usePlanLimits = () => {
     }
   };
 
-  // Check if user can use a specific feature
   const canUseFeature = (feature: keyof PlanLimits): boolean => {
-    const limit = limits[feature];
-    const used = usageData[feature as keyof typeof usageData];
-    return used < limit;
+    return !!limits[feature];
   };
 
-  // Increment usage counters
-  const incrementUsage = (feature: keyof PlanLimits): boolean => {
-    if (!canUseFeature(feature)) {
-      toast({
-        title: "Limite atteinte",
-        description: `Vous avez atteint votre limite quotidienne pour cette fonctionnalité. Passez à Premium pour un accès illimité.`,
-        variant: "destructive",
-      });
-      return false;
+  const getRemainingUsage = (feature: 'maxChats' | 'maxDocuments' | 'maxQuizzes'): number => {
+    // This would ideally get the actual usage from a database
+    const usageMap = {
+      maxChats: 0,
+      maxDocuments: 0,
+      maxQuizzes: 0
+    };
+    
+    // Get usage from localStorage
+    try {
+      const storedUsage = JSON.parse(localStorage.getItem('featureUsage') || '{}');
+      if (storedUsage[feature]) {
+        usageMap[feature] = storedUsage[feature];
+      }
+    } catch (error) {
+      console.error('Error parsing usage data:', error);
     }
     
-    setUsageData(prev => ({
-      ...prev,
-      [feature]: prev[feature as keyof typeof prev] + 1
-    }));
-    
-    return true;
+    const limit = limits[feature];
+    if (limit === Infinity) return Infinity;
+    return Math.max(0, limit - usageMap[feature]);
   };
 
-  // Helper methods for specific features
-  const canSendChatMessage = () => canUseFeature('chatMessages');
-  const canGeneratePdf = () => canUseFeature('pdfGenerations');
-  const canTakeQuiz = () => canUseFeature('quizzes');
-  const canAnalyzeYoutube = () => canUseFeature('youtubeAnalysis');
-  
-  const incrementChatMessages = () => incrementUsage('chatMessages');
-  const incrementPdfGenerations = () => incrementUsage('pdfGenerations');
-  const incrementQuizzes = () => incrementUsage('quizzes');
-  const incrementYoutubeAnalysis = () => incrementUsage('youtubeAnalysis');
-  
-  // Get current usage statistics
-  const getUsageStats = (): UsageStats => {
-    return {
-      userPlan,
-      chatMessagesLimit: limits.chatMessages,
-      chatMessagesToday: usageData.chatMessages,
-      pdfGenerationsLimit: limits.pdfGenerations,
-      pdfGenerationsToday: usageData.pdfGenerations,
-      quizzesLimit: limits.quizzes,
-      quizzesToday: usageData.quizzes,
-      youtubeAnalysisLimit: limits.youtubeAnalysis,
-      youtubeAnalysisToday: usageData.youtubeAnalysis
-    };
+  const incrementUsage = (feature: 'maxChats' | 'maxDocuments' | 'maxQuizzes'): void => {
+    try {
+      const storedUsage = JSON.parse(localStorage.getItem('featureUsage') || '{}');
+      storedUsage[feature] = (storedUsage[feature] || 0) + 1;
+      localStorage.setItem('featureUsage', JSON.stringify(storedUsage));
+    } catch (error) {
+      console.error('Error updating usage data:', error);
+    }
   };
-  
-  // Check if user can access all modules
-  const canAccessAllModules = () => userPlan === 'premium';
+
+  const resetUsage = (): void => {
+    localStorage.removeItem('featureUsage');
+  };
+
+  const hasChatLimit = (): boolean => {
+    return limits.maxChats !== Infinity;
+  };
+
+  const hasReachedLimit = (feature: 'maxChats' | 'maxDocuments' | 'maxQuizzes'): boolean => {
+    return getRemainingUsage(feature) <= 0;
+  };
+
+  const canAccessPremiumContent = (): boolean => {
+    return userPlan === 'premium' || userPlan === 'group';
+  };
+
+  const canAccessAllModules = (): boolean => {
+    return limits.allModules;
+  };
 
   return {
     userPlan,
@@ -156,15 +144,12 @@ export const usePlanLimits = () => {
     isLoading,
     updateUserPlan,
     canUseFeature,
-    canSendChatMessage,
-    canGeneratePdf,
-    canTakeQuiz,
-    canAnalyzeYoutube,
-    incrementChatMessages,
-    incrementPdfGenerations,
-    incrementQuizzes,
-    incrementYoutubeAnalysis,
-    getUsageStats,
+    getRemainingUsage,
+    incrementUsage,
+    resetUsage,
+    hasChatLimit,
+    hasReachedLimit,
+    canAccessPremiumContent,
     canAccessAllModules
   };
 };
