@@ -4,24 +4,22 @@ import { useToast } from "@/hooks/use-toast";
 import { Message } from "@/types/message";
 import { supabase } from "@/integrations/supabase/client";
 import { getPerplexityResponse } from "../services/perplexityService";
-import { v4 as uuidv4 } from "uuid";
-import { createMessage, normalizeMessage } from "@/utils/MessageUtils";
+import { createMessage, normalizeMessages, loadMessagesFromStorage } from "@/utils/MessageUtils";
+import { Feature, usePlanLimits } from "@/hooks/usePlanLimits";
 
 export function useMessageHandler() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { hasFeatureAccess, incrementChatMessages } = usePlanLimits();
 
   // Initialize messages from localStorage if available
   const initializeMessages = useCallback(() => {
     try {
-      const savedMessages = localStorage.getItem('mrc_chat_messages');
-      if (savedMessages) {
-        const parsedMessages = JSON.parse(savedMessages);
-        if (Array.isArray(parsedMessages) && parsedMessages.length > 0) {
-          setMessages(parsedMessages);
-          return;
-        }
+      const savedMessages = loadMessagesFromStorage();
+      if (savedMessages.length > 0) {
+        setMessages(savedMessages);
+        return;
       } 
       // If no valid messages found, set initial message
       setInitialMessage();
@@ -39,11 +37,92 @@ export function useMessageHandler() {
     setMessages([initialMessage]);
   }, []);
 
-  const handleSendMessage = useCallback(async (input: string, isOnline: boolean, handleYouTubeSearch: (query: string, isOnline: boolean) => Promise<void>) => {
+  const handleRugbyRequest = useCallback(async (input: string): Promise<Message | null> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-xv', {
+        body: { context: input }
+      });
+
+      if (error) throw error;
+
+      return createMessage(data.composition, "assistant");
+    } catch (error) {
+      console.error('Error generating XV:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la génération de la composition d'équipe.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  }, [toast]);
+
+  const getApiKeys = useCallback((): { perplexity?: string, youtube?: string } => {
+    try {
+      const apiKeys = localStorage.getItem("api_keys");
+      if (!apiKeys) return {};
+      return JSON.parse(apiKeys);
+    } catch (error) {
+      console.error("Error parsing API keys:", error);
+      return {};
+    }
+  }, []);
+
+  const detectYoutubeIntent = useCallback((input: string): boolean => {
+    const youtubeKeywords = ["vidéo", "video", "youtube", "regarder", "voir", "discours", "interview", "conférence", "média"];
+    return youtubeKeywords.some(keyword => input.toLowerCase().includes(keyword.toLowerCase()));
+  }, []);
+
+  const detectRugbyIntent = useCallback((input: string): boolean => {
+    const rugbyKeywords = ["xv", "équipe", "composition", "rugby", "joueurs", "team"];
+    return rugbyKeywords.some(keyword => input.toLowerCase().includes(keyword.toLowerCase()));
+  }, []);
+
+  // Simple AI response generator without API key
+  const getSimpleAIResponse = useCallback((query: string): string => {
+    const lowercaseQuery = query.toLowerCase();
+    
+    if (lowercaseQuery.includes('mrc')) {
+      return "Le MRC (Mouvement pour la Renaissance du Cameroun) est un parti politique camerounais fondé en 2012. Son président est Maurice Kamto. Le parti prône des valeurs démocratiques et une meilleure gouvernance pour le Cameroun.";
+    }
+    
+    if (lowercaseQuery.includes('kamto')) {
+      return "Maurice Kamto est un homme politique camerounais, président du MRC et ancien candidat à l'élection présidentielle de 2018. Il est également juriste international et a été ministre délégué à la Justice du Cameroun de 2004 à 2011.";
+    }
+    
+    if (lowercaseQuery.includes('cameroun')) {
+      return "Le Cameroun est un pays d'Afrique centrale. Sa capitale politique est Yaoundé et sa capitale économique est Douala. Le pays fait face à divers défis politiques et économiques, avec plusieurs partis politiques actifs dont le MRC.";
+    }
+    
+    if (lowercaseQuery.includes('bonjour') || lowercaseQuery.includes('salut') || lowercaseQuery.includes('hello')) {
+      return "Bonjour ! Comment puis-je vous aider aujourd'hui concernant le MRC ou les actualités du Cameroun ?";
+    }
+    
+    return "Je n'ai pas d'information spécifique sur ce sujet. Pourriez-vous préciser votre question concernant le MRC ou le Cameroun ? Je peux aussi rechercher des vidéos YouTube pour vous si vous le souhaitez.";
+  }, []);
+
+  const handleSendMessage = useCallback(async (
+    input: string, 
+    isOnline: boolean, 
+    handleYouTubeSearch: ((query: string, isOnline: boolean) => Promise<void>) | null = null
+  ): Promise<boolean> => {
     if (!input.trim()) return false;
     
-    const userMessage = createMessage(input, "user");
+    // Check if user has access to chat feature
+    if (!hasFeatureAccess(Feature.CHAT)) {
+      toast({
+        title: "Fonctionnalité premium",
+        description: "Le chat est disponible avec un abonnement premium",
+        variant: "destructive",
+      });
+      return false;
+    }
     
+    // Increment chat message count
+    incrementChatMessages();
+    
+    // Add user message
+    const userMessage = createMessage(input, "user");
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
@@ -70,50 +149,20 @@ export function useMessageHandler() {
     }
 
     try {
-      const apiKeys = localStorage.getItem("api_keys");
-      if (!apiKeys) {
-        // If no API keys, generate a simple response
-        setTimeout(() => {
-          const simpleResponse = createMessage(getSimpleAIResponse(input), "assistant");
-          setMessages(prev => [...prev, simpleResponse]);
-          setIsLoading(false);
-        }, 1000);
-        return true;
-      }
-
-      const { perplexity, youtube } = JSON.parse(apiKeys);
+      const { perplexity, youtube } = getApiKeys();
       
       // Check if the message is about generating a rugby XV
-      const rugbyKeywords = ["xv", "équipe", "composition", "rugby", "joueurs", "team"];
-      const isRugbyRequest = rugbyKeywords.some(keyword => input.toLowerCase().includes(keyword.toLowerCase()));
-      
-      if (isRugbyRequest) {
-        try {
-          const { data, error } = await supabase.functions.invoke('generate-xv', {
-            body: { context: input }
-          });
-
-          if (error) throw error;
-
-          const aiMessage = createMessage(data.composition, "assistant");
-          setMessages(prev => [...prev, aiMessage]);
-        } catch (error) {
-          console.error('Error generating XV:', error);
-          toast({
-            title: "Erreur",
-            description: "Une erreur est survenue lors de la génération de la composition d'équipe.",
-            variant: "destructive",
-          });
-        } finally {
+      if (detectRugbyIntent(input)) {
+        const rugbyResponse = await handleRugbyRequest(input);
+        if (rugbyResponse) {
+          setMessages(prev => [...prev, rugbyResponse]);
           setIsLoading(false);
+          return true;
         }
-        return true;
       }
 
-      const youtubeKeywords = ["vidéo", "video", "youtube", "regarder", "voir", "discours", "interview", "conférence", "média"];
-      const hasYoutubeIntent = youtubeKeywords.some(keyword => input.toLowerCase().includes(keyword.toLowerCase()));
-      
-      if (hasYoutubeIntent && youtube) {
+      // Check if the message is about YouTube videos
+      if (detectYoutubeIntent(input) && youtube && handleYouTubeSearch) {
         const searchTerms = input.replace(/vidéo|video|youtube|regarder|voir|discours|interview|conférence|média/gi, '').trim();
         await handleYouTubeSearch(searchTerms || "MRC Cameroun", isOnline);
       }
@@ -146,30 +195,7 @@ export function useMessageHandler() {
       setIsLoading(false);
     }
     return true;
-  }, [toast]);
-
-  // Simple AI response generator without API key
-  const getSimpleAIResponse = (query: string): string => {
-    const lowercaseQuery = query.toLowerCase();
-    
-    if (lowercaseQuery.includes('mrc')) {
-      return "Le MRC (Mouvement pour la Renaissance du Cameroun) est un parti politique camerounais fondé en 2012. Son président est Maurice Kamto. Le parti prône des valeurs démocratiques et une meilleure gouvernance pour le Cameroun.";
-    }
-    
-    if (lowercaseQuery.includes('kamto')) {
-      return "Maurice Kamto est un homme politique camerounais, président du MRC et ancien candidat à l'élection présidentielle de 2018. Il est également juriste international et a été ministre délégué à la Justice du Cameroun de 2004 à 2011.";
-    }
-    
-    if (lowercaseQuery.includes('cameroun')) {
-      return "Le Cameroun est un pays d'Afrique centrale. Sa capitale politique est Yaoundé et sa capitale économique est Douala. Le pays fait face à divers défis politiques et économiques, avec plusieurs partis politiques actifs dont le MRC.";
-    }
-    
-    if (lowercaseQuery.includes('bonjour') || lowercaseQuery.includes('salut') || lowercaseQuery.includes('hello')) {
-      return "Bonjour ! Comment puis-je vous aider aujourd'hui concernant le MRC ou les actualités du Cameroun ?";
-    }
-    
-    return "Je n'ai pas d'information spécifique sur ce sujet. Pourriez-vous préciser votre question concernant le MRC ou le Cameroun ? Je peux aussi rechercher des vidéos YouTube pour vous si vous le souhaitez.";
-  };
+  }, [toast, hasFeatureAccess, incrementChatMessages, getSimpleAIResponse, detectRugbyIntent, detectYoutubeIntent, handleRugbyRequest, getApiKeys]);
 
   const clearConversation = useCallback(() => {
     setInitialMessage();

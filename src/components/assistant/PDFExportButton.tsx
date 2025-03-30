@@ -4,14 +4,57 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { Message } from "@/types/message";
 import { useToast } from "@/hooks/use-toast";
-import { generatePDF } from "./utils/pdfUtils";
 import { Feature, usePlanLimits } from "@/hooks/usePlanLimits";
+import * as jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export interface PDFExportButtonProps {
   messages: Message[];
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
 }
+
+// Function to generate and download PDF from messages
+const generatePDF = async (messages: Message[]): Promise<void> => {
+  const doc = new jsPDF.default();
+  
+  // Add title
+  doc.setFontSize(20);
+  doc.text("Rapport de conversation MRC", 105, 15, { align: 'center' });
+  
+  // Add date
+  doc.setFontSize(12);
+  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 105, 25, { align: 'center' });
+  
+  // Define table data
+  const tableData = messages.map(msg => [
+    msg.sender === 'user' ? 'Vous' : 'Assistant MRC',
+    msg.content,
+    new Date(msg.timestamp).toLocaleString('fr-FR')
+  ]);
+  
+  // Add table
+  autoTable(doc, {
+    head: [['Auteur', 'Message', 'Heure']],
+    body: tableData,
+    startY: 35,
+    headStyles: { fillColor: [75, 93, 255] },
+    alternateRowStyles: { fillColor: [240, 240, 240] },
+    styles: { 
+      overflow: 'linebreak',
+      font: 'helvetica',
+      fontSize: 10
+    },
+    columnStyles: {
+      0: { cellWidth: 30 }, 
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 40 }
+    }
+  });
+  
+  // Save the PDF
+  doc.save(`conversation-mrc-${new Date().toISOString().split('T')[0]}.pdf`);
+};
 
 const PDFExportButton: React.FC<PDFExportButtonProps> = ({ 
   messages, 

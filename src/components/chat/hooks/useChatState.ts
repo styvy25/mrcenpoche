@@ -63,7 +63,9 @@ export function useChatState() {
   }, [messages, setMessages]);
 
   const handleSendMessage = useCallback((input: string) => {
-    return baseHandleSendMessage(input, isOnline, (query) => handleYouTubeSearch(query, isOnline));
+    return baseHandleSendMessage(input, isOnline, (query) => {
+      return handleYouTubeSearch(query, isOnline);
+    });
   }, [baseHandleSendMessage, isOnline, handleYouTubeSearch]);
 
   const handleVideoSelect = useCallback((videoId: string) => {
