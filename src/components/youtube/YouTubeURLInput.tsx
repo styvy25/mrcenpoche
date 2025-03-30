@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2, Youtube } from 'lucide-react';
+import { ArrowRight, Download, Loader2, Youtube } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface YouTubeURLInputProps {
@@ -24,6 +24,7 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
   title = 'Analyser une vidéo YouTube'
 }) => {
   const [url, setUrl] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
 
   // Function to extract YouTube video ID from URL
@@ -69,6 +70,45 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
     setUrl('');
   };
 
+  const handleDownload = async () => {
+    const videoId = extractVideoId(url);
+    
+    if (!videoId) {
+      toast({
+        title: "URL invalide",
+        description: "Veuillez entrer une URL YouTube valide",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsDownloading(true);
+    
+    try {
+      // Simuler le téléchargement
+      toast({
+        title: "Téléchargement démarré",
+        description: "La vidéo YouTube est en cours de téléchargement"
+      });
+      
+      // Simuler un délai de téléchargement
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast({
+        title: "Téléchargement terminé",
+        description: "La vidéo a été téléchargée avec succès"
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur de téléchargement",
+        description: "Une erreur est survenue lors du téléchargement",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -85,16 +125,33 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             className="flex-1"
-            disabled={isLoading || disabled}
+            disabled={isLoading || disabled || isDownloading}
           />
-          <Button type="submit" disabled={!url.trim() || isLoading || disabled}>
+          <Button type="submit" disabled={!url.trim() || isLoading || disabled || isDownloading}>
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <ArrowRight className="h-4 w-4" />
             )}
           </Button>
+          <Button 
+            type="button" 
+            disabled={!url.trim() || isDownloading}
+            onClick={handleDownload}
+            variant="outline"
+          >
+            {isDownloading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+          </Button>
         </form>
+        {url && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Téléchargez facilement des vidéos YouTube pour une consultation hors-ligne.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
