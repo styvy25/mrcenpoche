@@ -1,46 +1,70 @@
-
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import HomePage from './pages/HomePage';
 import AssistantPage from './pages/AssistantPage';
 import DocumentsPage from './pages/DocumentsPage';
-import QuizPage from './pages/QuizPage';
-import AuthPage from './pages/AuthPage';
-import NotFound from './pages/NotFound';
-import Index from './pages/Index';
-import './App.css';
-import { AppProvider } from './context/AppContext';
-import { AuthProvider } from './components/auth/AuthContext';
-import { Toaster } from "@/components/ui/toaster";
 import SettingsPage from './pages/SettingsPage';
-import { ThemeProvider } from './components/ui/theme-provider';
-import YouTubeAnalyzerPage from './pages/YouTubeAnalyzerPage';
+import StreamingPage from './pages/StreamingPage';
+import PricingPage from './pages/PricingPage';
 import YoutubeAnalysisPage from './pages/YoutubeAnalysisPage';
-import Chat237Page from './pages/Chat237Page';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import { AuthProvider } from './hooks/useAuth';
+import DocumentsPageRoute from './pages/DocumentsPage';
+import DashboardPage from './pages/DashboardPage';
 
-const App = () => {
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <HomePage />,
+  },
+  {
+    path: '/assistant',
+    element: <AssistantPage />,
+  },
+  {
+    path: '/documents',
+    element: <DocumentsPageRoute />,
+  },
+  {
+    path: '/settings',
+    element: <SettingsPage />,
+  },
+  {
+    path: '/streaming',
+    element: <StreamingPage />,
+  },
+  {
+    path: '/pricing',
+    element: <PricingPage />,
+  },
+  {
+    path: '/youtube-analysis',
+    element: <YoutubeAnalysisPage />,
+  },
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
+  },
+  {
+    path: '/dashboard',
+    element: <DashboardPage />,
+  },
+]);
+
+function App() {
   return (
-    <ThemeProvider defaultTheme="light">
-      <AuthProvider>
-        <AppProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/assistant" element={<AssistantPage />} />
-              <Route path="/chat-237" element={<Chat237Page />} />
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/quiz" element={<QuizPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
-              <Route path="/youtube-analysis" element={<YoutubeAnalysisPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-          </BrowserRouter>
-        </AppProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   );
-};
+}
 
 export default App;
