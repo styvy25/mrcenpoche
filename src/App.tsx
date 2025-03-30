@@ -1,46 +1,27 @@
-
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import AssistantPage from './pages/AssistantPage';
-import DocumentsPage from './pages/DocumentsPage';
-import QuizPage from './pages/QuizPage';
-import AuthPage from './pages/AuthPage';
-import NotFound from './pages/NotFound';
-import Index from './pages/Index';
-import './App.css';
-import { AppProvider } from './context/AppContext';
-import { AuthProvider } from './components/auth/AuthContext';
-import { Toaster } from "@/components/ui/toaster";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import ModulesPage from './pages/ModulesPage';
+import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
-import { ThemeProvider } from './components/ui/theme-provider';
+import PricingPage from './pages/PricingPage';
 import YouTubeAnalyzerPage from './pages/YouTubeAnalyzerPage';
 import YoutubeAnalysisPage from './pages/YoutubeAnalysisPage';
-import Chat237Page from './pages/Chat237Page';
+import YouTubeDownloaderPage from './pages/YouTubeDownloaderPage';
 
-const App = () => {
+function App() {
   return (
-    <ThemeProvider defaultTheme="light">
-      <AuthProvider>
-        <AppProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/assistant" element={<AssistantPage />} />
-              <Route path="/chat-237" element={<Chat237Page />} />
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/quiz" element={<QuizPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
-              <Route path="/youtube-analysis" element={<YoutubeAnalysisPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-          </BrowserRouter>
-        </AppProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <Router>
+      <Routes>
+        <Route path="/" element={<ModulesPage />} />
+        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
+        <Route path="/youtube-analysis" element={<YoutubeAnalysisPage />} />
+        <Route path="/youtube-downloader" element={<YouTubeDownloaderPage />} />
+      </Routes>
+    </Router>
   );
-};
+}
 
 export default App;
