@@ -22,7 +22,7 @@ const Header = () => {
   };
   
   const handleAccountClick = () => {
-    navigate('/settings');
+    navigate('/dashboard');
   };
   
   return (
@@ -104,7 +104,7 @@ const Header = () => {
               Chat 237
             </NavLink>
             {isAuthenticated && (
-              <NavLink to="/settings" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
+              <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
                 Mon Compte
               </NavLink>
             )}

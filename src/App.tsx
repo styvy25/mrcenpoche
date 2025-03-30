@@ -11,6 +11,8 @@ import YoutubeAnalysisPage from './pages/YoutubeAnalysisPage';
 import DocumentsPageRoute from './pages/DocumentsPage';
 import DashboardPage from './pages/DashboardPage';
 import { AuthProvider } from './components/auth/AuthContext';
+import QuizPage from './pages/QuizPage';
+import AuthPage from './pages/AuthPage';
 
 const router = createBrowserRouter([
   {
@@ -36,6 +38,14 @@ const router = createBrowserRouter([
   {
     path: '/dashboard',
     element: <DashboardPage />,
+  },
+  {
+    path: '/quiz',
+    element: <QuizPage />,
+  },
+  {
+    path: '/auth',
+    element: <AuthPage />,
   },
 ]);
 

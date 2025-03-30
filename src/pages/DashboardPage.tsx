@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/components/auth/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { 
   LayoutDashboard, Award, Users, Video, FileText, 
@@ -33,16 +32,16 @@ interface UserBadge {
 }
 
 const DashboardPage = () => {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const [badges, setBadges] = useState<UserBadge[]>([]);
   const [availableWidgets, setAvailableWidgets] = useState<Widget[]>([]);
 
-  // Initialiser les widgets par défaut et les badges de démo
+  // Initialize default widgets and demo badges
   useEffect(() => {
-    // Widgets par défaut
+    // Default widgets
     const defaultWidgets: Widget[] = [
       { 
         id: '1', 
@@ -67,7 +66,7 @@ const DashboardPage = () => {
       },
     ];
 
-    // Widgets disponibles pour ajout
+    // Available widgets for addition
     const availableWidgetOptions: Widget[] = [
       { 
         id: 'activity', 
@@ -85,7 +84,7 @@ const DashboardPage = () => {
       },
     ];
 
-    // Badges de démonstration
+    // Demo badges
     const demoBadges: UserBadge[] = [
       {
         id: '1',
@@ -110,7 +109,7 @@ const DashboardPage = () => {
     setBadges(demoBadges);
   }, []);
 
-  // Ajouter un widget
+  // Add a widget
   const addWidget = (widgetType: Widget) => {
     const newWidget = {
       ...widgetType,
@@ -123,7 +122,7 @@ const DashboardPage = () => {
     });
   };
 
-  // Supprimer un widget
+  // Remove a widget
   const removeWidget = (widgetId: string) => {
     setWidgets(widgets.filter(widget => widget.id !== widgetId));
     toast({
@@ -132,7 +131,7 @@ const DashboardPage = () => {
     });
   };
 
-  // Gérer le drag and drop des widgets
+  // Handle drag and drop of widgets
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
     
@@ -143,7 +142,7 @@ const DashboardPage = () => {
     setWidgets(items);
   };
 
-  // Rendu conditionnel des widgets
+  // Conditional rendering of widgets
   const renderWidgetContent = (widget: Widget) => {
     switch (widget.type) {
       case 'achievements':
@@ -259,7 +258,7 @@ const DashboardPage = () => {
           <div>
             <h1 className="text-2xl font-bold">Tableau de Bord</h1>
             <p className="text-muted-foreground">
-              Gérez vos activités et personnalisez votre espace
+              {currentUser ? `Bienvenue, ${currentUser.email || 'Utilisateur'}` : 'Gérez vos activités et personnalisez votre espace'}
             </p>
           </div>
         </div>
