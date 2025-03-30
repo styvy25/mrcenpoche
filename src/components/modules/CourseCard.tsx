@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, Clock, Download, CheckCircle } from "lucide-react";
+import React from "react";
 
 interface CourseCardProps {
   title: string;
@@ -13,19 +14,33 @@ interface CourseCardProps {
   level: "Débutant" | "Intermédiaire" | "Avancé";
   isPdfAvailable: boolean;
   isCompleted: boolean;
+  onClick?: () => void;
+  locked?: boolean;
+  badge?: {
+    icon: React.ReactNode;
+    text: string;
+  };
+  course?: any;
 }
 
-const CourseCard = ({
+const CourseCard: React.FC<CourseCardProps> = ({
   title,
   description,
   progress,
   duration,
   level,
   isPdfAvailable,
-  isCompleted
-}: CourseCardProps) => {
+  isCompleted,
+  onClick,
+  locked,
+  badge,
+  course
+}) => {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow w-full cursor-pointer">
+    <Card 
+      className={`overflow-hidden hover:shadow-lg transition-shadow w-full ${!locked ? "cursor-pointer" : "opacity-75"}`}
+      onClick={!locked ? onClick : undefined}
+    >
       <div className={`h-2 ${
         level === "Débutant" ? "bg-mrc-green" :
         level === "Intermédiaire" ? "bg-mrc-blue" :
@@ -34,13 +49,20 @@ const CourseCard = ({
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg font-bold">{title}</CardTitle>
-          <Badge variant={
-            level === "Débutant" ? "default" :
-            level === "Intermédiaire" ? "secondary" :
-            "destructive"
-          }>
-            {level}
-          </Badge>
+          {badge ? (
+            <Badge variant="outline" className="flex items-center gap-1">
+              {badge.icon}
+              <span>{badge.text}</span>
+            </Badge>
+          ) : (
+            <Badge variant={
+              level === "Débutant" ? "default" :
+              level === "Intermédiaire" ? "secondary" :
+              "destructive"
+            }>
+              {level}
+            </Badge>
+          )}
         </div>
         <CardDescription className="text-sm line-clamp-2">{description}</CardDescription>
       </CardHeader>
@@ -64,7 +86,10 @@ const CourseCard = ({
         </div>
       </CardContent>
       <CardFooter className="pt-2 flex justify-between">
-        <Button variant="outline" size="sm" className="text-xs" onClick={(e) => e.stopPropagation()}>
+        <Button variant="outline" size="sm" className="text-xs" onClick={(e) => {
+          e.stopPropagation();
+          // Additional action for the button if needed
+        }}>
           {isCompleted ? 
             <CheckCircle className="h-4 w-4 mr-1 text-green-500" /> :
             <BookOpen className="h-4 w-4 mr-1" />

@@ -13,6 +13,8 @@ import { AuthProvider } from './components/auth/AuthContext';
 import { Toaster } from "@/components/ui/toaster";
 import SettingsPage from './pages/SettingsPage';
 import { ThemeProvider } from './components/ui/theme-provider';
+import YouTubeAnalyzerPage from './pages/YouTubeAnalyzerPage';
+import YoutubeAnalysisPage from './pages/YoutubeAnalysisPage';
 
 const App = () => {
   return (
@@ -27,6 +29,8 @@ const App = () => {
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
+              <Route path="/youtube-analysis" element={<YoutubeAnalysisPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />

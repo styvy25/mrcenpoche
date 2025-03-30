@@ -8,6 +8,7 @@ import UserAvatar from "@/components/auth/UserAvatar";
 import AuthDialog from "../auth/AuthDialog";
 import InstallAppButton from "../pwa/InstallAppButton";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import MRCLogoNew from "@/components/branding/MRCLogoNew";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +23,7 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-4">
           <NavLink to="/" className="flex items-center gap-2">
-            <img src="/assets/mrc-logo.png" alt="MRC Logo" className="h-8 w-8" />
+            <MRCLogoNew size="small" />
             <span className="font-bold text-xl hidden sm:inline-block text-transparent bg-clip-text bg-gradient-to-r from-mrc-blue to-mrc-green">
               MRC en Poche
             </span>

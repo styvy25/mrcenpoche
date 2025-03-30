@@ -38,3 +38,23 @@ export interface ChatState {
   isLoading: boolean;
   error: Error | null;
 }
+
+// Nouveaux types pour résoudre les problèmes de compatibilité
+export interface MessageContent {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  content: string;
+  timestamp: Date;
+  mediaUrl?: string;
+  mediaType?: 'photo' | 'audio' | 'video' | 'file';
+  text?: string;
+  sender?: string;
+}
+
+export interface MessagesContainerProps {
+  messages: Message[];
+  currentUserId: string;
+  formatTime: (date: Date) => string;
+}

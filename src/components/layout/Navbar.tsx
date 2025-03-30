@@ -8,6 +8,7 @@ import NavbarDropdownMenu from "./NavbarDropdownMenu";
 import NavbarNavigationButtons from "./NavbarNavigationButtons";
 import NavbarLinks from "./NavbarLinks";
 import NavbarMobileMenu from "./NavbarMobileMenu";
+import MRCLogoNew from "@/components/branding/MRCLogoNew";
 
 const Navbar = () => {
   const location = useLocation();
@@ -42,8 +43,11 @@ const Navbar = () => {
             </div>
           </div>
           
-          <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-mrc-blue via-mrc-red to-mrc-blue">MRC en Poche</span>
+          <Link to="/" className="flex items-center">
+            <MRCLogoNew size="small" />
+            <span className="ml-2 text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-mrc-blue via-mrc-red to-mrc-blue">
+              MRC en Poche
+            </span>
           </Link>
         </div>
 
