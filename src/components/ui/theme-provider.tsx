@@ -27,11 +27,17 @@ export function ThemeProvider({
   storageKey = "ui-theme",
   ...props
 }: ThemeProviderProps) {
-  // Initialize state with an immediately executed function to respect hooks rules
+  // Use a function to safely initialize state based on localStorage
   const [theme, setTheme] = useState<Theme>(() => {
+    // Check if we're in a browser environment
     if (typeof window !== "undefined") {
-      const storedTheme = localStorage.getItem(storageKey) as Theme;
-      return storedTheme || defaultTheme;
+      try {
+        const storedTheme = localStorage.getItem(storageKey) as Theme;
+        return storedTheme || defaultTheme;
+      } catch (e) {
+        console.error("Error accessing localStorage:", e);
+        return defaultTheme;
+      }
     }
     return defaultTheme;
   });
@@ -56,7 +62,11 @@ export function ThemeProvider({
     theme,
     setTheme: (theme: Theme) => {
       if (typeof window !== "undefined") {
-        localStorage.setItem(storageKey, theme);
+        try {
+          localStorage.setItem(storageKey, theme);
+        } catch (e) {
+          console.error("Error setting theme in localStorage:", e);
+        }
       }
       setTheme(theme);
     },

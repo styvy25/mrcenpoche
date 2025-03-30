@@ -22,13 +22,22 @@ const MessagesContainer: React.FC<MessagesContainerProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Ensure all messages have proper id and timestamp
+  const normalizedMessages = messages.map((message, index) => {
+    return {
+      ...message,
+      id: message.id || `temp-${index}`,
+      timestamp: message.timestamp || new Date()
+    } as Message;
+  });
+
   return (
     <ScrollArea className="h-[calc(100vh-15rem)] md:h-[calc(80vh-12rem)] p-4">
       <div className="flex flex-col gap-4">
-        {messages.map((message, index) => (
+        {normalizedMessages.map((message, index) => (
           <ChatMessage
             key={message.id || index}
-            message={message as Message}
+            message={message}
             isCurrentUser={message.sender === currentUserId || message.currentUser === true}
             formattedTime={formatTime(message.timestamp as Date)}
           />

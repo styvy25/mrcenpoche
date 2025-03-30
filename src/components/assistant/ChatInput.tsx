@@ -21,7 +21,7 @@ const ChatInput = ({
 }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
-  const { canSendChatMessage, incrementChatMessages, getUsageStats } = usePlanLimits();
+  const { getUsageStats, incrementChatMessages } = usePlanLimits();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const {
     isListening,
@@ -54,14 +54,17 @@ const ChatInput = ({
     const trimmedMessage = message.trim();
     if (trimmedMessage && !isLoading) {
       // Check if user can send a message
-      if (!canSendChatMessage()) {
+      const stats = getUsageStats();
+      const canSend = stats.userPlan === 'premium' || stats.chatMessagesToday < stats.chatMessagesLimit;
+      
+      if (!canSend) {
         setIsPremiumDialogOpen(true);
         return;
       }
       
       // Increment message counter
-      const canSend = incrementChatMessages();
-      if (!canSend) return;
+      const incrementResult = incrementChatMessages();
+      if (!incrementResult) return;
       
       onSendMessage(trimmedMessage);
       setMessage('');

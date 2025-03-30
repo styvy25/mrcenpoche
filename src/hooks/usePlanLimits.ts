@@ -4,12 +4,16 @@ import { useAuth } from '@/components/auth/AuthContext';
 
 // Define the feature types
 export type Feature = 'maxChats' | 'maxPdfs' | 'maxModules' | 'maxVideos' | 'maxTests';
+export type PlanType = 'free' | 'premium';
 
 export function usePlanLimits() {
-  const { isAuthenticated, currentUser } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const [userPlan, setUserPlan] = useState<PlanType>(
+    isAuthenticated && user?.subscription?.type === 'premium' ? 'premium' : 'free'
+  );
   
   // Function to check if the user is premium
-  const isPremium = isAuthenticated && currentUser?.subscription?.type === 'premium';
+  const isPremium = userPlan === 'premium';
   
   // Store usage in localStorage
   const getUsageFromStorage = useCallback(() => {
@@ -67,11 +71,17 @@ export function usePlanLimits() {
         lastReset: currentDate.toISOString()
       };
       saveUsageToStorage(resetUsage);
-      return resetUsage;
+      return {
+        ...resetUsage,
+        userPlan
+      };
     }
     
-    return usage;
-  }, [getUsageFromStorage, saveUsageToStorage]);
+    return {
+      ...usage,
+      userPlan
+    };
+  }, [getUsageFromStorage, saveUsageToStorage, userPlan]);
   
   // Define limits based on plan
   const getLimits = useCallback(() => {
@@ -186,6 +196,22 @@ export function usePlanLimits() {
     return true;
   }, [isPremium, getUsageStats, getLimits, saveUsageToStorage]);
   
+  // Increment quizzes
+  const incrementQuizzes = useCallback(() => {
+    if (isPremium) return true;
+    
+    const usage = getUsageStats();
+    const limits = getLimits();
+    
+    if (usage.testsCompleted >= limits.maxTests) {
+      return false;
+    }
+    
+    usage.testsCompleted += 1;
+    saveUsageToStorage(usage);
+    return true;
+  }, [isPremium, getUsageStats, getLimits, saveUsageToStorage]);
+  
   // Check if user has module access
   const canAccessModule = useCallback((moduleId: string) => {
     if (isPremium) return true;
@@ -209,6 +235,21 @@ export function usePlanLimits() {
     return !isPremium;
   }, [isPremium]);
   
+  // Check if user can send chat message
+  const canSendChatMessage = useCallback(() => {
+    return isPremium || !hasReachedLimit('maxChats');
+  }, [isPremium, hasReachedLimit]);
+  
+  // Check if user can analyze YouTube videos
+  const canAnalyzeYoutube = useCallback(() => {
+    return isPremium || !hasReachedLimit('maxVideos');
+  }, [isPremium, hasReachedLimit]);
+  
+  // Check if user can take quizzes
+  const canTakeQuiz = useCallback(() => {
+    return isPremium || !hasReachedLimit('maxTests');
+  }, [isPremium, hasReachedLimit]);
+  
   // Check if user can use a premium feature
   const canUseFeature = useCallback((feature: string) => {
     switch (feature) {
@@ -222,6 +263,8 @@ export function usePlanLimits() {
         return isPremium;
       case 'generatePdf':
         return isPremium || !hasReachedLimit('maxPdfs');
+      case 'pdfExport':
+        return isPremium;
       default:
         return false;
     }
@@ -232,18 +275,29 @@ export function usePlanLimits() {
     return isPremium || !hasReachedLimit('maxPdfs');
   }, [isPremium, hasReachedLimit]);
   
+  // Update user plan
+  const updateUserPlan = useCallback((newPlan: PlanType) => {
+    setUserPlan(newPlan);
+  }, []);
+  
   return {
     isPremium,
+    userPlan,
+    updateUserPlan,
     hasReachedLimit,
     getRemainingUsage,
     incrementChatMessages,
     incrementPdfGenerations,
     incrementYoutubeAnalysis,
+    incrementQuizzes,
     canAccessModule,
     canAccessAllModules,
     hasChatLimit,
     canUseFeature,
     canGeneratePdf,
+    canSendChatMessage,
+    canAnalyzeYoutube,
+    canTakeQuiz,
     getUsageStats
   };
 }
