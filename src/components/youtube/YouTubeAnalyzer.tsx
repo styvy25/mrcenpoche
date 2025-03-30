@@ -10,7 +10,7 @@ import { useYoutubeAnalyzer } from '@/utils/youtubeAnalyzer';
 import YouTubeAnalysisPDF from './YouTubeAnalysisPDF';
 import VideoInfoPanel from './VideoInfoPanel';
 import AnalysisContent from './AnalysisContent';
-import YouTubeDownloader from './YouTubeDownloader';
+import VideoDownloadButton from './VideoDownloadButton';
 
 interface VideoInfo {
   id: string;
@@ -24,7 +24,6 @@ const YouTubeAnalyzer = () => {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('video');
   const { toast } = useToast();
@@ -114,16 +113,6 @@ Il aborde également les questions économiques et sociales, en proposant des so
     }
   };
 
-  const handleDownloadVideo = async (videoId: string, title: string) => {
-    if (!videoInfo) return;
-    setIsDownloading(true);
-    
-    // Simulate download delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsDownloading(false);
-  };
-
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -150,9 +139,7 @@ Il aborde également les questions économiques et sociales, en proposant des so
               <YouTubeURLInput 
                 onVideoSelect={(id) => setVideoUrl(`https://youtube.com/watch?v=${id}`)}
                 onSubmit={handleValidateUrl}
-                onDownload={handleDownloadVideo}
                 isLoading={isVideoLoading}
-                isDownloading={isDownloading}
                 disabled={isLoading}
               />
               
@@ -161,11 +148,13 @@ Il aborde également les questions économiques et sociales, en proposant des so
                 error={error} 
               />
 
-              {videoInfo && !isDownloading && (
-                <YouTubeDownloader 
-                  videoId={videoInfo.id} 
-                  title={videoInfo.title}
-                />
+              {videoInfo && (
+                <div className="mt-4">
+                  <VideoDownloadButton 
+                    videoId={videoInfo.id} 
+                    title={videoInfo.title}
+                  />
+                </div>
               )}
             </CardContent>
             <CardFooter className="flex justify-between">
@@ -176,7 +165,7 @@ Il aborde également les questions économiques et sociales, en proposant des so
               </p>
               <Button 
                 onClick={handleAnalyzeVideo} 
-                disabled={!videoInfo || isLoading || isVideoLoading || isDownloading}
+                disabled={!videoInfo || isLoading || isVideoLoading}
                 className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800"
               >
                 {isLoading ? (
@@ -211,12 +200,11 @@ Il aborde également les questions économiques et sociales, en proposant des so
                     videoTitle={videoInfo.title}
                     analysis={analysis}
                   />
-                  {!isDownloading && (
-                    <YouTubeDownloader 
-                      videoId={videoInfo.id} 
-                      title={videoInfo.title}
-                    />
-                  )}
+                  <VideoDownloadButton 
+                    videoId={videoInfo.id} 
+                    title={videoInfo.title}
+                    variant="outline"
+                  />
                 </>
               )}
             </CardFooter>

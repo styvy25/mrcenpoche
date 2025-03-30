@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
-export type Feature = 
-  | 'pdfExport' 
-  | 'aiChat' 
-  | 'documentAnalysis' 
-  | 'youtubeAnalysis'
-  | 'youtubeDownload';
+// Change from type to enum so it can be used as a value
+export enum Feature {
+  PDF_EXPORT = 'pdfExport',
+  CHAT = 'aiChat',
+  DOCUMENT_ANALYSIS = 'documentAnalysis',
+  YOUTUBE_ANALYSIS = 'youtubeAnalysis',
+  YOUTUBE_DOWNLOAD = 'youtubeDownload'
+}
 
 interface UsageLimits {
   maxChats: number;
@@ -99,6 +101,7 @@ export const usePlanLimits = () => {
       ...prev,
       youtubeDownloads: prev.youtubeDownloads + 1
     }));
+    return true;
   };
   
   const incrementDocumentsToday = () => {
@@ -108,53 +111,72 @@ export const usePlanLimits = () => {
     }));
   };
   
-  const canUseFeature = (feature: Feature): boolean => {
+  // Renamed function to make it clearer
+  const hasFeatureAccess = (feature: Feature): boolean => {
     if (isPremium) return true;
     
     switch (feature) {
-      case 'aiChat':
+      case Feature.CHAT:
         return usage.chats < limits.maxChats;
-      case 'pdfExport':
+      case Feature.PDF_EXPORT:
         return usage.pdfGenerations < limits.maxPdfGenerations;
-      case 'youtubeAnalysis':
+      case Feature.YOUTUBE_ANALYSIS:
         return usage.youtubeAnalyses < limits.maxYoutubeAnalyses;
-      case 'youtubeDownload':
+      case Feature.YOUTUBE_DOWNLOAD:
         return usage.youtubeDownloads < limits.maxYoutubeDownloads;
-      case 'documentAnalysis':
+      case Feature.DOCUMENT_ANALYSIS:
         return usage.documentsToday < limits.maxDocumentsPerDay;
       default:
         return false;
     }
   };
   
+  // Maintain backwards compatibility with existing code
+  const canUseFeature = hasFeatureAccess;
+  
   const canGeneratePdf = (): boolean => {
-    return canUseFeature('pdfExport');
+    return hasFeatureAccess(Feature.PDF_EXPORT);
   };
   
   const canAnalyzeYoutube = (): boolean => {
-    return canUseFeature('youtubeAnalysis');
+    return hasFeatureAccess(Feature.YOUTUBE_ANALYSIS);
   };
   
   const canDownloadYoutube = (): boolean => {
-    return canUseFeature('youtubeDownload');
+    return hasFeatureAccess(Feature.YOUTUBE_DOWNLOAD);
   };
   
   const getRemainingUsage = (feature: Feature): number => {
     switch (feature) {
-      case 'aiChat':
+      case Feature.CHAT:
         return limits.maxChats - usage.chats;
-      case 'pdfExport':
+      case Feature.PDF_EXPORT:
         return limits.maxPdfGenerations - usage.pdfGenerations;
-      case 'youtubeAnalysis':
+      case Feature.YOUTUBE_ANALYSIS:
         return limits.maxYoutubeAnalyses - usage.youtubeAnalyses;
-      case 'youtubeDownload':
+      case Feature.YOUTUBE_DOWNLOAD:
         return limits.maxYoutubeDownloads - usage.youtubeDownloads;
-      case 'documentAnalysis':
+      case Feature.DOCUMENT_ANALYSIS:
         return limits.maxDocumentsPerDay - usage.documentsToday;
       default:
         return 0;
     }
   };
+  
+  // Add helper functions for chat-related functionality
+  const hasReachedLimit = (limitType: 'maxChats' | 'maxPdfGenerations' | 'maxYoutubeAnalyses' | 'maxYoutubeDownloads' | 'maxDocumentsPerDay'): boolean => {
+    return usage[limitType.replace('max', '').toLowerCase() as keyof UsageCount] >= limits[limitType];
+  };
+  
+  const hasChatLimit = (): boolean => {
+    return !isPremium;
+  };
+  
+  // For compatibility with components that expect userPlan
+  const userPlan = isPremium ? 'premium' : 'free';
+  
+  // Alias for incrementChatCount for components expecting this function name
+  const incrementChatMessages = incrementChatCount;
 
   return {
     usage,
@@ -168,8 +190,13 @@ export const usePlanLimits = () => {
     incrementYoutubeAnalysis,
     incrementYoutubeDownloads,
     incrementDocumentsToday,
+    incrementChatMessages,
     resetDailyLimits,
     getRemainingUsage,
-    isPremium
+    isPremium,
+    hasFeatureAccess,
+    hasReachedLimit,
+    hasChatLimit,
+    userPlan
   };
 };
