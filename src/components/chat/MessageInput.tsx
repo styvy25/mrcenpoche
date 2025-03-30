@@ -1,8 +1,10 @@
 
-import React, { useState } from 'react';
-import { SendHorizonal, Image } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { SendHorizonal, Image, Mic, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { useToast } from '@/hooks/use-toast';
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
@@ -11,7 +13,6 @@ interface MessageInputProps {
   disabled?: boolean;
 }
 
-// Refactored: Extracted to a more focused component with clearer responsibilities
 const MessageInput: React.FC<MessageInputProps> = ({ 
   onSendMessage, 
   onSendMedia,
@@ -19,12 +20,32 @@ const MessageInput: React.FC<MessageInputProps> = ({
   disabled = false
 }) => {
   const [message, setMessage] = useState('');
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
+  
+  const { 
+    isListening, 
+    transcript, 
+    startListening, 
+    stopListening, 
+    resetTranscript, 
+    browserSupportsSpeechRecognition 
+  } = useSpeechRecognition();
+
+  // Update input when transcript changes
+  useEffect(() => {
+    if (transcript) {
+      setMessage(prev => `${prev} ${transcript}`.trim());
+    }
+  }, [transcript]);
 
   const handleSendMessage = () => {
     if (message.trim() && !disabled) {
       onSendMessage(message);
       setMessage('');
+      resetTranscript();
     }
   };
 
@@ -51,6 +72,33 @@ const MessageInput: React.FC<MessageInputProps> = ({
     }
   };
 
+  const toggleRecording = () => {
+    if (isListening) {
+      stopListening();
+      setIsRecording(false);
+    } else {
+      startListening();
+      setIsRecording(true);
+      toast({
+        title: "Enregistrement en cours",
+        description: "Parlez clairement...",
+      });
+    }
+  };
+
+  // Auto-resize textarea
+  const autoResizeTextarea = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
+    }
+  };
+
+  useEffect(() => {
+    autoResizeTextarea();
+  }, [message]);
+
   return (
     <div className="p-3 border-t bg-card flex items-end gap-2">
       {onSendMedia && (
@@ -75,7 +123,25 @@ const MessageInput: React.FC<MessageInputProps> = ({
         </>
       )}
       
+      {browserSupportsSpeechRecognition && (
+        <Button
+          type="button"
+          size="icon"
+          variant={isRecording ? "default" : "ghost"}
+          disabled={disabled}
+          onClick={toggleRecording}
+          className={`rounded-full ${
+            isRecording
+              ? "bg-red-600 hover:bg-red-700 text-white"
+              : "hover:bg-accent hover:text-accent-foreground"
+          }`}
+        >
+          <Mic className="h-5 w-5" />
+        </Button>
+      )}
+      
       <Textarea
+        ref={textareaRef}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={handleKeyDown}

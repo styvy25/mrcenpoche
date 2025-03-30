@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useYouTubeSearch } from "./useYouTubeSearch";
 import { useMessageHandler } from "./useMessageHandler";
 import { useOfflineMode } from "./useOfflineMode";
-import { Message } from "../types/message";
+import { Message } from "@/types/message";
 
 export function useChatState() {
   const { 
@@ -35,15 +35,20 @@ export function useChatState() {
       if (msg.timestamp && typeof msg.timestamp === 'string') {
         return {
           ...msg,
-          timestamp: new Date(msg.timestamp)
+          timestamp: new Date(msg.timestamp),
+          sender: msg.sender || (msg.role === 'assistant' ? 'ai' : 'user')
         };
       } else if (!msg.timestamp) {
         return {
           ...msg,
-          timestamp: new Date()
+          timestamp: new Date(),
+          sender: msg.sender || (msg.role === 'assistant' ? 'ai' : 'user')
         };
       }
-      return msg;
+      return {
+        ...msg,
+        sender: msg.sender || (msg.role === 'assistant' ? 'ai' : 'user')
+      };
     });
   }, []);
 
@@ -84,9 +89,9 @@ export function useChatState() {
 
   // Mock active users for demo
   const activeUsers = [
-    { id: '1', name: 'Jean Doe', status: 'online', lastSeen: new Date(), avatar: '' },
-    { id: '2', name: 'Pierre Smith', status: 'online', lastSeen: new Date(), avatar: '' },
-    { id: '3', name: 'Marie Johnson', status: 'away', lastSeen: new Date(Date.now() - 30 * 60000), avatar: '' },
+    { id: '1', name: 'Jean Doe', status: 'online', lastSeen: new Date(), avatar: '', isOnline: true },
+    { id: '2', name: 'Pierre Smith', status: 'online', lastSeen: new Date(), avatar: '', isOnline: true },
+    { id: '3', name: 'Marie Johnson', status: 'away', lastSeen: new Date(Date.now() - 30 * 60000), avatar: '', isOnline: false },
   ];
 
   // Helper functions for time formatting

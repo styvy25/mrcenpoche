@@ -4,7 +4,7 @@ export interface Message {
   role?: string;
   content: string;
   timestamp: Date;
-  sender?: string;
+  sender: string;
   isRead?: boolean;
   currentUser?: boolean;
   text: string;

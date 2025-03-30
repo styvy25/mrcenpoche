@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { Message } from "../types/message";
+import { Message } from "@/types/message";
 
 interface UseChatHeaderProps {
   messages: Message[];
@@ -44,7 +44,7 @@ export function useChatHeader({
   const handleCopyConversation = useCallback(() => {
     const conversationText = messages
       .map((msg) => {
-        const sender = msg.role === "assistant" ? "Styvy237" : "Vous";
+        const sender = msg.role === "assistant" || msg.sender === "ai" ? "Styvy237" : "Vous";
         return `${sender}: ${msg.content}`;
       })
       .join("\n\n");

@@ -13,7 +13,7 @@ export interface Message {
   content?: string;
   text?: string;
   timestamp: Date;
-  sender?: string;
+  sender: string;
   senderId?: string;
   senderName?: string;
   senderAvatar?: string;

@@ -8,7 +8,7 @@ interface SpeechRecognitionHook {
   stopListening: () => void;
   resetTranscript: () => void;
   hasRecognitionSupport: boolean;
-  browserSupportsSpeechRecognition: boolean; // Added missing property
+  browserSupportsSpeechRecognition: boolean;
 }
 
 export const useSpeechRecognition = (): SpeechRecognitionHook => {

@@ -1,11 +1,14 @@
 
 import { useState, useCallback } from 'react';
+import { Message } from '@/types/message';
+import { useToast } from '@/hooks/use-toast';
 
 export function useMessageHandler() {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  // Refactored: Extracted message response handling into a separate function
+  // Helper to generate a mock AI response
   const getAiResponse = useCallback((query: string): string => {
     const lowercaseQuery = query.toLowerCase();
     
@@ -28,23 +31,30 @@ export function useMessageHandler() {
     return "Je n'ai pas d'information spécifique sur ce sujet. Pourriez-vous préciser votre question concernant le MRC ou le Cameroun ? Je peux aussi rechercher des vidéos YouTube pour vous si vous le souhaitez.";
   }, []);
 
-  // Refactored: handleSendMessage with clearer responsibilities
-  const handleSendMessage = useCallback((input: string, isOnline: boolean = true, handleYouTubeSearch: any = null) => {
-    if (!input.trim()) return;
+  // Handle sending messages
+  const handleSendMessage = useCallback((
+    input: string, 
+    isOnline: boolean = true, 
+    handleYouTubeSearch: ((query: string, isOnline: boolean) => Promise<void>) | null = null
+  ) => {
+    if (!input.trim()) return false;
     
     // Add user message
-    const userMessage = {
-      id: messages.length + 1,
+    const userMessage: Message = {
+      id: `user_${Date.now()}`,
       content: input,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      text: input
     };
     
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     
     // Check if the user is asking for YouTube videos
-    if (input.toLowerCase().includes('vidéo') || input.toLowerCase().includes('video') || input.toLowerCase().includes('youtube')) {
+    if (input.toLowerCase().includes('vidéo') || 
+        input.toLowerCase().includes('video') || 
+        input.toLowerCase().includes('youtube')) {
       // Extract search terms (remove words like "video", "youtube", etc.)
       const searchTerms = input
         .toLowerCase()
@@ -56,13 +66,14 @@ export function useMessageHandler() {
       }
     }
     
-    // Regular message response
+    // Regular message response with delay for better UX
     setTimeout(() => {
-      const aiResponse = {
-        id: messages.length + 2,
+      const aiResponse: Message = {
+        id: `ai_${Date.now()}`,
         content: getAiResponse(input),
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        text: getAiResponse(input)
       };
       
       setMessages(prev => [...prev, aiResponse]);
@@ -70,31 +81,47 @@ export function useMessageHandler() {
     }, 1000);
     
     return true;
-  }, [messages, getAiResponse]);
+  }, [getAiResponse]);
   
-  // Refactored: Extracted conversation management into separate functions
+  // Initialize conversation with a welcome message
   const clearConversation = useCallback(() => {
-    setMessages([{
-      id: 1,
+    const welcomeMessage: Message = {
+      id: 'welcome_1',
       content: "Bonjour ! Je suis votre assistant MRC. Comment puis-je vous aider aujourd'hui ?",
       sender: "ai",
-      timestamp: new Date()
-    }]);
+      timestamp: new Date(),
+      text: "Bonjour ! Je suis votre assistant MRC. Comment puis-je vous aider aujourd'hui ?"
+    };
+    
+    setMessages([welcomeMessage]);
   }, []);
 
+  // Load messages from localStorage or initialize with welcome message
   const initializeMessages = useCallback(() => {
     try {
       const savedMessages = localStorage.getItem('mrc_chat_messages');
       if (savedMessages) {
-        setMessages(JSON.parse(savedMessages));
+        const parsedMessages = JSON.parse(savedMessages);
+        // Ensure all timestamps are Date objects
+        const normalizedMessages = parsedMessages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        setMessages(normalizedMessages);
       } else {
         clearConversation();
       }
     } catch (error) {
       console.error("Error loading messages:", error);
       clearConversation();
+      
+      toast({
+        title: "Erreur de chargement",
+        description: "Impossible de charger les messages précédents.",
+        variant: "destructive"
+      });
     }
-  }, [clearConversation]);
+  }, [clearConversation, toast]);
 
   return {
     messages,
