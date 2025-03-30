@@ -1,4 +1,3 @@
-
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,10 +6,8 @@ import { MessageSquare, FileText, Brain, CreditCard, YoutubeIcon, Users, Downloa
 import { Link } from 'react-router-dom';
 import MRCLogoNew from '@/components/branding/MRCLogoNew';
 import VoteCard from '@/components/electoral/VoteCard';
-
 const Index = () => {
-  return (
-    <MainLayout>
+  return <MainLayout>
       <div className="py-8">
         <div className="text-center mb-10">
           <MRCLogoNew size="large" withTagline className="mx-auto" />
@@ -25,7 +22,7 @@ const Index = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow">
+          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow my-0 py-[21px] px-[44px]">
             <MessageSquare className="h-12 w-12 text-mrc-blue mb-4" />
             <h2 className="text-xl font-semibold mb-3">Assistant IA</h2>
             <p className="text-center mb-6 text-muted-foreground">
@@ -105,8 +102,6 @@ const Index = () => {
           </Card>
         </div>
       </div>
-    </MainLayout>
-  );
+    </MainLayout>;
 };
-
 export default Index;
