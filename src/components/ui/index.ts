@@ -5,3 +5,5 @@ export * from './dialog';
 export * from './input';
 export * from './textarea';
 export * from './toast';
+export * from './menu-bar';
+export * from './menu-bar-demo';
