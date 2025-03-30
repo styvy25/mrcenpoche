@@ -18,6 +18,17 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: number | string;
   explanation?: string;
+  imageSrc?: string;
+  difficulty?: string;
+}
+
+export interface QuizState {
+  currentQuestion: number;
+  score: number;
+  showFeedback: boolean;
+  isCorrect: boolean;
+  quizCompleted: boolean;
+  selectedAnswers: string[];
 }
 
 export interface BadgeIcon {
@@ -87,4 +98,29 @@ export interface Match {
   status: 'pending' | 'active' | 'completed';
   questions?: QuizQuestion[];
   winner?: string;
+}
+
+// Appointment types
+export interface Appointment {
+  id: string;
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  location?: string;
+  organizerName?: string;
+  organizerEmail?: string;
+  type: 'event' | 'meeting' | 'training';
+  status: 'scheduled' | 'completed' | 'cancelled';
+  attendees?: number;
+}
+
+export interface AppointmentRequest {
+  date: Date;
+  time: string;
+  duration: number;
+  reason: string;
+  notes?: string;
+  contactMethod: 'email' | 'phone' | 'video';
+  contactInfo: string;
 }
