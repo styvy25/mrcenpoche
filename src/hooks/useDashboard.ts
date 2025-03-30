@@ -4,7 +4,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Award, Youtube, FileText, 
-  Calendar, BarChart
+  Calendar, BarChart, Download, ThumbsUp
 } from 'lucide-react';
 import { Widget, UserBadge } from '@/components/dashboard/types';
 
@@ -24,21 +24,21 @@ export function useDashboard() {
         id: '1', 
         type: 'achievements', 
         title: 'Mes Badges', 
-        icon: <Award className="h-5 w-5" />, 
+        icon: Award,
         height: 'md' 
       },
       { 
         id: '2', 
         type: 'videos', 
         title: 'Vidéos Téléchargées', 
-        icon: <Youtube className="h-5 w-5" />, 
+        icon: Youtube,
         height: 'sm' 
       },
       { 
         id: '3', 
         type: 'documents', 
         title: 'Mes Documents', 
-        icon: <FileText className="h-5 w-5" />, 
+        icon: FileText,
         height: 'md' 
       },
     ];
@@ -49,14 +49,14 @@ export function useDashboard() {
         id: 'activity', 
         type: 'activity', 
         title: 'Activité Récente', 
-        icon: <Calendar className="h-5 w-5" />, 
+        icon: Calendar, 
         height: 'md' 
       },
       { 
         id: 'stats', 
         type: 'stats', 
         title: 'Statistiques', 
-        icon: <BarChart className="h-5 w-5" />, 
+        icon: BarChart, 
         height: 'lg' 
       },
     ];
@@ -67,7 +67,7 @@ export function useDashboard() {
         id: '1',
         name: 'Téléchargeur YouTube',
         description: 'A téléchargé sa première vidéo YouTube',
-        icon: <Download className="h-5 w-5 text-red-500" />,
+        icon: { icon: Download },
         date: new Date(Date.now() - 24 * 60 * 60 * 1000),
         category: 'youtube'
       },
@@ -75,7 +75,7 @@ export function useDashboard() {
         id: '2',
         name: 'Contributeur MRC',
         description: 'A partagé du contenu avec la communauté',
-        icon: <ThumbsUp className="h-5 w-5 text-blue-500" />,
+        icon: { icon: ThumbsUp },
         date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
         category: 'community'
       },
