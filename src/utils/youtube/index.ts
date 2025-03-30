@@ -4,6 +4,7 @@ import { extractVideoId } from "./extractVideoId";
 import { useVideoAnalysis } from "./videoAnalysis";
 import { usePdfGenerator } from "./pdfGenerator";
 import { VideoAnalysisResult, PdfGenerationOptions } from "./types";
+import { useYoutubeApi } from "./youtubeApi";
 
 /**
  * Main hook for YouTube functionality
@@ -21,5 +22,6 @@ export const useYoutubeAnalyzer = () => {
   };
 };
 
-// Re-export types for convenience
+// Re-export types and API hook for convenience
 export type { VideoAnalysisResult, PdfGenerationOptions };
+export { useYoutubeApi };

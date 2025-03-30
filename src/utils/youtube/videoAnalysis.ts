@@ -2,10 +2,11 @@
 import { useToast } from "@/hooks/use-toast";
 import { extractVideoId } from "./extractVideoId";
 import { VideoAnalysisResult } from "./types";
-import { getPerplexityResponse } from "@/components/assistant/services/perplexityService";
+import { useYoutubeApi } from "./youtubeApi";
 
 export const useVideoAnalysis = () => {
   const { toast } = useToast();
+  const { analyzeVideo } = useYoutubeApi();
 
   /**
    * Analyzes a YouTube video and returns the analysis
@@ -36,7 +37,7 @@ export const useVideoAnalysis = () => {
         description: "Nous analysons la vidéo YouTube...",
       });
       
-      // Get YouTube API key
+      // Get API keys
       const apiKeys = localStorage.getItem("api_keys");
       if (!apiKeys) {
         toast({
@@ -57,53 +58,15 @@ export const useVideoAnalysis = () => {
         return { success: false };
       }
 
-      // Fetch video info
-      const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${youtube}`);
-      const data = await response.json();
+      // Analyze the video
+      const result = await analyzeVideo(videoId, youtube, perplexity);
       
-      if (!data.items || data.items.length === 0) {
-        toast({
-          title: "Vidéo non trouvée",
-          description: "Impossible de trouver cette vidéo sur YouTube",
-          variant: "destructive"
-        });
-        return { success: false };
+      if (result.success) {
+        // Increment usage counter
+        incrementYoutubeAnalysis();
       }
       
-      const videoInfo = data.items[0].snippet;
-      const title = videoInfo.title;
-      const description = videoInfo.description;
-      const channelTitle = videoInfo.channelTitle;
-      
-      // Generate analysis using Perplexity AI
-      const prompt = `
-        Analyse cette vidéo YouTube du MRC (Mouvement pour la Renaissance du Cameroun):
-        
-        Titre: "${title}"
-        Chaîne: ${channelTitle}
-        Description: ${description}
-        
-        Pour ton analyse:
-        1. Résume les points clés de la vidéo
-        2. Identifie les messages politiques principaux
-        3. Explique comment cette vidéo s'inscrit dans la stratégie de communication du MRC
-        4. Propose des questions de réflexion pertinentes
-        5. Suggère des liens avec d'autres sujets politiques camerounais
-        
-        Format ton analyse de manière structurée avec des sections claires.
-      `;
-      
-      const analysis = await getPerplexityResponse(perplexity, prompt);
-      
-      // Increment usage counter
-      incrementYoutubeAnalysis();
-      
-      return {
-        success: true,
-        analysis,
-        videoId,
-        title
-      };
+      return result;
     } catch (error) {
       console.error("Error analyzing YouTube video:", error);
       toast({
