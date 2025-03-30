@@ -1,19 +1,23 @@
 
 import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/components/auth/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserWithSubscription } from './AuthContext';
 
-const UserAvatar = () => {
-  const { user } = useAuth();
+interface UserAvatarProps {
+  user: UserWithSubscription | null;
+  className?: string;
+}
+
+const UserAvatar: React.FC<UserAvatarProps> = ({ user, className = '' }) => {
+  if (!user) return null;
   
-  const initials = user?.displayName 
-    ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase() 
-    : 'U';
+  const userName = user.displayName || user.username || user.email?.split('@')[0] || 'User';
+  const initials = userName.charAt(0).toUpperCase();
   
   return (
-    <Avatar className="h-8 w-8">
-      <AvatarImage src={user?.avatar || ''} alt={user?.displayName || 'User'} />
-      <AvatarFallback className="bg-mrc-blue text-white">
+    <Avatar className={className}>
+      <AvatarImage src={user.avatar} alt={userName} />
+      <AvatarFallback className="bg-primary text-primary-foreground">
         {initials}
       </AvatarFallback>
     </Avatar>

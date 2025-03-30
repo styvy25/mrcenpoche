@@ -1,73 +1,82 @@
-import React from 'react';
-import { Home, Book, MessageSquare, Settings, Youtube, Download } from 'lucide-react';
 
-interface NavLink {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
-  description: string;
-  color: string;
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  Home,
+  MessageSquare,
+  FileText,
+  BrainCircuit,
+  YoutubeIcon,
+  Settings,
+  Users,
+} from "lucide-react";
+
+interface NavbarLinksProps {
+  isApiKeySet: boolean;
+  isMobile?: boolean;
+  onNavClick?: () => void;
 }
 
-const NavbarLinks = () => {
-  const navLinks: NavLink[] = [
-    {
-      label: 'Accueil',
-      href: '/',
-      icon: <Home className="h-5 w-5" />,
-      description: 'Retourner au tableau de bord principal',
-      color: 'text-gray-500',
-    },
-    {
-      label: 'Formations',
-      href: '/modules',
-      icon: <Book className="h-5 w-5" />,
-      description: 'Accéder aux modules de formation',
-      color: 'text-mrc-blue',
-    },
-    {
-      label: 'Assistant IA',
-      href: '/chat',
-      icon: <MessageSquare className="h-5 w-5" />,
-      description: 'Discuter avec l\'assistant IA',
-      color: 'text-green-500',
-    },
-    {
-      label: 'Analyse YouTube',
-      href: '/youtube-analysis',
-      icon: <Youtube className="h-5 w-5" />,
-      description: 'Analyser des vidéos YouTube du MRC',
-      color: 'text-red-500',
-    },
-    {
-      label: 'Téléchargement',
-      href: '/youtube-downloader',
-      icon: <Download className="h-5 w-5" />,
-      description: 'Télécharger des vidéos YouTube du MRC',
-      color: 'text-red-500',
-    },
-    {
-      label: 'Paramètres',
-      href: '/settings',
-      icon: <Settings className="h-5 w-5" />,
-      description: 'Modifier les paramètres de l\'application',
-      color: 'text-gray-500',
-    },
-  ];
+export const navLinks = [
+  { path: "/", label: "Accueil", icon: <Home size={16} />, highlight: false },
+  { path: "/assistant", label: "Assistant", icon: <MessageSquare size={16} />, highlight: false },
+  { path: "/chat-237", label: "Chat 237", icon: <Users size={16} />, highlight: true, badge: true },
+  { path: "/documents", label: "Documents", icon: <FileText size={16} />, highlight: false },
+  { path: "/quiz", label: "Quiz", icon: <BrainCircuit size={16} />, highlight: false },
+  { 
+    path: "/youtube-analyzer", 
+    label: "YouTube", 
+    icon: <YoutubeIcon size={16} />, 
+    highlight: true, 
+    badge: true 
+  },
+  { path: "/settings", label: "Paramètres", icon: <Settings size={16} />, highlight: false }
+];
+
+const NavbarLinks: React.FC<NavbarLinksProps> = ({ 
+  isApiKeySet,
+  isMobile = false,
+  onNavClick
+}) => {
+  const location = useLocation();
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const handleClick = () => {
+    if (onNavClick) {
+      onNavClick();
+    }
+  };
 
   return (
-    <div className="flex flex-col space-y-4">
-      {navLinks.map((link) => (
-        <a
-          key={link.label}
-          href={link.href}
-          className="group flex items-center space-x-3 rounded-md p-2 text-sm font-medium hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50"
+    <>
+      {navLinks.map(link => (
+        <Link
+          key={link.path}
+          to={link.path}
+          onClick={handleClick}
+          className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md ${
+            isActive(link.path)
+              ? link.path === "/youtube-analyzer" 
+                ? "bg-red-500 text-white"
+                : link.path === "/chat-237"
+                  ? "bg-purple-600 text-white"
+                  : "bg-mrc-blue text-white"
+              : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+          } ${isMobile ? "w-full justify-start" : ""}`}
         >
-          <link.icon className={`${link.color} h-4 w-4`} />
-          <span>{link.label}</span>
-        </a>
+          {link.icon}
+          <span className={isMobile ? "inline" : "hidden lg:inline"}>{link.label}</span>
+          {link.badge && (
+            <span className="ml-1 px-1.5 py-0.5 text-xs bg-green-500 text-white rounded-full">
+              New
+            </span>
+          )}
+        </Link>
       ))}
-    </div>
+    </>
   );
 };
 
