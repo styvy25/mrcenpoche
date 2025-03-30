@@ -2,7 +2,7 @@
 export interface Message {
   id: string;
   text?: string;
-  sender?: string;
+  sender?: 'user' | 'ai';
   timestamp: Date;
   isRead?: boolean;
   senderId?: string;
@@ -16,6 +16,7 @@ export interface Message {
     url: string;
     name?: string;
   };
+  role?: "assistant" | "user";
 }
 
 export interface User {
@@ -39,7 +40,6 @@ export interface ChatState {
   error: Error | null;
 }
 
-// Nouveaux types pour résoudre les problèmes de compatibilité
 export interface MessageContent {
   id: string;
   senderId: string;

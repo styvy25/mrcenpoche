@@ -15,6 +15,7 @@ import SettingsPage from './pages/SettingsPage';
 import { ThemeProvider } from './components/ui/theme-provider';
 import YouTubeAnalyzerPage from './pages/YouTubeAnalyzerPage';
 import YoutubeAnalysisPage from './pages/YoutubeAnalysisPage';
+import Chat237Page from './pages/Chat237Page';
 
 const App = () => {
   return (
@@ -25,6 +26,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/assistant" element={<AssistantPage />} />
+              <Route path="/chat-237" element={<Chat237Page />} />
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/auth" element={<AuthPage />} />

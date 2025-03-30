@@ -55,7 +55,7 @@ export const useMessageSubscription = (
             timestamp: new Date(msg.created_at),
             text: msg.content,
             sender: 'ai'
-          })) as Message[];
+          }) as Message);
 
           setMessages(formattedMessages);
         }
