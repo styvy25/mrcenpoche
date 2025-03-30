@@ -4,6 +4,12 @@ import { useYouTubeSearch } from "./useYouTubeSearch";
 import { useMessageHandler } from "./useMessageHandler";
 import { useOfflineMode } from "./useOfflineMode";
 import { Message } from "@/types/message";
+import { 
+  normalizeMessages, 
+  formatMessageTime, 
+  formatLastSeen,
+  saveMessagesToStorage 
+} from "@/utils/MessageUtils";
 
 export function useChatState() {
   const { 
@@ -29,29 +35,6 @@ export function useChatState() {
   // Use a ref to track if we've already initialized messages
   const hasInitialized = useRef(false);
 
-  // Ensure all messages have a timestamp that's a Date object
-  const normalizeMessages = useCallback((msgs: Message[]) => {
-    return msgs.map(msg => {
-      if (msg.timestamp && typeof msg.timestamp === 'string') {
-        return {
-          ...msg,
-          timestamp: new Date(msg.timestamp),
-          sender: msg.sender || (msg.role === 'assistant' ? 'ai' : 'user')
-        };
-      } else if (!msg.timestamp) {
-        return {
-          ...msg,
-          timestamp: new Date(),
-          sender: msg.sender || (msg.role === 'assistant' ? 'ai' : 'user')
-        };
-      }
-      return {
-        ...msg,
-        sender: msg.sender || (msg.role === 'assistant' ? 'ai' : 'user')
-      };
-    });
-  }, []);
-
   // Initialize messages from localStorage if available
   useEffect(() => {
     if (!hasInitialized.current) {
@@ -68,7 +51,7 @@ export function useChatState() {
     const timeoutId = setTimeout(() => {
       // Make sure all messages have proper timestamps before saving
       const normalizedMessages = normalizeMessages(messages);
-      localStorage.setItem('mrc_chat_messages', JSON.stringify(normalizedMessages));
+      saveMessagesToStorage(normalizedMessages);
       
       // Update messages with normalized timestamps if needed
       if (JSON.stringify(messages) !== JSON.stringify(normalizedMessages)) {
@@ -77,10 +60,10 @@ export function useChatState() {
     }, 500); // Add debounce to prevent excessive writes
     
     return () => clearTimeout(timeoutId);
-  }, [messages, normalizeMessages, setMessages]);
+  }, [messages, setMessages]);
 
   const handleSendMessage = useCallback((input: string) => {
-    return baseHandleSendMessage(input, isOnline, handleYouTubeSearch);
+    return baseHandleSendMessage(input, isOnline, (query) => handleYouTubeSearch(query, isOnline));
   }, [baseHandleSendMessage, isOnline, handleYouTubeSearch]);
 
   const handleVideoSelect = useCallback((videoId: string) => {
@@ -93,22 +76,6 @@ export function useChatState() {
     { id: '2', name: 'Pierre Smith', status: 'online', lastSeen: new Date(), avatar: '', isOnline: true },
     { id: '3', name: 'Marie Johnson', status: 'away', lastSeen: new Date(Date.now() - 30 * 60000), avatar: '', isOnline: false },
   ];
-
-  // Helper functions for time formatting
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatLastSeen = (date: Date) => {
-    const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
-    if (minutes < 1) return 'à l\'instant';
-    if (minutes < 60) return `il y a ${minutes} min`;
-    
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `il y a ${hours} h`;
-    
-    return date.toLocaleDateString('fr-FR');
-  };
 
   // Chat settings
   const chatSettings = {
@@ -129,7 +96,7 @@ export function useChatState() {
     clearConversation,
     activeUsers,
     CURRENT_USER_ID: '1',
-    formatTime,
+    formatTime: formatMessageTime,
     formatLastSeen,
     chatSettings
   };

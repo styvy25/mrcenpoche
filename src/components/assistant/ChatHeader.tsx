@@ -1,14 +1,7 @@
 
-import { Button } from "@/components/ui/button";
-import {
-  RefreshCcw,
-  MoreHorizontal,
-  Trash2,
-  FileText,
-  Copy,
-  Wifi,
-  WifiOff
-} from "lucide-react";
+import React from 'react';
+import { useToast } from "@/hooks/use-toast";
+import { Message } from "@/types/message";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,178 +19,194 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { Button } from "@/components/ui/button";
+import { Loader2, MoreVertical, RefreshCw, Trash2, Copy, Download } from "lucide-react";
 import PDFExportButton from "./PDFExportButton";
-import { useChatHeader } from "./hooks/useChatHeader";
-import { useMessageHandler } from "./hooks/useMessageHandler";
+import { Feature, usePlanLimits } from "@/hooks/usePlanLimits";
 
-// Refactored: Extracted the clear conversation dialog into a separate component
-interface ClearConversationDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-}
-
-const ClearConversationDialog: React.FC<ClearConversationDialogProps> = ({
-  open,
-  onOpenChange,
-  onConfirm,
-}) => {
-  return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Effacer la conversation</AlertDialogTitle>
-          <AlertDialogDescription>
-            Êtes-vous sûr de vouloir effacer toute la conversation? Cette action est irréversible.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            className="bg-red-500 hover:bg-red-600"
-          >
-            Effacer
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-};
-
-// Refactored: Extracted the online status indicator into a separate component
-interface OnlineStatusProps {
-  isOnline: boolean;
-}
-
-const OnlineStatus: React.FC<OnlineStatusProps> = ({ isOnline }) => {
-  return (
-    <p className="text-xs text-muted-foreground flex items-center">
-      {isOnline ? (
-        <>
-          <Wifi className="h-3 w-3 mr-1 text-green-500" />
-          Assistant IA connecté
-        </>
-      ) : (
-        <>
-          <WifiOff className="h-3 w-3 mr-1 text-amber-500" />
-          Mode hors-ligne
-        </>
-      )}
-    </p>
-  );
-};
-
-// Main ChatHeader component
 interface ChatHeaderProps {
-  onGeneratePDF?: () => void;
+  title?: string;
+  subtitle?: string;
+  messages: Message[];
   onClearConversation: () => void;
-  onRefresh: () => Promise<boolean>;
-  isOnline: boolean;
+  onRefresh?: () => Promise<boolean>;
 }
 
-const ChatHeader = ({
-  onGeneratePDF,
-  onClearConversation,
-  onRefresh,
-  isOnline
-}: ChatHeaderProps) => {
-  const { messages } = useMessageHandler();
-  const { canUseFeature } = usePlanLimits();
-  
-  const {
+export function useChatHeader({ 
+  messages, 
+  onClearConversation, 
+  onRefresh 
+}: {
+  messages: Message[]; 
+  onClearConversation: () => void; 
+  onRefresh?: () => Promise<boolean>;
+}) {
+  const [isClearDialogOpen, setIsClearDialogOpen] = React.useState(false);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const { toast } = useToast();
+
+  const handleClearConfirm = React.useCallback(() => {
+    onClearConversation();
+    setIsClearDialogOpen(false);
+    toast({
+      title: "Conversation effacée",
+      description: "Toutes les messages ont été supprimés",
+    });
+  }, [onClearConversation, toast]);
+
+  const handleRefresh = React.useCallback(async () => {
+    if (!onRefresh) return;
+    
+    setIsRefreshing(true);
+    const success = await onRefresh();
+    setIsRefreshing(false);
+    
+    if (!success) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de rafraîchir la conversation",
+        variant: "destructive",
+      });
+    }
+  }, [onRefresh, toast]);
+
+  const handleCopyConversation = React.useCallback(() => {
+    const conversationText = messages
+      .map((msg) => {
+        const sender = msg.role === "assistant" || msg.sender === "ai" ? "Styvy237" : "Vous";
+        return `${sender}: ${msg.content || msg.text}`;
+      })
+      .join("\n\n");
+
+    navigator.clipboard.writeText(conversationText);
+    toast({
+      title: "Conversation copiée",
+      description: "La conversation a été copiée dans le presse-papiers",
+    });
+  }, [messages, toast]);
+
+  return {
     isClearDialogOpen,
     setIsClearDialogOpen,
     isRefreshing,
     handleClearConfirm,
     handleRefresh,
     handleCopyConversation
-  } = useChatHeader({
-    messages,
-    onClearConversation,
-    onRefresh
-  });
+  };
+}
 
-  const canExportPDF = canUseFeature('pdfExport');
+const ChatHeader: React.FC<ChatHeaderProps> = ({ 
+  title = "Assistant IA", 
+  subtitle = "Styvy237 - votre assistant pour la formation MRC",
+  messages,
+  onClearConversation,
+  onRefresh
+}) => {
+  const { 
+    isClearDialogOpen, 
+    setIsClearDialogOpen,
+    isRefreshing,
+    handleClearConfirm,
+    handleRefresh,
+    handleCopyConversation 
+  } = useChatHeader({ messages, onClearConversation, onRefresh });
+  
+  const { hasFeatureAccess } = usePlanLimits();
 
   return (
-    <>
-      <div className="flex justify-between items-center p-4 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <h3 className="text-lg font-bold">Styvy237</h3>
-            <OnlineStatus isOnline={isOnline} />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
+    <header className="flex items-center justify-between p-4 border-b">
+      <div>
+        <h1 className="text-lg font-bold">{title}</h1>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        {hasFeatureAccess(Feature.PDF_EXPORT) && (
+          <PDFExportButton 
+            messages={messages} 
+            size="sm"
+            className="hidden sm:flex"
+          />
+        )}
+        
+        {onRefresh && (
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="relative"
-            title="Rafraîchir la discussion"
           >
-            <RefreshCcw
-              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-            />
+            {isRefreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            <span className="ml-2 hidden sm:inline">Rafraîchir</span>
           </Button>
-
-          {messages.length > 1 && (
-            <PDFExportButton 
-              messages={messages}
-              variant="ghost"
-              size="icon"
-              className="relative"
-            />
-          )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleCopyConversation}>
-                <Copy className="h-4 w-4 mr-2" />
-                Copier la conversation
+        )}
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">Actions</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {hasFeatureAccess(Feature.PDF_EXPORT) && (
+              <DropdownMenuItem asChild>
+                <button className="flex w-full items-center" onClick={() => {
+                  const pdfButton = document.querySelector('button[class*="PDFExportButton"]') as HTMLButtonElement;
+                  pdfButton?.click();
+                }}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Exporter PDF
+                </button>
               </DropdownMenuItem>
-              
-              {canExportPDF && onGeneratePDF && (
-                <DropdownMenuItem onClick={onGeneratePDF}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Exporter en PDF
-                </DropdownMenuItem>
-              )}
-              
-              <DropdownMenuItem onClick={handleRefresh} disabled={isRefreshing}>
-                <RefreshCcw className="h-4 w-4 mr-2" />
+            )}
+            
+            <DropdownMenuItem onSelect={handleCopyConversation}>
+              <Copy className="mr-2 h-4 w-4" />
+              Copier conversation
+            </DropdownMenuItem>
+            
+            {onRefresh && (
+              <DropdownMenuItem onSelect={handleRefresh} disabled={isRefreshing}>
+                <RefreshCw className="mr-2 h-4 w-4" />
                 Rafraîchir
               </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem
-                onClick={() => setIsClearDialogOpen(true)}
-                className="text-red-500 focus:text-red-500"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Effacer la conversation
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            )}
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem 
+              onSelect={() => setIsClearDialogOpen(true)}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Effacer conversation
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <AlertDialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Effacer la conversation?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cette action est irréversible. Tous les messages seront définitivement supprimés.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleClearConfirm} className="bg-destructive text-destructive-foreground">
+                Effacer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-
-      <ClearConversationDialog 
-        open={isClearDialogOpen}
-        onOpenChange={setIsClearDialogOpen}
-        onConfirm={handleClearConfirm}
-      />
-    </>
+    </header>
   );
 };
 

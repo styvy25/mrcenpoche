@@ -1,139 +1,80 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Download, Loader2 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { useToast } from '@/hooks/use-toast';
-import MRCLogoNew from '@/components/branding/MRCLogoNew';
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Download, Loader2 } from "lucide-react";
+import { Message } from "@/types/message";
+import { useToast } from "@/hooks/use-toast";
+import { generatePDF } from "./utils/pdfUtils";
+import { Feature, usePlanLimits } from "@/hooks/usePlanLimits";
 
-interface Message {
-  id: string;
-  text: string;
-  sender: string;
-  content?: string;
-  timestamp: Date;
-}
-
-interface PDFExportButtonProps {
+export interface PDFExportButtonProps {
   messages: Message[];
-  title?: string;
-  disabled?: boolean;
+  size?: "default" | "sm" | "lg" | "icon";
+  className?: string;
 }
 
 const PDFExportButton: React.FC<PDFExportButtonProps> = ({ 
   messages, 
-  title = "Conversation avec l'assistant MRC",
-  disabled = false
+  size = "default",
+  className = ""
 }) => {
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExporting, setIsExporting] = React.useState(false);
   const { toast } = useToast();
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-
-  const exportToPDF = async () => {
-    if (messages.length === 0 || disabled) return;
+  const { hasFeatureAccess } = usePlanLimits();
+  
+  const handleExport = async () => {
+    if (!hasFeatureAccess(Feature.PDF_EXPORT)) {
+      toast({
+        title: "Fonctionnalité premium",
+        description: "L'exportation PDF est disponible avec un abonnement premium",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (messages.length === 0) {
+      toast({
+        title: "Aucun message à exporter",
+        description: "Commencez une conversation avant d'exporter",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsExporting(true);
     
     try {
-      // Create PDF document
-      const pdf = new jsPDF();
-      
-      // Add title
-      pdf.setFontSize(18);
-      pdf.setTextColor(33, 86, 219); // MRC blue
-      pdf.text(title, 20, 20);
-      
-      // Add date
-      pdf.setFontSize(10);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(`Généré le: ${formatDate(new Date())}`, 20, 28);
-      
-      // Add content
-      pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
-      
-      const tableData = messages.map(msg => {
-        const isAssistant = msg.sender === "assistant";
-        // Make sure we're not comparing 'assistant'/'user' with 'system'
-        return [
-          isAssistant ? 'Assistant MRC' : 'Vous',
-          msg.content || msg.text || '',
-          formatDate(msg.timestamp)
-        ];
-      });
-      
-      autoTable(pdf, {
-        startY: 35,
-        head: [['Expéditeur', 'Message', 'Heure']],
-        body: tableData,
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [33, 86, 219], textColor: [255, 255, 255] },
-        alternateRowStyles: { fillColor: [240, 244, 255] },
-        columnStyles: {
-          0: { cellWidth: 30 },
-          1: { cellWidth: 'auto' },
-          2: { cellWidth: 30 }
-        }
-      });
-      
-      // Add footer
-      const pageCount = pdf.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.setTextColor(100, 100, 100);
-        pdf.text('MRC en Poche - Document généré automatiquement', 20, pdf.internal.pageSize.height - 10);
-        pdf.text('Page ' + i + ' / ' + pageCount, pdf.internal.pageSize.width - 30, pdf.internal.pageSize.height - 10);
-      }
-      
-      // Save PDF
-      pdf.save('conversation-assistant-mrc.pdf');
-      
+      await generatePDF(messages);
       toast({
         title: "Exportation réussie",
-        description: "Votre conversation a été exportée au format PDF",
+        description: "Le fichier PDF a été téléchargé",
       });
     } catch (error) {
-      console.error("Erreur lors de l'exportation en PDF:", error);
+      console.error("Error generating PDF:", error);
       toast({
         title: "Erreur d'exportation",
-        description: "Une erreur est survenue lors de l'exportation du PDF",
+        description: "Impossible de générer le PDF. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
       setIsExporting(false);
     }
   };
-
+  
   return (
-    <Button 
-      variant="outline"
-      size="sm"
-      disabled={isExporting || disabled || messages.length === 0}
-      onClick={exportToPDF}
-      className="flex items-center gap-2"
+    <Button
+      onClick={handleExport}
+      size={size}
+      variant="ghost"
+      className={className}
+      disabled={isExporting}
     >
       {isExporting ? (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Exportation...
-        </>
+        <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <>
-          <Download className="h-4 w-4" />
-          Exporter PDF
-        </>
+        <Download className="h-4 w-4" />
       )}
+      {size !== "icon" && <span className="ml-2">Exporter PDF</span>}
     </Button>
   );
 };

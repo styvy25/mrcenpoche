@@ -1,10 +1,11 @@
 
 import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Message } from "../types/message";
+import { Message } from "@/types/message";
 import { supabase } from "@/integrations/supabase/client";
 import { getPerplexityResponse } from "../services/perplexityService";
 import { v4 as uuidv4 } from "uuid";
+import { createMessage, normalizeMessage } from "@/utils/MessageUtils";
 
 export function useMessageHandler() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -31,25 +32,17 @@ export function useMessageHandler() {
   }, []);
   
   const setInitialMessage = useCallback(() => {
-    setMessages([{
-      id: uuidv4(),
-      role: "assistant",
-      content: "Bonjour, je suis Styvy237, votre assistant IA pour la formation MRC. Comment puis-je vous aider aujourd'hui?",
-      timestamp: new Date(),
-      text: "Bonjour, je suis Styvy237, votre assistant IA pour la formation MRC. Comment puis-je vous aider aujourd'hui?"
-    }]);
+    const initialMessage = createMessage(
+      "Bonjour, je suis Styvy237, votre assistant IA pour la formation MRC. Comment puis-je vous aider aujourd'hui?", 
+      "assistant"
+    );
+    setMessages([initialMessage]);
   }, []);
 
   const handleSendMessage = useCallback(async (input: string, isOnline: boolean, handleYouTubeSearch: (query: string, isOnline: boolean) => Promise<void>) => {
     if (!input.trim()) return false;
     
-    const userMessage: Message = {
-      id: uuidv4(),
-      role: "user",
-      content: input,
-      timestamp: new Date(),
-      text: input
-    };
+    const userMessage = createMessage(input, "user");
     
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
@@ -60,14 +53,7 @@ export function useMessageHandler() {
         try {
           const offlineResponse = await getPerplexityResponse("", input); // Empty API key triggers offline mode
           
-          const aiMessage: Message = {
-            id: uuidv4(),
-            role: "assistant",
-            content: offlineResponse,
-            timestamp: new Date(),
-            text: offlineResponse
-          };
-
+          const aiMessage = createMessage(offlineResponse, "assistant");
           setMessages(prev => [...prev, aiMessage]);
         } catch (error) {
           toast({
@@ -88,14 +74,7 @@ export function useMessageHandler() {
       if (!apiKeys) {
         // If no API keys, generate a simple response
         setTimeout(() => {
-          const simpleResponse: Message = {
-            id: uuidv4(),
-            role: "assistant",
-            content: getSimpleAIResponse(input),
-            timestamp: new Date(),
-            text: getSimpleAIResponse(input)
-          };
-          
+          const simpleResponse = createMessage(getSimpleAIResponse(input), "assistant");
           setMessages(prev => [...prev, simpleResponse]);
           setIsLoading(false);
         }, 1000);
@@ -116,14 +95,7 @@ export function useMessageHandler() {
 
           if (error) throw error;
 
-          const aiMessage: Message = {
-            id: uuidv4(),
-            role: "assistant",
-            content: data.composition,
-            timestamp: new Date(),
-            text: data.composition
-          };
-
+          const aiMessage = createMessage(data.composition, "assistant");
           setMessages(prev => [...prev, aiMessage]);
         } catch (error) {
           console.error('Error generating XV:', error);
@@ -154,14 +126,7 @@ export function useMessageHandler() {
           responseContent = getSimpleAIResponse(input);
         }
         
-        const aiMessage: Message = {
-          id: uuidv4(),
-          role: "assistant",
-          content: responseContent,
-          timestamp: new Date(),
-          text: responseContent
-        };
-
+        const aiMessage = createMessage(responseContent, "assistant");
         setMessages(prev => [...prev, aiMessage]);
       } catch (error) {
         toast({
