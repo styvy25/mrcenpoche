@@ -68,3 +68,22 @@ export { clearResponseCache, getCachedResponse };
 
 // Re-export the API testing function
 export { testPerplexityApiKey };
+
+// Function to refresh YouTube cache
+export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
+  if (!apiKey || !navigator.onLine) return false;
+  
+  try {
+    const response = await fetch('https://www.googleapis.com/youtube/v3/search', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.error('Error refreshing YouTube cache:', error);
+    return false;
+  }
+};

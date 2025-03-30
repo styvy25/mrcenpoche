@@ -13,14 +13,15 @@ import {
 
 export function useChatState() {
   const { 
-    messages, 
+    messages: handlerMessages, 
     isLoading, 
-    setIsLoading,
     handleSendMessage: baseHandleSendMessage, 
     clearConversation,
     initializeMessages,
-    setMessages
+    setMessages: setHandlerMessages
   } = useMessageHandler();
+  
+  const [messages, setMessages] = useState<Message[]>([]);
   
   const {
     youtubeResults,
@@ -34,6 +35,19 @@ export function useChatState() {
   
   // Use a ref to track if we've already initialized messages
   const hasInitialized = useRef(false);
+
+  // Sync messages from messageHandler
+  useEffect(() => {
+    if (handlerMessages.length > 0) {
+      const normalizedMessages = handlerMessages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp),
+        sender: msg.sender || "user",
+        text: msg.text || msg.content || ""
+      }));
+      setMessages(normalizedMessages);
+    }
+  }, [handlerMessages]);
 
   // Initialize messages from localStorage if available
   useEffect(() => {
@@ -59,12 +73,12 @@ export function useChatState() {
       
       // Update messages with normalized timestamps if needed
       if (JSON.stringify(messages) !== JSON.stringify(normalizedMessages)) {
-        setMessages(normalizedMessages);
+        setHandlerMessages(normalizedMessages);
       }
-    }, 500); // Add debounce to prevent excessive writes
+    }, 500);
     
     return () => clearTimeout(timeoutId);
-  }, [messages, setMessages]);
+  }, [messages, setHandlerMessages]);
 
   const handleSendMessage = useCallback((input: string) => {
     return baseHandleSendMessage(input);

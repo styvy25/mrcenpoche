@@ -50,7 +50,7 @@ const ChatContent = memo(({
     };
     
     renderBatch();
-  }, [messages]);
+  }, [messages, renderedMessages.length]);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {

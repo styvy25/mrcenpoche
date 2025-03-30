@@ -103,7 +103,7 @@ export function useMessageHandler() {
 
   const handleSendMessage = useCallback(async (
     input: string, 
-    isOnline: boolean, 
+    isOnline: boolean = navigator.onLine, 
     handleYouTubeSearch: ((query: string, isOnline: boolean) => Promise<void>) | null = null
   ): Promise<boolean> => {
     if (!input.trim()) return false;
