@@ -93,7 +93,7 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-black rounded-xl shadow-xl overflow-hidden border border-white/10 optimize-animation">
+    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-100 dark:from-gray-900 to-white dark:to-black rounded-xl shadow-xl overflow-hidden border dark:border-white/10 optimize-animation">
       {!isOnline && (
         <Alert variant="destructive" className="mx-4 mt-4 bg-amber-500/20 border-amber-500/30">
           <AlertTriangle className="h-4 w-4" />
