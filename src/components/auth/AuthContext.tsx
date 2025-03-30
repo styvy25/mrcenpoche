@@ -8,6 +8,10 @@ export interface UserWithSubscription extends User {
     type: 'free' | 'premium';
     features?: string[];
   };
+  displayName?: string;
+  username?: string;
+  avatar?: string;
+  lastLogin?: Date;
 }
 
 export interface AuthContextType {
@@ -15,6 +19,7 @@ export interface AuthContextType {
   user: User | null;
   currentUser: UserWithSubscription | null;
   session: Session | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<{
     error: any | null;
     data: any | null;
@@ -24,7 +29,7 @@ export interface AuthContextType {
     data: any | null;
   }>;
   logout: () => Promise<void>;
-  loading: boolean;
+  updateLastLogin: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -36,6 +41,7 @@ export const AuthContext = createContext<AuthContextType>({
   register: async () => ({ error: null, data: null }),
   logout: async () => {},
   loading: true,
+  updateLastLogin: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,14 +59,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         if (session?.user) {
           // Add subscription info for testing purposes
-          const userWithSubscription: UserWithSubscription = {
+          const enhancedUser: UserWithSubscription = {
             ...session.user,
+            displayName: session.user.email?.split('@')[0] || 'User',
+            username: session.user.email?.split('@')[0] || 'user',
+            avatar: `https://ui-avatars.com/api/?name=${session.user.email?.split('@')[0] || 'User'}&background=random`,
+            lastLogin: new Date(),
             subscription: {
               type: 'free',
               features: ['basic_access']
             }
           };
-          setCurrentUser(userWithSubscription);
+          setCurrentUser(enhancedUser);
         } else {
           setCurrentUser(null);
         }
@@ -73,14 +83,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       if (session?.user) {
         // Add subscription info for testing purposes
-        const userWithSubscription: UserWithSubscription = {
+        const enhancedUser: UserWithSubscription = {
           ...session.user,
+          displayName: session.user.email?.split('@')[0] || 'User',
+          username: session.user.email?.split('@')[0] || 'user',
+          avatar: `https://ui-avatars.com/api/?name=${session.user.email?.split('@')[0] || 'User'}&background=random`,
+          lastLogin: new Date(),
           subscription: {
             type: 'free',
             features: ['basic_access']
           }
         };
-        setCurrentUser(userWithSubscription);
+        setCurrentUser(enhancedUser);
       }
       setLoading(false);
     });
@@ -115,6 +129,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
   };
 
+  const updateLastLogin = async () => {
+    if (currentUser) {
+      setCurrentUser({
+        ...currentUser,
+        lastLogin: new Date()
+      });
+    }
+  };
+
   const value = {
     isAuthenticated: !!user,
     user,
@@ -124,6 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     loading,
+    updateLastLogin
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
