@@ -8,6 +8,7 @@ interface SpeechRecognitionHook {
   stopListening: () => void;
   resetTranscript: () => void;
   hasRecognitionSupport: boolean;
+  browserSupportsSpeechRecognition: boolean; // Added missing property
 }
 
 export const useSpeechRecognition = (): SpeechRecognitionHook => {
@@ -15,6 +16,7 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
   const [transcript, setTranscript] = useState('');
   const [recognition, setRecognition] = useState<any>(null);
   const [hasRecognitionSupport, setHasRecognitionSupport] = useState(false);
+  const [browserSupportsSpeechRecognition, setBrowserSupportsSpeechRecognition] = useState(false);
 
   useEffect(() => {
     // Check if browser supports speech recognition
@@ -23,6 +25,7 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
       
       if (SpeechRecognition) {
         setHasRecognitionSupport(true);
+        setBrowserSupportsSpeechRecognition(true);
         const recognitionInstance = new SpeechRecognition();
         
         // Configure recognition
@@ -98,6 +101,7 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
     startListening,
     stopListening,
     resetTranscript,
-    hasRecognitionSupport
+    hasRecognitionSupport,
+    browserSupportsSpeechRecognition
   };
 };

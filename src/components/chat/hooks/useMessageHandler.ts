@@ -5,6 +5,30 @@ export function useMessageHandler() {
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Refactored: Extracted message response handling into a separate function
+  const getAiResponse = useCallback((query: string): string => {
+    const lowercaseQuery = query.toLowerCase();
+    
+    if (lowercaseQuery.includes('mrc')) {
+      return "Le MRC (Mouvement pour la Renaissance du Cameroun) est un parti politique camerounais fondé en 2012. Son président est Maurice Kamto. Le parti prône des valeurs démocratiques et une meilleure gouvernance pour le Cameroun.";
+    }
+    
+    if (lowercaseQuery.includes('kamto')) {
+      return "Maurice Kamto est un homme politique camerounais, président du MRC et ancien candidat à l'élection présidentielle de 2018. Il est également juriste international et a été ministre délégué à la Justice du Cameroun de 2004 à 2011.";
+    }
+    
+    if (lowercaseQuery.includes('cameroun')) {
+      return "Le Cameroun est un pays d'Afrique centrale. Sa capitale politique est Yaoundé et sa capitale économique est Douala. Le pays fait face à divers défis politiques et économiques, avec plusieurs partis politiques actifs dont le MRC.";
+    }
+    
+    if (lowercaseQuery.includes('bonjour') || lowercaseQuery.includes('salut') || lowercaseQuery.includes('hello')) {
+      return "Bonjour ! Comment puis-je vous aider aujourd'hui concernant le MRC ou les actualités du Cameroun ?";
+    }
+    
+    return "Je n'ai pas d'information spécifique sur ce sujet. Pourriez-vous préciser votre question concernant le MRC ou le Cameroun ? Je peux aussi rechercher des vidéos YouTube pour vous si vous le souhaitez.";
+  }, []);
+
+  // Refactored: handleSendMessage with clearer responsibilities
   const handleSendMessage = useCallback((input: string, isOnline: boolean = true, handleYouTubeSearch: any = null) => {
     if (!input.trim()) return;
     
@@ -46,8 +70,9 @@ export function useMessageHandler() {
     }, 1000);
     
     return true;
-  }, [messages]);
+  }, [messages, getAiResponse]);
   
+  // Refactored: Extracted conversation management into separate functions
   const clearConversation = useCallback(() => {
     setMessages([{
       id: 1,
@@ -70,29 +95,6 @@ export function useMessageHandler() {
       clearConversation();
     }
   }, [clearConversation]);
-
-  // Simple AI response generator
-  const getAiResponse = (query: string): string => {
-    const lowercaseQuery = query.toLowerCase();
-    
-    if (lowercaseQuery.includes('mrc')) {
-      return "Le MRC (Mouvement pour la Renaissance du Cameroun) est un parti politique camerounais fondé en 2012. Son président est Maurice Kamto. Le parti prône des valeurs démocratiques et une meilleure gouvernance pour le Cameroun.";
-    }
-    
-    if (lowercaseQuery.includes('kamto')) {
-      return "Maurice Kamto est un homme politique camerounais, président du MRC et ancien candidat à l'élection présidentielle de 2018. Il est également juriste international et a été ministre délégué à la Justice du Cameroun de 2004 à 2011.";
-    }
-    
-    if (lowercaseQuery.includes('cameroun')) {
-      return "Le Cameroun est un pays d'Afrique centrale. Sa capitale politique est Yaoundé et sa capitale économique est Douala. Le pays fait face à divers défis politiques et économiques, avec plusieurs partis politiques actifs dont le MRC.";
-    }
-    
-    if (lowercaseQuery.includes('bonjour') || lowercaseQuery.includes('salut') || lowercaseQuery.includes('hello')) {
-      return "Bonjour ! Comment puis-je vous aider aujourd'hui concernant le MRC ou les actualités du Cameroun ?";
-    }
-    
-    return "Je n'ai pas d'information spécifique sur ce sujet. Pourriez-vous préciser votre question concernant le MRC ou le Cameroun ? Je peux aussi rechercher des vidéos YouTube pour vous si vous le souhaitez.";
-  };
 
   return {
     messages,

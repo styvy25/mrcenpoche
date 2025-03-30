@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { SendHorizonal, Image, PaperclipIcon } from 'lucide-react';
+import { SendHorizonal, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -11,6 +11,7 @@ interface MessageInputProps {
   disabled?: boolean;
 }
 
+// Refactored: Extracted to a more focused component with clearer responsibilities
 const MessageInput: React.FC<MessageInputProps> = ({ 
   onSendMessage, 
   onSendMedia,
