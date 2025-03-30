@@ -59,7 +59,7 @@ export const navLinks: NavLinkItem[] = [
     badge: 'New'
   },
   {
-    path: '/youtube-analysis',
+    path: '/youtube-analyzer',
     icon: <YoutubeIcon className="h-4 w-4 text-red-600" />,
     label: 'Analyse YouTube',
     highlight: false,
