@@ -23,9 +23,9 @@ const ChatMessage = ({ message, isCurrentUser, formattedTime }: ChatMessageProps
     <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} group my-2`}>
       <div className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} max-w-[80%] items-end gap-2`}>
         {!isCurrentUser && (
-          <Avatar className="h-10 w-10 border-2 border-blue-500 shadow-md">
+          <Avatar className="h-10 w-10 border-2 border-mrc-blue shadow-md">
             <AvatarImage src={senderAvatar} />
-            <AvatarFallback className="bg-gradient-to-br from-purple-600 to-blue-500 text-white font-medium">
+            <AvatarFallback className="bg-gradient-to-br from-purple-600 to-mrc-blue text-white font-medium">
               {senderName.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -40,7 +40,7 @@ const ChatMessage = ({ message, isCurrentUser, formattedTime }: ChatMessageProps
           
           <Card className={`p-3 ${
             isCurrentUser 
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg rounded-bl-lg border-none shadow-lg backdrop-blur-sm' 
+              ? 'bg-gradient-to-r from-mrc-blue/90 to-purple-600/80 text-white rounded-t-lg rounded-bl-lg border-none shadow-lg' 
               : 'bg-gray-800/90 text-white rounded-t-lg rounded-br-lg border-gray-700'
           } transition-all duration-300 hover:shadow-md backdrop-blur-sm`}>
             <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
@@ -89,7 +89,7 @@ const ChatMessage = ({ message, isCurrentUser, formattedTime }: ChatMessageProps
         {isCurrentUser && (
           <Avatar className="h-10 w-10 border-2 border-purple-600 shadow-md">
             <AvatarImage src={senderAvatar} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-medium">
+            <AvatarFallback className="bg-gradient-to-br from-mrc-blue to-purple-600 text-white font-medium">
               {senderName.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>

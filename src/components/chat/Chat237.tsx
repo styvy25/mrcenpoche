@@ -83,12 +83,9 @@ const Chat237: React.FC<Chat237Props> = ({
   // If we're still loading the chat data
   if (isLoading) {
     return (
-      <Card className={`flex items-center justify-center h-96 bg-gradient-to-br from-gray-900 to-black border-blue-900/50 ${containerClassName}`}>
+      <Card className={`flex items-center justify-center h-96 ${containerClassName}`}>
         <div className="text-center p-4">
-          <div className="flex justify-center mb-4">
-            <div className="animate-spin h-8 w-8 border-t-2 border-b-2 border-blue-500 rounded-full"></div>
-          </div>
-          <p className="text-blue-300">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Chargement de la conversation...
           </p>
         </div>
@@ -99,8 +96,8 @@ const Chat237: React.FC<Chat237Props> = ({
   // If there was an error
   if (error) {
     return (
-      <Card className={`flex items-center justify-center h-96 bg-gradient-to-br from-gray-900 to-black border-blue-900/50 ${containerClassName}`}>
-        <Alert variant="destructive" className="max-w-md bg-red-900/20 border-red-800">
+      <Card className={`flex items-center justify-center h-96 ${containerClassName}`}>
+        <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Erreur de connexion</AlertTitle>
           <AlertDescription>
@@ -124,7 +121,7 @@ const Chat237: React.FC<Chat237Props> = ({
         <div className="flex flex-col md:flex-row h-full gap-4">
           {/* Main chat area */}
           <div className="flex flex-col flex-grow">
-            <Card className="flex flex-col h-full overflow-hidden border-blue-900/50 bg-gradient-to-br from-gray-900/80 to-black/90 backdrop-blur-md">
+            <Card className="flex flex-col h-full overflow-hidden border-blue-200 dark:border-blue-900">
               <Chat237Header 
                 currentUser={currentUser}
                 activeUsers={activeUsers}
