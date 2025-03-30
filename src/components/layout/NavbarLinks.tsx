@@ -8,7 +8,10 @@ import {
   MessageCircle, 
   Youtube as YoutubeIcon, 
   LayoutDashboard,
-  Download 
+  Download,
+  Home,
+  Settings,
+  Users
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -23,6 +26,13 @@ export interface NavLinkItem {
 
 // Define the navigation links configuration
 export const navLinks: NavLinkItem[] = [
+  {
+    path: '/',
+    icon: <Home className="h-4 w-4" />,
+    label: 'Accueil',
+    highlight: false,
+    badge: false
+  },
   {
     path: '/assistant',
     icon: <MessageSquare className="h-4 w-4" />,
@@ -52,6 +62,13 @@ export const navLinks: NavLinkItem[] = [
     badge: false
   },
   {
+    path: '/forum',
+    icon: <Users className="h-4 w-4" />,
+    label: 'Forum',
+    highlight: false,
+    badge: false
+  },
+  {
     path: '/youtube-download',
     icon: <Download className="h-4 w-4 text-red-600" />,
     label: 'Télécharger Vidéos',
@@ -72,6 +89,13 @@ export const navLinks: NavLinkItem[] = [
     label: 'Tableau de bord',
     highlight: true,
     badge: 'New'
+  },
+  {
+    path: '/settings',
+    icon: <Settings className="h-4 w-4" />,
+    label: 'Paramètres',
+    highlight: false,
+    badge: false
   }
 ];
 

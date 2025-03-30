@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, MessageSquare, Brain } from 'lucide-react';
+import { FileText, MessageSquare, Brain, User, Youtube, Home } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel } from '@/components/ui/dock';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -8,6 +8,12 @@ const Footer = () => {
   const location = useLocation();
 
   const navItems = [
+    {
+      title: 'Accueil',
+      icon: <Home className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      href: '/',
+      active: location.pathname === '/' || location.pathname === '/index'
+    },
     {
       title: 'Assistant',
       icon: <MessageSquare className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
@@ -25,6 +31,18 @@ const Footer = () => {
       icon: <Brain className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
       href: '/quiz',
       active: location.pathname === '/quiz'
+    },
+    {
+      title: 'YouTube',
+      icon: <Youtube className="h-full w-full text-red-600 dark:text-red-400" />,
+      href: '/youtube-download',
+      active: location.pathname === '/youtube-download' || location.pathname === '/youtube-analyzer'
+    },
+    {
+      title: 'Compte',
+      icon: <User className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      href: '/dashboard',
+      active: location.pathname === '/dashboard' || location.pathname === '/settings'
     }
   ];
 

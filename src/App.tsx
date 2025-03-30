@@ -12,24 +12,33 @@ import YouTubeDownloadPage from './pages/YouTubeDownloadPage';
 import ForumPage from './pages/ForumPage';
 import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
+import QuizPage from './pages/QuizPage';
+import { AppProvider } from '@/context/AppContext';
+import { Toaster } from '@/components/ui/toaster';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/index" element={<Index />} />
-          <Route path="/assistant" element={<AssistantPage />} />
-          <Route path="/chat-237" element={<Chat237Page />} />
-          <Route path="/documents" element={<DocumentsPage />} />
-          <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
-          <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
-          <Route path="/forum" element={<ForumPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Routes>
-      </Router>
+      <AppProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/index" element={<Index />} />
+            <Route path="/assistant" element={<AssistantPage />} />
+            <Route path="/chat-237" element={<Chat237Page />} />
+            <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
+            <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
+            <Route path="/forum" element={<ForumPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/quiz" element={<QuizPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster />
+        </Router>
+      </AppProvider>
     </AuthProvider>
   );
 }
