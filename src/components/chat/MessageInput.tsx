@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { SendHorizonal, Image, Mic, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -41,26 +41,26 @@ const MessageInput: React.FC<MessageInputProps> = ({
     }
   }, [transcript]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = useCallback(() => {
     if (message.trim() && !disabled) {
       onSendMessage(message);
       setMessage('');
       resetTranscript();
     }
-  };
+  }, [message, disabled, onSendMessage, resetTranscript]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
-  };
+  }, [handleSendMessage]);
 
-  const handleAttachMedia = () => {
+  const handleAttachMedia = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onSendMedia) {
       onSendMedia(file);
@@ -70,9 +70,9 @@ const MessageInput: React.FC<MessageInputProps> = ({
         fileInputRef.current.value = '';
       }
     }
-  };
+  }, [onSendMedia]);
 
-  const toggleRecording = () => {
+  const toggleRecording = useCallback(() => {
     if (isListening) {
       stopListening();
       setIsRecording(false);
@@ -84,20 +84,20 @@ const MessageInput: React.FC<MessageInputProps> = ({
         description: "Parlez clairement...",
       });
     }
-  };
+  }, [isListening, stopListening, startListening, toast]);
 
   // Auto-resize textarea
-  const autoResizeTextarea = () => {
+  const autoResizeTextarea = useCallback(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
       textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
     }
-  };
+  }, []);
 
   useEffect(() => {
     autoResizeTextarea();
-  }, [message]);
+  }, [message, autoResizeTextarea]);
 
   return (
     <div className="p-3 border-t bg-card flex items-end gap-2">
@@ -164,4 +164,4 @@ const MessageInput: React.FC<MessageInputProps> = ({
   );
 };
 
-export default MessageInput;
+export default React.memo(MessageInput);
