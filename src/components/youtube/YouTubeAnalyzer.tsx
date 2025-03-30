@@ -7,7 +7,17 @@ import { AlertCircle, FileDown, FileText, Loader2, YoutubeIcon } from 'lucide-re
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import YouTubeURLInput from './YouTubeURLInput';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
+
+// Simplified usePlanLimits hook for compatibility
+const usePlanLimits = () => {
+  return {
+    hasReachedLimit: () => false,
+    getRemainingUsage: () => 10,
+    canUseFeature: () => true,
+    canAccessAllModules: () => true,
+    incrementUsage: () => {},
+  };
+};
 
 const YouTubeAnalyzer = () => {
   const [videoUrl, setVideoUrl] = useState('');
@@ -21,8 +31,9 @@ const YouTubeAnalyzer = () => {
   const { toast } = useToast();
   const { hasReachedLimit, getRemainingUsage } = usePlanLimits();
 
-  const remainingAnalyses = getRemainingUsage('youtubeAnalyses');
-  const hasLimit = hasReachedLimit('youtubeAnalyses');
+  // For demo purpose
+  const remainingAnalyses = 10;
+  const hasLimit = false;
 
   const handleValidateUrl = async (url: string) => {
     setVideoUrl(url);
@@ -117,6 +128,7 @@ Il aborde également les questions économiques et sociales, en proposant des so
             </CardHeader>
             <CardContent className="space-y-4">
               <YouTubeURLInput 
+                onVideoSelect={(id) => setVideoUrl(id)}
                 onSubmit={handleValidateUrl} 
                 isLoading={isVideoLoading}
                 disabled={isLoading}

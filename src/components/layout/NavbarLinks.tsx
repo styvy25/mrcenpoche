@@ -12,88 +12,61 @@ import {
 
 interface NavbarLinksProps {
   isApiKeySet: boolean;
+  isMobile?: boolean;
+  onNavClick?: () => void;
 }
 
-const NavbarLinks: React.FC<NavbarLinksProps> = ({ isApiKeySet }) => {
+export const navLinks = [
+  { path: "/", label: "Accueil", icon: <Home size={16} />, highlight: false },
+  { path: "/assistant", label: "Assistant", icon: <MessageSquare size={16} />, highlight: false },
+  { path: "/documents", label: "Documents", icon: <FileText size={16} />, highlight: false },
+  { path: "/quiz", label: "Quiz", icon: <BrainCircuit size={16} />, highlight: false },
+  { 
+    path: "/youtube-analyzer", 
+    label: "YouTube", 
+    icon: <YoutubeIcon size={16} />, 
+    highlight: true, 
+    badge: true 
+  },
+  { path: "/settings", label: "Paramètres", icon: <Settings size={16} />, highlight: false }
+];
+
+const NavbarLinks: React.FC<NavbarLinksProps> = ({ 
+  isApiKeySet,
+  isMobile = false,
+  onNavClick
+}) => {
   const location = useLocation();
 
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
+  const handleClick = () => {
+    if (onNavClick) {
+      onNavClick();
+    }
+  };
+
   return (
     <>
-      <Link
-        to="/"
-        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md ${
-          isActive("/")
-            ? "bg-mrc-blue text-white"
-            : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-        }`}
-      >
-        <Home size={16} />
-        <span className="hidden lg:inline">Accueil</span>
-      </Link>
-
-      <Link
-        to="/assistant"
-        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md ${
-          isActive("/assistant")
-            ? "bg-mrc-blue text-white"
-            : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-        }`}
-      >
-        <MessageSquare size={16} />
-        <span className="hidden lg:inline">Assistant</span>
-      </Link>
-
-      <Link
-        to="/documents"
-        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md ${
-          isActive("/documents")
-            ? "bg-mrc-blue text-white"
-            : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-        }`}
-      >
-        <FileText size={16} />
-        <span className="hidden lg:inline">Documents</span>
-      </Link>
-
-      <Link
-        to="/quiz"
-        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md ${
-          isActive("/quiz")
-            ? "bg-mrc-blue text-white"
-            : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-        }`}
-      >
-        <BrainCircuit size={16} />
-        <span className="hidden lg:inline">Quiz</span>
-      </Link>
-
-      <Link
-        to="/youtube-analyzer"
-        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md ${
-          isActive("/youtube-analyzer")
-            ? "bg-red-500 text-white"
-            : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-        }`}
-      >
-        <YoutubeIcon size={16} />
-        <span className="hidden lg:inline">YouTube</span>
-      </Link>
-
-      <Link
-        to="/settings"
-        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md ${
-          isActive("/settings")
-            ? "bg-mrc-blue text-white"
-            : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-        }`}
-      >
-        <Settings size={16} />
-        <span className="hidden lg:inline">Paramètres</span>
-      </Link>
+      {navLinks.map(link => (
+        <Link
+          key={link.path}
+          to={link.path}
+          onClick={handleClick}
+          className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md ${
+            isActive(link.path)
+              ? link.path === "/youtube-analyzer" 
+                ? "bg-red-500 text-white"
+                : "bg-mrc-blue text-white"
+              : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+          } ${isMobile ? "w-full justify-start" : ""}`}
+        >
+          {link.icon}
+          <span className={isMobile ? "inline" : "hidden lg:inline"}>{link.label}</span>
+        </Link>
+      ))}
     </>
   );
 };

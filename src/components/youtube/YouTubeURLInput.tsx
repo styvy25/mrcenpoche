@@ -8,14 +8,18 @@ import { useToast } from '@/hooks/use-toast';
 
 interface YouTubeURLInputProps {
   onVideoSelect: (videoId: string) => void;
+  onSubmit?: (url: string) => Promise<void>;
   isLoading?: boolean;
+  disabled?: boolean;
   className?: string;
   title?: string;
 }
 
 const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
   onVideoSelect,
+  onSubmit,
   isLoading = false,
+  disabled = false,
   className = '',
   title = 'Analyser une vidéo YouTube'
 }) => {
@@ -42,7 +46,7 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
     return null;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const videoId = extractVideoId(url);
@@ -56,7 +60,12 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
       return;
     }
     
-    onVideoSelect(videoId);
+    if (onSubmit) {
+      await onSubmit(url);
+    } else {
+      onVideoSelect(videoId);
+    }
+    
     setUrl('');
   };
 
@@ -76,9 +85,9 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             className="flex-1"
-            disabled={isLoading}
+            disabled={isLoading || disabled}
           />
-          <Button type="submit" disabled={!url.trim() || isLoading}>
+          <Button type="submit" disabled={!url.trim() || isLoading || disabled}>
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (

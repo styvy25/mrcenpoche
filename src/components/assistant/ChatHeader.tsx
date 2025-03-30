@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import PDFExportButton from "./PDFExportButton";
 import { useMessageHandler } from "./hooks/useMessageHandler";
+import { Message as AssistantMessage } from "./types/message";
 
 interface ChatHeaderProps {
   onGeneratePDF?: () => void;
@@ -77,7 +78,7 @@ const ChatHeader = ({
 
   const handleCopyConversation = () => {
     const conversationText = messages
-      .map((msg) => {
+      .map((msg: AssistantMessage) => {
         const sender = msg.role === "assistant" ? "Styvy237" : "Vous";
         return `${sender}: ${msg.content}`;
       })
@@ -130,7 +131,7 @@ const ChatHeader = ({
 
           {messages.length > 1 && (
             <PDFExportButton 
-              messages={messages}
+              messages={messages as unknown as AssistantMessage[]}
               variant="ghost"
               size="icon"
               className="relative"

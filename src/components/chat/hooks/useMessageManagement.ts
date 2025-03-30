@@ -63,7 +63,9 @@ export const useMessageManagement = (initialMessages: Message[] = []) => {
         content,
         mediaUrl,
         mediaType,
-        timestamp: new Date()
+        timestamp: new Date(),
+        text: content,
+        sender: 'user'
       };
 
       // If user is authenticated, save to Supabase

@@ -27,8 +27,10 @@ export const useMessageSubscription = (
               content: newMessage.content,
               mediaUrl: newMessage.media_url,
               mediaType: newMessage.media_type,
-              timestamp: new Date(newMessage.created_at)
-            }]);
+              timestamp: new Date(newMessage.created_at),
+              text: newMessage.content,
+              sender: 'ai'
+            } as Message]);
           })
           .subscribe();
 
@@ -42,7 +44,7 @@ export const useMessageSubscription = (
         if (error) throw error;
 
         if (messagesData) {
-          setMessages(messagesData.map((msg: any) => ({
+          const formattedMessages = messagesData.map((msg: any) => ({
             id: msg.id,
             senderId: msg.user_id,
             senderName: msg.user_name || 'Unknown',
@@ -50,8 +52,12 @@ export const useMessageSubscription = (
             content: msg.content,
             mediaUrl: msg.media_url,
             mediaType: msg.media_type,
-            timestamp: new Date(msg.created_at)
-          })));
+            timestamp: new Date(msg.created_at),
+            text: msg.content,
+            sender: 'ai'
+          })) as Message[];
+
+          setMessages(formattedMessages);
         }
 
         // Cleanup

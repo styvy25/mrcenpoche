@@ -1,8 +1,8 @@
 
 export interface Message {
   id: string;
-  text: string;
-  sender: string;
+  text?: string;
+  sender?: string;
   timestamp: Date;
   isRead?: boolean;
   senderId?: string;

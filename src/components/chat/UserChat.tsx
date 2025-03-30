@@ -5,7 +5,6 @@ import { usePresenceManagement } from './hooks/usePresenceManagement';
 import MessagesContainer from './MessagesContainer';
 import MessageInput from './MessageInput';
 import ActiveUsersList from './ActiveUsersList';
-import LoadingIndicator from '../assistant/LoadingIndicator';
 import { Card } from '@/components/ui/card';
 import { User } from './hooks/types';
 
@@ -32,6 +31,11 @@ const UserChat: React.FC<UserChatProps> = ({
   const { activeUsers, currentUser } = usePresenceManagement();
   const [error, setError] = useState<Error | null>(null);
 
+  // Format the timestamp for messages
+  const formatTime = (date: Date): string => {
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   // Mark messages as read when component mounts
   useEffect(() => {
     initializeMessages();
@@ -52,7 +56,11 @@ const UserChat: React.FC<UserChatProps> = ({
   if (isLoading) {
     return (
       <Card className={`flex items-center justify-center h-96 ${containerClassName}`}>
-        <LoadingIndicator message="Chargement de la conversation..." />
+        <div className="text-center p-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Chargement de la conversation...
+          </p>
+        </div>
       </Card>
     );
   }
@@ -81,6 +89,7 @@ const UserChat: React.FC<UserChatProps> = ({
             <MessagesContainer 
               messages={messages} 
               currentUserId={currentUser.id}
+              formatTime={formatTime}
             />
             <MessageInput 
               onSendMessage={sendMessage}

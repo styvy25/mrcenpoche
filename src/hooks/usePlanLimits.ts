@@ -1,257 +1,139 @@
 
 import { useState, useEffect } from 'react';
 
-// Define plan types
-export type PlanType = 'free' | 'premium' | 'group';
-
-// Define plan limits
-export interface PlanLimits {
-  maxChats: number;
-  maxDocuments: number;
-  maxQuizzes: number;
-  offlineMode: boolean;
-  pdfExport: boolean;
-  youtubeAnalysis: boolean;
-  advancedAnalytics: boolean;
-  allModules: boolean;
-  customDocuments: boolean;
-}
-
-// Define usage stats
-export interface UsageStats {
-  userPlan: PlanType;
-  chatMessagesLimit: number;
-  chatMessagesToday: number;
-  pdfGenerationsLimit: number;
-  pdfGenerationsToday: number;
-  quizzesLimit: number;
-  quizzesToday: number;
-  youtubeAnalysisLimit: number;
-  youtubeAnalysisToday: number;
-}
-
-// Plan limits configuration
-const planLimitsConfig: Record<PlanType, PlanLimits> = {
-  free: {
-    maxChats: 10,
-    maxDocuments: 3,
-    maxQuizzes: 5,
-    offlineMode: false,
-    pdfExport: false,
-    youtubeAnalysis: false,
-    advancedAnalytics: false,
-    allModules: false,
-    customDocuments: false
-  },
-  premium: {
-    maxChats: Infinity,
-    maxDocuments: Infinity,
-    maxQuizzes: Infinity,
-    offlineMode: true,
-    pdfExport: true,
-    youtubeAnalysis: true,
-    advancedAnalytics: true,
-    allModules: true,
-    customDocuments: true
-  },
-  group: {
-    maxChats: Infinity,
-    maxDocuments: Infinity,
-    maxQuizzes: Infinity,
-    offlineMode: true,
-    pdfExport: true,
-    youtubeAnalysis: true,
-    advancedAnalytics: true,
-    allModules: true,
-    customDocuments: true
-  }
-};
-
+// Simplified version for demo
 export const usePlanLimits = () => {
-  const [userPlan, setUserPlan] = useState<PlanType>('free');
-  const [limits, setLimits] = useState<PlanLimits>(planLimitsConfig.free);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Get stored plan from localStorage
-    const storedPlan = localStorage.getItem('userPlan') as PlanType | null;
-    if (storedPlan && planLimitsConfig[storedPlan]) {
-      setUserPlan(storedPlan);
-      setLimits(planLimitsConfig[storedPlan]);
-    }
-    setIsLoading(false);
-  }, []);
-
-  // Function to get today's date in YYYY-MM-DD format for usage tracking
-  const getTodayDateKey = (): string => {
-    const today = new Date();
-    return `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+  // Define feature limits
+  const FREE_TIER_LIMITS = {
+    maxChats: 20,
+    maxDocuments: 5,
+    maxQuizzes: 3,
+    youtubeAnalyses: 5
   };
 
-  // Function to get usage for a specific feature
-  const getFeatureUsage = (feature: string): number => {
-    try {
-      const todayKey = getTodayDateKey();
-      const storedUsage = JSON.parse(localStorage.getItem('featureUsage') || '{}');
-      return storedUsage[todayKey]?.[feature] || 0;
-    } catch (error) {
-      console.error(`Error getting ${feature} usage:`, error);
-      return 0;
-    }
+  const PREMIUM_TIER_LIMITS = {
+    maxChats: -1, // Unlimited
+    maxDocuments: -1, // Unlimited
+    maxQuizzes: -1, // Unlimited
+    youtubeAnalyses: -1 // Unlimited
   };
 
-  // Function to increment usage for a specific feature
-  const incrementFeatureUsage = (feature: string): boolean => {
+  // Get current usage from localStorage
+  const getCurrentUsage = () => {
     try {
-      const todayKey = getTodayDateKey();
-      const storedUsage = JSON.parse(localStorage.getItem('featureUsage') || '{}');
-      
-      // Initialize today's usage if not exists
-      if (!storedUsage[todayKey]) {
-        storedUsage[todayKey] = {};
+      const storedUsage = localStorage.getItem('mrc_usage');
+      if (storedUsage) {
+        return JSON.parse(storedUsage);
       }
-      
-      // Increment feature usage
-      storedUsage[todayKey][feature] = (storedUsage[todayKey][feature] || 0) + 1;
-      localStorage.setItem('featureUsage', JSON.stringify(storedUsage));
-      
-      return true;
     } catch (error) {
-      console.error(`Error incrementing ${feature} usage:`, error);
-      return false;
+      console.error('Error getting usage stats:', error);
     }
-  };
-
-  const getUsageStats = (): UsageStats => {
+    
+    // Default usage
     return {
-      userPlan,
-      chatMessagesLimit: limits.maxChats,
-      chatMessagesToday: getFeatureUsage('chatMessages'),
-      pdfGenerationsLimit: limits.maxDocuments,
-      pdfGenerationsToday: getFeatureUsage('pdfGenerations'),
-      quizzesLimit: limits.maxQuizzes,
-      quizzesToday: getFeatureUsage('quizzes'),
-      youtubeAnalysisLimit: userPlan === 'free' ? 3 : Infinity,
-      youtubeAnalysisToday: getFeatureUsage('youtubeAnalysis')
+      chats: 0,
+      documents: 0,
+      quizzes: 0,
+      youtubeAnalyses: 0
     };
   };
 
-  const updateUserPlan = async (newPlan: PlanType): Promise<boolean> => {
-    try {
-      setUserPlan(newPlan);
-      setLimits(planLimitsConfig[newPlan]);
-      localStorage.setItem('userPlan', newPlan);
-      return true;
-    } catch (error) {
-      console.error('Error updating user plan:', error);
-      return false;
-    }
-  };
+  // User tier
+  const [isPremium, setIsPremium] = useState(false);
+  const [usage, setUsage] = useState(getCurrentUsage());
 
-  const canUseFeature = (feature: keyof PlanLimits): boolean => {
-    return !!limits[feature];
-  };
-
-  const getRemainingUsage = (feature: 'maxChats' | 'maxDocuments' | 'maxQuizzes'): number => {
-    const featureMap = {
-      'maxChats': 'chatMessages',
-      'maxDocuments': 'pdfGenerations',
-      'maxQuizzes': 'quizzes'
+  // Initialize on component mount
+  useEffect(() => {
+    // Check if user is premium (e.g., from user data or localstorage)
+    const checkPremiumStatus = () => {
+      const userData = localStorage.getItem('mrc_user_data');
+      if (userData) {
+        try {
+          const parsedData = JSON.parse(userData);
+          setIsPremium(parsedData.isPremium || false);
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+          setIsPremium(false);
+        }
+      }
     };
     
-    const usage = getFeatureUsage(featureMap[feature]);
-    const limit = limits[feature];
-    if (limit === Infinity) return Infinity;
-    return Math.max(0, limit - usage);
+    checkPremiumStatus();
+  }, []);
+
+  // Check if user has reached their limit for a feature
+  const hasReachedLimit = (feature: keyof typeof FREE_TIER_LIMITS): boolean => {
+    if (isPremium) return false; // Premium users have no limits
+    
+    const limit = FREE_TIER_LIMITS[feature];
+    if (limit === -1) return false; // Unlimited
+    
+    return usage[feature] >= limit;
   };
 
-  const hasChatLimit = (): boolean => {
-    return limits.maxChats !== Infinity;
+  // Get remaining usage for a feature
+  const getRemainingUsage = (feature: keyof typeof FREE_TIER_LIMITS): number => {
+    if (isPremium) return -1; // Unlimited for premium users
+    
+    const limit = FREE_TIER_LIMITS[feature];
+    if (limit === -1) return -1; // Unlimited
+    
+    return Math.max(0, limit - usage[feature]);
   };
 
-  const hasReachedLimit = (feature: 'maxChats' | 'maxDocuments' | 'maxQuizzes'): boolean => {
-    return getRemainingUsage(feature) <= 0;
+  // Check if user can use a premium feature
+  const canUseFeature = (feature: string): boolean => {
+    return isPremium || feature === 'basic';
   };
 
-  const canAccessPremiumContent = (): boolean => {
-    return userPlan === 'premium' || userPlan === 'group';
+  // Increment usage for a feature
+  const incrementUsage = (feature: keyof typeof FREE_TIER_LIMITS): void => {
+    if (isPremium) return; // Don't track for premium users
+    
+    const newUsage = {
+      ...usage,
+      [feature]: usage[feature] + 1
+    };
+    
+    // Update state
+    setUsage(newUsage);
+    
+    // Persist to localStorage
+    try {
+      localStorage.setItem('mrc_usage', JSON.stringify(newUsage));
+    } catch (error) {
+      console.error('Error saving usage stats:', error);
+    }
   };
 
+  // Specific increment functions for each feature
+  const incrementChat = () => incrementUsage('maxChats');
+  const incrementDocument = () => incrementUsage('maxDocuments');
+  const incrementQuiz = () => incrementUsage('maxQuizzes');
+  const incrementYoutubeAnalysis = () => incrementUsage('youtubeAnalyses');
+
+  // Check if user can access all modules (premium feature)
   const canAccessAllModules = (): boolean => {
-    return limits.allModules;
+    return isPremium;
   };
 
-  // Chat-specific functions
-  const canSendChatMessage = (): boolean => {
-    if (userPlan !== 'free') return true;
-    return getFeatureUsage('chatMessages') < limits.maxChats;
-  };
-
-  const incrementChatMessages = (): boolean => {
-    if (userPlan !== 'free') return true;
-    if (!canSendChatMessage()) return false;
-    return incrementFeatureUsage('chatMessages');
-  };
-
-  // PDF-specific functions
-  const canGeneratePdf = (): boolean => {
-    if (userPlan !== 'free') return true;
-    if (!limits.pdfExport) return false;
-    return getFeatureUsage('pdfGenerations') < limits.maxDocuments;
-  };
-
-  const incrementPdfGenerations = (): boolean => {
-    if (userPlan !== 'free') return true;
-    if (!canGeneratePdf()) return false;
-    return incrementFeatureUsage('pdfGenerations');
-  };
-
-  // Quiz-specific functions
-  const canTakeQuiz = (): boolean => {
-    if (userPlan !== 'free') return true;
-    return getFeatureUsage('quizzes') < limits.maxQuizzes;
-  };
-
-  const incrementQuizzes = (): boolean => {
-    if (userPlan !== 'free') return true;
-    if (!canTakeQuiz()) return false;
-    return incrementFeatureUsage('quizzes');
-  };
-
-  // YouTube analysis functions
+  // Can analyze YouTube videos
   const canAnalyzeYoutube = (): boolean => {
-    if (userPlan !== 'free') return true;
-    if (!limits.youtubeAnalysis) return false;
-    // Free users can analyze 3 YouTube videos per day
-    return getFeatureUsage('youtubeAnalysis') < 3;
-  };
-
-  const incrementYoutubeAnalysis = (): boolean => {
-    if (userPlan !== 'free') return true;
-    if (!canAnalyzeYoutube()) return false;
-    return incrementFeatureUsage('youtubeAnalysis');
+    if (isPremium) return true;
+    return !hasReachedLimit('youtubeAnalyses');
   };
 
   return {
-    userPlan,
-    limits,
-    isLoading,
-    updateUserPlan,
-    canUseFeature,
-    getRemainingUsage,
-    hasChatLimit,
+    isPremium,
     hasReachedLimit,
-    canAccessPremiumContent,
+    getRemainingUsage,
+    canUseFeature,
+    incrementUsage,
+    incrementChat,
+    incrementDocument,
+    incrementQuiz,
+    incrementYoutubeAnalysis,
     canAccessAllModules,
-    // Added functions
-    getUsageStats,
-    canSendChatMessage,
-    incrementChatMessages,
-    canGeneratePdf,
-    incrementPdfGenerations,
-    canTakeQuiz,
-    incrementQuizzes,
-    canAnalyzeYoutube,
-    incrementYoutubeAnalysis
+    canAnalyzeYoutube
   };
 };

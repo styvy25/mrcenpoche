@@ -73,7 +73,9 @@ export const useDemoData = (
           senderName: "Ngoufo",
           senderAvatar: "https://api.dicebear.com/7.x/micah/svg?seed=john",
           content: "Bienvenue sur notre plateforme d'éducation électorale !",
-          timestamp: new Date(Date.now() - 120 * 60000) // 2 hours ago
+          timestamp: new Date(Date.now() - 120 * 60000), // 2 hours ago
+          text: "Bienvenue sur notre plateforme d'éducation électorale !",
+          sender: 'ai'
         },
         {
           id: "msg_2",
@@ -81,7 +83,9 @@ export const useDemoData = (
           senderName: "Caroline",
           senderAvatar: "https://api.dicebear.com/7.x/micah/svg?seed=susan",
           content: "N'hésitez pas à poser vos questions sur le processus électoral.",
-          timestamp: new Date(Date.now() - 90 * 60000) // 1.5 hours ago
+          timestamp: new Date(Date.now() - 90 * 60000), // 1.5 hours ago
+          text: "N'hésitez pas à poser vos questions sur le processus électoral.",
+          sender: 'ai'
         }
       ];
       setMessages(demoMessages);
