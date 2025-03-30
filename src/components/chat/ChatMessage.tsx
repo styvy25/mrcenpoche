@@ -6,16 +6,13 @@ import { Check, CheckCheck } from "lucide-react";
 import { Message } from "./hooks/types";
 
 interface ChatMessageProps {
-  message: Message;
-  currentUserId: string;
-  formatTime: (date: Date) => string;
+  message: Partial<Message>;
+  isCurrentUser: boolean;
+  formattedTime: string;
 }
 
-const ChatMessage = ({ message, currentUserId, formatTime }: ChatMessageProps) => {
+const ChatMessage = ({ message, isCurrentUser, formattedTime }: ChatMessageProps) => {
   // Determine if the current user is the sender
-  const isCurrentUser = message.sender === 'user' || message.senderId === currentUserId;
-  
-  // Get the message content from either text or content property
   const messageContent = message.text || message.content || '';
   
   // Get sender info
@@ -79,7 +76,7 @@ const ChatMessage = ({ message, currentUserId, formatTime }: ChatMessageProps) =
               
               <div className="flex items-center gap-1 mt-1.5">
                 <span className="text-xs text-gray-300/90">
-                  {formatTime(message.timestamp)}
+                  {formattedTime}
                 </span>
                 {isCurrentUser && (
                   <CheckCheck size={12} className="text-green-400" />

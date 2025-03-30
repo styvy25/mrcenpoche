@@ -1,256 +1,249 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
 
-export type Feature = 'maxChats' | 'maxDocuments' | 'maxQuizzes' | 'youtubeAnalyses';
-export type PlanType = 'free' | 'basic' | 'premium';
+// Define the feature types
+export type Feature = 'maxChats' | 'maxPdfs' | 'maxModules' | 'maxVideos' | 'maxTests';
 
-interface UsageStats {
-  chatMessagesToday: number;
-  chatMessagesLimit: number;
-  documentsGeneratedToday: number;
-  documentsLimit: number;
-  quizzesCompletedToday: number;
-  quizzesLimit: number;
-  youtubeAnalysesToday: number;
-  youtubeAnalysesLimit: number;
-  userPlan: PlanType;
-}
-
-// Default limits by plan
-const PLAN_LIMITS = {
-  free: {
-    maxChats: 10,
-    maxDocuments: 2,
-    maxQuizzes: 3,
-    youtubeAnalyses: 2
-  },
-  basic: {
-    maxChats: 50,
-    maxDocuments: 5,
-    maxQuizzes: 10,
-    youtubeAnalyses: 5
-  },
-  premium: {
-    maxChats: Infinity,
-    maxDocuments: Infinity,
-    maxQuizzes: Infinity,
-    youtubeAnalyses: Infinity
-  }
-};
-
-export const usePlanLimits = () => {
-  const { isAuthenticated } = useAuth();
-  const [usageStats, setUsageStats] = useState<UsageStats>({
-    chatMessagesToday: 0,
-    chatMessagesLimit: PLAN_LIMITS.free.maxChats,
-    documentsGeneratedToday: 0,
-    documentsLimit: PLAN_LIMITS.free.maxDocuments,
-    quizzesCompletedToday: 0,
-    quizzesLimit: PLAN_LIMITS.free.maxQuizzes,
-    youtubeAnalysesToday: 0,
-    youtubeAnalysesLimit: PLAN_LIMITS.free.youtubeAnalyses,
-    userPlan: 'free'
-  });
-
-  const isPremium = usageStats.userPlan === 'premium';
-
-  // Initialize usage stats from localStorage on mount
-  useEffect(() => {
-    const storedStats = localStorage.getItem('mrc_usage_stats');
-    const storedDate = localStorage.getItem('mrc_usage_date');
-    
-    // Reset counts if it's a new day
-    const today = new Date().toDateString();
-    if (storedDate !== today) {
-      const updatedStats = {
-        ...usageStats,
-        chatMessagesToday: 0,
-        documentsGeneratedToday: 0,
-        quizzesCompletedToday: 0,
-        youtubeAnalysesToday: 0,
+export function usePlanLimits() {
+  const { isAuthenticated, currentUser } = useAuth();
+  
+  // Function to check if the user is premium
+  const isPremium = isAuthenticated && currentUser?.subscription?.type === 'premium';
+  
+  // Store usage in localStorage
+  const getUsageFromStorage = useCallback(() => {
+    try {
+      const storedUsage = localStorage.getItem('usage_stats');
+      if (storedUsage) {
+        return JSON.parse(storedUsage);
+      }
+      return {
+        chatMessages: 0,
+        pdfGenerations: 0,
+        moduleAccess: 0,
+        videoAnalysis: 0,
+        testsCompleted: 0,
+        lastReset: new Date().toISOString()
       };
-      setUsageStats(updatedStats);
-      localStorage.setItem('mrc_usage_stats', JSON.stringify(updatedStats));
-      localStorage.setItem('mrc_usage_date', today);
-      return;
-    }
-    
-    if (storedStats) {
-      setUsageStats(JSON.parse(storedStats));
+    } catch (error) {
+      console.error('Error getting usage stats:', error);
+      return {
+        chatMessages: 0,
+        pdfGenerations: 0,
+        moduleAccess: 0,
+        videoAnalysis: 0,
+        testsCompleted: 0,
+        lastReset: new Date().toISOString()
+      };
     }
   }, []);
-
-  // Save to localStorage whenever stats change
-  useEffect(() => {
-    localStorage.setItem('mrc_usage_stats', JSON.stringify(usageStats));
-  }, [usageStats]);
-
-  // Check if user has reached the limit for a specific feature
-  const hasReachedLimit = useCallback((feature: Feature): boolean => {
-    if (!isAuthenticated) return false;
+  
+  // Function to save usage to localStorage
+  const saveUsageToStorage = useCallback((usage: any) => {
+    try {
+      localStorage.setItem('usage_stats', JSON.stringify(usage));
+    } catch (error) {
+      console.error('Error saving usage stats:', error);
+    }
+  }, []);
+  
+  // Get usage stats
+  const getUsageStats = useCallback(() => {
+    const usage = getUsageFromStorage();
     
+    // Check if we need to reset (e.g., monthly)
+    const lastResetDate = new Date(usage.lastReset);
+    const currentDate = new Date();
+    
+    if (currentDate.getMonth() !== lastResetDate.getMonth() || 
+        currentDate.getFullYear() !== lastResetDate.getFullYear()) {
+      const resetUsage = {
+        chatMessages: 0,
+        pdfGenerations: 0,
+        moduleAccess: 0,
+        videoAnalysis: 0,
+        testsCompleted: 0,
+        lastReset: currentDate.toISOString()
+      };
+      saveUsageToStorage(resetUsage);
+      return resetUsage;
+    }
+    
+    return usage;
+  }, [getUsageFromStorage, saveUsageToStorage]);
+  
+  // Define limits based on plan
+  const getLimits = useCallback(() => {
+    if (isPremium) {
+      return {
+        maxChats: Infinity,
+        maxPdfs: Infinity,
+        maxModules: Infinity,
+        maxVideos: Infinity,
+        maxTests: Infinity
+      };
+    }
+    
+    return {
+      maxChats: 50,
+      maxPdfs: 10,
+      maxModules: 2,
+      maxVideos: 5,
+      maxTests: 20
+    };
+  }, [isPremium]);
+  
+  // Check if user has reached limit for a feature
+  const hasReachedLimit = useCallback((feature: Feature) => {
     if (isPremium) return false;
+    
+    const usage = getUsageStats();
+    const limits = getLimits();
     
     switch (feature) {
       case 'maxChats':
-        return usageStats.chatMessagesToday >= usageStats.chatMessagesLimit;
-      case 'maxDocuments':
-        return usageStats.documentsGeneratedToday >= usageStats.documentsLimit;
-      case 'maxQuizzes':
-        return usageStats.quizzesCompletedToday >= usageStats.quizzesLimit;
-      case 'youtubeAnalyses':
-        return usageStats.youtubeAnalysesToday >= usageStats.youtubeAnalysesLimit;
+        return usage.chatMessages >= limits.maxChats;
+      case 'maxPdfs':
+        return usage.pdfGenerations >= limits.maxPdfs;
+      case 'maxModules':
+        return usage.moduleAccess >= limits.maxModules;
+      case 'maxVideos':
+        return usage.videoAnalysis >= limits.maxVideos;
+      case 'maxTests':
+        return usage.testsCompleted >= limits.maxTests;
       default:
         return false;
     }
-  }, [isAuthenticated, isPremium, usageStats]);
-
-  // Get remaining usage for a specific feature
-  const getRemainingUsage = useCallback((feature: Feature): number => {
-    if (!isAuthenticated) return 0;
-    
-    if (isPremium) return Infinity;
+  }, [isPremium, getUsageStats, getLimits]);
+  
+  // Get remaining usage for a feature
+  const getRemainingUsage = useCallback((feature: Feature) => {
+    const usage = getUsageStats();
+    const limits = getLimits();
     
     switch (feature) {
       case 'maxChats':
-        return Math.max(0, usageStats.chatMessagesLimit - usageStats.chatMessagesToday);
-      case 'maxDocuments':
-        return Math.max(0, usageStats.documentsLimit - usageStats.documentsGeneratedToday);
-      case 'maxQuizzes':
-        return Math.max(0, usageStats.quizzesLimit - usageStats.quizzesCompletedToday);
-      case 'youtubeAnalyses':
-        return Math.max(0, usageStats.youtubeAnalysesLimit - usageStats.youtubeAnalysesToday);
+        return Math.max(0, limits.maxChats - usage.chatMessages);
+      case 'maxPdfs':
+        return Math.max(0, limits.maxPdfs - usage.pdfGenerations);
+      case 'maxModules':
+        return Math.max(0, limits.maxModules - usage.moduleAccess);
+      case 'maxVideos':
+        return Math.max(0, limits.maxVideos - usage.videoAnalysis);
+      case 'maxTests':
+        return Math.max(0, limits.maxTests - usage.testsCompleted);
       default:
         return 0;
     }
-  }, [isAuthenticated, isPremium, usageStats]);
-
-  // Increment usage for chat messages
-  const incrementChatMessages = useCallback((): boolean => {
-    if (hasReachedLimit('maxChats')) return false;
+  }, [getUsageStats, getLimits]);
+  
+  // Increment chat messages
+  const incrementChatMessages = useCallback(() => {
+    if (isPremium) return true;
     
-    setUsageStats(prev => ({
-      ...prev,
-      chatMessagesToday: prev.chatMessagesToday + 1
-    }));
+    const usage = getUsageStats();
+    const limits = getLimits();
     
+    if (usage.chatMessages >= limits.maxChats) {
+      return false;
+    }
+    
+    usage.chatMessages += 1;
+    saveUsageToStorage(usage);
     return true;
-  }, [hasReachedLimit]);
-
-  // Increment usage for PDF generations
-  const incrementPdfGenerations = useCallback((): boolean => {
-    if (hasReachedLimit('maxDocuments')) return false;
+  }, [isPremium, getUsageStats, getLimits, saveUsageToStorage]);
+  
+  // Increment PDF generations
+  const incrementPdfGenerations = useCallback(() => {
+    if (isPremium) return true;
     
-    setUsageStats(prev => ({
-      ...prev,
-      documentsGeneratedToday: prev.documentsGeneratedToday + 1
-    }));
+    const usage = getUsageStats();
+    const limits = getLimits();
     
+    if (usage.pdfGenerations >= limits.maxPdfs) {
+      return false;
+    }
+    
+    usage.pdfGenerations += 1;
+    saveUsageToStorage(usage);
     return true;
-  }, [hasReachedLimit]);
+  }, [isPremium, getUsageStats, getLimits, saveUsageToStorage]);
 
-  // Increment usage for quizzes
-  const incrementQuizzes = useCallback((): boolean => {
-    if (hasReachedLimit('maxQuizzes')) return false;
+  // Increment YouTube analysis
+  const incrementYoutubeAnalysis = useCallback(() => {
+    if (isPremium) return true;
     
-    setUsageStats(prev => ({
-      ...prev,
-      quizzesCompletedToday: prev.quizzesCompletedToday + 1
-    }));
+    const usage = getUsageStats();
+    const limits = getLimits();
     
+    if (usage.videoAnalysis >= limits.maxVideos) {
+      return false;
+    }
+    
+    usage.videoAnalysis += 1;
+    saveUsageToStorage(usage);
     return true;
-  }, [hasReachedLimit]);
-
-  // Increment usage for YouTube analyses
-  const incrementYoutubeAnalyses = useCallback((): boolean => {
-    if (hasReachedLimit('youtubeAnalyses')) return false;
+  }, [isPremium, getUsageStats, getLimits, saveUsageToStorage]);
+  
+  // Check if user has module access
+  const canAccessModule = useCallback((moduleId: string) => {
+    if (isPremium) return true;
     
-    setUsageStats(prev => ({
-      ...prev,
-      youtubeAnalysesToday: prev.youtubeAnalysesToday + 1
-    }));
+    // Free modules (always accessible)
+    const freeModules = ['module-1', 'module-2'];
+    if (freeModules.includes(moduleId)) {
+      return true;
+    }
     
-    return true;
-  }, [hasReachedLimit]);
-
-  // Update user plan
-  const updateUserPlan = useCallback((newPlan: PlanType) => {
-    setUsageStats(prev => {
-      const updatedLimits = {
-        ...prev,
-        userPlan: newPlan,
-        chatMessagesLimit: PLAN_LIMITS[newPlan].maxChats,
-        documentsLimit: PLAN_LIMITS[newPlan].maxDocuments,
-        quizzesLimit: PLAN_LIMITS[newPlan].maxQuizzes,
-        youtubeAnalysesLimit: PLAN_LIMITS[newPlan].youtubeAnalyses
-      };
-      
-      localStorage.setItem('mrc_usage_stats', JSON.stringify(updatedLimits));
-      return updatedLimits;
-    });
-  }, []);
-
-  // Check if user can send chat messages
-  const canSendChatMessage = useCallback((): boolean => {
-    return !hasReachedLimit('maxChats');
-  }, [hasReachedLimit]);
-
+    return !hasReachedLimit('maxModules');
+  }, [isPremium, hasReachedLimit]);
+  
+  // Check if user can access all modules
+  const canAccessAllModules = useCallback(() => {
+    return isPremium || !hasReachedLimit('maxModules');
+  }, [isPremium, hasReachedLimit]);
+  
+  // Check if user has access to a particular feature
+  const hasChatLimit = useCallback(() => {
+    return !isPremium;
+  }, [isPremium]);
+  
+  // Check if user can use a premium feature
+  const canUseFeature = useCallback((feature: string) => {
+    switch (feature) {
+      case 'offlineMode':
+        return isPremium;
+      case 'chatWithFiles':
+        return isPremium;
+      case 'apiAccess':
+        return isPremium;
+      case 'premiumSupport':
+        return isPremium;
+      case 'generatePdf':
+        return isPremium || !hasReachedLimit('maxPdfs');
+      default:
+        return false;
+    }
+  }, [isPremium, hasReachedLimit]);
+  
   // Check if user can generate PDFs
-  const canGeneratePdf = useCallback((): boolean => {
-    return !hasReachedLimit('maxDocuments');
-  }, [hasReachedLimit]);
-
-  // Check if user can take quizzes
-  const canTakeQuiz = useCallback((): boolean => {
-    return !hasReachedLimit('maxQuizzes');
-  }, [hasReachedLimit]);
-
-  // Check if user can analyze YouTube videos
-  const canAnalyzeYoutube = useCallback((): boolean => {
-    return !hasReachedLimit('youtubeAnalyses');
-  }, [hasReachedLimit]);
-
-  // Check if user has chat limit
-  const hasChatLimit = useCallback((): boolean => {
-    return usageStats.userPlan !== 'premium';
-  }, [usageStats.userPlan]);
-
-  // Get usage stats
-  const getUsageStats = useCallback((): UsageStats => {
-    return usageStats;
-  }, [usageStats]);
-
-  // Check if feature is available for current plan
-  const canUseFeature = useCallback((feature: string): boolean => {
-    if (usageStats.userPlan === 'premium') return true;
-    
-    // Define features available for each plan
-    const featuresByPlan = {
-      free: ['chat', 'offlineMode', 'basicQuizzes'],
-      basic: ['chat', 'offlineMode', 'basicQuizzes', 'pdfGeneration', 'youtubeAnalysis']
-    };
-    
-    // @ts-ignore
-    return featuresByPlan[usageStats.userPlan]?.includes(feature) || false;
-  }, [usageStats.userPlan]);
-
+  const canGeneratePdf = useCallback(() => {
+    return isPremium || !hasReachedLimit('maxPdfs');
+  }, [isPremium, hasReachedLimit]);
+  
   return {
     isPremium,
     hasReachedLimit,
     getRemainingUsage,
     incrementChatMessages,
     incrementPdfGenerations,
-    incrementQuizzes,
-    incrementYoutubeAnalyses,
-    updateUserPlan,
-    userPlan: usageStats.userPlan,
-    canSendChatMessage,
-    canGeneratePdf,
-    canTakeQuiz,
-    canAnalyzeYoutube,
+    incrementYoutubeAnalysis,
+    canAccessModule,
+    canAccessAllModules,
     hasChatLimit,
-    getUsageStats,
-    canUseFeature
+    canUseFeature,
+    canGeneratePdf,
+    getUsageStats
   };
-};
+}

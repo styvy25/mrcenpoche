@@ -1,14 +1,25 @@
 
+export interface User {
+  id: string;
+  name: string;
+  avatar?: string;
+  status?: string;
+  isOnline: boolean;
+  lastSeen: Date;
+}
+
 export interface Message {
   id: string;
+  content?: string;
   text?: string;
-  sender?: 'user' | 'ai';
   timestamp: Date;
-  isRead?: boolean;
+  sender?: string;
   senderId?: string;
   senderName?: string;
   senderAvatar?: string;
-  content?: string;
+  isRead?: boolean;
+  currentUser?: boolean;
+  role?: string;
   mediaUrl?: string;
   mediaType?: 'photo' | 'audio' | 'video' | 'file';
   media?: {
@@ -16,45 +27,4 @@ export interface Message {
     url: string;
     name?: string;
   };
-  role?: "assistant" | "user";
-}
-
-export interface User {
-  id: string;
-  name: string;
-  status: string;
-  lastSeen: Date;
-  avatar: string;
-  isOnline: boolean;
-}
-
-export interface ChatState {
-  messages: Message[];
-  users: User[];
-  currentUser: {
-    id: string;
-    name: string;
-    avatar: string;
-  };
-  isLoading: boolean;
-  error: Error | null;
-}
-
-export interface MessageContent {
-  id: string;
-  senderId: string;
-  senderName: string;
-  senderAvatar: string;
-  content: string;
-  timestamp: Date;
-  mediaUrl?: string;
-  mediaType?: 'photo' | 'audio' | 'video' | 'file';
-  text?: string;
-  sender?: string;
-}
-
-export interface MessagesContainerProps {
-  messages: Message[];
-  currentUserId: string;
-  formatTime: (date: Date) => string;
 }
