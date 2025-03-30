@@ -1,27 +1,34 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { SendHorizonal, Image, Mic, X } from 'lucide-react';
+import { SendHorizonal, Image, Mic, Paperclip, Smile, Globe, X, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
-  onSendMedia?: (file: File) => void;
+  onOpenCamera?: () => void;
+  onOpenAudio?: () => void;
   placeholder?: string;
   disabled?: boolean;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({ 
   onSendMessage, 
-  onSendMedia,
+  onOpenCamera,
+  onOpenAudio,
   placeholder = "Tapez votre message...",
   disabled = false
 }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   
@@ -46,6 +53,9 @@ const MessageInput: React.FC<MessageInputProps> = ({
       onSendMessage(message);
       setMessage('');
       resetTranscript();
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
     }
   }, [message, disabled, onSendMessage, resetTranscript]);
 
@@ -55,36 +65,6 @@ const MessageInput: React.FC<MessageInputProps> = ({
       handleSendMessage();
     }
   }, [handleSendMessage]);
-
-  const handleAttachMedia = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && onSendMedia) {
-      onSendMedia(file);
-      
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  }, [onSendMedia]);
-
-  const toggleRecording = useCallback(() => {
-    if (isListening) {
-      stopListening();
-      setIsRecording(false);
-    } else {
-      startListening();
-      setIsRecording(true);
-      toast({
-        title: "Enregistrement en cours",
-        description: "Parlez clairement...",
-      });
-    }
-  }, [isListening, stopListening, startListening, toast]);
 
   // Auto-resize textarea
   const autoResizeTextarea = useCallback(() => {
@@ -99,46 +79,53 @@ const MessageInput: React.FC<MessageInputProps> = ({
     autoResizeTextarea();
   }, [message, autoResizeTextarea]);
 
+  const handleAttachment = (type: string) => {
+    toast({
+      title: `${type} sélectionné`,
+      description: `L'envoi de ${type.toLowerCase()} sera disponible prochainement`
+    });
+  };
+
   return (
     <div className="p-3 border-t bg-card flex items-end gap-2">
-      {onSendMedia && (
-        <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <Button
             type="button"
             size="icon"
             variant="ghost"
             className="rounded-full hover:bg-accent hover:text-accent-foreground"
-            onClick={handleAttachMedia}
             disabled={disabled}
           >
-            <Image className="h-5 w-5" />
+            <Paperclip className="h-5 w-5" />
           </Button>
-          <input
-            type="file"
-            className="hidden"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-          />
-        </>
-      )}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={() => onOpenCamera && onOpenCamera()}>
+            <Image className="h-4 w-4 mr-2" />
+            Photo
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAttachment("Document")}>
+            <Globe className="h-4 w-4 mr-2" />
+            Document
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAttachment("Localisation")}>
+            <MapPin className="h-4 w-4 mr-2" />
+            Localisation
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       
-      {browserSupportsSpeechRecognition && (
-        <Button
-          type="button"
-          size="icon"
-          variant={isRecording ? "default" : "ghost"}
-          disabled={disabled}
-          onClick={toggleRecording}
-          className={`rounded-full ${
-            isRecording
-              ? "bg-red-600 hover:bg-red-700 text-white"
-              : "hover:bg-accent hover:text-accent-foreground"
-          }`}
-        >
-          <Mic className="h-5 w-5" />
-        </Button>
-      )}
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="rounded-full hover:bg-accent hover:text-accent-foreground"
+        disabled={disabled}
+        onClick={() => onOpenAudio && onOpenAudio()}
+      >
+        <Mic className="h-5 w-5" />
+      </Button>
       
       <Textarea
         ref={textareaRef}
@@ -154,7 +141,17 @@ const MessageInput: React.FC<MessageInputProps> = ({
       <Button
         type="button"
         size="icon"
-        className="rounded-full bg-gradient-to-r from-mrc-blue to-purple-600 text-white"
+        variant="ghost"
+        className="rounded-full hover:bg-accent hover:text-accent-foreground"
+        disabled={disabled}
+      >
+        <Smile className="h-5 w-5" />
+      </Button>
+      
+      <Button
+        type="button"
+        size="icon"
+        className="rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white"
         onClick={handleSendMessage}
         disabled={!message.trim() || disabled}
       >
