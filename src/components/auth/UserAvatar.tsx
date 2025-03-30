@@ -11,7 +11,7 @@ interface UserAvatarProps {
 const UserAvatar: React.FC<UserAvatarProps> = ({ user, className = '' }) => {
   if (!user) return null;
   
-  const userName = user.displayName || user.email?.split('@')[0] || 'User';
+  const userName = user.displayName || user.username || user.email?.split('@')[0] || 'User';
   const initials = userName.charAt(0).toUpperCase();
   
   return (

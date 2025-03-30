@@ -1,109 +1,188 @@
 
-import { useAuth } from "@/components/auth/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/components/auth/AuthContext';
 
-// Define the types for plan limits
-type Feature = 'basic_access' | 'generate_from_topic' | 'generate_from_youtube' | 'pdf_correction';
-type PlanType = 'free' | 'premium' | 'enterprise';
+// Types for feature usage stats
+export type Feature = 
+  | 'pdfExport' 
+  | 'offlineMode' 
+  | 'maxChats' 
+  | 'maxDocuments' 
+  | 'maxQuizzes'
+  | 'youtubeAnalysis';
 
-interface UsageLimits {
-  [key: string]: number;
+export interface UsageStats {
+  chats: number;
+  documents: number;
+  quizzes: number;
+  pdfExports: number;
+  youtubeAnalyses: number;
 }
 
-interface UsageStats {
-  [key: string]: number;
+interface PlanLimits {
+  maxChats: number;
+  maxDocuments: number;
+  maxQuizzes: number;
+  maxPdfExports: number;
+  maxYoutubeAnalyses: number;
+  features: Feature[];
 }
+
+const PLAN_LIMITS: Record<string, PlanLimits> = {
+  free: {
+    maxChats: 10,
+    maxDocuments: 3,
+    maxQuizzes: 5,
+    maxPdfExports: 2,
+    maxYoutubeAnalyses: 1,
+    features: ['maxChats', 'maxDocuments', 'maxQuizzes']
+  },
+  premium: {
+    maxChats: Infinity,
+    maxDocuments: Infinity,
+    maxQuizzes: Infinity,
+    maxPdfExports: Infinity,
+    maxYoutubeAnalyses: Infinity,
+    features: ['pdfExport', 'offlineMode', 'maxChats', 'maxDocuments', 'maxQuizzes', 'youtubeAnalysis']
+  }
+};
 
 export function usePlanLimits() {
   const { currentUser } = useAuth();
-  const [usageStats, setUsageStats] = useState<UsageStats>({});
-  
-  // Default limits based on plan type
-  const planLimits: Record<PlanType, UsageLimits> = {
-    free: {
-      pdf_pages: 5,
-      documents: 3,
-      concurrent_projects: 1,
-      ai_requests: 20,
-      topic_generation: 5
-    },
-    premium: {
-      pdf_pages: 25,
-      documents: 15,
-      concurrent_projects: 5,
-      ai_requests: 100,
-      topic_generation: 50
-    },
-    enterprise: {
-      pdf_pages: 100,
-      documents: 50,
-      concurrent_projects: 20,
-      ai_requests: 500,
-      topic_generation: 200
-    }
-  };
+  const userPlan = currentUser?.subscription?.plan || 'free';
+  const [usageStats, setUsageStats] = useState<UsageStats>(() => {
+    const storedStats = localStorage.getItem('usage_stats');
+    return storedStats ? JSON.parse(storedStats) : {
+      chats: 0,
+      documents: 0,
+      quizzes: 0,
+      pdfExports: 0,
+      youtubeAnalyses: 0
+    };
+  });
 
-  // Load usage stats from localStorage on component mount
+  // Save usage stats to localStorage when they change
   useEffect(() => {
-    try {
-      const storedStats = localStorage.getItem('usage_stats');
-      if (storedStats) {
-        setUsageStats(JSON.parse(storedStats));
-      }
-    } catch (error) {
-      console.error('Error loading usage stats:', error);
-    }
-  }, []);
-
-  // Save usage stats to localStorage whenever they change
-  useEffect(() => {
-    if (Object.keys(usageStats).length > 0) {
-      localStorage.setItem('usage_stats', JSON.stringify(usageStats));
-    }
+    localStorage.setItem('usage_stats', JSON.stringify(usageStats));
   }, [usageStats]);
 
-  // Get the user's current plan
-  const userPlan: PlanType = currentUser?.subscription?.type || 'free';
+  // Check if a specific feature limit has been reached
+  const hasReachedLimit = (featureKey: string) => {
+    const limits = PLAN_LIMITS[userPlan];
+    if (!limits) return true;
 
-  // Check if the user has reached the limit for a specific feature
-  const hasReachedLimit = (featureKey: string): boolean => {
-    const limit = planLimits[userPlan][featureKey] || 0;
-    const usage = usageStats[featureKey] || 0;
-    return usage >= limit;
+    switch (featureKey) {
+      case 'maxChats':
+        return usageStats.chats >= limits.maxChats;
+      case 'maxDocuments':
+        return usageStats.documents >= limits.maxDocuments;
+      case 'maxQuizzes':
+        return usageStats.quizzes >= limits.maxQuizzes;
+      case 'pdfExport':
+        return usageStats.pdfExports >= limits.maxPdfExports;
+      case 'youtubeAnalysis':
+        return usageStats.youtubeAnalyses >= limits.maxYoutubeAnalyses;
+      default:
+        return false;
+    }
   };
 
-  // Get the remaining usage for a specific feature
-  const getRemainingUsage = (featureKey: string): number => {
-    const limit = planLimits[userPlan][featureKey] || 0;
-    const usage = usageStats[featureKey] || 0;
-    return Math.max(0, limit - usage);
+  // Get remaining usage amount for a specific feature
+  const getRemainingUsage = (featureKey: string) => {
+    const limits = PLAN_LIMITS[userPlan];
+    if (!limits) return 0;
+
+    switch (featureKey) {
+      case 'maxChats':
+        return Math.max(0, limits.maxChats - usageStats.chats);
+      case 'maxDocuments':
+        return Math.max(0, limits.maxDocuments - usageStats.documents);
+      case 'maxQuizzes':
+        return Math.max(0, limits.maxQuizzes - usageStats.quizzes);
+      case 'pdfExport':
+        return Math.max(0, limits.maxPdfExports - usageStats.pdfExports);
+      case 'youtubeAnalysis':
+        return Math.max(0, limits.maxYoutubeAnalyses - usageStats.youtubeAnalyses);
+      default:
+        return 0;
+    }
   };
 
-  // Check if the user has access to a specific feature
-  const canUseFeature = (featureName: Feature): boolean => {
-    if (!currentUser) return false;
+  // Check if user can use a specific feature
+  const canUseFeature = (featureName: Feature) => {
+    const limits = PLAN_LIMITS[userPlan];
+    if (!limits) return false;
     
-    const userFeatures = currentUser.subscription?.features || [];
-    return userFeatures.includes(featureName);
+    if (userPlan === 'premium') return true;
+    return limits.features.includes(featureName);
   };
 
-  // Check if the user can access all modules
-  const canAccessAllModules = (): boolean => {
-    return userPlan === 'premium' || userPlan === 'enterprise';
+  // Increment usage counter for a feature
+  const incrementUsage = (featureKey: string) => {
+    setUsageStats(prev => {
+      switch (featureKey) {
+        case 'maxChats':
+          return { ...prev, chats: prev.chats + 1 };
+        case 'maxDocuments':
+          return { ...prev, documents: prev.documents + 1 };
+        case 'maxQuizzes':
+          return { ...prev, quizzes: prev.quizzes + 1 };
+        case 'pdfExport':
+          return { ...prev, pdfExports: prev.pdfExports + 1 };
+        case 'youtubeAnalysis':
+          return { ...prev, youtubeAnalyses: prev.youtubeAnalyses + 1 };
+        default:
+          return prev;
+      }
+    });
   };
 
-  // Increment usage for a specific feature
-  const incrementUsage = (featureKey: string): void => {
-    setUsageStats(prev => ({
-      ...prev,
-      [featureKey]: (prev[featureKey] || 0) + 1
-    }));
+  // Reset all usage statistics
+  const resetUsageStats = () => {
+    setUsageStats({
+      chats: 0,
+      documents: 0,
+      quizzes: 0,
+      pdfExports: 0,
+      youtubeAnalyses: 0
+    });
   };
 
-  // Reset usage stats for testing
-  const resetUsageStats = (): void => {
-    setUsageStats({});
-    localStorage.removeItem('usage_stats');
+  // Check if user can access all modules
+  const canAccessAllModules = () => {
+    return userPlan === 'premium';
+  };
+
+  // Helper functions to make the API more convenient
+  const hasChatLimit = () => {
+    return userPlan === 'free';
+  };
+
+  const canGeneratePdf = () => {
+    return canUseFeature('pdfExport') && !hasReachedLimit('pdfExport');
+  };
+
+  const canAnalyzeYoutube = () => {
+    return canUseFeature('youtubeAnalysis') && !hasReachedLimit('youtubeAnalysis');
+  };
+
+  const canTakeQuiz = () => {
+    return !hasReachedLimit('maxQuizzes');
+  };
+
+  // Specialized increment functions for each feature type
+  const incrementChatMessages = () => incrementUsage('maxChats');
+  const incrementPdfGenerations = () => incrementUsage('pdfExport');
+  const incrementYoutubeAnalysis = () => incrementUsage('youtubeAnalysis');
+  const incrementQuizzes = () => incrementUsage('maxQuizzes');
+
+  // Function to update user plan (for payment integration)
+  const updateUserPlan = (newPlan: 'free' | 'premium') => {
+    // In a real app, this would interact with a backend
+    // For now, we'll just store it in localStorage
+    localStorage.setItem('user_plan', newPlan);
+    // Force a refresh
+    window.location.reload();
   };
 
   return {
@@ -114,6 +193,18 @@ export function usePlanLimits() {
     canAccessAllModules,
     incrementUsage,
     resetUsageStats,
-    usageStats
+    usageStats,
+    // Additional helper functions
+    hasChatLimit,
+    canGeneratePdf,
+    canAnalyzeYoutube,
+    canTakeQuiz,
+    // Specialized increment functions
+    incrementChatMessages,
+    incrementPdfGenerations,
+    incrementYoutubeAnalysis,
+    incrementQuizzes,
+    // Plan update function
+    updateUserPlan
   };
 }

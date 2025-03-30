@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import AIChat from '@/components/assistant/AIChat';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { usePlanLimits, Feature } from '@/hooks/usePlanLimits';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
@@ -21,7 +21,7 @@ const AssistantPage = () => {
   const hasLimit = hasChatLimit();
   const chatLimitReached = hasReachedLimit('maxChats');
   const remainingChats = getRemainingUsage('maxChats');
-  const offlineMode = canUseFeature('offlineMode');
+  const offlineMode = canUseFeature('offlineMode' as Feature);
   
   const handleUpgrade = () => {
     navigate('/payment');

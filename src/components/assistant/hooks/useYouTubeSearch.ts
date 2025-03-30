@@ -1,38 +1,37 @@
-import { useState, useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { searchYouTubeVideos } from "../services/perplexityService";
-import { v4 as uuidv4 } from "uuid";
-import { Message } from "../types/message";
+
+import { useState, useCallback } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { searchMRCVideos, getVideoInfo, YouTubeVideo } from '../services/youtubeService';
+import { Message } from '../types/message';
+import { v4 as uuidv4 } from 'uuid';
 
 export function useYouTubeSearch() {
-  const [youtubeResults, setYoutubeResults] = useState<any[]>([]);
+  const [youtubeResults, setYoutubeResults] = useState<YouTubeVideo[]>([]);
   const [isSearchingYouTube, setIsSearchingYouTube] = useState(false);
   const { toast } = useToast();
 
-  const handleYouTubeSearch = useCallback(async (query: string, isOnline: boolean) => {
-    if (!query.trim()) return;
-
-    setIsSearchingYouTube(true);
-    setYoutubeResults([]);
-
+  const handleYouTubeSearch = useCallback(async (query: string, isOnline: boolean = true) => {
     if (!isOnline) {
       toast({
         title: "Mode hors-ligne",
-        description: "La recherche YouTube est désactivée en mode hors-ligne.",
-        variant: "warning",
+        description: "La recherche YouTube n'est pas disponible en mode hors-ligne.",
+        variant: "destructive",
       });
-      setIsSearchingYouTube(false);
       return;
     }
+
+    setIsSearchingYouTube(true);
+    setYoutubeResults([]);
 
     try {
       const apiKeys = localStorage.getItem("api_keys");
       if (!apiKeys) {
         toast({
-          title: "Clés API manquantes",
-          description: "Veuillez configurer vos clés API pour utiliser la recherche YouTube.",
+          title: "Clé API manquante",
+          description: "Veuillez configurer une clé API YouTube dans les paramètres.",
           variant: "destructive",
         });
+        setIsSearchingYouTube(false);
         return;
       }
 
@@ -40,19 +39,20 @@ export function useYouTubeSearch() {
       if (!youtube) {
         toast({
           title: "Clé API YouTube manquante",
-          description: "Veuillez configurer votre clé API YouTube pour utiliser la recherche YouTube.",
+          description: "Veuillez configurer une clé API YouTube dans les paramètres.",
           variant: "destructive",
         });
+        setIsSearchingYouTube(false);
         return;
       }
 
-      const results = await searchYouTubeVideos(youtube, query);
-      setYoutubeResults(results);
+      const videos = await searchMRCVideos(youtube, query);
+      setYoutubeResults(videos);
     } catch (error) {
       console.error("Error searching YouTube:", error);
       toast({
-        title: "Erreur de recherche YouTube",
-        description: "Une erreur s'est produite lors de la recherche de vidéos YouTube.",
+        title: "Erreur de recherche",
+        description: "Une erreur est survenue lors de la recherche YouTube.",
         variant: "destructive",
       });
     } finally {
@@ -60,81 +60,76 @@ export function useYouTubeSearch() {
     }
   }, [toast]);
 
-  const handleVideoSelect = useCallback(
-    async (videoId: string, isOnline: boolean, setIsLoading: (loading: boolean) => void, setMessages: React.Dispatch<React.SetStateAction<Message[]>>) => {
-      if (!isOnline) {
+  const handleVideoSelect = useCallback(async (
+    videoId: string, 
+    isOnline: boolean = true,
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>
+  ) => {
+    if (!isOnline) {
+      toast({
+        title: "Mode hors-ligne",
+        description: "L'analyse de vidéos n'est pas disponible en mode hors-ligne.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setYoutubeResults([]);
+
+    try {
+      const apiKeys = localStorage.getItem("api_keys");
+      if (!apiKeys) {
         toast({
-          title: "Mode hors-ligne",
-          description: "La lecture de vidéos YouTube est désactivée en mode hors-ligne.",
-          variant: "warning",
+          title: "Clé API manquante",
+          description: "Veuillez configurer une clé API YouTube dans les paramètres.",
+          variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
 
-      try {
-        // Show a loading message
-        const loadingMessage: Message = {
-          id: uuidv4(),
-          role: "assistant",
-          content: "Chargement de la vidéo YouTube...",
-          timestamp: new Date(),
-          text: "Chargement de la vidéo YouTube..."
-        };
-        
-        setMessages(prev => [...prev, loadingMessage]);
-        setIsLoading(true);
-        
-        // Simulate fetching video title (replace with actual API call if needed)
-        const videoTitle = "Titre de la vidéo YouTube";
-        
-        // Update with success message
-        const videoEmbedHtml = `
-        <div class="youtube-embed">
-          <iframe 
-            width="100%" 
-            height="315" 
-            src="https://www.youtube.com/embed/${videoId}" 
-            title="YouTube video player" 
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen>
-          </iframe>
-          <p class="text-sm text-gray-500 mt-2">Vidéo: ${videoTitle || "YouTube"}</p>
-        </div>`;
-        
-        const successMessage: Message = {
-          id: uuidv4(),
-          role: "assistant", 
-          content: videoEmbedHtml,
-          timestamp: new Date(),
-          text: "Voici la vidéo que vous avez demandée."
-        };
-        
-        // Replace the loading message with the success message
-        setMessages(prev => prev.map(msg => 
-          msg.content === loadingMessage.content ? successMessage : msg
-        ));
-        
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error embedding video:", error);
+      const { youtube } = JSON.parse(apiKeys);
+      if (!youtube) {
         toast({
-          title: "Erreur de lecture YouTube",
-          description: "Une erreur s'est produite lors de la lecture de la vidéo YouTube.",
+          title: "Clé API YouTube manquante",
+          description: "Veuillez configurer une clé API YouTube dans les paramètres.",
           variant: "destructive",
         });
-      } finally {
         setIsLoading(false);
+        return;
       }
-    },
-    [toast]
-  );
+
+      const videoInfo = await getVideoInfo(youtube, videoId);
+      
+      // Add response about the video
+      const aiMessage: Message = {
+        id: uuidv4(),
+        role: "assistant",
+        content: `**${videoInfo.title}**\n\n${videoInfo.description}\n\nVoici ce que j'ai compris de cette vidéo :\n\n${videoInfo.transcript}`,
+        timestamp: new Date(),
+        text: `**${videoInfo.title}**\n\n${videoInfo.description}\n\nVoici ce que j'ai compris de cette vidéo :\n\n${videoInfo.transcript}`
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Error analyzing video:", error);
+      toast({
+        title: "Erreur d'analyse",
+        description: "Une erreur est survenue lors de l'analyse de la vidéo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
 
   return {
     youtubeResults,
+    setYoutubeResults,
     isSearchingYouTube,
     handleYouTubeSearch,
-    handleVideoSelect,
-    setYoutubeResults
+    handleVideoSelect
   };
 }

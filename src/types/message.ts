@@ -7,7 +7,7 @@ export interface Message {
   sender?: string;
   isRead?: boolean;
   currentUser?: boolean;
-  text?: string;
+  text: string;
   senderName?: string;
   senderAvatar?: string;
   senderId?: string;
