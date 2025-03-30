@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Menu, X, MessageCircle, Download, YoutubeIcon } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import UserAvatar from "@/components/auth/UserAvatar";
 import AuthDialog from "../auth/AuthDialog";
 import InstallAppButton from "../pwa/InstallAppButton";

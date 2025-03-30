@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { 
   DropdownMenu, 
@@ -7,7 +8,7 @@ import {
   DropdownMenuLabel, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import UserAvatar from '../auth/UserAvatar';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';

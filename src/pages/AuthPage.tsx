@@ -7,7 +7,7 @@ import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
 
 const AuthPage = () => {
