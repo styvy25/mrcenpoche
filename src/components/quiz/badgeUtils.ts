@@ -1,62 +1,70 @@
 
-import { BadgeProps } from './types';
+import { BadgeProps } from "./types";
+import { Award, Star, Medal, Trophy, Crown } from "lucide-react";
 
-// Define badges that can be earned
-const availableBadges: BadgeProps[] = [
+// Define badges with their criteria
+const badges: BadgeProps[] = [
   {
-    id: 'first-quiz',
-    name: 'Premier Quiz',
-    description: 'Vous avez complété votre premier quiz',
-    icon: 'Trophy',
-    color: 'gold'
+    id: "beginner",
+    name: "Débutant",
+    description: "Vous avez complété votre premier quiz",
+    icon: "Award",
+    color: "text-blue-500"
   },
   {
-    id: 'perfect-score',
-    name: 'Score Parfait',
-    description: 'Vous avez obtenu un score parfait',
-    icon: 'Star',
-    color: 'gold'
+    id: "intermediate",
+    name: "Connaisseur",
+    description: "Vous avez obtenu un score de 70% ou plus",
+    icon: "Star",
+    color: "text-green-500"
   },
   {
-    id: 'knowledge-seeker',
-    name: 'Chercheur de Connaissances',
-    description: 'Vous avez complété un quiz avec plus de 75% de bonnes réponses',
-    icon: 'Book',
-    color: 'blue'
+    id: "expert",
+    name: "Expert",
+    description: "Vous avez obtenu un score de 90% ou plus",
+    icon: "Medal",
+    color: "text-purple-500"
   },
   {
-    id: 'historian',
-    name: 'Historien',
-    description: 'Vous avez excellé dans un quiz d\'histoire',
-    icon: 'History',
-    color: 'purple'
+    id: "master",
+    name: "Maître",
+    description: "Vous avez obtenu un score parfait",
+    icon: "Trophy",
+    color: "text-yellow-500"
   },
   {
-    id: 'political-expert',
-    name: 'Expert Politique',
-    description: 'Vous avez excellé dans un quiz de politique',
-    icon: 'Vote',
-    color: 'red'
+    id: "superstar",
+    name: "Superstar",
+    description: "Vous avez obtenu un score parfait en moins de 2 minutes",
+    icon: "Crown",
+    color: "text-red-500"
   }
 ];
 
-// Calculate which badges the user has earned
+// Function to calculate which badges a user has earned
 export const calculateEarnedBadges = (score: number, totalQuestions: number): BadgeProps[] => {
+  const percentage = (score / totalQuestions) * 100;
   const earnedBadges: BadgeProps[] = [];
-  const scorePercentage = (score / totalQuestions) * 100;
-
-  // First Quiz badge
-  earnedBadges.push(availableBadges.find(badge => badge.id === 'first-quiz')!);
-
-  // Perfect score badge
-  if (score === totalQuestions) {
-    earnedBadges.push(availableBadges.find(badge => badge.id === 'perfect-score')!);
+  
+  // Always earn the beginner badge
+  earnedBadges.push(badges[0]);
+  
+  // Score-based badges
+  if (percentage >= 70) {
+    earnedBadges.push(badges[1]);
   }
-
-  // Knowledge seeker badge
-  if (scorePercentage >= 75) {
-    earnedBadges.push(availableBadges.find(badge => badge.id === 'knowledge-seeker')!);
+  
+  if (percentage >= 90) {
+    earnedBadges.push(badges[2]);
   }
-
+  
+  if (percentage === 100) {
+    earnedBadges.push(badges[3]);
+  }
+  
+  // Note: We can't calculate the superstar badge here since we don't track time
+  
   return earnedBadges;
 };
+
+export default calculateEarnedBadges;

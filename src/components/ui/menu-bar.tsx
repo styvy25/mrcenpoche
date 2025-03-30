@@ -1,6 +1,6 @@
 
 import React from "react";
-import { motion, MotionProps } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
@@ -13,7 +13,7 @@ interface MenuItem {
   iconColor: string;
 }
 
-interface MenuBarProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onDrag'> {
+interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement> {
   items: MenuItem[];
   activeItem?: string;
   onItemClick?: (label: string) => void;
@@ -73,7 +73,7 @@ export const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
         )}
         initial="initial"
         whileHover="hover"
-        {...props as MotionProps}
+        {...props}
       >
         <motion.div
           className={`absolute -inset-2 bg-gradient-radial from-transparent ${
