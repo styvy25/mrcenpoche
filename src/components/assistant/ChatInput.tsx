@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { Mic, Send, Image, Loader2, X, PaperPlane } from "lucide-react";
+import { Mic, Send, Image, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
@@ -216,7 +216,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <PaperPlane className="h-5 w-5" />
+              <Send className="h-5 w-5" />
             )}
           </Button>
         </div>
