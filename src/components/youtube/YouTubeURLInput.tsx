@@ -65,28 +65,38 @@ const YouTubeURLInput: React.FC<YouTubeURLInputProps> = ({
     } else {
       onVideoSelect(videoId);
     }
+    
+    setUrl('');
   };
 
   return (
-    <div className={className}>
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <Input
-          type="text"
-          placeholder="Collez l'URL YouTube ici (ex: https://youtube.com/watch?v=...)"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          className="flex-1"
-          disabled={isLoading || disabled}
-        />
-        <Button type="submit" disabled={!url.trim() || isLoading || disabled}>
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <ArrowRight className="h-4 w-4" />
-          )}
-        </Button>
-      </form>
-    </div>
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Youtube className="h-5 w-5 text-red-500" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Collez l'URL YouTube ici"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="flex-1"
+            disabled={isLoading || disabled}
+          />
+          <Button type="submit" disabled={!url.trim() || isLoading || disabled}>
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowRight className="h-4 w-4" />
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

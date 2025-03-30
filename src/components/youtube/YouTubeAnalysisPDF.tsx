@@ -143,11 +143,11 @@ const YouTubeAnalysisPDF: React.FC<YouTubeAnalysisPDFProps> = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-2 ml-auto">
+    <div className="flex flex-col sm:flex-row gap-2">
       {!pdfUrl ? (
         <Button 
           onClick={generatePDF} 
-          disabled={isGenerating}
+          disabled={isGenerating || !videoId || !analysis}
           className="w-full"
         >
           {isGenerating ? (
