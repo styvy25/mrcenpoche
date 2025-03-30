@@ -9,6 +9,9 @@ import SocialShareButtons from "../shared/SocialShareButtons";
 import QuizAchievement from "./QuizAchievement";
 import QuizNotification from "./QuizNotification";
 import { BadgeProps, QuizResultProps } from "./types";
+import GameProgressBar from "../gamification/GameProgressBar";
+import { useAuth } from "@/components/auth/AuthContext";
+import { useGamification } from "@/services/gamificationService";
 
 const QuizResult: React.FC<QuizResultProps> = ({
   score,
@@ -21,6 +24,8 @@ const QuizResult: React.FC<QuizResultProps> = ({
   const [showShareButtons, setShowShareButtons] = useState(false);
   const percentage = Math.round((score / totalQuestions) * 100);
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
+  const { currentUser } = useAuth();
+  const { level, points } = useGamification(currentUser?.id || 'anonymous');
   
   // Determine performance level
   const getPerformanceLevel = () => {
@@ -108,6 +113,19 @@ const QuizResult: React.FC<QuizResultProps> = ({
             Catégorie: {categoryName}
           </p>
         </div>
+
+        {currentUser && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold text-mrc-blue">Votre progression</h3>
+              <span className="font-medium">{points} pts</span>
+            </div>
+            <GameProgressBar />
+            <p className="mt-2 text-sm text-gray-600">
+              Niveau {level.level}: {level.title}
+            </p>
+          </div>
+        )}
 
         {result?.unlockedBadges && result.unlockedBadges.length > 0 && (
           <motion.div 

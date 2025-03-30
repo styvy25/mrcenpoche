@@ -1,10 +1,13 @@
 
 import React, { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { moduleQuizzes } from "../modules/quizData";
 import { Award } from "lucide-react";
 import QuizScreens from "./components/QuizScreens";
 import { QuizState } from "./types";
+import { useAuth } from "@/components/auth/AuthContext";
+import { useGamification, PointsActionType } from "@/services/gamificationService";
+import { calculateEarnedBadges } from "./badgeUtils";
 
 interface QuizContentProps {
   moduleId: string;
@@ -24,6 +27,8 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
   
   const { toast } = useToast();
   const quiz = moduleQuizzes[Number(moduleId)];
+  const { currentUser } = useAuth();
+  const { handleQuizCompletion } = useGamification(currentUser?.id || 'anonymous');
   
   useEffect(() => {
     // Reset the quiz state when moduleId changes
@@ -77,6 +82,23 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
       });
     } else {
       // Quiz is completed
+      const finalScore = quizState.score + (quizState.isCorrect ? 1 : 0);
+      
+      // Préparer le résultat pour le système de gamification
+      const quizResult = {
+        score: (finalScore / quiz.questions.length) * 100,
+        correctAnswers: finalScore,
+        totalQuestions: quiz.questions.length,
+        timeSpent: 0, // Nous n'avons pas de tracking du temps pour le moment
+        unlockedBadges: calculateEarnedBadges(finalScore, quiz.questions.length),
+        date: new Date()
+      };
+      
+      // Mettre à jour le système de gamification
+      if (currentUser) {
+        handleQuizCompletion(quizResult);
+      }
+      
       setQuizState({
         ...quizState,
         quizCompleted: true
@@ -93,7 +115,7 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
         ),
       });
       
-      onComplete(quizState.score + (quizState.isCorrect ? 1 : 0), quiz.questions.length);
+      onComplete(finalScore, quiz.questions.length);
     }
   };
 

@@ -20,6 +20,7 @@ export interface QuizQuestion {
   explanation?: string;
   imageSrc?: string;
   difficulty?: string;
+  text?: string; // Ajout de cette propriété pour compatibilité
 }
 
 export interface QuizState {
@@ -82,25 +83,30 @@ export interface QuizUserStats {
   badges: BadgeProps[];
 }
 
-// For match-related functionality
+// Pour match-related functionality
 export interface MatchPlayer {
   id: string;
   name: string;
   avatar?: string;
   score?: number;
+  correctAnswers?: number;
+  totalAnswers?: number;
 }
 
 export interface Match {
   id: string;
+  title: string;
   category: string;
   createdAt: Date;
-  players: MatchPlayer[];
+  participants: MatchPlayer[];
   status: 'pending' | 'active' | 'completed';
   questions?: QuizQuestion[];
+  creator?: string;
   winner?: string;
+  inviteLink?: string;
 }
 
-// Updated Appointment types to match the actual usage in the components
+// Types pour les appointments
 export interface Appointment {
   id: string;
   title: string;
@@ -139,3 +145,28 @@ export interface AppointmentRequest {
   contactMethod?: 'email' | 'phone' | 'video';
   contactInfo?: string;
 }
+
+// Types spécifiques pour les messages dans l'application
+export interface Message {
+  timestamp: Date;
+  id: string;
+  content: string;
+  senderId: string;
+  type: 'text' | 'image' | 'audio' | 'video';
+  mediaUrl?: string;
+  sender?: string;
+  text?: string;
+}
+
+// Types pour les features de l'application
+export type Feature = 
+  'youtubeAnalysis' | 
+  'pdfGeneration' | 
+  'pdfCorrection' | 
+  'chatAssistant' | 
+  'quizzes' | 
+  'challenges' | 
+  'maxChats';
+
+// Types pour les plans d'abonnement
+export type Plan = 'free' | 'basic' | 'premium' | 'enterprise';

@@ -68,13 +68,12 @@ const DailyChallenge: React.FC<DailyChallengeProps> = ({ onComplete }) => {
     };
 
     if (challenge) {
-      const newMatch = createMatch({
-        title: challenge.title,
-        category: "test",
-        questions: challenge.questions,
-        participants: [participantData],
-        createdBy: user.id,
-      });
+      // Fix: providing title, category and questions as separate arguments
+      const newMatch = createMatch(
+        challenge.title, 
+        "test", 
+        user.username || user.email?.split('@')[0] || 'User'
+      );
 
       if (newMatch) {
         toast.success("Défi lancé !");
