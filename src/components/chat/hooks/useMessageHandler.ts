@@ -1,135 +1,111 @@
 
-import { useState, useCallback } from 'react';
-import { Message } from '@/types/message';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useCallback, useEffect } from 'react';
+import { Message } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
-export function useMessageHandler() {
+export const useMessageHandler = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Helper to generate a mock AI response
-  const getAiResponse = useCallback((query: string): string => {
-    const lowercaseQuery = query.toLowerCase();
-    
-    if (lowercaseQuery.includes('mrc')) {
-      return "Le MRC (Mouvement pour la Renaissance du Cameroun) est un parti politique camerounais fondé en 2012. Son président est Maurice Kamto. Le parti prône des valeurs démocratiques et une meilleure gouvernance pour le Cameroun.";
-    }
-    
-    if (lowercaseQuery.includes('kamto')) {
-      return "Maurice Kamto est un homme politique camerounais, président du MRC et ancien candidat à l'élection présidentielle de 2018. Il est également juriste international et a été ministre délégué à la Justice du Cameroun de 2004 à 2011.";
-    }
-    
-    if (lowercaseQuery.includes('cameroun')) {
-      return "Le Cameroun est un pays d'Afrique centrale. Sa capitale politique est Yaoundé et sa capitale économique est Douala. Le pays fait face à divers défis politiques et économiques, avec plusieurs partis politiques actifs dont le MRC.";
-    }
-    
-    if (lowercaseQuery.includes('bonjour') || lowercaseQuery.includes('salut') || lowercaseQuery.includes('hello')) {
-      return "Bonjour ! Comment puis-je vous aider aujourd'hui concernant le MRC ou les actualités du Cameroun ?";
-    }
-    
-    return "Je n'ai pas d'information spécifique sur ce sujet. Pourriez-vous préciser votre question concernant le MRC ou le Cameroun ? Je peux aussi rechercher des vidéos YouTube pour vous si vous le souhaitez.";
-  }, []);
-
-  // Handle sending messages
-  const handleSendMessage = useCallback((
-    input: string, 
-    isOnline: boolean = true, 
-    handleYouTubeSearch: ((query: string, isOnline: boolean) => Promise<void>) | null = null
-  ) => {
-    if (!input.trim()) return false;
-    
-    // Add user message
-    const userMessage: Message = {
-      id: `user_${Date.now()}`,
-      content: input,
-      sender: 'user',
-      timestamp: new Date(),
-      text: input
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setIsLoading(true);
-    
-    // Check if the user is asking for YouTube videos
-    if (input.toLowerCase().includes('vidéo') || 
-        input.toLowerCase().includes('video') || 
-        input.toLowerCase().includes('youtube')) {
-      // Extract search terms (remove words like "video", "youtube", etc.)
-      const searchTerms = input
-        .toLowerCase()
-        .replace(/vidéo|video|youtube|cherche|trouve|recherche|montre/g, '')
-        .trim();
-      
-      if (handleYouTubeSearch) {
-        handleYouTubeSearch(searchTerms, isOnline);
-      }
-    }
-    
-    // Regular message response with delay for better UX
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: `ai_${Date.now()}`,
-        content: getAiResponse(input),
-        sender: 'ai',
-        timestamp: new Date(),
-        text: getAiResponse(input)
-      };
-      
-      setMessages(prev => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 1000);
-    
-    return true;
-  }, [getAiResponse]);
-  
-  // Initialize conversation with a welcome message
-  const clearConversation = useCallback(() => {
-    const welcomeMessage: Message = {
-      id: 'welcome_1',
-      content: "Bonjour ! Je suis votre assistant MRC. Comment puis-je vous aider aujourd'hui ?",
-      sender: "ai",
-      timestamp: new Date(),
-      text: "Bonjour ! Je suis votre assistant MRC. Comment puis-je vous aider aujourd'hui ?"
-    };
-    
-    setMessages([welcomeMessage]);
-  }, []);
-
-  // Load messages from localStorage or initialize with welcome message
+  // Initialize messages from localStorage
   const initializeMessages = useCallback(() => {
+    setIsLoading(true);
     try {
       const savedMessages = localStorage.getItem('mrc_chat_messages');
       if (savedMessages) {
         const parsedMessages = JSON.parse(savedMessages);
-        // Ensure all timestamps are Date objects
-        const normalizedMessages = parsedMessages.map((msg: any) => ({
+        // Convert string dates to Date objects
+        const messagesWithDates = parsedMessages.map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         }));
-        setMessages(normalizedMessages);
+        setMessages(messagesWithDates);
       } else {
-        clearConversation();
+        // Set welcome message if no messages exist
+        const welcomeMessage: Message = {
+          id: uuidv4(),
+          content: "Bienvenue sur le Chat MRC 237! Connectez-vous et commencez à échanger avec d'autres militants.",
+          senderId: 'system',
+          timestamp: new Date(),
+          type: 'text'
+        };
+        setMessages([welcomeMessage]);
       }
     } catch (error) {
-      console.error("Error loading messages:", error);
-      clearConversation();
-      
-      toast({
-        title: "Erreur de chargement",
-        description: "Impossible de charger les messages précédents.",
-        variant: "destructive"
-      });
+      console.error('Error initializing messages:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [clearConversation, toast]);
+  }, []);
+
+  // Save messages to localStorage when they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('mrc_chat_messages', JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  // Handle sending a text message
+  const handleSendMessage = useCallback((text: string) => {
+    if (!text.trim()) return false;
+
+    const newMessage: Message = {
+      id: uuidv4(),
+      content: text,
+      senderId: '1', // Current user ID
+      timestamp: new Date(),
+      type: 'text'
+    };
+
+    setMessages(prev => [...prev, newMessage]);
+    return true;
+  }, []);
+
+  // Handle sending media (images, audio)
+  const handleSendMedia = useCallback(async (file: File) => {
+    try {
+      // For the demo, we'll create an object URL
+      const mediaUrl = URL.createObjectURL(file);
+      
+      // Determine media type based on file type
+      let mediaType: 'image' | 'audio' | 'video' = 'image';
+      if (file.type.startsWith('audio/')) {
+        mediaType = 'audio';
+      } else if (file.type.startsWith('video/')) {
+        mediaType = 'video';
+      }
+      
+      const newMessage: Message = {
+        id: uuidv4(),
+        content: file.name,
+        senderId: '1', // Current user ID
+        timestamp: new Date(),
+        type: mediaType,
+        mediaUrl
+      };
+
+      setMessages(prev => [...prev, newMessage]);
+      return true;
+    } catch (error) {
+      console.error('Error sending media:', error);
+      return false;
+    }
+  }, []);
+
+  // Clear the conversation
+  const clearConversation = useCallback(() => {
+    setMessages([]);
+    localStorage.removeItem('mrc_chat_messages');
+  }, []);
 
   return {
     messages,
     isLoading,
     setIsLoading,
     handleSendMessage,
+    handleSendMedia,
     clearConversation,
     initializeMessages,
     setMessages
   };
-}
+};

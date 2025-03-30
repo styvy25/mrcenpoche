@@ -6,7 +6,7 @@ import { usePresenceManagement } from './hooks/usePresenceManagement';
 import MessagesContainer from './MessagesContainer';
 import MessageInput from './MessageInput';
 import ActiveUsersList from './ActiveUsersList';
-import ChatHeader from './Chat237Header';
+import Chat237Header from './Chat237Header';
 import ChatMedia from './Chat237Media';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -122,7 +122,7 @@ const Chat237: React.FC<Chat237Props> = ({
           {/* Main chat area */}
           <div className="flex flex-col flex-grow">
             <Card className="flex flex-col h-full overflow-hidden border-blue-200 dark:border-blue-900">
-              <ChatHeader 
+              <Chat237Header 
                 currentUser={currentUser}
                 activeUsers={activeUsers}
                 onClearChat={clearConversation}

@@ -1,44 +1,21 @@
 
 import { useCallback, useState, useEffect } from 'react';
+import { Feature, Plan } from './api-keys/types';
+
+export { Feature, Plan };
 
 /**
- * Available features in the application
+ * User subscription
  */
-export enum Feature {
-  // Chat features
-  CHAT = "chat",
-  MAX_CHATS = "maxChats",
-  VOICE_MESSAGES = "voiceMessages",
-  ATTACHMENTS = "attachments",
-  
-  // Document features
-  PDF_EXPORT = "pdfExport",
-  CERTIFICATE = "certificate",
-  
-  // Analysis features
-  YOUTUBE_ANALYSIS = "youtubeAnalysis",
-  AI_ASSISTANT = "aiAssistant",
-  
-  // Premium features
-  PREMIUM_MODULES = "premiumModules",
-  PREMIUM_QUIZZES = "premiumQuizzes"
-}
-
-// Define plan tiers
-export enum Plan {
-  FREE = "free",
-  BASIC = "basic",
-  PREMIUM = "premium"
-}
-
-// User subscription
 export interface UserSubscription {
   plan: Plan;
   expiresAt?: Date;
   features?: Feature[];
 }
 
-// Usage tracking interface
+/**
+ * Usage tracking interface
+ */
 export interface UsageStats {
   chatMessages: number;
   pdfGenerations: number;

@@ -1,31 +1,26 @@
 
 import React from "react";
-import { CardDescription, CardTitle } from "@/components/ui/card";
-import { useApiKeys } from "@/hooks/useApiKeys";
+import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Key } from "lucide-react";
 
 const APIKeyManagerHeader = () => {
-  const { keyStatus } = useApiKeys();
-  
-  // Count active services
-  const activeServiceCount = Object.values(keyStatus).filter(Boolean).length;
-  const totalServices = Object.keys(keyStatus).length;
-  
   return (
-    <div className="p-6 pb-2 border-b">
-      <CardTitle className="mb-2">Clés API</CardTitle>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <Key className="h-5 w-5 text-blue-500" />
+        Configuration des clés API
+      </CardTitle>
       <CardDescription>
-        Configurez vos clés API pour activer toutes les fonctionnalités. 
-        {activeServiceCount > 0 ? (
-          <span className="ml-1">
-            {activeServiceCount}/{totalServices} services actifs.
-          </span>
-        ) : (
-          <span className="ml-1">
-            Aucun service n'est actuellement activé.
-          </span>
-        )}
+        Configurez vos clés API pour activer toutes les fonctionnalités de l'application
       </CardDescription>
-    </div>
+      <Alert className="mt-4 bg-blue-50/50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800">
+        <AlertDescription>
+          Ces clés sont stockées localement et ne sont jamais envoyées à nos serveurs. 
+          Elles sont utilisées pour accéder aux services externes comme Perplexity AI et YouTube.
+        </AlertDescription>
+      </Alert>
+    </CardHeader>
   );
 };
 

@@ -1,50 +1,57 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCcw, Key } from "lucide-react";
+import { RefreshCw, Save, Trash } from "lucide-react";
 
 interface APIKeyActionsProps {
-  onSave: () => void;
-  onRefreshCache: () => void;
+  onSave: () => Promise<any>;
+  onRefreshCache: () => Promise<any>;
   isYoutubeKeyValid: boolean;
   isTesting: boolean;
 }
 
-const APIKeyActions = ({ 
-  onSave, 
-  onRefreshCache, 
-  isYoutubeKeyValid, 
-  isTesting 
-}: APIKeyActionsProps) => {
+const APIKeyActions: React.FC<APIKeyActionsProps> = ({
+  onSave,
+  onRefreshCache,
+  isYoutubeKeyValid,
+  isTesting
+}) => {
   return (
-    <div className="flex justify-between gap-4">
-      <Button 
-        variant="outline" 
-        onClick={onRefreshCache}
-        disabled={isTesting || !isYoutubeKeyValid}
-        className="flex items-center gap-2"
-      >
-        <RefreshCcw className="h-4 w-4" />
-        Rafraîchir le cache
-      </Button>
-      
-      <Button 
-        onClick={onSave}
-        disabled={isTesting}
-        className="flex items-center gap-2"
-      >
-        {isTesting ? (
-          <>
-            <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-1"></span>
-            Test en cours...
-          </>
-        ) : (
-          <>
-            <Key className="h-4 w-4" />
-            Enregistrer et tester
-          </>
+    <div className="flex flex-wrap gap-3 justify-between w-full">
+      <div>
+        {isYoutubeKeyValid && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefreshCache}
+            disabled={isTesting}
+            className="mr-2"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Rafraîchir le cache YouTube
+          </Button>
         )}
-      </Button>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant="default"
+          onClick={onSave}
+          disabled={isTesting}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          {isTesting ? (
+            <>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+              Vérification...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              Enregistrer les clés API
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 };

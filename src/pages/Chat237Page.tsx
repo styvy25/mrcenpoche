@@ -3,7 +3,7 @@ import React from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import Chat237 from "@/components/chat/Chat237";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useAuth } from "@/components/auth/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import AuthDialog from "@/components/auth/AuthDialog";
 import { Info, MessageCircle } from "lucide-react";
 
