@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useYoutubeAnalyzer } from '@/utils/youtubeAnalyzer';
@@ -12,6 +11,7 @@ export const useYouTubeAnalyzerState = () => {
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('video');
+  
   const { toast } = useToast();
   const { analyzeYoutubeVideo, extractVideoId } = useYoutubeAnalyzer();
 
