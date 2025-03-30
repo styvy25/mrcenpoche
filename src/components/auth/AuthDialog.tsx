@@ -13,13 +13,13 @@ import {
 import { useAuth } from "./AuthContext";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 // Updated Auth Dialog component
 const AuthDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
-  const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const { isAuthenticated, currentUser, logout } = useAuth();
   const { toast } = useToast();
 
   const handleDialogClose = () => {
@@ -39,19 +39,12 @@ const AuthDialog = () => {
   const switchToRegister = () => setIsLogin(false);
   const switchToLogin = () => setIsLogin(true);
 
-  if (isLoading) {
-    return (
-      <Button variant="outline" size="sm" disabled className="flex items-center gap-1">
-        <span className="animate-spin h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full mr-1"></span>
-        <span className="hidden md:inline-block">Chargement...</span>
-      </Button>
-    );
-  }
-
   if (isAuthenticated) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-sm hidden md:inline-block">{user?.username}</span>
+        <span className="text-sm hidden md:inline-block">
+          {currentUser?.username || currentUser?.email?.split('@')[0]}
+        </span>
         <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-1">
           <Shield className="h-3.5 w-3.5" />
           <span className="hidden md:inline-block">Déconnexion</span>

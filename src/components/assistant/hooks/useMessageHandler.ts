@@ -41,7 +41,7 @@ export function useMessageHandler() {
   }, []);
 
   const handleSendMessage = useCallback(async (input: string, isOnline: boolean, handleYouTubeSearch: (query: string, isOnline: boolean) => Promise<void>) => {
-    if (!input.trim()) return;
+    if (!input.trim()) return false;
     
     const userMessage: Message = {
       id: uuidv4(),
@@ -80,7 +80,7 @@ export function useMessageHandler() {
         }
       }, 1000); // Slight delay for better UX
       
-      return;
+      return true;
     }
 
     try {
@@ -99,7 +99,7 @@ export function useMessageHandler() {
           setMessages(prev => [...prev, simpleResponse]);
           setIsLoading(false);
         }, 1000);
-        return;
+        return true;
       }
 
       const { perplexity, youtube } = JSON.parse(apiKeys);
@@ -135,7 +135,7 @@ export function useMessageHandler() {
         } finally {
           setIsLoading(false);
         }
-        return;
+        return true;
       }
 
       const youtubeKeywords = ["vidéo", "video", "youtube", "regarder", "voir", "discours", "interview", "conférence", "média"];
@@ -180,6 +180,7 @@ export function useMessageHandler() {
     } finally {
       setIsLoading(false);
     }
+    return true;
   }, [toast]);
 
   // Simple AI response generator without API key

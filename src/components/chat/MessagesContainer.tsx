@@ -27,7 +27,8 @@ const MessagesContainer: React.FC<MessagesContainerProps> = ({
     return {
       ...message,
       id: message.id || `temp-${index}`,
-      timestamp: message.timestamp || new Date()
+      timestamp: message.timestamp || new Date(),
+      text: message.text || message.content || ""
     } as Message;
   });
 

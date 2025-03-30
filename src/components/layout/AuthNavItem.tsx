@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const AuthNavItem = () => {
-  const { currentUser: user, logout, updateLastLogin } = useAuth();
+  const { currentUser: user, logout } = useAuth();
   const navigate = useNavigate();
 
   const userDisplayName = user?.username || user?.email?.split('@')[0] || 'User';

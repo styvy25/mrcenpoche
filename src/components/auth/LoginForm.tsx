@@ -8,9 +8,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface LoginFormProps {
   onSuccess?: () => void;
+  onSwitchToRegister?: () => void;
 }
 
-export const LoginForm = ({ onSuccess }: LoginFormProps) => {
+export const LoginForm = ({ onSuccess, onSwitchToRegister }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -92,6 +93,21 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Connexion en cours..." : "Se connecter"}
       </Button>
+      
+      {onSwitchToRegister && (
+        <div className="text-center mt-4">
+          <p className="text-sm text-muted-foreground">
+            Pas encore de compte?{" "}
+            <Button 
+              variant="link" 
+              className="p-0 h-auto font-normal" 
+              onClick={onSwitchToRegister}
+            >
+              S'inscrire
+            </Button>
+          </p>
+        </div>
+      )}
     </form>
   );
 };

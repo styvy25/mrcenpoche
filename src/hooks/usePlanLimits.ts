@@ -1,210 +1,97 @@
 
-import { useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
 
-// Types for feature usage stats
-export type Feature = 
-  | 'pdfExport' 
-  | 'offlineMode' 
-  | 'maxChats' 
-  | 'maxDocuments' 
-  | 'maxQuizzes'
-  | 'youtubeAnalysis';
-
-export interface UsageStats {
-  chats: number;
-  documents: number;
-  quizzes: number;
-  pdfExports: number;
-  youtubeAnalyses: number;
-}
-
-interface PlanLimits {
-  maxChats: number;
-  maxDocuments: number;
-  maxQuizzes: number;
-  maxPdfExports: number;
-  maxYoutubeAnalyses: number;
-  features: Feature[];
-}
-
-const PLAN_LIMITS: Record<string, PlanLimits> = {
-  free: {
-    maxChats: 10,
-    maxDocuments: 3,
-    maxQuizzes: 5,
-    maxPdfExports: 2,
-    maxYoutubeAnalyses: 1,
-    features: ['maxChats', 'maxDocuments', 'maxQuizzes']
-  },
-  premium: {
-    maxChats: Infinity,
-    maxDocuments: Infinity,
-    maxQuizzes: Infinity,
-    maxPdfExports: Infinity,
-    maxYoutubeAnalyses: Infinity,
-    features: ['pdfExport', 'offlineMode', 'maxChats', 'maxDocuments', 'maxQuizzes', 'youtubeAnalysis']
-  }
-};
+// Features that can be limited by plan
+type Feature = 'youtubeSearch' | 'pdfExport' | 'videoAnalysis' | 'chatMessages';
 
 export function usePlanLimits() {
   const { currentUser } = useAuth();
-  const userPlan = currentUser?.subscription?.plan || 'free';
-  const [usageStats, setUsageStats] = useState<UsageStats>(() => {
-    const storedStats = localStorage.getItem('usage_stats');
-    return storedStats ? JSON.parse(storedStats) : {
-      chats: 0,
-      documents: 0,
-      quizzes: 0,
-      pdfExports: 0,
-      youtubeAnalyses: 0
-    };
+  const [usageStats, setUsageStats] = useState({
+    chatMessages: 0,
+    youtubeSearches: 0,
+    pdfExports: 0,
+    videoAnalyses: 0
   });
 
-  // Save usage stats to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem('usage_stats', JSON.stringify(usageStats));
-  }, [usageStats]);
+  // Check if the user is on a premium plan
+  const isPremium = currentUser?.subscription?.plan === 'premium';
 
-  // Check if a specific feature limit has been reached
-  const hasReachedLimit = (featureKey: string) => {
-    const limits = PLAN_LIMITS[userPlan];
-    if (!limits) return true;
+  // Feature limits based on plan
+  const limits = {
+    free: {
+      chatMessages: 50,
+      youtubeSearches: 5,
+      pdfExports: 3,
+      videoAnalyses: 2
+    },
+    premium: {
+      chatMessages: Infinity,
+      youtubeSearches: Infinity,
+      pdfExports: Infinity,
+      videoAnalyses: Infinity
+    }
+  };
 
-    switch (featureKey) {
-      case 'maxChats':
-        return usageStats.chats >= limits.maxChats;
-      case 'maxDocuments':
-        return usageStats.documents >= limits.maxDocuments;
-      case 'maxQuizzes':
-        return usageStats.quizzes >= limits.maxQuizzes;
+  // Get the user's current plan
+  const plan = isPremium ? 'premium' : 'free';
+
+  // Check if the user can use a feature based on their usage and plan limits
+  const canUseFeature = useCallback((feature: Feature): boolean => {
+    if (!currentUser) return false;
+    
+    switch (feature) {
+      case 'youtubeSearch':
+        return usageStats.youtubeSearches < limits[plan].youtubeSearches;
       case 'pdfExport':
-        return usageStats.pdfExports >= limits.maxPdfExports;
-      case 'youtubeAnalysis':
-        return usageStats.youtubeAnalyses >= limits.maxYoutubeAnalyses;
+        return usageStats.pdfExports < limits[plan].pdfExports;
+      case 'videoAnalysis':
+        return usageStats.videoAnalyses < limits[plan].videoAnalyses;
+      case 'chatMessages':
+        return usageStats.chatMessages < limits[plan].chatMessages;
       default:
         return false;
     }
-  };
+  }, [currentUser, usageStats, plan, limits]);
 
-  // Get remaining usage amount for a specific feature
-  const getRemainingUsage = (featureKey: string) => {
-    const limits = PLAN_LIMITS[userPlan];
-    if (!limits) return 0;
+  // Increment the usage count for a feature
+  const incrementChatMessages = useCallback(() => {
+    setUsageStats(prev => ({
+      ...prev,
+      chatMessages: prev.chatMessages + 1
+    }));
+  }, []);
 
-    switch (featureKey) {
-      case 'maxChats':
-        return Math.max(0, limits.maxChats - usageStats.chats);
-      case 'maxDocuments':
-        return Math.max(0, limits.maxDocuments - usageStats.documents);
-      case 'maxQuizzes':
-        return Math.max(0, limits.maxQuizzes - usageStats.quizzes);
-      case 'pdfExport':
-        return Math.max(0, limits.maxPdfExports - usageStats.pdfExports);
-      case 'youtubeAnalysis':
-        return Math.max(0, limits.maxYoutubeAnalyses - usageStats.youtubeAnalyses);
-      default:
-        return 0;
-    }
-  };
+  const incrementYouTubeSearches = useCallback(() => {
+    setUsageStats(prev => ({
+      ...prev,
+      youtubeSearches: prev.youtubeSearches + 1
+    }));
+  }, []);
 
-  // Check if user can use a specific feature
-  const canUseFeature = (featureName: Feature) => {
-    const limits = PLAN_LIMITS[userPlan];
-    if (!limits) return false;
-    
-    if (userPlan === 'premium') return true;
-    return limits.features.includes(featureName);
-  };
+  const incrementPDFExports = useCallback(() => {
+    setUsageStats(prev => ({
+      ...prev,
+      pdfExports: prev.pdfExports + 1
+    }));
+  }, []);
 
-  // Increment usage counter for a feature
-  const incrementUsage = (featureKey: string) => {
-    setUsageStats(prev => {
-      switch (featureKey) {
-        case 'maxChats':
-          return { ...prev, chats: prev.chats + 1 };
-        case 'maxDocuments':
-          return { ...prev, documents: prev.documents + 1 };
-        case 'maxQuizzes':
-          return { ...prev, quizzes: prev.quizzes + 1 };
-        case 'pdfExport':
-          return { ...prev, pdfExports: prev.pdfExports + 1 };
-        case 'youtubeAnalysis':
-          return { ...prev, youtubeAnalyses: prev.youtubeAnalyses + 1 };
-        default:
-          return prev;
-      }
-    });
-  };
-
-  // Reset all usage statistics
-  const resetUsageStats = () => {
-    setUsageStats({
-      chats: 0,
-      documents: 0,
-      quizzes: 0,
-      pdfExports: 0,
-      youtubeAnalyses: 0
-    });
-  };
-
-  // Check if user can access all modules
-  const canAccessAllModules = () => {
-    return userPlan === 'premium';
-  };
-
-  // Helper functions to make the API more convenient
-  const hasChatLimit = () => {
-    return userPlan === 'free';
-  };
-
-  const canGeneratePdf = () => {
-    return canUseFeature('pdfExport') && !hasReachedLimit('pdfExport');
-  };
-
-  const canAnalyzeYoutube = () => {
-    return canUseFeature('youtubeAnalysis') && !hasReachedLimit('youtubeAnalysis');
-  };
-
-  const canTakeQuiz = () => {
-    return !hasReachedLimit('maxQuizzes');
-  };
-
-  // Specialized increment functions for each feature type
-  const incrementChatMessages = () => incrementUsage('maxChats');
-  const incrementPdfGenerations = () => incrementUsage('pdfExport');
-  const incrementYoutubeAnalysis = () => incrementUsage('youtubeAnalysis');
-  const incrementQuizzes = () => incrementUsage('maxQuizzes');
-
-  // Function to update user plan (for payment integration)
-  const updateUserPlan = (newPlan: 'free' | 'premium') => {
-    // In a real app, this would interact with a backend
-    // For now, we'll just store it in localStorage
-    localStorage.setItem('user_plan', newPlan);
-    // Force a refresh
-    window.location.reload();
-  };
+  const incrementVideoAnalyses = useCallback(() => {
+    setUsageStats(prev => ({
+      ...prev,
+      videoAnalyses: prev.videoAnalyses + 1
+    }));
+  }, []);
 
   return {
-    userPlan,
-    hasReachedLimit,
-    getRemainingUsage,
-    canUseFeature,
-    canAccessAllModules,
-    incrementUsage,
-    resetUsageStats,
+    isPremium,
     usageStats,
-    // Additional helper functions
-    hasChatLimit,
-    canGeneratePdf,
-    canAnalyzeYoutube,
-    canTakeQuiz,
-    // Specialized increment functions
+    canUseFeature,
     incrementChatMessages,
-    incrementPdfGenerations,
-    incrementYoutubeAnalysis,
-    incrementQuizzes,
-    // Plan update function
-    updateUserPlan
+    incrementYouTubeSearches,
+    incrementPDFExports,
+    incrementVideoAnalyses
   };
 }
+
+export default usePlanLimits;
