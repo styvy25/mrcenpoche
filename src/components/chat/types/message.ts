@@ -1,9 +1,10 @@
 
 export interface Message {
-  id: string;
-  sender: string;
+  id?: string;
+  role?: string;
   content: string;
   timestamp: Date;
+  sender?: string;
   isRead?: boolean;
   currentUser?: boolean;
 }

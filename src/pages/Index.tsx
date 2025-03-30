@@ -3,7 +3,7 @@ import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, FileText, Brain, CreditCard, YoutubeIcon } from 'lucide-react';
+import { MessageSquare, FileText, Brain, CreditCard, YoutubeIcon, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MRCLogoNew from '@/components/branding/MRCLogoNew';
 import VoteCard from '@/components/electoral/VoteCard';
@@ -34,6 +34,19 @@ const Index = () => {
             <Link to="/assistant" className="mt-auto w-full">
               <Button className="w-full">
                 Discuter avec l'assistant
+              </Button>
+            </Link>
+          </Card>
+          
+          <Card className="p-6 flex flex-col items-center hover:shadow-md transition-shadow">
+            <Users className="h-12 w-12 text-purple-600 mb-4" />
+            <h2 className="text-xl font-semibold mb-3">Chat 237</h2>
+            <p className="text-center mb-6 text-muted-foreground">
+              Discutez en temps réel avec d'autres sympathisants et militants du MRC.
+            </p>
+            <Link to="/chat-237" className="mt-auto w-full">
+              <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                Rejoindre le chat
               </Button>
             </Link>
           </Card>

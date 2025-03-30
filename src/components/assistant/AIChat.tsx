@@ -30,7 +30,7 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [hasApiKey, setHasApiKey] = useState(false);
+  const [showApiKeyAlert, setShowApiKeyAlert] = useState(false);
   
   useEffect(() => {
     // Check if API keys are configured
@@ -39,13 +39,14 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
         const savedKeys = localStorage.getItem("api_keys");
         if (savedKeys) {
           const keys = JSON.parse(savedKeys);
-          setHasApiKey(Boolean(keys.perplexity));
+          const hasApiKey = Boolean(keys.perplexity);
+          setShowApiKeyAlert(!hasApiKey);
         } else {
-          setHasApiKey(false);
+          setShowApiKeyAlert(true);
         }
       } catch (error) {
         console.error("Error checking API keys:", error);
-        setHasApiKey(false);
+        setShowApiKeyAlert(true);
       }
     };
     
@@ -106,14 +107,14 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
         </Alert>
       )}
       
-      {isOnline && !hasApiKey && (
+      {isOnline && showApiKeyAlert && (
         <Alert variant="default" className="mx-4 mt-4 bg-blue-500/10 border-blue-500/20">
           <AlertTitle className="flex items-center gap-2">
             <Key className="h-4 w-4" />
-            Configuration requise
+            Mode de base
           </AlertTitle>
           <AlertDescription className="flex flex-col gap-2">
-            <p>Configurez votre clé API Perplexity pour activer toutes les fonctionnalités de l'assistant IA.</p>
+            <p>L'assistant fonctionne actuellement en mode de base avec des réponses limitées. Pour des réponses plus avancées, vous pouvez configurer une clé API Perplexity.</p>
             <Button 
               variant="outline" 
               size="sm" 
@@ -121,7 +122,7 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
               className="self-start mt-1"
             >
               <Key className="h-3 w-3 mr-1" />
-              Configurer API
+              Configurer API (optionnel)
             </Button>
           </AlertDescription>
         </Alert>

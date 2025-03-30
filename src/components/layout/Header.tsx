@@ -1,13 +1,16 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, MessageCircle } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 import UserAvatar from "@/components/auth/UserAvatar";
 import AuthDialog from "../auth/AuthDialog";
 import InstallAppButton from "../pwa/InstallAppButton";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import MRCLogoNew from "@/components/branding/MRCLogoNew";
+import ChatButton from "@/components/chat/ChatButton";
+
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const {
@@ -42,10 +45,22 @@ const Header = () => {
           }) => `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
               Quiz
             </NavLink>
+            <NavLink to="/chat-237" className={({
+            isActive
+          }) => `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+              Chat 237
+            </NavLink>
           </nav>
         </div>
         
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild className="hidden sm:flex">
+            <NavLink to="/chat-237">
+              <MessageCircle className="h-4 w-4 mr-1" />
+              Chat 237
+            </NavLink>
+          </Button>
+          
           <ThemeToggle />
           <InstallAppButton />
           
@@ -73,6 +88,9 @@ const Header = () => {
             </NavLink>
             <NavLink to="/quiz" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
               Quiz
+            </NavLink>
+            <NavLink to="/chat-237" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
+              Chat 237
             </NavLink>
           </nav>
         </div>}
