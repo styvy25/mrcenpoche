@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { MessageSquare, FileText, Brain, CreditCard, YoutubeIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MRCLogoNew from '@/components/branding/MRCLogoNew';
+import VoteCard from '@/components/electoral/VoteCard';
 
 const Index = () => {
   return (
@@ -17,6 +18,10 @@ const Index = () => {
           <p className="text-muted-foreground">
             Votre assistant politique personnel
           </p>
+        </div>
+        
+        <div className="flex flex-col md:flex-row justify-center items-center gap-8 mb-10">
+          <VoteCard />
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
