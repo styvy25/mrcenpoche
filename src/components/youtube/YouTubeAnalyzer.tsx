@@ -7,16 +7,56 @@ import { AlertCircle, FileDown, FileText, Loader2, YoutubeIcon } from 'lucide-re
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import YouTubeURLInput from './YouTubeURLInput';
+import { useYoutubeAnalyzer } from '@/utils/youtubeAnalyzer';
 
-// Simplified usePlanLimits hook for compatibility
-const usePlanLimits = () => {
-  return {
-    hasReachedLimit: () => false,
-    getRemainingUsage: () => 10,
-    canUseFeature: () => true,
-    canAccessAllModules: () => true,
-    incrementUsage: () => {},
-  };
+const VideoInfoPanel = ({ videoTitle, videoDescription, error }) => {
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erreur</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!videoTitle) return null;
+
+  return (
+    <div className="mt-4 space-y-2">
+      <h3 className="font-medium text-lg">{videoTitle}</h3>
+      <p className="text-sm text-gray-500">{videoDescription}</p>
+    </div>
+  );
+};
+
+const AnalysisContent = ({ analysis }) => {
+  if (!analysis) {
+    return <p>Aucune analyse disponible. Veuillez d'abord analyser une vidéo.</p>;
+  }
+
+  return (
+    <div className="prose dark:prose-invert max-w-none">
+      {analysis.split('\n').map((line, index) => {
+        if (line.startsWith('# ')) {
+          return <h1 key={index} className="text-2xl font-bold mt-4 mb-2">{line.replace('# ', '')}</h1>;
+        } else if (line.startsWith('## ')) {
+          return <h2 key={index} className="text-xl font-bold mt-4 mb-2">{line.replace('## ', '')}</h2>;
+        } else if (line.startsWith('- ')) {
+          return <li key={index} className="ml-5">{line.replace('- ', '')}</li>;
+        } else if (line.match(/^\d+\./)) {
+          return <div key={index} className="flex gap-2 ml-2 mb-1">
+            <span className="font-bold">{line.split('.')[0]}.</span>
+            <span>{line.split('.').slice(1).join('.')}</span>
+          </div>;
+        } else if (line === '') {
+          return <br key={index} />;
+        } else {
+          return <p key={index} className="my-2">{line}</p>;
+        }
+      })}
+    </div>
+  );
 };
 
 const YouTubeAnalyzer = () => {
@@ -29,9 +69,9 @@ const YouTubeAnalyzer = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('video');
   const { toast } = useToast();
-  const { hasReachedLimit, getRemainingUsage } = usePlanLimits();
+  const { analyzeYoutubeVideo, generateAnalysisPDF } = useYoutubeAnalyzer();
 
-  // For demo purpose
+  // For demo purpose - in production, these would come from a user's plan
   const remainingAnalyses = 10;
   const hasLimit = false;
 
@@ -45,7 +85,6 @@ const YouTubeAnalyzer = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // In a real implementation, you would fetch actual data from YouTube API
-      // and handle errors appropriately
       setVideoTitle('Discours de Maurice Kamto sur la situation politique');
       setVideoDescription('Dans cette vidéo, Maurice Kamto analyse la situation politique au Cameroun et propose des solutions pour l\'avenir du pays.');
       setIsVideoLoading(false);
@@ -60,10 +99,15 @@ const YouTubeAnalyzer = () => {
     setError(null);
     
     try {
-      // Simulate API call to analyze video content
+      // In a production app, we would use the real analysis function:
+      // const result = await analyzeYoutubeVideo(videoUrl);
+      // if (result.success) {
+      //   setAnalysis(result.analysis);
+      // }
+      
+      // For demo, we'll simulate the API call:
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // In a real implementation, you would use Perplexity API or similar to analyze the video content
       setAnalysis(`# Analyse de la vidéo: ${videoTitle}
 
 ## Points clés:
@@ -96,8 +140,14 @@ Il aborde également les questions économiques et sociales, en proposant des so
     }
   };
 
-  const handleExportPDF = () => {
-    // In a real implementation, you would generate a PDF with the analysis
+  const handleExportPDF = async () => {
+    // In a production app:
+    // const pdfUrl = await generateAnalysisPDF(videoId, videoTitle, analysis);
+    // if (pdfUrl) {
+    //   window.open(pdfUrl, '_blank');
+    // }
+    
+    // For demo:
     toast({
       title: "Export PDF",
       description: "Le rapport PDF a été généré et téléchargé",
@@ -134,20 +184,11 @@ Il aborde également les questions économiques et sociales, en proposant des so
                 disabled={isLoading}
               />
               
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Erreur</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              {videoTitle && (
-                <div className="mt-4 space-y-2">
-                  <h3 className="font-medium text-lg">{videoTitle}</h3>
-                  <p className="text-sm text-gray-500">{videoDescription}</p>
-                </div>
-              )}
+              <VideoInfoPanel 
+                videoTitle={videoTitle} 
+                videoDescription={videoDescription} 
+                error={error} 
+              />
             </CardContent>
             <CardFooter className="flex justify-between">
               <p className="text-sm text-muted-foreground">
@@ -182,30 +223,7 @@ Il aborde également les questions économiques et sociales, en proposant des so
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {analysis ? (
-                <div className="prose dark:prose-invert max-w-none">
-                  {analysis.split('\n').map((line, index) => {
-                    if (line.startsWith('# ')) {
-                      return <h1 key={index} className="text-2xl font-bold mt-4 mb-2">{line.replace('# ', '')}</h1>;
-                    } else if (line.startsWith('## ')) {
-                      return <h2 key={index} className="text-xl font-bold mt-4 mb-2">{line.replace('## ', '')}</h2>;
-                    } else if (line.startsWith('- ')) {
-                      return <li key={index} className="ml-5">{line.replace('- ', '')}</li>;
-                    } else if (line.match(/^\d+\./)) {
-                      return <div key={index} className="flex gap-2 ml-2 mb-1">
-                        <span className="font-bold">{line.split('.')[0]}.</span>
-                        <span>{line.split('.').slice(1).join('.')}</span>
-                      </div>;
-                    } else if (line === '') {
-                      return <br key={index} />;
-                    } else {
-                      return <p key={index} className="my-2">{line}</p>;
-                    }
-                  })}
-                </div>
-              ) : (
-                <p>Aucune analyse disponible. Veuillez d'abord analyser une vidéo.</p>
-              )}
+              <AnalysisContent analysis={analysis} />
             </CardContent>
             <CardFooter>
               <Button 

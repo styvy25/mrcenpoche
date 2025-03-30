@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Menu, X, MessageCircle } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 import UserAvatar from "@/components/auth/UserAvatar";
@@ -10,16 +10,23 @@ import InstallAppButton from "../pwa/InstallAppButton";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import MRCLogoNew from "@/components/branding/MRCLogoNew";
 import ChatButton from "@/components/chat/ChatButton";
+import AuthNavItem from "./AuthNavItem";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const {
-    isAuthenticated
-  } = useAuth();
+  const { isAuthenticated, currentUser } = useAuth();
+  const navigate = useNavigate();
+  
   const handleToggleMenu = () => {
     setIsOpen(!isOpen);
   };
-  return <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-background/80 border-b border-border">
+  
+  const handleAccountClick = () => {
+    navigate('/settings');
+  };
+  
+  return (
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-background/80 border-b border-border">
       <div className="container flex h-16 items-center justify-between">
         <div className="">
           <NavLink to="/" className="flex items-center gap-2 object-cover">
@@ -64,12 +71,16 @@ const Header = () => {
           <ThemeToggle />
           <InstallAppButton />
           
-          {isAuthenticated ? <div className="flex items-center gap-2">
-              <UserAvatar />
-              <Button variant="outline" size="sm">
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2">
+              <AuthNavItem />
+              <Button variant="outline" size="sm" onClick={handleAccountClick}>
                 Mon Compte
               </Button>
-            </div> : <AuthDialog />}
+            </div>
+          ) : (
+            <AuthDialog />
+          )}
           
           <Button variant="ghost" size="icon" className="md:hidden" onClick={handleToggleMenu}>
             {isOpen ? <X /> : <Menu />}
@@ -92,8 +103,15 @@ const Header = () => {
             <NavLink to="/chat-237" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
               Chat 237
             </NavLink>
+            {isAuthenticated && (
+              <NavLink to="/settings" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
+                Mon Compte
+              </NavLink>
+            )}
           </nav>
         </div>}
-    </header>;
+    </header>
+  );
 };
+
 export default Header;
