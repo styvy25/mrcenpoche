@@ -1,210 +1,153 @@
 
-import React, { useState, useRef, useCallback } from "react";
-import { Mic, Send, Image, Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, useRef, useEffect } from 'react';
+import { SendHorizonal, Mic, MicOff, Loader2, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import PremiumBanner from '@/components/premium/PremiumBanner';
+import PremiumDialog from '@/components/premium/PremiumDialog';
 
 interface ChatInputProps {
+  onSendMessage: (message: string) => void;
   isLoading: boolean;
-  onSendMessage: (message: string) => Promise<boolean> | boolean;
+  placeholder?: string;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ isLoading, onSendMessage }) => {
-  const [input, setInput] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const ChatInput = ({ 
+  onSendMessage, 
+  isLoading, 
+  placeholder = "Posez votre question..." 
+}: ChatInputProps) => {
+  const [message, setMessage] = useState('');
+  const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
+  const { getUsageStats, incrementChatMessages } = usePlanLimits();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { toast } = useToast();
-  const { incrementChatMessages } = usePlanLimits();
-  
-  const { 
-    isListening, 
-    transcript, 
-    startListening, 
-    stopListening, 
-    resetTranscript, 
-    browserSupportsSpeechRecognition 
+  const {
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+    hasRecognitionSupport
   } = useSpeechRecognition();
 
-  // Update input when transcript changes
-  React.useEffect(() => {
+  // Update message with transcription
+  useEffect(() => {
     if (transcript) {
-      setInput(prev => `${prev} ${transcript}`.trim());
+      setMessage(prev => prev + transcript);
     }
   }, [transcript]);
 
-  const handleSendMessage = async () => {
-    if (!input.trim() && !selectedImage) return;
+  // Auto-adjust textarea height
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [message]);
 
-    try {
-      const success = await onSendMessage(input);
-      if (success) {
-        incrementChatMessages();
-        setInput("");
-        resetTranscript();
-        setSelectedImage(null);
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+  };
+
+  const handleSendMessage = () => {
+    const trimmedMessage = message.trim();
+    if (trimmedMessage && !isLoading) {
+      // Check if user can send a message
+      const stats = getUsageStats();
+      const canSend = stats.userPlan === 'premium' || stats.chatMessagesToday < stats.chatMessagesLimit;
+      
+      if (!canSend) {
+        setIsPremiumDialogOpen(true);
+        return;
       }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'envoi du message.",
-        variant: "destructive",
-      });
+      
+      // Increment message counter
+      const incrementResult = incrementChatMessages();
+      if (!incrementResult) return;
+      
+      onSendMessage(trimmedMessage);
+      setMessage('');
+      
+      // Reset textarea height
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
     }
   };
 
-  const toggleRecording = () => {
-    if (isListening) {
-      stopListening();
-      setIsRecording(false);
-    } else {
-      startListening();
-      setIsRecording(true);
-      toast({
-        title: "Enregistrement en cours",
-        description: "Parlez clairement...",
-      });
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
-  const handleImageSelect = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "Fichier trop volumineux",
-          description: "La taille maximale est de 5 Mo.",
-          variant: "destructive",
-        });
-        return;
-      }
-      setSelectedImage(file);
+  const handleVoiceToggle = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
     }
   };
 
-  const removeSelectedImage = () => {
-    setSelectedImage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  // Auto-resize textarea
-  const autoResizeTextarea = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
-    }
-  }, []);
-
-  React.useEffect(() => {
-    autoResizeTextarea();
-  }, [input, autoResizeTextarea]);
+  const stats = getUsageStats();
+  const showBanner = stats.userPlan === 'free' && stats.chatMessagesToday > Math.max(1, Math.floor(stats.chatMessagesLimit * 0.7));
 
   return (
-    <div className="relative border-t border-gray-700 bg-gradient-to-b from-black/80 to-gray-900/90 p-4">
-      {selectedImage && (
-        <div className="mb-2 relative inline-block">
-          <div className="rounded-md bg-gray-800 p-2 flex items-center">
-            <span className="text-sm text-gray-300 truncate max-w-[200px]">
-              {selectedImage.name}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 ml-1"
-              onClick={removeSelectedImage}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+    <div className="w-full">
+      {showBanner && (
+        <PremiumBanner type="chat" className="mb-4" />
       )}
-
-      <div className="flex gap-2">
+      
+      <div className="relative flex w-full items-end rounded-lg border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm shadow-inner">
         <Textarea
           ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          placeholder={placeholder}
+          className="min-h-[50px] max-h-[200px] flex-1 resize-none border-0 bg-transparent p-3 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-500"
+          rows={1}
+          value={message}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder="Posez votre question ici..."
-          className="min-h-[40px] max-h-[150px] bg-gray-800/50 border-gray-700 resize-none focus-visible:ring-blue-600"
           disabled={isLoading}
         />
-
-        <div className="flex gap-1">
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept="image/*"
-            onChange={handleImageChange}
-          />
-
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            disabled={isLoading}
-            onClick={handleImageSelect}
-            className="text-muted-foreground hover:text-primary"
-          >
-            <Image className="h-5 w-5" />
-          </Button>
-
-          {browserSupportsSpeechRecognition && (
+        <div className="flex items-center gap-1 p-2">
+          {hasRecognitionSupport && (
             <Button
               type="button"
               size="icon"
-              variant={isRecording ? "default" : "ghost"}
+              variant="ghost"
+              className={`rounded-full transition-all ${isListening ? 'text-red-500 bg-red-500/10' : 'hover:bg-gray-700/50'}`}
+              onClick={handleVoiceToggle}
               disabled={isLoading}
-              onClick={toggleRecording}
-              className={`${
-                isRecording
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "text-muted-foreground hover:text-primary"
-              }`}
             >
-              <Mic className="h-5 w-5" />
+              {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </Button>
           )}
-
           <Button
-            type="button"
+            type="submit"
             size="icon"
-            disabled={isLoading || (!input.trim() && !selectedImage)}
+            variant={message.trim() ? "default" : "ghost"}
+            className={`rounded-full ${message.trim() ? 'bg-gradient-to-r from-mrc-blue to-mrc-green text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
             onClick={handleSendMessage}
-            className={`${
-              !input.trim() && !selectedImage
-                ? "text-muted-foreground"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }`}
+            disabled={!message.trim() || isLoading}
           >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Send className="h-5 w-5" />
-            )}
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizonal className="h-5 w-5" />}
           </Button>
         </div>
+        
+        {message.length > 100 && !isLoading && (
+          <div className="absolute -top-7 right-2 text-xs text-gray-400 bg-gray-800/90 px-2 py-1 rounded">
+            <Sparkles className="h-3 w-3 inline mr-1 text-yellow-500" />
+            Message détaillé
+          </div>
+        )}
       </div>
+      
+      <PremiumDialog 
+        isOpen={isPremiumDialogOpen} 
+        onClose={() => setIsPremiumDialogOpen(false)} 
+      />
     </div>
   );
 };

@@ -27,22 +27,20 @@ export function ThemeProvider({
   storageKey = "ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-  
-  // Initialize theme from localStorage once the component is mounted
-  useEffect(() => {
-    const loadTheme = () => {
+  // Use a function to safely initialize state based on localStorage
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Check if we're in a browser environment
+    if (typeof window !== "undefined") {
       try {
-        const storedTheme = localStorage.getItem(storageKey) as Theme | null;
+        const storedTheme = localStorage.getItem(storageKey) as Theme;
         return storedTheme || defaultTheme;
       } catch (e) {
         console.error("Error accessing localStorage:", e);
         return defaultTheme;
       }
-    };
-    
-    setTheme(loadTheme());
-  }, [defaultTheme, storageKey]);
+    }
+    return defaultTheme;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;

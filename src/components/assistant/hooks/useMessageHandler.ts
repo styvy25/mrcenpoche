@@ -4,7 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Message } from "../types/message";
 import { supabase } from "@/integrations/supabase/client";
 import { getPerplexityResponse } from "../services/perplexityService";
-import { v4 as uuidv4 } from "uuid";
 
 export function useMessageHandler() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,11 +31,9 @@ export function useMessageHandler() {
   
   const setInitialMessage = useCallback(() => {
     setMessages([{
-      id: uuidv4(),
       role: "assistant",
       content: "Bonjour, je suis Styvy237, votre assistant IA pour la formation MRC. Comment puis-je vous aider aujourd'hui?",
-      timestamp: new Date(),
-      text: "Bonjour, je suis Styvy237, votre assistant IA pour la formation MRC. Comment puis-je vous aider aujourd'hui?"
+      timestamp: new Date()
     }]);
   }, []);
 
@@ -44,11 +41,9 @@ export function useMessageHandler() {
     if (!input.trim()) return;
     
     const userMessage: Message = {
-      id: uuidv4(),
       role: "user",
       content: input,
-      timestamp: new Date(),
-      text: input
+      timestamp: new Date()
     };
     
     setMessages(prev => [...prev, userMessage]);
@@ -61,11 +56,9 @@ export function useMessageHandler() {
           const offlineResponse = await getPerplexityResponse("", input); // Empty API key triggers offline mode
           
           const aiMessage: Message = {
-            id: uuidv4(),
             role: "assistant",
             content: offlineResponse,
-            timestamp: new Date(),
-            text: offlineResponse
+            timestamp: new Date()
           };
 
           setMessages(prev => [...prev, aiMessage]);
@@ -89,11 +82,9 @@ export function useMessageHandler() {
         // If no API keys, generate a simple response
         setTimeout(() => {
           const simpleResponse: Message = {
-            id: uuidv4(),
             role: "assistant",
             content: getSimpleAIResponse(input),
-            timestamp: new Date(),
-            text: getSimpleAIResponse(input)
+            timestamp: new Date()
           };
           
           setMessages(prev => [...prev, simpleResponse]);
@@ -117,11 +108,9 @@ export function useMessageHandler() {
           if (error) throw error;
 
           const aiMessage: Message = {
-            id: uuidv4(),
             role: "assistant",
             content: data.composition,
-            timestamp: new Date(),
-            text: data.composition
+            timestamp: new Date()
           };
 
           setMessages(prev => [...prev, aiMessage]);
@@ -155,11 +144,9 @@ export function useMessageHandler() {
         }
         
         const aiMessage: Message = {
-          id: uuidv4(),
           role: "assistant",
           content: responseContent,
-          timestamp: new Date(),
-          text: responseContent
+          timestamp: new Date()
         };
 
         setMessages(prev => [...prev, aiMessage]);

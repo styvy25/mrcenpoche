@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ChatMessage from './ChatMessage';
-import { Message } from '@/types/message';
+import { Message } from './hooks/types';
 
 interface MessagesContainerProps {
   messages: Partial<Message>[];
@@ -37,7 +37,7 @@ const MessagesContainer: React.FC<MessagesContainerProps> = ({
         {normalizedMessages.map((message, index) => (
           <ChatMessage
             key={message.id || index}
-            message={message as Message}
+            message={message}
             isCurrentUser={message.sender === currentUserId || message.currentUser === true}
             formattedTime={formatTime(message.timestamp as Date)}
           />

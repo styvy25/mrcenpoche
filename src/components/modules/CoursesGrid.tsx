@@ -18,7 +18,7 @@ interface Course {
   premium: boolean;
 }
 
-export interface CoursesGridProps {
+interface CoursesGridProps {
   courses: Course[];
   onCourseClick: (courseId: number) => void;
 }
@@ -61,13 +61,7 @@ const CoursesGrid: React.FC<CoursesGridProps> = ({ courses, onCourseClick }) => 
           {filteredCourses.map((course) => (
             <CourseCard
               key={course.id}
-              title={course.title}
-              description={course.description}
-              image={course.image}
-              level={course.level}
-              lessons={course.lessons}
-              duration={course.duration}
-              progress={0}
+              course={course}
               onClick={() => onCourseClick(course.id)}
               locked={course.premium && !canAccessAllModules()}
               badge={course.premium ? { 
