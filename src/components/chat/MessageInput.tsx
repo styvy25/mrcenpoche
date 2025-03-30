@@ -87,30 +87,39 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="p-3 border-t bg-card flex items-end gap-2">
+    <div className="p-3 border-t bg-gradient-to-r from-gray-900 to-gray-800 flex items-end gap-2 rounded-b-lg backdrop-blur-md">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
             size="icon"
             variant="ghost"
-            className="rounded-full hover:bg-accent hover:text-accent-foreground"
+            className="rounded-full hover:bg-blue-500/20 hover:text-blue-400 transition-colors"
             disabled={disabled}
           >
             <Paperclip className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={() => onOpenCamera && onOpenCamera()}>
-            <Image className="h-4 w-4 mr-2" />
+        <DropdownMenuContent align="start" className="bg-gray-800 border-gray-700 text-white">
+          <DropdownMenuItem 
+            onClick={() => onOpenCamera && onOpenCamera()}
+            className="hover:bg-blue-600/20 focus:bg-blue-600/20 cursor-pointer"
+          >
+            <Image className="h-4 w-4 mr-2 text-blue-400" />
             Photo
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAttachment("Document")}>
-            <Globe className="h-4 w-4 mr-2" />
+          <DropdownMenuItem 
+            onClick={() => handleAttachment("Document")}
+            className="hover:bg-blue-600/20 focus:bg-blue-600/20 cursor-pointer"
+          >
+            <Globe className="h-4 w-4 mr-2 text-green-400" />
             Document
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAttachment("Localisation")}>
-            <MapPin className="h-4 w-4 mr-2" />
+          <DropdownMenuItem 
+            onClick={() => handleAttachment("Localisation")}
+            className="hover:bg-blue-600/20 focus:bg-blue-600/20 cursor-pointer"
+          >
+            <MapPin className="h-4 w-4 mr-2 text-red-400" />
             Localisation
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -120,7 +129,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         type="button"
         size="icon"
         variant="ghost"
-        className="rounded-full hover:bg-accent hover:text-accent-foreground"
+        className={`rounded-full ${isRecording ? 'bg-red-600/20 text-red-400' : 'hover:bg-blue-500/20 hover:text-blue-400'} transition-colors`}
         disabled={disabled}
         onClick={() => onOpenAudio && onOpenAudio()}
       >
@@ -134,7 +143,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled}
-        className="min-h-10 flex-1 resize-none rounded-md border bg-background focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="min-h-10 flex-1 resize-none rounded-md border bg-gray-800/50 border-gray-700 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0 text-white placeholder:text-gray-400"
         rows={1}
       />
       
@@ -142,7 +151,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         type="button"
         size="icon"
         variant="ghost"
-        className="rounded-full hover:bg-accent hover:text-accent-foreground"
+        className="rounded-full hover:bg-blue-500/20 hover:text-blue-400 transition-colors"
         disabled={disabled}
       >
         <Smile className="h-5 w-5" />
@@ -151,7 +160,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
       <Button
         type="button"
         size="icon"
-        className="rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+        className={`rounded-full ${!message.trim() ? 'bg-gray-700 text-gray-400' : 'bg-gradient-to-r from-blue-500 to-purple-600'} text-white transition-all hover:shadow-lg hover:shadow-blue-500/20`}
         onClick={handleSendMessage}
         disabled={!message.trim() || disabled}
       >

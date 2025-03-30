@@ -32,8 +32,25 @@ const MessagesContainer: React.FC<MessagesContainerProps> = ({
     } as Message;
   });
 
+  // Show a welcome message if there are no messages
+  if (normalizedMessages.length === 0) {
+    return (
+      <ScrollArea className="h-[calc(100vh-15rem)] md:h-[calc(80vh-12rem)] p-4">
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <div className="p-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 rounded-lg border border-blue-800/50 backdrop-blur-sm max-w-md">
+            <h3 className="text-lg font-semibold mb-2 text-white">Bienvenue dans le Chat 237</h3>
+            <p className="text-gray-300 text-sm">
+              Discutez avec d'autres sympathisants et militants du MRC en temps réel. 
+              Commencez à envoyer des messages pour participer à la conversation.
+            </p>
+          </div>
+        </div>
+      </ScrollArea>
+    );
+  }
+
   return (
-    <ScrollArea className="h-[calc(100vh-15rem)] md:h-[calc(80vh-12rem)] p-4">
+    <ScrollArea className="h-[calc(100vh-15rem)] md:h-[calc(80vh-12rem)] bg-gradient-to-b from-gray-900 to-gray-950 p-4">
       <div className="flex flex-col gap-4">
         {normalizedMessages.map((message, index) => (
           <ChatMessage
