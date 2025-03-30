@@ -8,8 +8,15 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import YouTubeURLInput from './YouTubeURLInput';
 import { useYoutubeAnalyzer } from '@/utils/youtubeAnalyzer';
+import YouTubeAnalysisPDF from './YouTubeAnalysisPDF';
 
-const VideoInfoPanel = ({ videoTitle, videoDescription, error }) => {
+interface VideoInfo {
+  id: string;
+  title: string;
+  description: string;
+}
+
+const VideoInfoPanel = ({ videoInfo, error }: { videoInfo: VideoInfo | null, error: string | null }) => {
   if (error) {
     return (
       <Alert variant="destructive">
@@ -20,17 +27,17 @@ const VideoInfoPanel = ({ videoTitle, videoDescription, error }) => {
     );
   }
 
-  if (!videoTitle) return null;
+  if (!videoInfo) return null;
 
   return (
     <div className="mt-4 space-y-2">
-      <h3 className="font-medium text-lg">{videoTitle}</h3>
-      <p className="text-sm text-gray-500">{videoDescription}</p>
+      <h3 className="font-medium text-lg">{videoInfo.title}</h3>
+      <p className="text-sm text-gray-500">{videoInfo.description}</p>
     </div>
   );
 };
 
-const AnalysisContent = ({ analysis }) => {
+const AnalysisContent = ({ analysis }: { analysis: string | null }) => {
   if (!analysis) {
     return <p>Aucune analyse disponible. Veuillez d'abord analyser une vidéo.</p>;
   }
@@ -61,17 +68,16 @@ const AnalysisContent = ({ analysis }) => {
 
 const YouTubeAnalyzer = () => {
   const [videoUrl, setVideoUrl] = useState('');
-  const [videoTitle, setVideoTitle] = useState('');
-  const [videoDescription, setVideoDescription] = useState('');
+  const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('video');
   const { toast } = useToast();
-  const { analyzeYoutubeVideo, generateAnalysisPDF } = useYoutubeAnalyzer();
+  const { analyzeYoutubeVideo, extractVideoId } = useYoutubeAnalyzer();
 
-  // For demo purpose - in production, these would come from a user's plan
+  // For display in the UI - in production, these would come from a user's plan
   const remainingAnalyses = 10;
   const hasLimit = false;
 
@@ -81,34 +87,49 @@ const YouTubeAnalyzer = () => {
     setError(null);
     
     try {
-      // Simulate API call to validate YouTube URL
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Extract video ID from URL
+      const videoId = extractVideoId(url);
+      if (!videoId) {
+        throw new Error('URL YouTube invalide');
+      }
       
-      // In a real implementation, you would fetch actual data from YouTube API
-      setVideoTitle('Discours de Maurice Kamto sur la situation politique');
-      setVideoDescription('Dans cette vidéo, Maurice Kamto analyse la situation politique au Cameroun et propose des solutions pour l\'avenir du pays.');
+      // Simulate fetching video info from YouTube API
+      // In production, we would make a real API call here
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Set dummy data for demo purposes
+      setVideoInfo({
+        id: videoId,
+        title: 'Discours de Maurice Kamto sur la situation politique',
+        description: 'Dans cette vidéo, Maurice Kamto analyse la situation politique au Cameroun et propose des solutions pour l\'avenir du pays.'
+      });
+      
       setIsVideoLoading(false);
     } catch (err) {
-      setError('Impossible de valider cette URL YouTube. Veuillez vérifier et réessayer.');
+      setError(err instanceof Error ? err.message : 'Erreur lors de la validation de l\'URL');
       setIsVideoLoading(false);
+      setVideoInfo(null);
     }
   };
 
   const handleAnalyzeVideo = async () => {
+    if (!videoInfo) return;
+    
     setIsLoading(true);
     setError(null);
     
     try {
-      // In a production app, we would use the real analysis function:
+      // In a real implementation, we would use the actual analyze function
       // const result = await analyzeYoutubeVideo(videoUrl);
       // if (result.success) {
       //   setAnalysis(result.analysis);
+      //   setActiveTab('analysis');
       // }
       
-      // For demo, we'll simulate the API call:
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // For demo purposes, generate a simulated analysis
+      await new Promise(resolve => setTimeout(resolve, 2500));
       
-      setAnalysis(`# Analyse de la vidéo: ${videoTitle}
+      setAnalysis(`# Analyse de la vidéo: ${videoInfo.title}
 
 ## Points clés:
 1. Maurice Kamto aborde la situation politique actuelle au Cameroun
@@ -135,23 +156,9 @@ Il aborde également les questions économiques et sociales, en proposant des so
         description: "L'analyse de la vidéo a été réalisée avec succès",
       });
     } catch (err) {
-      setError('Une erreur est survenue lors de l\'analyse de la vidéo.');
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'analyse de la vidéo');
       setIsLoading(false);
     }
-  };
-
-  const handleExportPDF = async () => {
-    // In a production app:
-    // const pdfUrl = await generateAnalysisPDF(videoId, videoTitle, analysis);
-    // if (pdfUrl) {
-    //   window.open(pdfUrl, '_blank');
-    // }
-    
-    // For demo:
-    toast({
-      title: "Export PDF",
-      description: "Le rapport PDF a été généré et téléchargé",
-    });
   };
 
   return (
@@ -178,15 +185,14 @@ Il aborde également les questions économiques et sociales, en proposant des so
             </CardHeader>
             <CardContent className="space-y-4">
               <YouTubeURLInput 
-                onVideoSelect={(id) => setVideoUrl(id)}
+                onVideoSelect={(id) => setVideoUrl(`https://youtube.com/watch?v=${id}`)}
                 onSubmit={handleValidateUrl} 
                 isLoading={isVideoLoading}
                 disabled={isLoading}
               />
               
               <VideoInfoPanel 
-                videoTitle={videoTitle} 
-                videoDescription={videoDescription} 
+                videoInfo={videoInfo} 
                 error={error} 
               />
             </CardContent>
@@ -198,7 +204,7 @@ Il aborde également les questions économiques et sociales, en proposant des so
               </p>
               <Button 
                 onClick={handleAnalyzeVideo} 
-                disabled={!videoUrl || isLoading || isVideoLoading}
+                disabled={!videoInfo || isLoading || isVideoLoading}
                 className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800"
               >
                 {isLoading ? (
@@ -226,15 +232,13 @@ Il aborde également les questions économiques et sociales, en proposant des so
               <AnalysisContent analysis={analysis} />
             </CardContent>
             <CardFooter>
-              <Button 
-                onClick={handleExportPDF} 
-                disabled={!analysis}
-                variant="outline"
-                className="ml-auto"
-              >
-                <FileDown className="mr-2 h-4 w-4" />
-                Exporter en PDF
-              </Button>
+              {videoInfo && analysis && (
+                <YouTubeAnalysisPDF
+                  videoId={videoInfo.id}
+                  videoTitle={videoInfo.title}
+                  analysis={analysis}
+                />
+              )}
             </CardFooter>
           </Card>
         </TabsContent>
