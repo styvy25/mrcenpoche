@@ -1,92 +1,98 @@
 
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { SendHorizonal, Image, Mic, MicOff } from "lucide-react";
+import React, { useState } from 'react';
+import { SendHorizonal, Image, PaperclipIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 interface MessageInputProps {
-  onSendMessage: (content: string, mediaBlob?: Blob, mediaType?: 'photo' | 'audio') => void;
+  onSendMessage: (message: string) => void;
+  onSendMedia?: (file: File) => void;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
-const MessageInput = ({ onSendMessage }: MessageInputProps) => {
-  const [message, setMessage] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+const MessageInput: React.FC<MessageInputProps> = ({ 
+  onSendMessage, 
+  onSendMedia,
+  placeholder = "Tapez votre message...",
+  disabled = false
+}) => {
+  const [message, setMessage] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
-    }
-  }, [message]);
-
-  const handleSendMessage = async () => {
-    if (!message.trim()) return;
-    
-    try {
+  const handleSendMessage = () => {
+    if (message.trim() && !disabled) {
       onSendMessage(message);
-      setMessage("");
-      
-      // Reset textarea height
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "auto";
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
+      setMessage('');
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
+  const handleAttachMedia = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onSendMedia) {
+      onSendMedia(file);
+      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
-    <div className="p-3 bg-gray-900/80 border-t border-gray-700/50 backdrop-blur-sm">
-      <div className="flex gap-2 items-end">
-        <div className="flex items-center gap-2">
-          <Button 
-            type="button" 
-            variant="ghost" 
+    <div className="p-3 border-t bg-card flex items-end gap-2">
+      {onSendMedia && (
+        <>
+          <Button
+            type="button"
             size="icon"
-            className="rounded-full text-gray-400 hover:text-gray-200 hover:bg-gray-700/50"
+            variant="ghost"
+            className="rounded-full hover:bg-accent hover:text-accent-foreground"
+            onClick={handleAttachMedia}
+            disabled={disabled}
           >
             <Image className="h-5 w-5" />
           </Button>
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setIsRecording(!isRecording)}
-            className={`rounded-full ${isRecording ? 'text-red-500' : 'text-gray-400 hover:text-gray-200'} hover:bg-gray-700/50`}
-          >
-            {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-          </Button>
-        </div>
-        
-        <Textarea
-          ref={textareaRef}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Écrivez un message..."
-          className="resize-none bg-gray-800 border-gray-700 rounded-lg focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[44px] max-h-[120px] placeholder:text-gray-500"
-          rows={1}
-        />
-        
-        <Button
-          type="button"
-          variant={message.trim() ? "default" : "ghost"}
-          size="icon"
-          onClick={handleSendMessage}
-          disabled={!message.trim()}
-          className={`rounded-full transition-all ${message.trim() ? 'bg-mrc-blue text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'}`}
-        >
-          <SendHorizonal className="h-5 w-5" />
-        </Button>
-      </div>
+          <input
+            type="file"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+          />
+        </>
+      )}
+      
+      <Textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="min-h-10 flex-1 resize-none rounded-md border bg-background focus-visible:ring-0 focus-visible:ring-offset-0"
+        rows={1}
+      />
+      
+      <Button
+        type="button"
+        size="icon"
+        className="rounded-full bg-gradient-to-r from-mrc-blue to-purple-600 text-white"
+        onClick={handleSendMessage}
+        disabled={!message.trim() || disabled}
+      >
+        <SendHorizonal className="h-5 w-5" />
+      </Button>
     </div>
   );
 };

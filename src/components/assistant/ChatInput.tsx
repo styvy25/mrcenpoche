@@ -11,14 +11,12 @@ import PremiumDialog from '@/components/premium/PremiumDialog';
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   isLoading: boolean;
-  onGeneratePDF?: () => void;
   placeholder?: string;
 }
 
 const ChatInput = ({ 
   onSendMessage, 
   isLoading, 
-  onGeneratePDF,
   placeholder = "Posez votre question..." 
 }: ChatInputProps) => {
   const [message, setMessage] = useState('');

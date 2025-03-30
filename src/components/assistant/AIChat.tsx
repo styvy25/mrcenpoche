@@ -5,13 +5,17 @@ import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import ChatContent from "./ChatContent";
 import { useChatState } from "./hooks/useChatState";
-import { usePdfGenerator } from "./utils/pdfUtils";
+import PDFExportButton from "./PDFExportButton";
 import { Button } from "@/components/ui/button";
 import { Key, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
-const AIChat = memo(() => {
+interface AIChatProps {
+  offlineMode?: boolean;
+}
+
+const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
   const { 
     messages, 
     isLoading, 
@@ -23,7 +27,6 @@ const AIChat = memo(() => {
     clearConversation
   } = useChatState();
   
-  const { generatePDF } = usePdfGenerator();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -67,10 +70,6 @@ const AIChat = memo(() => {
   
   const handleGoToSettings = () => {
     navigate('/settings');
-  };
-  
-  const handleGeneratePDF = () => {
-    generatePDF(messages);
   };
 
   const handleRefresh = async () => {
@@ -129,10 +128,9 @@ const AIChat = memo(() => {
       )}
       
       <ChatHeader 
-        onGeneratePDF={handleGeneratePDF} 
         onClearConversation={clearConversation}
         onRefresh={handleRefresh}
-        isOnline={chatIsOnline}
+        isOnline={chatIsOnline || offlineMode}
       />
       
       <ChatContent
@@ -146,7 +144,6 @@ const AIChat = memo(() => {
       <ChatInput 
         isLoading={isLoading} 
         onSendMessage={handleSendMessage} 
-        onGeneratePDF={handleGeneratePDF} 
       />
     </div>
   );

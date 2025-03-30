@@ -1,85 +1,92 @@
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { User } from "./types";
+import { useState, useEffect } from 'react';
+import { User } from './types';
 
-export const usePresenceManagement = (currentUserId: string) => {
+export const usePresenceManagement = () => {
+  // Demo current user
+  const [currentUser, setCurrentUser] = useState({
+    id: '1',
+    name: 'John Doe',
+    avatar: '/assets/avatars/user1.png'
+  });
+  
+  // Demo active users
   const [activeUsers, setActiveUsers] = useState<User[]>([
     {
-      id: currentUserId,
-      name: "Vous",
-      avatar: "https://api.dicebear.com/7.x/micah/svg?seed=current",
+      id: '1',
+      name: 'John Doe',
+      status: 'En ligne',
+      avatar: '/assets/avatars/user1.png',
       isOnline: true,
       lastSeen: new Date()
     },
     {
-      id: "user_2",
-      name: "Ngoufo",
-      avatar: "https://api.dicebear.com/7.x/micah/svg?seed=john",
+      id: '2',
+      name: 'Jane Smith',
+      status: 'Occupé',
+      avatar: '/assets/avatars/user2.png',
       isOnline: false,
-      lastSeen: new Date(Date.now() - 15 * 60000) // 15 minutes ago
+      lastSeen: new Date(Date.now() - 1000 * 60 * 15) // 15 minutes ago
     },
     {
-      id: "user_3",
-      name: "Caroline",
-      avatar: "https://api.dicebear.com/7.x/micah/svg?seed=susan",
+      id: '3',
+      name: 'Alice Johnson',
+      status: 'En ligne',
+      avatar: '/assets/avatars/user3.png',
       isOnline: true,
       lastSeen: new Date()
     },
     {
-      id: "user_4",
-      name: "Samuel",
-      avatar: "https://api.dicebear.com/7.x/micah/svg?seed=alex",
+      id: '4',
+      name: 'Bob Brown',
+      status: 'En ligne',
+      avatar: '/assets/avatars/user4.png',
       isOnline: true,
       lastSeen: new Date()
     },
     {
-      id: "user_5",
-      name: "Marie",
-      avatar: "https://api.dicebear.com/7.x/micah/svg?seed=marie",
+      id: '5',
+      name: 'Charlie Davis',
+      status: 'Absent',
+      avatar: '/assets/avatars/user5.png',
       isOnline: false,
-      lastSeen: new Date(Date.now() - 45 * 60000) // 45 minutes ago
+      lastSeen: new Date(Date.now() - 1000 * 60 * 60) // 1 hour ago
     },
     {
-      id: "user_6",
-      name: "Pierre",
-      avatar: "https://api.dicebear.com/7.x/micah/svg?seed=pierre",
+      id: '6',
+      name: 'Diana Evans',
+      status: 'En ligne',
+      avatar: '/assets/avatars/user6.png',
       isOnline: true,
       lastSeen: new Date()
     }
   ]);
 
-  // Simuler les changements de présence
+  // Simulate periodic updates of user presence
   useEffect(() => {
-    const randomPresenceChange = () => {
-      const userIndex = Math.floor(Math.random() * (activeUsers.length - 1)) + 1; // Skip current user
-      const updatedUsers = [...activeUsers];
-      const user = {...updatedUsers[userIndex]};
-      
-      // Toggle online status
-      user.isOnline = !user.isOnline;
-      if (user.isOnline) {
-        user.lastSeen = new Date();
-      } else {
-        // Random time in the past (1-30 minutes)
-        const randomMinutes = Math.floor(Math.random() * 30) + 1;
-        user.lastSeen = new Date(Date.now() - randomMinutes * 60000);
-      }
-      
-      updatedUsers[userIndex] = user;
-      setActiveUsers(updatedUsers);
-    };
-    
-    // Change presence randomly every 30-60 seconds
     const interval = setInterval(() => {
-      randomPresenceChange();
-    }, Math.random() * 30000 + 30000);
+      setActiveUsers(prev => {
+        // Randomly update some users' status
+        return prev.map(user => {
+          // 10% chance to change status
+          if (Math.random() < 0.1) {
+            return {
+              ...user,
+              isOnline: !user.isOnline,
+              lastSeen: user.isOnline ? new Date() : user.lastSeen
+            };
+          }
+          return user;
+        });
+      });
+    }, 30000); // Update every 30 seconds
     
     return () => clearInterval(interval);
-  }, [activeUsers]);
+  }, []);
 
   return {
     activeUsers,
-    setActiveUsers
+    currentUser,
+    setCurrentUser
   };
 };

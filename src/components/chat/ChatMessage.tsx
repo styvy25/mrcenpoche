@@ -12,16 +12,24 @@ interface ChatMessageProps {
 }
 
 const ChatMessage = ({ message, currentUserId, formatTime }: ChatMessageProps) => {
-  const isCurrentUser = message.senderId === currentUserId;
+  // Determine if the current user is the sender
+  const isCurrentUser = message.sender === 'user' || message.senderId === currentUserId;
+  
+  // Get the message content from either text or content property
+  const messageContent = message.text || message.content || '';
+  
+  // Get sender info
+  const senderName = message.senderName || 'User';
+  const senderAvatar = message.senderAvatar || '';
   
   return (
     <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} group my-2`}>
       <div className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} max-w-[80%] items-end gap-2`}>
         {!isCurrentUser && (
           <Avatar className="h-10 w-10 border-2 border-mrc-blue shadow-md">
-            <AvatarImage src={message.senderAvatar} />
+            <AvatarImage src={senderAvatar} />
             <AvatarFallback className="bg-gradient-to-br from-purple-600 to-mrc-blue text-white font-medium">
-              {message.senderName.substring(0, 2).toUpperCase()}
+              {senderName.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         )}
@@ -29,7 +37,7 @@ const ChatMessage = ({ message, currentUserId, formatTime }: ChatMessageProps) =
         <div className="flex flex-col">
           {!isCurrentUser && (
             <span className="text-xs text-gray-300 mb-1 ml-1 font-medium">
-              {message.senderName}
+              {senderName}
             </span>
           )}
           
@@ -39,8 +47,8 @@ const ChatMessage = ({ message, currentUserId, formatTime }: ChatMessageProps) =
               : 'bg-gray-800/90 text-white rounded-t-lg rounded-br-lg border-gray-700'
           } transition-all duration-300 hover:shadow-md backdrop-blur-sm`}>
             <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
-              {message.content && (
-                <p className="text-sm break-words leading-relaxed">{message.content}</p>
+              {messageContent && (
+                <p className="text-sm break-words leading-relaxed">{messageContent}</p>
               )}
               
               {message.mediaUrl && message.mediaType === 'photo' && (
@@ -60,6 +68,15 @@ const ChatMessage = ({ message, currentUserId, formatTime }: ChatMessageProps) =
                 />
               )}
               
+              {message.media && message.media.type === 'image' && (
+                <img 
+                  src={message.media.url} 
+                  alt={message.media.name || "Contenu partagé"}
+                  className="mt-2 rounded-md max-w-[240px] max-h-[180px] object-cover border border-white/20 shadow-lg"
+                  loading="lazy"
+                />
+              )}
+              
               <div className="flex items-center gap-1 mt-1.5">
                 <span className="text-xs text-gray-300/90">
                   {formatTime(message.timestamp)}
@@ -74,9 +91,9 @@ const ChatMessage = ({ message, currentUserId, formatTime }: ChatMessageProps) =
         
         {isCurrentUser && (
           <Avatar className="h-10 w-10 border-2 border-purple-600 shadow-md">
-            <AvatarImage src={message.senderAvatar} />
+            <AvatarImage src={senderAvatar} />
             <AvatarFallback className="bg-gradient-to-br from-mrc-blue to-purple-600 text-white font-medium">
-              {message.senderName.substring(0, 2).toUpperCase()}
+              {senderName.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         )}

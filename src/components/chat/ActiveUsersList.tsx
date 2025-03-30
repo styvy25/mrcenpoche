@@ -1,95 +1,89 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "./hooks/types";
-import { Users, Clock } from "lucide-react";
+import { useState } from 'react';
+import { User } from './hooks/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Search, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface ActiveUsersListProps {
   users: User[];
   currentUserId: string;
-  formatLastSeen: (date: Date | undefined) => string;
+  formatLastSeen: (date: Date) => string;
 }
 
-const ActiveUsersList = ({ users, currentUserId, formatLastSeen }: ActiveUsersListProps) => {
-  // Separate online and offline users
-  const onlineUsers = users.filter(user => user.isOnline);
-  const offlineUsers = users.filter(user => !user.isOnline);
+const ActiveUsersList: React.FC<ActiveUsersListProps> = ({ 
+  users, 
+  currentUserId,
+  formatLastSeen
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
   
+  // Filter users by search query
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  // Sort users: online first, then by name
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (a.isOnline && !b.isOnline) return -1;
+    if (!a.isOnline && b.isOnline) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
   return (
-    <Card className="md:col-span-1 bg-gradient-to-br from-gray-900 to-gray-950 border-white/10 shadow-xl">
-      <CardHeader className="pb-2 pt-3 border-b border-white/10 bg-gradient-to-r from-gray-900 to-gray-850 backdrop-blur-sm">
-        <CardTitle className="text-lg flex items-center gap-2 text-white">
-          <div className="p-1.5 rounded-full bg-gradient-to-r from-mrc-green to-emerald-600 shadow-md">
-            <Users size={18} className="text-white" />
-          </div>
-          Participants
+    <Card className="h-full">
+      <CardHeader className="py-3">
+        <CardTitle className="text-lg flex items-center justify-between">
+          <span>Utilisateurs</span>
+          <Badge variant="outline" className="ml-2">
+            {users.filter(user => user.isOnline).length} en ligne
+          </Badge>
         </CardTitle>
+        <div className="relative mt-2">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </CardHeader>
-      <CardContent className="p-3">
-        <div className="space-y-4">
-          {/* Online users section */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-400 mb-2 flex items-center">
-              <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>
-              En ligne ({onlineUsers.length})
-            </h3>
-            <div className="space-y-2">
-              {onlineUsers.map((user) => (
-                <div key={user.id} className="flex items-center p-2 rounded-lg hover:bg-gray-800/50 transition-colors">
-                  <Avatar className="h-9 w-9 mr-3">
-                    <AvatarImage src={user.avatar} />
-                    <AvatarFallback className={`bg-gradient-to-br ${
-                      user.id === currentUserId 
-                        ? 'from-purple-600 to-blue-600' 
-                        : 'from-gray-700 to-gray-800'
-                    } text-white font-medium`}>
-                      {user.name.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-white flex items-center">
-                      {user.name}
-                      {user.id === currentUserId && (
-                        <span className="ml-1 text-xs text-gray-400">(vous)</span>
-                      )}
-                    </p>
-                    <p className="text-xs text-green-400">
-                      Actif
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Offline users section */}
-          {offlineUsers.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-400 mb-2 flex items-center">
-                <span className="inline-block w-3 h-3 rounded-full bg-gray-500 mr-2"></span>
-                Hors ligne ({offlineUsers.length})
-              </h3>
-              <div className="space-y-2">
-                {offlineUsers.map((user) => (
-                  <div key={user.id} className="flex items-center p-2 rounded-lg hover:bg-gray-800/50 transition-colors opacity-75">
-                    <Avatar className="h-9 w-9 mr-3 grayscale">
-                      <AvatarImage src={user.avatar} />
-                      <AvatarFallback className="bg-gradient-to-br from-gray-700 to-gray-800 text-white font-medium">
-                        {user.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-300">
-                        {user.name}
-                      </p>
-                      <p className="text-xs text-gray-500 flex items-center">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {formatLastSeen(user.lastSeen)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+      <CardContent className="p-0 overflow-auto max-h-[calc(100%-6rem)]">
+        <div className="divide-y">
+          {sortedUsers.map(user => (
+            <div 
+              key={user.id} 
+              className={`flex items-center gap-3 p-3 hover:bg-accent/50 transition-colors ${
+                user.id === currentUserId ? 'bg-accent/30' : ''
+              }`}
+            >
+              <div className="relative">
+                <Avatar>
+                  <AvatarImage src={user.avatar} />
+                  <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                {user.isOnline && (
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full" />
+                )}
               </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{user.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {user.isOnline 
+                    ? user.status || 'En ligne' 
+                    : `Vu à ${formatLastSeen(user.lastSeen)}`
+                  }
+                </p>
+              </div>
+            </div>
+          ))}
+          
+          {filteredUsers.length === 0 && (
+            <div className="p-4 text-center">
+              <p className="text-muted-foreground text-sm">Aucun utilisateur trouvé</p>
             </div>
           )}
         </div>

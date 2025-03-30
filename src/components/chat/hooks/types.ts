@@ -5,6 +5,12 @@ export interface Message {
   sender: string;
   timestamp: Date;
   isRead?: boolean;
+  senderId?: string;
+  senderName?: string;
+  senderAvatar?: string;
+  content?: string;
+  mediaUrl?: string;
+  mediaType?: 'photo' | 'audio' | 'video' | 'file';
   media?: {
     type: 'image' | 'audio' | 'video' | 'file';
     url: string;

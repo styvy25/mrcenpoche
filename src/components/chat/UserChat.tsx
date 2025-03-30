@@ -1,7 +1,7 @@
 
-import React, { useEffect } from 'react';
-import { useChatState } from './hooks/useChatState';
+import React, { useEffect, useState } from 'react';
 import { useMessageHandler } from './hooks/useMessageHandler';
+import { usePresenceManagement } from './hooks/usePresenceManagement'; 
 import MessagesContainer from './MessagesContainer';
 import MessageInput from './MessageInput';
 import ActiveUsersList from './ActiveUsersList';
@@ -10,32 +10,43 @@ import { Card } from '@/components/ui/card';
 import { User } from './hooks/types';
 
 interface UserChatProps {
-  userId?: string; // Optional to support direct chat with a specific user
+  userId?: string;
   containerClassName?: string;
+  isInDialog?: boolean;
 }
 
-const UserChat: React.FC<UserChatProps> = ({ userId, containerClassName = '' }) => {
+const UserChat: React.FC<UserChatProps> = ({ 
+  userId, 
+  containerClassName = '',
+  isInDialog = false
+}) => {
   const {
     messages,
-    users,
-    currentUser,
     isLoading,
-    setMessages,
-    error
-  } = useChatState();
+    handleSendMessage,
+    clearConversation,
+    initializeMessages,
+    setMessages
+  } = useMessageHandler();
   
-  const {
-    sendMessage,
-    sendMediaMessage,
-    handleMessageRead
-  } = useMessageHandler({ setMessages });
+  const { activeUsers, currentUser } = usePresenceManagement();
+  const [error, setError] = useState<Error | null>(null);
 
   // Mark messages as read when component mounts
   useEffect(() => {
-    if (messages.length > 0) {
-      handleMessageRead();
-    }
-  }, [messages, handleMessageRead]);
+    initializeMessages();
+  }, [initializeMessages]);
+
+  // Handle sending messages
+  const sendMessage = (text: string) => {
+    return handleSendMessage(text);
+  };
+
+  // Format the timestamp for last seen
+  const formatLastSeen = (date: Date): string => {
+    // Simple formatter for demonstration
+    return new Date(date).toLocaleTimeString();
+  };
 
   // If we're still loading the chat data
   if (isLoading) {
@@ -61,16 +72,6 @@ const UserChat: React.FC<UserChatProps> = ({ userId, containerClassName = '' }) 
     );
   }
 
-  // Convert to the correct User type with isOnline property
-  const activeUsers: User[] = users.map(user => ({
-    id: user.id,
-    name: user.name,
-    status: user.status,
-    lastSeen: user.lastSeen,
-    avatar: user.avatar,
-    isOnline: user.status === 'online'
-  }));
-
   return (
     <div className={`flex flex-col h-full ${containerClassName}`}>
       <div className="flex flex-col md:flex-row h-full gap-4">
@@ -83,15 +84,20 @@ const UserChat: React.FC<UserChatProps> = ({ userId, containerClassName = '' }) 
             />
             <MessageInput 
               onSendMessage={sendMessage}
-              onSendMedia={sendMediaMessage}
             />
           </Card>
         </div>
         
         {/* Active users sidebar */}
-        <div className="w-full md:w-64 order-first md:order-last">
-          <ActiveUsersList users={activeUsers} currentUserId={currentUser.id} />
-        </div>
+        {!isInDialog && (
+          <div className="w-full md:w-64 order-first md:order-last">
+            <ActiveUsersList 
+              users={activeUsers} 
+              currentUserId={currentUser.id}
+              formatLastSeen={formatLastSeen}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

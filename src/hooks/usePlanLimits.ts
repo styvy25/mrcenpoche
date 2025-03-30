@@ -17,6 +17,19 @@ export interface PlanLimits {
   customDocuments: boolean;
 }
 
+// Define usage stats
+export interface UsageStats {
+  userPlan: PlanType;
+  chatMessagesLimit: number;
+  chatMessagesToday: number;
+  pdfGenerationsLimit: number;
+  pdfGenerationsToday: number;
+  quizzesLimit: number;
+  quizzesToday: number;
+  youtubeAnalysisLimit: number;
+  youtubeAnalysisToday: number;
+}
+
 // Plan limits configuration
 const planLimitsConfig: Record<PlanType, PlanLimits> = {
   free: {
@@ -69,6 +82,60 @@ export const usePlanLimits = () => {
     setIsLoading(false);
   }, []);
 
+  // Function to get today's date in YYYY-MM-DD format for usage tracking
+  const getTodayDateKey = (): string => {
+    const today = new Date();
+    return `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+  };
+
+  // Function to get usage for a specific feature
+  const getFeatureUsage = (feature: string): number => {
+    try {
+      const todayKey = getTodayDateKey();
+      const storedUsage = JSON.parse(localStorage.getItem('featureUsage') || '{}');
+      return storedUsage[todayKey]?.[feature] || 0;
+    } catch (error) {
+      console.error(`Error getting ${feature} usage:`, error);
+      return 0;
+    }
+  };
+
+  // Function to increment usage for a specific feature
+  const incrementFeatureUsage = (feature: string): boolean => {
+    try {
+      const todayKey = getTodayDateKey();
+      const storedUsage = JSON.parse(localStorage.getItem('featureUsage') || '{}');
+      
+      // Initialize today's usage if not exists
+      if (!storedUsage[todayKey]) {
+        storedUsage[todayKey] = {};
+      }
+      
+      // Increment feature usage
+      storedUsage[todayKey][feature] = (storedUsage[todayKey][feature] || 0) + 1;
+      localStorage.setItem('featureUsage', JSON.stringify(storedUsage));
+      
+      return true;
+    } catch (error) {
+      console.error(`Error incrementing ${feature} usage:`, error);
+      return false;
+    }
+  };
+
+  const getUsageStats = (): UsageStats => {
+    return {
+      userPlan,
+      chatMessagesLimit: limits.maxChats,
+      chatMessagesToday: getFeatureUsage('chatMessages'),
+      pdfGenerationsLimit: limits.maxDocuments,
+      pdfGenerationsToday: getFeatureUsage('pdfGenerations'),
+      quizzesLimit: limits.maxQuizzes,
+      quizzesToday: getFeatureUsage('quizzes'),
+      youtubeAnalysisLimit: userPlan === 'free' ? 3 : Infinity,
+      youtubeAnalysisToday: getFeatureUsage('youtubeAnalysis')
+    };
+  };
+
   const updateUserPlan = async (newPlan: PlanType): Promise<boolean> => {
     try {
       setUserPlan(newPlan);
@@ -86,40 +153,16 @@ export const usePlanLimits = () => {
   };
 
   const getRemainingUsage = (feature: 'maxChats' | 'maxDocuments' | 'maxQuizzes'): number => {
-    // This would ideally get the actual usage from a database
-    const usageMap = {
-      maxChats: 0,
-      maxDocuments: 0,
-      maxQuizzes: 0
+    const featureMap = {
+      'maxChats': 'chatMessages',
+      'maxDocuments': 'pdfGenerations',
+      'maxQuizzes': 'quizzes'
     };
     
-    // Get usage from localStorage
-    try {
-      const storedUsage = JSON.parse(localStorage.getItem('featureUsage') || '{}');
-      if (storedUsage[feature]) {
-        usageMap[feature] = storedUsage[feature];
-      }
-    } catch (error) {
-      console.error('Error parsing usage data:', error);
-    }
-    
+    const usage = getFeatureUsage(featureMap[feature]);
     const limit = limits[feature];
     if (limit === Infinity) return Infinity;
-    return Math.max(0, limit - usageMap[feature]);
-  };
-
-  const incrementUsage = (feature: 'maxChats' | 'maxDocuments' | 'maxQuizzes'): void => {
-    try {
-      const storedUsage = JSON.parse(localStorage.getItem('featureUsage') || '{}');
-      storedUsage[feature] = (storedUsage[feature] || 0) + 1;
-      localStorage.setItem('featureUsage', JSON.stringify(storedUsage));
-    } catch (error) {
-      console.error('Error updating usage data:', error);
-    }
-  };
-
-  const resetUsage = (): void => {
-    localStorage.removeItem('featureUsage');
+    return Math.max(0, limit - usage);
   };
 
   const hasChatLimit = (): boolean => {
@@ -138,6 +181,57 @@ export const usePlanLimits = () => {
     return limits.allModules;
   };
 
+  // Chat-specific functions
+  const canSendChatMessage = (): boolean => {
+    if (userPlan !== 'free') return true;
+    return getFeatureUsage('chatMessages') < limits.maxChats;
+  };
+
+  const incrementChatMessages = (): boolean => {
+    if (userPlan !== 'free') return true;
+    if (!canSendChatMessage()) return false;
+    return incrementFeatureUsage('chatMessages');
+  };
+
+  // PDF-specific functions
+  const canGeneratePdf = (): boolean => {
+    if (userPlan !== 'free') return true;
+    if (!limits.pdfExport) return false;
+    return getFeatureUsage('pdfGenerations') < limits.maxDocuments;
+  };
+
+  const incrementPdfGenerations = (): boolean => {
+    if (userPlan !== 'free') return true;
+    if (!canGeneratePdf()) return false;
+    return incrementFeatureUsage('pdfGenerations');
+  };
+
+  // Quiz-specific functions
+  const canTakeQuiz = (): boolean => {
+    if (userPlan !== 'free') return true;
+    return getFeatureUsage('quizzes') < limits.maxQuizzes;
+  };
+
+  const incrementQuizzes = (): boolean => {
+    if (userPlan !== 'free') return true;
+    if (!canTakeQuiz()) return false;
+    return incrementFeatureUsage('quizzes');
+  };
+
+  // YouTube analysis functions
+  const canAnalyzeYoutube = (): boolean => {
+    if (userPlan !== 'free') return true;
+    if (!limits.youtubeAnalysis) return false;
+    // Free users can analyze 3 YouTube videos per day
+    return getFeatureUsage('youtubeAnalysis') < 3;
+  };
+
+  const incrementYoutubeAnalysis = (): boolean => {
+    if (userPlan !== 'free') return true;
+    if (!canAnalyzeYoutube()) return false;
+    return incrementFeatureUsage('youtubeAnalysis');
+  };
+
   return {
     userPlan,
     limits,
@@ -145,11 +239,19 @@ export const usePlanLimits = () => {
     updateUserPlan,
     canUseFeature,
     getRemainingUsage,
-    incrementUsage,
-    resetUsage,
     hasChatLimit,
     hasReachedLimit,
     canAccessPremiumContent,
-    canAccessAllModules
+    canAccessAllModules,
+    // Added functions
+    getUsageStats,
+    canSendChatMessage,
+    incrementChatMessages,
+    canGeneratePdf,
+    incrementPdfGenerations,
+    canTakeQuiz,
+    incrementQuizzes,
+    canAnalyzeYoutube,
+    incrementYoutubeAnalysis
   };
 };
