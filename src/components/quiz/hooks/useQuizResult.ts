@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { BadgeProps } from "../types";
 import { useAuth } from "@/components/auth/AuthContext";
 import { useGamification } from "@/services/gamificationService";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface UseQuizResultProps {
   score: number;
@@ -24,6 +25,7 @@ export const useQuizResult = ({
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
   const { currentUser } = useAuth();
   const { level, points } = useGamification(currentUser?.id || 'anonymous');
+  const { isMobile } = useMediaQuery("(max-width: 640px)");
   
   // Determine performance level based on percentage
   const percentage = Math.round((score / totalQuestions) * 100);
@@ -47,15 +49,16 @@ export const useQuizResult = ({
       // Show notification
       setShowNotification(true);
       
-      // Show toast notification
+      // Show toast notification with proper sizing for mobile
       if (badgesToShow[0]) {
         toast.success("Nouveau badge débloqué !", {
           description: `Vous avez débloqué : ${badgesToShow[0].name}`,
           duration: 4000,
+          className: isMobile ? 'text-sm' : '',
         });
       }
     }
-  }, [result?.unlockedBadges, earnedBadges]);
+  }, [result?.unlockedBadges, earnedBadges, isMobile]);
 
   // Use badges from result or fallback to earned badges
   const badgesToDisplay = result?.unlockedBadges || earnedBadges || [];
@@ -68,6 +71,7 @@ export const useQuizResult = ({
     badgesToDisplay,
     currentUser,
     level,
-    points
+    points,
+    isMobile
   };
 };
