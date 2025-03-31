@@ -24,12 +24,12 @@ const ChatButton: React.FC<ChatButtonProps> = ({
   const { 
     hasReachedLimit,
     getRemainingUsage,
-    hasChatLimit 
+    hasLimit 
   } = usePlanLimits();
   
   const chatLimitReached = hasReachedLimit('aiChat');
   const remainingChats = getRemainingUsage('aiChat');
-  const hasLimit = hasChatLimit();
+  const hasChatLimit = hasLimit('aiChat');
   
   const handleClick = () => {
     navigate('/assistant');
@@ -51,7 +51,7 @@ const ChatButton: React.FC<ChatButtonProps> = ({
     </Button>
   );
   
-  if (!showTooltip || (!hasLimit && !chatLimitReached)) return button;
+  if (!showTooltip || (!hasChatLimit && !chatLimitReached)) return button;
   
   return (
     <TooltipProvider>
