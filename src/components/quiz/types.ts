@@ -1,4 +1,3 @@
-
 import React from "react";
 import { LucideIcon } from "lucide-react";
 
@@ -32,11 +31,6 @@ export interface QuizState {
   selectedAnswers: string[];
 }
 
-export interface BadgeIcon {
-  icon: React.FC<any>;
-  className?: string;
-}
-
 export interface BadgeProps {
   id: string;
   name: string;
@@ -44,7 +38,7 @@ export interface BadgeProps {
   imageUrl?: string;
   threshold?: number;
   category?: string;
-  icon?: React.ReactNode;
+  icon?: LucideIcon | React.FC<any>;
   earnedAt?: Date;
   color?: string;
   condition?: (result: QuizResult) => boolean;
@@ -68,23 +62,6 @@ export interface QuizResultProps {
   selectedAnswers?: (number | undefined)[];
   questions?: QuizQuestion[];
   earnedBadges?: BadgeProps[];
-}
-
-export interface QuizAchievementType {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  condition: (stats: any) => boolean;
-}
-
-export interface QuizUserStats {
-  completedQuizzes: number;
-  correctAnswers: number;
-  totalQuestions: number;
-  streakDays: number;
-  lastQuizDate?: Date;
-  badges: BadgeProps[];
 }
 
 // For match-related functionality
@@ -174,3 +151,20 @@ export type Feature =
 
 // Types pour les plans d'abonnement
 export type Plan = 'free' | 'basic' | 'premium' | 'enterprise';
+
+export interface QuizAchievementType {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  condition: (stats: any) => boolean;
+}
+
+export interface QuizUserStats {
+  completedQuizzes: number;
+  correctAnswers: number;
+  totalQuestions: number;
+  streakDays: number;
+  lastQuizDate?: Date;
+  badges: BadgeProps[];
+}

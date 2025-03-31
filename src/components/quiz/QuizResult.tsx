@@ -8,22 +8,16 @@ import { RefreshCcw, Trophy, Award, Share2 } from "lucide-react";
 import SocialShareButtons from "../shared/SocialShareButtons";
 import QuizAchievement from "./QuizAchievement";
 import QuizNotification from "./QuizNotification";
-import { BadgeProps, QuizResultProps } from "./types";
+import { BadgeProps } from "./types";
 import GameProgressBar from "../gamification/GameProgressBar";
 import { useAuth } from "@/components/auth/AuthContext";
 import { useGamification } from "@/services/gamificationService";
 
-const QuizResult: React.FC<QuizResultProps> = ({
-  score,
-  totalQuestions,
-  categoryName,
-  onRestart,
-  result
-}) => {
+const QuizResult = ({ score, totalQuestions, categoryName, onRestart, result, earnedBadges }) => {
   const [showNotification, setShowNotification] = useState(false);
   const [showShareButtons, setShowShareButtons] = useState(false);
   const percentage = Math.round((score / totalQuestions) * 100);
-  const [newAchievements, setNewAchievements] = useState<string[]>([]);
+  const [newAchievements, setNewAchievements] = useState([]);
   const { currentUser } = useAuth();
   const { level, points } = useGamification(currentUser?.id || 'anonymous');
   
@@ -71,16 +65,27 @@ const QuizResult: React.FC<QuizResultProps> = ({
         description: `Vous avez débloqué : ${result.unlockedBadges[0].name}`,
         duration: 4000,
       });
+    } else if (earnedBadges && earnedBadges.length > 0) {
+      // Use earnedBadges prop if result is not available
+      setNewAchievements(earnedBadges.map(b => b.id));
+      setShowNotification(true);
+      
+      toast.success("Nouveau badge débloqué !", {
+        description: `Vous avez débloqué : ${earnedBadges[0].name}`,
+        duration: 4000,
+      });
     }
-  }, [result?.unlockedBadges]);
+  }, [result?.unlockedBadges, earnedBadges]);
+
+  const badgesToDisplay = result?.unlockedBadges || earnedBadges || [];
 
   return (
     <div className="relative">
-      {showNotification && result?.unlockedBadges && result.unlockedBadges.length > 0 && (
+      {showNotification && badgesToDisplay.length > 0 && (
         <QuizNotification
           type="achievement"
           title="Nouveau badge débloqué !"
-          message={`Vous avez débloqué : ${result.unlockedBadges[0].name}`}
+          message={`Vous avez débloqué : ${badgesToDisplay[0].name}`}
           isVisible={showNotification}
           onClose={() => setShowNotification(false)}
           duration={5000}
@@ -127,7 +132,7 @@ const QuizResult: React.FC<QuizResultProps> = ({
           </div>
         )}
 
-        {result?.unlockedBadges && result.unlockedBadges.length > 0 && (
+        {badgesToDisplay.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -139,7 +144,7 @@ const QuizResult: React.FC<QuizResultProps> = ({
               Badges débloqués
             </h3>
             <div className="space-y-2">
-              {result.unlockedBadges.map((badge: BadgeProps) => (
+              {badgesToDisplay.map((badge) => (
                 <QuizAchievement
                   key={badge.id}
                   type={badge.id.includes('perfect') ? 'perfect' : 

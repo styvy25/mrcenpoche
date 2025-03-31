@@ -1,5 +1,4 @@
 
-import React from "react";
 import { BadgeProps, QuizResult } from "./types";
 import { Award, Trophy, Zap, Target, Flag, Medal } from "lucide-react";
 
@@ -13,7 +12,7 @@ export const calculateEarnedBadges = (score: number, totalQuestions: number): Ba
       id: "perfect-score",
       name: "Score Parfait",
       description: "Vous avez obtenu un score parfait!",
-      icon: <Trophy className="h-5 w-5 text-yellow-500" />,
+      icon: Trophy,
       color: "yellow",
       earnedAt: new Date(),
     });
@@ -25,7 +24,7 @@ export const calculateEarnedBadges = (score: number, totalQuestions: number): Ba
       id: "expert-badge",
       name: "Expert",
       description: "Vous avez démontré une expertise dans ce domaine!",
-      icon: <Award className="h-5 w-5 text-blue-500" />,
+      icon: Award,
       color: "blue",
       earnedAt: new Date(),
     });
@@ -37,7 +36,7 @@ export const calculateEarnedBadges = (score: number, totalQuestions: number): Ba
       id: "good-knowledge",
       name: "Bonne Connaissance",
       description: "Vous avez une bonne connaissance du sujet!",
-      icon: <Medal className="h-5 w-5 text-green-500" />,
+      icon: Medal,
       color: "green",
       earnedAt: new Date(),
     });
@@ -48,7 +47,7 @@ export const calculateEarnedBadges = (score: number, totalQuestions: number): Ba
     id: "first-attempt",
     name: "Premier Essai",
     description: "Vous avez terminé votre premier quiz!",
-    icon: <Flag className="h-5 w-5 text-purple-500" />,
+    icon: Flag,
     color: "purple",
     earnedAt: new Date(),
   });
@@ -59,7 +58,7 @@ export const calculateEarnedBadges = (score: number, totalQuestions: number): Ba
       id: "challenger",
       name: "Challenger",
       description: "Vous avez relevé un défi difficile!",
-      icon: <Target className="h-5 w-5 text-red-500" />,
+      icon: Target,
       color: "red",
       earnedAt: new Date(),
     });
@@ -75,7 +74,7 @@ export const getBadgesByCategory = (category: string): BadgeProps[] => {
       id: `${category}-mastery`,
       name: `Maîtrise ${category}`,
       description: `Vous avez maîtrisé la catégorie ${category}`,
-      icon: <Zap className="h-5 w-5 text-indigo-500" />,
+      icon: Zap,
       color: "indigo",
       earnedAt: new Date(),
     }
