@@ -13,7 +13,7 @@ export const useNotificationsDemo = () => {
         message: "Merci d'utiliser notre application. Découvrez toutes les fonctionnalités disponibles.",
         type: 'info',
         category: 'system',
-        icon: <Info className="h-5 w-5 text-blue-500" />
+        icon: React.createElement(Info, { className: "h-5 w-5 text-blue-500" })
       });
       
       setTimeout(() => {
@@ -23,7 +23,7 @@ export const useNotificationsDemo = () => {
           type: 'success',
           category: 'modules',
           link: '/modules',
-          icon: <BookOpen className="h-5 w-5 text-green-500" />
+          icon: React.createElement(BookOpen, { className: "h-5 w-5 text-green-500" })
         });
       }, 1500);
       
@@ -34,7 +34,7 @@ export const useNotificationsDemo = () => {
           type: 'info',
           category: 'messages',
           link: '/forum',
-          icon: <MessageSquare className="h-5 w-5 text-blue-500" />
+          icon: React.createElement(MessageSquare, { className: "h-5 w-5 text-blue-500" })
         });
       }, 3000);
       
@@ -45,7 +45,7 @@ export const useNotificationsDemo = () => {
           type: 'warning',
           category: 'challenges',
           link: '/quiz',
-          icon: <Award className="h-5 w-5 text-amber-500" />
+          icon: React.createElement(Award, { className: "h-5 w-5 text-amber-500" })
         });
       }, 4500);
     }

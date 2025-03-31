@@ -2,8 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Award, FileText, Activity, BarChart } from 'lucide-react';
 import { Widget, UserBadge } from '@/components/dashboard/types';
+import React from 'react';
 
 export const useDashboard = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [currentUser, setCurrentUser] = useState<{ email: string } | null>(null);
   const [widgets, setWidgets] = useState<Widget[]>(() => {
     const saved = localStorage.getItem('dashboard_widgets');
     return saved ? JSON.parse(saved) : getDefaultWidgets();
@@ -14,7 +17,7 @@ export const useDashboard = () => {
       id: '1',
       name: 'Premier quiz terminé',
       description: 'Vous avez terminé votre premier quiz',
-      icon: <Award className="h-5 w-5 text-yellow-500" />,
+      icon: React.createElement(Award, { className: "h-5 w-5 text-yellow-500" }),
       date: new Date(2024, 2, 15),
       category: 'quiz'
     },
@@ -22,7 +25,7 @@ export const useDashboard = () => {
       id: '2',
       name: 'Contributeur actif',
       description: 'Vous avez participé activement au forum',
-      icon: <Activity className="h-5 w-5 text-green-500" />,
+      icon: React.createElement(Activity, { className: "h-5 w-5 text-green-500" }),
       date: new Date(2024, 3, 10),
       category: 'engagement'
     },
@@ -30,7 +33,7 @@ export const useDashboard = () => {
       id: '3',
       name: 'Lecteur assidu',
       description: 'Vous avez consulté plus de 10 documents',
-      icon: <FileText className="h-5 w-5 text-blue-500" />,
+      icon: React.createElement(FileText, { className: "h-5 w-5 text-blue-500" }),
       date: new Date(2024, 3, 22),
       category: 'learning'
     }
@@ -51,13 +54,27 @@ export const useDashboard = () => {
   const removeWidget = (id: string) => {
     setWidgets(prev => prev.filter(widget => widget.id !== id));
   };
+  
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
+    
+    const items = Array.from(widgets);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    
+    setWidgets(items);
+  };
 
   return {
+    currentUser,
+    activeTab,
+    setActiveTab,
     widgets,
     availableWidgets,
     addWidget,
     removeWidget,
     badges,
+    handleDragEnd
   };
 };
 
