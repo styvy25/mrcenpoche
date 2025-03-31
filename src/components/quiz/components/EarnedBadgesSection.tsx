@@ -2,7 +2,7 @@
 import React from "react";
 import { BadgeProps } from "../types";
 import { motion } from "framer-motion";
-import { Award } from "lucide-react";
+import { Award, LucideIcon } from "lucide-react";
 
 interface EarnedBadgesSectionProps {
   badges: BadgeProps[];
@@ -27,7 +27,7 @@ const EarnedBadgesSection: React.FC<EarnedBadgesSectionProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
         {badges.map((badge) => {
           const isNew = newAchievements.includes(badge.id);
-          const IconComponent = badge.icon || Award;
+          const IconComponent = badge.icon as LucideIcon || Award;
           
           return (
             <motion.div
@@ -40,11 +40,7 @@ const EarnedBadgesSection: React.FC<EarnedBadgesSectionProps> = ({
               }`}
             >
               <div className={`p-2 rounded-full bg-${badge.color || "blue"}-100 mr-3`}>
-                {React.isValidElement(badge.icon) ? (
-                  badge.icon
-                ) : (
-                  <IconComponent className="h-5 w-5 text-blue-500" />
-                )}
+                {IconComponent && <IconComponent className="h-5 w-5 text-blue-500" />}
               </div>
               <div>
                 <p className="font-medium text-sm">
