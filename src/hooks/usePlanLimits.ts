@@ -1,6 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import { Feature, Plan } from '@/components/quiz/types';
+
+export type Plan = 'free' | 'standard' | 'premium';
+
+export enum Feature {
+  PdfGeneration = 'pdfGeneration',
+  Quizzes = 'quizzes',
+  AiChat = 'aiChat',
+  VideoDownload = 'videoDownload',
+  YoutubeAnalysis = 'youtubeAnalysis'
+}
 
 interface PlanLimits {
   [key: string]: {
@@ -10,36 +19,36 @@ interface PlanLimits {
 
 const DEFAULT_LIMITS: PlanLimits = {
   free: {
-    pdfGeneration: 5,
-    quizzes: 10,
-    aiChat: 20,
-    videoDownload: 3,
-    youtubeAnalysis: 5
+    [Feature.PdfGeneration]: 5,
+    [Feature.Quizzes]: 10,
+    [Feature.AiChat]: 20,
+    [Feature.VideoDownload]: 3,
+    [Feature.YoutubeAnalysis]: 5
   },
   standard: {
-    pdfGeneration: 20,
-    quizzes: 50,
-    aiChat: 100,
-    videoDownload: 15,
-    youtubeAnalysis: 25
+    [Feature.PdfGeneration]: 20,
+    [Feature.Quizzes]: 50,
+    [Feature.AiChat]: 100,
+    [Feature.VideoDownload]: 15,
+    [Feature.YoutubeAnalysis]: 25
   },
   premium: {
-    pdfGeneration: -1, // unlimited
-    quizzes: -1, // unlimited
-    aiChat: -1, // unlimited
-    videoDownload: -1, // unlimited
-    youtubeAnalysis: -1 // unlimited
+    [Feature.PdfGeneration]: -1, // unlimited
+    [Feature.Quizzes]: -1, // unlimited
+    [Feature.AiChat]: -1, // unlimited
+    [Feature.VideoDownload]: -1, // unlimited
+    [Feature.YoutubeAnalysis]: -1 // unlimited
   }
 };
 
 export const usePlanLimits = () => {
   const [userPlan, setUserPlan] = useState<Plan>('free');
   const [usage, setUsage] = useState<{[key in Feature]?: number}>({
-    pdfGeneration: 0,
-    quizzes: 0,
-    aiChat: 3,
-    videoDownload: 0,
-    youtubeAnalysis: 0
+    [Feature.PdfGeneration]: 0,
+    [Feature.Quizzes]: 0,
+    [Feature.AiChat]: 3,
+    [Feature.VideoDownload]: 0,
+    [Feature.YoutubeAnalysis]: 0
   });
 
   useEffect(() => {
@@ -104,6 +113,22 @@ export const usePlanLimits = () => {
     return true;
   };
 
+  // Méthodes additionnelles utiles
+  const canGeneratePdf = (): boolean => !hasReachedLimit(Feature.PdfGeneration);
+  const incrementPdfGenerations = (): Promise<boolean> => incrementUsage(Feature.PdfGeneration);
+  
+  const hasFeatureAccess = (feature: Feature): boolean => !hasReachedLimit(feature);
+  const incrementChatMessages = (): Promise<boolean> => incrementUsage(Feature.AiChat);
+  
+  const canAccessAllModules = (): boolean => userPlan === 'premium';
+  const canAnalyzeYoutube = (): boolean => !hasReachedLimit(Feature.YoutubeAnalysis);
+  const incrementYoutubeAnalysis = (): Promise<boolean> => incrementUsage(Feature.YoutubeAnalysis);
+  
+  const updateUserPlan = (plan: Plan): void => {
+    setUserPlan(plan);
+    localStorage.setItem('userPlan', plan);
+  };
+
   return {
     userPlan,
     getLimitForFeature,
@@ -111,7 +136,16 @@ export const usePlanLimits = () => {
     getUsage,
     getRemainingUsage,
     hasReachedLimit,
-    incrementUsage
+    incrementUsage,
+    // Fonctions supplémentaires
+    canGeneratePdf,
+    incrementPdfGenerations,
+    hasFeatureAccess,
+    incrementChatMessages,
+    canAccessAllModules,
+    canAnalyzeYoutube,
+    incrementYoutubeAnalysis,
+    updateUserPlan
   };
 };
 

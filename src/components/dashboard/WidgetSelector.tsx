@@ -24,7 +24,7 @@ const WidgetSelector = ({ availableWidgets, onAddWidget }: WidgetSelectorProps) 
             <div className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               <div className="flex items-center gap-1">
-                {widget.icon}
+                {React.createElement(widget.icon, { size: 16 })}
                 <span>{widget.title}</span>
               </div>
             </div>

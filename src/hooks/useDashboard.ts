@@ -67,7 +67,7 @@ export function useDashboard() {
         id: '1',
         name: 'Téléchargeur YouTube',
         description: 'A téléchargé sa première vidéo YouTube',
-        icon: { icon: Download },
+        icon: <Download className="h-5 w-5" />,
         date: new Date(Date.now() - 24 * 60 * 60 * 1000),
         category: 'youtube'
       },
@@ -75,7 +75,7 @@ export function useDashboard() {
         id: '2',
         name: 'Contributeur MRC',
         description: 'A partagé du contenu avec la communauté',
-        icon: { icon: ThumbsUp },
+        icon: <ThumbsUp className="h-5 w-5" />,
         date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
         category: 'community'
       },

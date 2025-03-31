@@ -7,8 +7,7 @@ import VideosWidget from './widgets/VideosWidget';
 import DocumentsWidget from './widgets/DocumentsWidget';
 import ActivityWidget from './widgets/ActivityWidget';
 import StatsWidget from './widgets/StatsWidget';
-import { Widget } from './types';
-import { UserBadge } from './widgets/AchievementsWidget';
+import { Widget, UserBadge } from './types';
 
 interface DashboardGridProps {
   widgets: Widget[];
@@ -65,7 +64,7 @@ const DashboardGrid = ({
                     <WidgetCard
                       id={widget.id}
                       title={widget.title}
-                      icon={widget.icon}
+                      icon={React.createElement(widget.icon, { size: 16 })}
                       onRemove={onRemoveWidget}
                       dragHandleProps={provided.dragHandleProps}
                     >

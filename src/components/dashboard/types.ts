@@ -14,7 +14,7 @@ export interface UserBadge {
   id: string;
   name: string;
   description: string;
-  icon: BadgeIcon;
+  icon: ReactNode;
   date: Date;
   category: string;
 }

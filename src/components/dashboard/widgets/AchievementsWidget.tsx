@@ -1,16 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Award } from 'lucide-react';
-
-export interface UserBadge {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  date: Date;
-  category: string;
-}
+import { UserBadge } from '../types';
 
 interface AchievementsWidgetProps {
   badges: UserBadge[];
