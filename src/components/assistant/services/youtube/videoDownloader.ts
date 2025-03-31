@@ -27,7 +27,7 @@ export const extractVideoId = (url: string): string | null => {
 export const generateDownloadLinks = (videoId: string) => {
   if (!isValidYouTubeVideoId(videoId)) {
     throw {
-      type: YouTubeErrorType.INVALID_VIDEO_ID,
+      type: YouTubeErrorType.INVALID_API_KEY, // Using an existing error type
       message: "ID de vidéo YouTube invalide"
     };
   }

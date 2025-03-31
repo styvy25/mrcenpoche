@@ -12,3 +12,6 @@ origin = "http://localhost:3000"
 
 [[api.cors.origins]]
 origin = "http://localhost:5173" # For Vite
+
+[[api.cors.origins]]
+origin = "*" # Allow all origins for testing purposes
