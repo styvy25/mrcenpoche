@@ -18,7 +18,7 @@ export const useQuizResult = ({
   score, 
   totalQuestions, 
   earnedBadges = [], 
-  result = null 
+  result = {} 
 }: UseQuizResultProps) => {
   const [showNotification, setShowNotification] = useState(false);
   const [newAchievements, setNewAchievements] = useState<string[]>([]);

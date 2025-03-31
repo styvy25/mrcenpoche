@@ -27,7 +27,7 @@ const EarnedBadgesSection: React.FC<EarnedBadgesSectionProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
         {badges.map((badge) => {
           const isNew = newAchievements.includes(badge.id);
-          const IconComponent = badge.icon as LucideIcon || Award;
+          const IconComponent = badge.icon;
           
           return (
             <motion.div

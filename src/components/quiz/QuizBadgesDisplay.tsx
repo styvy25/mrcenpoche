@@ -16,7 +16,7 @@ const QuizBadgesDisplay: React.FC<QuizBadgesDisplayProps> = ({ badges }) => {
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {badges.map((badge) => {
         // Get the icon component from the badge
-        const IconComponent = badge.icon as LucideIcon;
+        const IconComponent = badge.icon;
         
         return (
           <div 
