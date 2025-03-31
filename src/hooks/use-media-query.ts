@@ -1,27 +1,41 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
-export function useMediaQuery(query: string = "(max-width: 768px)"): { isMobile: boolean } {
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== 'undefined' ? window.matchMedia(query).matches : false
-  );
+export function useMediaQuery(query: string): { 
+  matches: boolean;
+  isMobile: boolean;
+} {
+  const [matches, setMatches] = useState<boolean>(() => {
+    // Check on the client side only
+    if (typeof window !== "undefined") {
+      return window.matchMedia(query).matches;
+    }
+    return false;
+  });
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    
     const mediaQuery = window.matchMedia(query);
     
-    const handleResize = () => {
-      setIsMobile(mediaQuery.matches);
+    const handleChange = (event: MediaQueryListEvent) => {
+      setMatches(event.matches);
     };
-
-    // Initial check
-    handleResize();
     
-    // Add event listener
-    mediaQuery.addEventListener('change', handleResize);
+    // Add the listener
+    mediaQuery.addEventListener("change", handleChange);
+    
+    // Set the initial state
+    setMatches(mediaQuery.matches);
     
     // Clean up
-    return () => mediaQuery.removeEventListener('change', handleResize);
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
   }, [query]);
 
-  return { isMobile };
+  // Provide a convenience flag for mobile devices
+  const isMobile = matches;
+
+  return { matches, isMobile };
 }

@@ -46,6 +46,7 @@ export interface BadgeProps {
   category?: string;
   icon?: BadgeIcon;
   earnedAt?: Date;
+  color?: string;
   condition?: (result: QuizResult) => boolean;
 }
 
