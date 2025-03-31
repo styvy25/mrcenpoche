@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { UserBadge } from './widgets/AchievementsWidget';
+import { UserBadge } from './types';
 
 interface BadgesGridProps {
   badges: UserBadge[];
