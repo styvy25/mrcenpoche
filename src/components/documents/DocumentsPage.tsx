@@ -22,7 +22,7 @@ const DocumentsPage = ({ initialTab }: DocumentsPageProps) => {
   }, [initialTab]);
 
   return (
-    <div className="container mx-auto py-3 sm:py-6">
+    <div className="container mx-auto py-3 sm:py-6 px-2 sm:px-4">
       <h1 className="text-xl sm:text-3xl font-bold mb-3 sm:mb-6">Gestion des Documents</h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -34,19 +34,19 @@ const DocumentsPage = ({ initialTab }: DocumentsPageProps) => {
         </TabsList>
         
         <div className="p-2 sm:p-4 bg-white rounded-lg shadow-sm">
-          <TabsContent value="generator">
+          <TabsContent value="generator" className="mt-0">
             <PDFGenerator />
           </TabsContent>
           
-          <TabsContent value="certificate">
+          <TabsContent value="certificate" className="mt-0">
             <CertificateGenerator />
           </TabsContent>
           
-          <TabsContent value="mrc">
+          <TabsContent value="mrc" className="mt-0">
             <MRCContentManager />
           </TabsContent>
           
-          <TabsContent value="youtube">
+          <TabsContent value="youtube" className="mt-0">
             <YouTubeDownloader />
           </TabsContent>
         </div>

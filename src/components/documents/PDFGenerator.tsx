@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import PremiumDialog from "@/components/premium/PremiumDialog";
 import PremiumBanner from "@/components/premium/PremiumBanner";
-import { ModuleSelector } from './ModuleSelector';
+import ModuleSelector from './ModuleSelector';
 import PDFActions from './PDFActions';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

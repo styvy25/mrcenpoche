@@ -12,7 +12,7 @@ const DocumentsPageRoute = () => {
 
   return (
     <MainLayout>
-      <div className={isMobile ? 'px-2' : ''}>
+      <div className={isMobile ? 'px-0' : ''}>
         <DocumentsPage initialTab={tab || undefined} />
       </div>
     </MainLayout>
