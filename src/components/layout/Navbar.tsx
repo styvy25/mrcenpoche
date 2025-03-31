@@ -11,6 +11,8 @@ import NavbarMobileMenu from "./NavbarMobileMenu";
 import MRCLogoNew from "@/components/branding/MRCLogoNew";
 import { Button } from "@/components/ui/button";
 import { Download, MessageSquare, YoutubeIcon } from "lucide-react";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import { useNotificationsDemo } from "@/hooks/useNotificationsDemo";
 
 const Navbar = () => {
   const location = useLocation();
@@ -18,6 +20,12 @@ const Navbar = () => {
   const isMobile = useIsMobile();
   const [previousLocation, setPreviousLocation] = useState<string>("");
   const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(!isApiKeySet);
+  const { createDemoNotifications } = useNotificationsDemo();
+
+  // Load demo notifications
+  useEffect(() => {
+    createDemoNotifications();
+  }, [createDemoNotifications]);
 
   // Track navigation history for back button
   useEffect(() => {
@@ -70,6 +78,8 @@ const Navbar = () => {
               Télécharger Vidéos
             </Button>
           </Link>
+          
+          <NotificationCenter />
         </nav>
 
         {/* Mobile Navigation */}
