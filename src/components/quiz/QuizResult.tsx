@@ -1,144 +1,227 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { QuizResult as QuizResultType } from "./types";
-import { Award, RotateCcw, Share2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Trophy, Medal, Star, BarChart, Share, Repeat, Award, ArrowRight } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
+import confetti from 'canvas-confetti';
+import { usePoints } from '@/hooks/usePoints';
+import PremiumUpsell from '@/components/premium/PremiumUpsell';
 
 interface QuizResultProps {
   score: number;
   totalQuestions: number;
-  categoryName: string;
   onRestart: () => void;
-  result: QuizResultType;
+  onGoBack: () => void;
+  categoryName: string;
 }
 
-const QuizResult = ({ result, onRestart, categoryName }: QuizResultProps) => {
+const QuizResult: React.FC<QuizResultProps> = ({ 
+  score, 
+  totalQuestions, 
+  onRestart, 
+  onGoBack,
+  categoryName
+}) => {
   const [showConfetti, setShowConfetti] = useState(false);
-
+  const { isPremium } = useSubscription();
+  const { addPoints } = usePoints();
+  const percentage = Math.round((score / totalQuestions) * 100);
+  
   useEffect(() => {
-    if (result.score >= 80) {
+    // Add points based on quiz performance
+    const earnedPoints = Math.round(score * 5 * (isPremium ? 2 : 1));
+    if (earnedPoints > 0) {
+      addPoints(earnedPoints);
+    }
+  }, [score, isPremium, addPoints]);
+  
+  useEffect(() => {
+    // Show confetti for good results
+    if (percentage >= 70) {
       setShowConfetti(true);
-      const timer = setTimeout(() => {
-        setShowConfetti(false);
-      }, 5000);
+      const duration = 3 * 1000;
+      const end = Date.now() + duration;
+
+      const runConfetti = () => {
+        confetti({
+          particleCount: 2,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#3b82f6', '#22c55e', '#f59e0b']
+        });
+        
+        confetti({
+          particleCount: 2,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#3b82f6', '#22c55e', '#f59e0b']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(runConfetti);
+        }
+      };
       
-      return () => clearTimeout(timer);
+      runConfetti();
     }
-  }, [result.score]);
+  }, [percentage]);
 
-  const getScoreColor = () => {
-    if (result.score >= 80) return "text-green-600";
-    if (result.score >= 60) return "text-yellow-600";
-    return "text-red-600";
+  const getResultMessage = () => {
+    if (percentage >= 90) return `Excellent ! Vous êtes un expert en ${categoryName}`;
+    if (percentage >= 70) return `Bravo ! Votre connaissance en ${categoryName} est impressionnante`;
+    if (percentage >= 50) return `Pas mal ! Continuez à apprendre sur ${categoryName}`;
+    return `Continuez d'apprendre sur ${categoryName}. Vous progressez !`;
   };
 
-  const getScoreText = () => {
-    if (result.score >= 90) return "Excellent !";
-    if (result.score >= 80) return "Très bien !";
-    if (result.score >= 70) return "Bien !";
-    if (result.score >= 50) return "Peut mieux faire";
-    return "À améliorer";
+  const getResultIcon = () => {
+    if (percentage >= 90) return <Trophy className="h-10 w-10 text-yellow-500" />;
+    if (percentage >= 70) return <Medal className="h-10 w-10 text-blue-500" />;
+    if (percentage >= 50) return <Star className="h-10 w-10 text-purple-500" />;
+    return <Award className="h-10 w-10 text-gray-500" />;
   };
 
-  const shareResult = () => {
-    // Using navigator.share if available, otherwise copy to clipboard
-    if (navigator.share) {
-      navigator.share({
-        title: 'MRC LearnScape - Résultat du Quiz Culturel',
-        text: `J'ai obtenu un score de ${result.score.toFixed(0)}% au Quiz Culturel Camerounais sur MRC LearnScape !`,
-        url: window.location.href,
-      }).catch(err => {
-        console.error('Failed to share', err);
-      });
-    } else {
-      // Fallback to copy to clipboard
-      const shareText = `J'ai obtenu un score de ${result.score.toFixed(0)}% au Quiz Culturel Camerounais sur MRC LearnScape !`;
-      navigator.clipboard.writeText(shareText).then(() => {
-        toast.success('Résultat copié dans le presse-papier !');
-      }).catch(err => {
-        console.error('Failed to copy', err);
-        toast.error('Impossible de copier le résultat');
-      });
-    }
-  };
+  // Points earned calculation
+  const pointsEarned = Math.round(score * 5 * (isPremium ? 2 : 1));
+  const bonusPoints = isPremium ? Math.round(score * 5) : 0;
 
   return (
-    <Card className="shadow-xl overflow-hidden">
-      {showConfetti && (
-        <div className="confetti-container absolute inset-0 overflow-hidden pointer-events-none">
-          {Array.from({ length: 100 }).map((_, i) => (
-            <div
-              key={i}
-              className="confetti"
-              style={{
-                left: `${Math.random() * 100}%`,
-                width: `${Math.random() * 10 + 5}px`,
-                height: `${Math.random() * 10 + 5}px`,
-                backgroundColor: ['#005BAA', '#E30016', '#009A44', '#FCD116'][Math.floor(Math.random() * 4)],
-                opacity: Math.random() + 0.5,
-                animation: `fall ${Math.random() * 3 + 2}s linear`,
-                top: `-${Math.random() * 20 + 10}px`,
-                transform: `rotate(${Math.random() * 360}deg)`,
-              }}
-            />
-          ))}
-        </div>
-      )}
-      
-      <CardHeader className="bg-gradient-to-r from-mrc-blue to-blue-600 text-white">
-        <CardTitle className="text-center">Résultat du Quiz</CardTitle>
-      </CardHeader>
-      
-      <CardContent className="p-6">
-        <div className="text-center mb-6">
-          <h3 className={`text-3xl font-bold ${getScoreColor()}`}>
-            {result.score.toFixed(0)}%
-          </h3>
-          <p className="text-gray-600">{getScoreText()}</p>
-          <p className="text-sm text-gray-500 mt-1">
-            {result.correctAnswers} bonnes réponses sur {result.totalQuestions} questions
-          </p>
-        </div>
-        
-        <Progress value={result.score} className="h-3 mb-8" />
-        
-        {result.unlockedBadges.length > 0 && (
-          <div className="mb-6">
-            <h4 className="font-semibold text-lg mb-3 flex items-center">
-              <Award className="mr-2 h-5 w-5 text-yellow-500" />
-              Badges débloqués
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {result.unlockedBadges.map(badge => (
-                <div key={badge.id} className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${badge.colorClass} text-white mr-3`}>
-                    <Award className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">{badge.name}</p>
-                    <p className="text-xs text-gray-500">{badge.description}</p>
-                  </div>
-                </div>
-              ))}
+    <div className="max-w-md mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700"
+      >
+        <div className="text-center">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 260, 
+              damping: 20, 
+              delay: 0.2 
+            }}
+            className="flex justify-center mb-4"
+          >
+            {getResultIcon()}
+          </motion.div>
+          
+          <motion.h2
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-xl font-bold mb-2"
+          >
+            {getResultMessage()}
+          </motion.h2>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-4xl font-bold text-mrc-blue mb-4"
+          >
+            {score}/{totalQuestions}
+          </motion.div>
+          
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: "100%" }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="mb-6"
+          >
+            <p className="text-sm text-gray-500 mb-1 flex justify-between">
+              <span>Progression</span>
+              <span>{percentage}%</span>
+            </p>
+            <Progress value={percentage} className="h-3" />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-lg p-4 mb-6"
+          >
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-blue-700 dark:text-blue-400 font-medium">Points gagnés:</span>
+              <span className="font-bold text-blue-700 dark:text-blue-400">{pointsEarned}</span>
             </div>
-          </div>
-        )}
-      </CardContent>
+            
+            {isPremium ? (
+              <div className="text-xs text-blue-600 dark:text-blue-500 flex justify-between">
+                <span>Inclus bonus premium (+{bonusPoints})</span>
+                <Star className="h-3 w-3" />
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Les membres premium gagnent 2x plus de points !
+              </div>
+            )}
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="grid grid-cols-2 gap-3 mb-6"
+          >
+            <Button 
+              variant="outline" 
+              onClick={onRestart}
+              className="flex items-center gap-2"
+            >
+              <Repeat className="h-4 w-4" />
+              Réessayer
+            </Button>
+            <Button 
+              onClick={onGoBack}
+              className="flex items-center gap-2"
+            >
+              <ArrowRight className="h-4 w-4" />
+              Continuer
+            </Button>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="flex gap-2 text-sm text-gray-500 justify-center"
+          >
+            <button className="flex items-center gap-1 hover:text-blue-600 transition-colors">
+              <Share className="h-4 w-4" />
+              Partager
+            </button>
+            <button className="flex items-center gap-1 hover:text-blue-600 transition-colors">
+              <BarChart className="h-4 w-4" />
+              Statistiques
+            </button>
+          </motion.div>
+        </div>
+      </motion.div>
       
-      <CardFooter className="flex justify-between p-6 pt-0">
-        <Button onClick={onRestart} variant="outline" className="flex items-center">
-          <RotateCcw className="mr-2 h-4 w-4" />
-          Recommencer
-        </Button>
-        <Button onClick={shareResult} className="bg-mrc-blue hover:bg-blue-700 flex items-center">
-          <Share2 className="mr-2 h-4 w-4" />
-          Partager
-        </Button>
-      </CardFooter>
-    </Card>
+      {!isPremium && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9, duration: 0.5 }}
+          className="mt-6"
+        >
+          <PremiumUpsell
+            title="Doublez vos points avec Premium"
+            description="Les membres premium gagnent deux fois plus de points et débloquent des quiz exclusifs"
+            feature="Débloquez plus de 500 questions avancées"
+            buttonText="Passer à Premium"
+          />
+        </motion.div>
+      )}
+    </div>
   );
 };
 

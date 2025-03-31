@@ -123,7 +123,7 @@ export const getUserSubscription = async (): Promise<UserSubscription | null> =>
 
     if (!data) return null;
     
-    // Fix type issues by mapping the data fields
+    // Create subscription object from data
     return {
       id: data.id,
       userId: data.user_id,
@@ -150,9 +150,9 @@ export const getUserPoints = async (): Promise<UserPoints | null> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return null;
 
-    // Fix the table name to match what's in the database
+    // Query user_points table instead
     const { data, error } = await supabase
-      .from('user_points_data')
+      .from('user_points')
       .select('*')
       .eq('user_id', session.user.id)
       .single();

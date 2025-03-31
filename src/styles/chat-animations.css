@@ -1,253 +1,140 @@
 
-/* Animations spécifiques pour le chat futuriste */
+/* ----------------------------------------------------------------
+   Chat Animations - Organized by Animation Type
+   ---------------------------------------------------------------- */
 
+/* 1. Keyframe Definitions - Basic Animations */
 @keyframes pulse-border {
-  0% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
 }
 
 @keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 @keyframes floating {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
 }
 
 @keyframes typing {
-  0% {
-    width: 0;
-  }
-  100% {
-    width: 100%;
-  }
+  0% { width: 0; }
+  100% { width: 100%; }
 }
 
 @keyframes blink {
-  50% {
-    border-color: transparent;
-  }
+  50% { border-color: transparent; }
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
 }
 
 @keyframes glow {
-  0% {
-    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
-  }
-  100% {
-    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-  }
+  0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
 }
 
+/* 2. Keyframe Definitions - User Interface Animations */
 @keyframes user-appear {
-  0% {
-    transform: translateX(-20px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  0% { transform: translateX(-20px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes message-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes video-participant {
-  0% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes speaking-indicator {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.6;
-  }
-  50% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0.6;
-  }
+  0% { transform: scale(0.8); opacity: 0.6; }
+  50% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.6; }
 }
 
 @keyframes scenario-card-hover {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15);
-  }
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15); }
 }
 
+/* 3. Keyframe Definitions - Icon Animations */
 @keyframes immersive-icon-rotate {
-  0% {
-    transform: rotate(-10deg);
-  }
-  50% {
-    transform: rotate(10deg);
-  }
-  100% {
-    transform: rotate(-10deg);
-  }
+  0% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+  100% { transform: rotate(-10deg); }
 }
 
 @keyframes camera-button-pulse {
-  0% {
-    background-color: rgba(22, 163, 74, 0.7);
-  }
-  50% {
-    background-color: rgba(22, 163, 74, 1);
-  }
-  100% {
-    background-color: rgba(22, 163, 74, 0.7);
-  }
+  0% { background-color: rgba(22, 163, 74, 0.7); }
+  50% { background-color: rgba(22, 163, 74, 1); }
+  100% { background-color: rgba(22, 163, 74, 0.7); }
 }
 
 @keyframes mic-active-pulse {
-  0% {
-    background-color: rgba(37, 99, 235, 0.7);
-  }
-  50% {
-    background-color: rgba(37, 99, 235, 1);
-  }
-  100% {
-    background-color: rgba(37, 99, 235, 0.7);
-  }
+  0% { background-color: rgba(37, 99, 235, 0.7); }
+  50% { background-color: rgba(37, 99, 235, 1); }
+  100% { background-color: rgba(37, 99, 235, 0.7); }
 }
 
-/* Chat animations optimisées */
+/* 4. Keyframe Definitions - Message Animations */
 @keyframes message-slide-in {
-  0% {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  0% { opacity: 0; transform: translateY(15px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes avatar-pop {
-  0% {
-    transform: scale(0.5);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(0.5); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 @keyframes online-pulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.5;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0.5;
-  }
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.5; }
 }
 
 @keyframes chat-bubble-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.8) translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @keyframes typing-dot {
-  0%, 60%, 100% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  30% {
-    transform: scale(1.5);
-    opacity: 1;
-  }
+  0%, 60%, 100% { transform: scale(1); opacity: 0.7; }
+  30% { transform: scale(1.5); opacity: 1; }
 }
 
 @keyframes highlight-text {
-  0% {
-    background-position: -100% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @keyframes border-flow {
-  0% {
-    border-color: rgba(59, 130, 246, 0.3);
-  }
-  50% {
-    border-color: rgba(34, 197, 94, 0.5);
-  }
-  100% {
-    border-color: rgba(59, 130, 246, 0.3);
-  }
+  0% { border-color: rgba(59, 130, 246, 0.3); }
+  50% { border-color: rgba(34, 197, 94, 0.5); }
+  100% { border-color: rgba(59, 130, 246, 0.3); }
 }
 
 @keyframes premium-badge-shine {
-  0% {
-    background-position: -100% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
 }
 
-/* Classes d'animations */
+/* 5. Animation Utility Classes - Grouped by Function */
+
+/* 5.1 Highlight Effects */
 .highlight-glow {
   animation: pulse-border 1.5s ease-out;
 }
@@ -276,6 +163,7 @@
   animation: glow 2s infinite ease-in-out;
 }
 
+/* 5.2 Entrance Animations */
 .user-appear {
   animation: user-appear 0.5s ease-out forwards;
 }
@@ -288,6 +176,7 @@
   animation: speaking-indicator 1.5s infinite ease-in-out;
 }
 
+/* 5.3 Hover & Interactive Animations */
 .scenario-card {
   transition: all 0.3s ease;
 }
@@ -300,6 +189,7 @@
   animation: immersive-icon-rotate 3s infinite ease-in-out;
 }
 
+/* 5.4 Status Indicator Animations */
 .camera-active {
   animation: camera-button-pulse 2s infinite;
 }
@@ -308,7 +198,7 @@
   animation: mic-active-pulse 2s infinite;
 }
 
-/* Classes d'animations optimisées */
+/* 5.5 Message Animations */
 .message-slide-in {
   animation: message-slide-in 0.4s ease-out forwards;
 }
@@ -325,6 +215,7 @@
   animation: chat-bubble-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* 5.6 Premium Features & Highlights */
 .premium-badge {
   background: linear-gradient(90deg, #f7a01a, #ffd700, #f7a01a);
   background-size: 200% auto;
@@ -341,39 +232,9 @@
   animation: border-flow 3s infinite;
 }
 
-/* Scrollbar customisée */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #3b82f6, #22c55e);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #2563eb, #16a34a);
-}
-
-/* Chat messages */
+/* 6. Chat Message Components */
 .chat-message-in {
   animation: message-in 0.3s ease-out forwards;
-}
-
-@keyframes message-in {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .chat-typing-indicator {
@@ -402,7 +263,7 @@
   animation: typing-dot 1s infinite 0.4s;
 }
 
-/* Hover and tap animations */
+/* 7. Interactive UI Effects */
 .tap-effect {
   transition: transform 0.2s;
 }
@@ -411,7 +272,7 @@
   transform: scale(0.95);
 }
 
-/* Tab slide animations */
+/* 8. Tab Animations */
 .tab-slide-enter {
   opacity: 0;
   transform: translateX(15px);
@@ -432,4 +293,23 @@
   opacity: 0;
   transform: translateX(-15px);
   transition: opacity 300ms, transform 300ms;
+}
+
+/* 9. Custom Scrollbar Styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #3b82f6, #22c55e);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #2563eb, #16a34a);
 }

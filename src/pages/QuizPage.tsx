@@ -8,11 +8,15 @@ import BadgesDisplay from "@/components/quiz/BadgesDisplay";
 import MatchesList from "@/components/quiz/matches/MatchesList";
 import { Category } from "@/components/quiz/types";
 import { culturalQuizData } from "@/components/quiz/culturalQuizData";
+import PremiumQuizFeatures from "@/components/premium/PremiumQuizFeatures";
+import { motion } from "framer-motion";
+import { useSubscription } from "@/hooks/useSubscription";
 import "../quiz.css";
 
 const QuizPage = () => {
   const [activeTab, setActiveTab] = useState("quiz");
   const [isLoading, setIsLoading] = useState(true);
+  const { isPremium } = useSubscription();
 
   // Convert culturalQuizData.categories to match Category interface
   const categories: Category[] = culturalQuizData.categories.map((category: any) => ({
@@ -35,10 +39,35 @@ const QuizPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1, 
+      transition: { 
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      } 
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { type: "spring", stiffness: 200, damping: 15 }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-mrc-blue/5 to-mrc-yellow/10">
       <main className="container mx-auto px-4 py-10 pt-24">
-        <div className="text-center mb-8 animate-fade-in">
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
           <h1 className="text-3xl font-bold text-mrc-blue gradient-text">Quiz Culturel Camerounais</h1>
           <p className="text-gray-600 mt-2">Testez vos connaissances et affrontez d'autres membres</p>
           
@@ -53,34 +82,56 @@ const QuizPage = () => {
             </Badge>
           </div>
           
-          <div className="max-w-md mx-auto mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800 flex items-start gap-2">
+          {!isPremium && (
+            <motion.div 
+              className="max-w-md mx-auto mt-5"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              <PremiumQuizFeatures variant="compact" />
+            </motion.div>
+          )}
+          
+          <motion.div 
+            className="max-w-md mx-auto mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800 flex items-start gap-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
             <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
             <p className="text-left">
               <span className="font-bold">Nouveau:</span> Affrontez vos amis dans des matchs d'incollables sur le MRC et la politique camerounaise. Invitez directement via WhatsApp!
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         <Tabs 
           defaultValue="quiz" 
           value={activeTab} 
           onValueChange={setActiveTab}
-          className="max-w-4xl mx-auto animate-fade-in"
+          className="max-w-4xl mx-auto"
         >
-          <TabsList className="grid grid-cols-3 w-full mb-8">
-            <TabsTrigger value="quiz" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
-              <Book className="h-4 w-4" />
-              Quiz
-            </TabsTrigger>
-            <TabsTrigger value="matches" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
-              <Trophy className="h-4 w-4" />
-              Matchs
-            </TabsTrigger>
-            <TabsTrigger value="badges" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
-              <Medal className="h-4 w-4" />
-              Mes Badges
-            </TabsTrigger>
-          </TabsList>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <TabsList className="grid grid-cols-3 w-full mb-8">
+              <TabsTrigger value="quiz" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
+                <Book className="h-4 w-4" />
+                Quiz
+              </TabsTrigger>
+              <TabsTrigger value="matches" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
+                <Trophy className="h-4 w-4" />
+                Matchs
+              </TabsTrigger>
+              <TabsTrigger value="badges" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
+                <Medal className="h-4 w-4" />
+                Mes Badges
+              </TabsTrigger>
+            </TabsList>
+          </motion.div>
           
           <TabsContent value="quiz" className="p-1">
             {isLoading ? (
@@ -95,16 +146,49 @@ const QuizPage = () => {
                 </div>
               </div>
             ) : (
-              <QuizContainer categories={categories} />
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <motion.div variants={itemVariants}>
+                  <QuizContainer categories={categories} />
+                </motion.div>
+                
+                {!isPremium && (
+                  <motion.div 
+                    variants={itemVariants}
+                    className="mt-8"
+                  >
+                    <PremiumQuizFeatures variant="full" />
+                  </motion.div>
+                )}
+              </motion.div>
             )}
           </TabsContent>
           
           <TabsContent value="matches" className="p-1">
-            <MatchesList />
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div variants={itemVariants}>
+                <MatchesList />
+              </motion.div>
+            </motion.div>
           </TabsContent>
           
           <TabsContent value="badges" className="p-1">
-            <BadgesDisplay badges={[]} />
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div variants={itemVariants}>
+                <BadgesDisplay badges={[]} />
+              </motion.div>
+            </motion.div>
           </TabsContent>
         </Tabs>
       </main>

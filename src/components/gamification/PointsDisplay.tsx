@@ -1,125 +1,112 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Award, ChevronUp, TrendingUp, Clock } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { Progress } from "@/components/ui/progress";
+import { Star, Award, TrendingUp, Zap } from 'lucide-react';
 import { usePoints } from '@/hooks/usePoints';
-import { Badge } from '@/components/ui/badge';
+import { motion } from 'framer-motion';
 
-interface PointsDisplayProps {
-  compact?: boolean;
-  showHistory?: boolean;
-  className?: string;
-}
+const PointsDisplay = () => {
+  const { points, level, nextLevelPoints, percentToNextLevel } = usePoints();
 
-const PointsDisplay: React.FC<PointsDisplayProps> = ({ 
-  compact = false, 
-  showHistory = false,
-  className = ""
-}) => {
-  const { points, level, recentActivity, getLevelProgress, getPointsForNextLevel } = usePoints();
-  const navigate = useNavigate();
-  const progress = getLevelProgress();
-  const pointsToNextLevel = getPointsForNextLevel();
+  const getLevelTitle = (level: number): string => {
+    switch (level) {
+      case 1: return "Débutant";
+      case 2: return "Apprenti";
+      case 3: return "Membre engagé";
+      case 4: return "Militant actif";
+      case 5: return "Coordinateur";
+      case 6: return "Leader";
+      case 7: return "Stratège";
+      case 8: return "Vétéran";
+      case 9: return "Expert";
+      case 10: return "Maître";
+      default: return level > 10 ? "Elite" : "Débutant";
+    }
+  };
 
-  if (compact) {
-    return (
-      <div className={`flex items-center gap-2 ${className}`}>
-        <div className="p-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full">
-          <Award className="h-4 w-4 text-white" />
-        </div>
-        <div className="text-sm font-medium">{points} pts</div>
-        <Badge variant="outline" className="flex items-center gap-1 text-xs bg-purple-50 text-purple-700 border-purple-200">
-          <TrendingUp className="h-3 w-3" />
-          Niv. {level}
-        </Badge>
-      </div>
-    );
-  }
+  const renderLevelIcon = (level: number) => {
+    if (level >= 8) return <Award className="h-5 w-5 text-purple-500" />;
+    if (level >= 5) return <Star className="h-5 w-5 text-yellow-500" />;
+    return <Zap className="h-5 w-5 text-blue-500" />;
+  };
+
+  const pointsContainerVariants = {
+    initial: { opacity: 0, y: 10 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4 }
+    },
+    hover: {
+      scale: 1.02,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const progressVariants = {
+    initial: { width: "0%" },
+    animate: { 
+      width: `${percentToNextLevel}%`,
+      transition: { duration: 1, ease: "easeOut", delay: 0.3 }
+    }
+  };
+
+  const numberVariants = {
+    initial: { scale: 0.8, opacity: 0 },
+    animate: { 
+      scale: 1, 
+      opacity: 1,
+      transition: { 
+        type: "spring",
+        stiffness: 260,
+        damping: 20,
+        delay: 0.1
+      }
+    }
+  };
 
   return (
-    <Card className={`${className}`}>
-      <CardContent className="pt-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <div className="flex items-center gap-3">
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ 
-                scale: [0.9, 1.1, 0.9],
-                rotate: [0, 10, -10, 0]
-              }}
-              transition={{ 
-                repeat: Infinity,
-                duration: 5,
-                repeatDelay: 2
-              }}
-              className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center"
-            >
-              <Award className="h-6 w-6 text-white" />
-            </motion.div>
-            
-            <div>
-              <div className="flex items-baseline gap-2">
-                <h3 className="text-2xl font-bold">{points}</h3>
-                <span className="text-gray-500 text-sm">points</span>
-              </div>
-              
-              <div className="flex items-center gap-1 text-sm text-gray-600">
-                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                  Niveau {level}
-                </Badge>
-                
-                <span className="text-xs text-gray-500">
-                  {pointsToNextLevel} pts pour niveau {level + 1}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <Button 
-            size="sm" 
-            onClick={() => navigate('/quiz')}
-            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
-          >
-            Gagner plus de points
-          </Button>
+    <motion.div
+      className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md border border-gray-200 dark:border-gray-700"
+      variants={pointsContainerVariants}
+      initial="initial"
+      animate="animate"
+      whileHover="hover"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          {renderLevelIcon(level)}
+          <h3 className="font-medium text-gray-900 dark:text-gray-100">
+            Niveau {level} - {getLevelTitle(level)}
+          </h3>
         </div>
-        
-        <div className="mb-4">
-          <div className="flex justify-between text-xs mb-1">
-            <span>Progression</span>
-            <span className="font-medium">{progress}%</span>
+        <motion.div 
+          className="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400"
+          variants={numberVariants}
+        >
+          <TrendingUp className="h-4 w-4" />
+          <span>{points} points</span>
+        </motion.div>
+      </div>
+      
+      <div className="relative pt-1">
+        <div className="flex mb-2 items-center justify-between">
+          <div className="text-xs text-gray-600 dark:text-gray-400">
+            Progression niveau {level+1}
           </div>
-          <Progress value={progress} className="h-2 bg-gray-100" indicatorClassName="bg-gradient-to-r from-indigo-500 to-purple-600" />
+          <div className="text-xs text-gray-600 dark:text-gray-400">
+            {percentToNextLevel}%
+          </div>
         </div>
-        
-        {showHistory && recentActivity.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium mb-3 flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              Activité récente
-            </h4>
-            <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
-              {recentActivity.map((activity, index) => (
-                <div 
-                  key={index} 
-                  className="flex justify-between items-center text-sm py-1 border-b border-gray-100 last:border-0"
-                >
-                  <span className="text-gray-600">{activity.message}</span>
-                  <span className="font-medium text-green-600 flex items-center">
-                    <ChevronUp className="h-3 w-3 mr-0.5" />
-                    {activity.points}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        <div className="relative h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <Progress value={percentToNextLevel} className="h-2 rounded-full" />
+        </div>
+      </div>
+      
+      <div className="mt-3 text-xs text-center text-gray-500 dark:text-gray-400">
+        Encore {nextLevelPoints - points} points pour atteindre le niveau {level+1}
+      </div>
+    </motion.div>
   );
 };
 

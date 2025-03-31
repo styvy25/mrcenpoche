@@ -3,15 +3,49 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStripe } from '@stripe/react-stripe-js';
 import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from '@/App';
 import { supabase } from "@/integrations/supabase/client";
 
 export const useStripePayment = (priceId: string) => {
   const stripe = useStripe();
   const { toast } = useToast();
-  const { isApiKeySet } = useAppContext();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isApiKeySet, setIsApiKeySet] = useState(false);
+  
+  // Check if API key is set
+  useState(() => {
+    const checkApiKey = async () => {
+      // Try to get from localStorage
+      try {
+        const savedKeys = localStorage.getItem("api_keys");
+        if (savedKeys) {
+          const keys = JSON.parse(savedKeys);
+          if (keys.stripe) {
+            setIsApiKeySet(true);
+            return;
+          }
+        }
+        
+        // Try to get from Supabase if user is logged in
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData?.session) {
+          const { data } = await supabase
+            .from('api_keys_config')
+            .select('stripe_key')
+            .eq('user_id', sessionData.session.user.id)
+            .single();
+            
+          if (data && data.stripe_key) {
+            setIsApiKeySet(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking API key:", error);
+      }
+    };
+    
+    checkApiKey();
+  }, []);
 
   const initiatePayment = async () => {
     if (isProcessing) return false;
