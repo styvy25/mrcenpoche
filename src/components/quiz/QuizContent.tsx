@@ -19,10 +19,13 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: 0,
     score: 0,
+    selectedAnswers: [],
+    timeRemaining: 0,
+    isFinished: false,
+    isStarted: true,
     showFeedback: false,
     isCorrect: false,
-    quizCompleted: false,
-    selectedAnswers: []
+    quizCompleted: false
   });
   
   const { toast } = useToast();
@@ -35,10 +38,13 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
     setQuizState({
       currentQuestion: 0,
       score: 0,
+      selectedAnswers: [],
+      timeRemaining: 0,
+      isFinished: false,
+      isStarted: true,
       showFeedback: false,
       quizCompleted: false,
-      isCorrect: false,
-      selectedAnswers: []
+      isCorrect: false
     });
   }, [moduleId]);
   
@@ -66,7 +72,7 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
     
     setQuizState({
       ...quizState,
-      score: isAnswerCorrect ? quizState.score + 1 : quizState.score,
+      score: isAnswerCorrect ? (quizState.score || 0) + 1 : (quizState.score || 0),
       isCorrect: isAnswerCorrect,
       showFeedback: true,
       selectedAnswers: newSelectedAnswers
@@ -82,7 +88,7 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
       });
     } else {
       // Quiz is completed
-      const finalScore = quizState.score + (quizState.isCorrect ? 1 : 0);
+      const finalScore = (quizState.score || 0) + (quizState.isCorrect ? 1 : 0);
       
       // Préparer le résultat pour le système de gamification
       const quizResult = {
@@ -91,7 +97,8 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
         totalQuestions: quiz.questions.length,
         timeSpent: 0, // Nous n'avons pas de tracking du temps pour le moment
         unlockedBadges: calculateEarnedBadges(finalScore, quiz.questions.length),
-        date: new Date()
+        date: new Date(),
+        wrongAnswers: []
       };
       
       // Mettre à jour le système de gamification
@@ -107,12 +114,10 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
       // Show toast for achievement when quiz is completed
       toast({
         title: "Quiz terminé !",
-        description: (
-          <div className="flex items-center">
-            <Award className="h-5 w-5 text-yellow-500 mr-2" />
-            <span>Vous avez obtenu un nouvel accomplissement !</span>
-          </div>
-        ),
+        description: <div className="flex items-center">
+          <Award className="h-5 w-5 text-yellow-500 mr-2" />
+          <span>Vous avez obtenu un nouvel accomplissement !</span>
+        </div>,
       });
       
       onComplete(finalScore, quiz.questions.length);
@@ -123,10 +128,13 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
     setQuizState({
       currentQuestion: 0,
       score: 0,
+      selectedAnswers: [],
+      timeRemaining: 0,
+      isFinished: false,
+      isStarted: true,
       showFeedback: false,
       quizCompleted: false,
-      isCorrect: false,
-      selectedAnswers: []
+      isCorrect: false
     });
   };
 

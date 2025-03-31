@@ -11,6 +11,7 @@ export interface QuizQuestion {
   difficulty?: string;
   text?: string; // Added for backward compatibility
   answers?: any; // Added for backward compatibility
+  category?: string; // Added for category support
 }
 
 export interface BadgeProps {
@@ -49,6 +50,7 @@ export interface Appointment {
   participantsCount?: number;
   maxParticipants?: number;
   duration?: number;
+  startTime?: string; // Add support for startTime
 }
 
 export interface AppointmentRequest {
@@ -81,10 +83,10 @@ export interface Category {
 // Expanded QuizState type with all required properties
 export interface QuizState {
   currentQuestion: number;
-  selectedAnswers: number[] | undefined[];
-  timeRemaining: number;
-  isFinished: boolean;
-  isStarted: boolean;
+  selectedAnswers: number[] | undefined[] | string[];
+  timeRemaining?: number;
+  isFinished?: boolean;
+  isStarted?: boolean;
   score?: number;
   showFeedback?: boolean;
   isCorrect?: boolean;
