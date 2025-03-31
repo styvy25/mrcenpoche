@@ -5,6 +5,7 @@ import PDFGenerator from './PDFGenerator';
 import CertificateGenerator from './CertificateGenerator';
 import MRCContentManager from './MRCContentManager';
 import YouTubeDownloader from './YouTubeDownloader';
+import { useScreenSize } from '@/hooks/useScreenSize';
 
 interface DocumentsPageProps {
   initialTab?: string;
@@ -12,6 +13,7 @@ interface DocumentsPageProps {
 
 const DocumentsPage = ({ initialTab }: DocumentsPageProps) => {
   const [activeTab, setActiveTab] = useState(initialTab || 'generator');
+  const { isMobile } = useScreenSize();
 
   useEffect(() => {
     if (initialTab) {
@@ -20,32 +22,34 @@ const DocumentsPage = ({ initialTab }: DocumentsPageProps) => {
   }, [initialTab]);
 
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">Gestion des Documents</h1>
+    <div className="container mx-auto py-3 sm:py-6">
+      <h1 className="text-xl sm:text-3xl font-bold mb-3 sm:mb-6">Gestion des Documents</h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-6">
+        <TabsList className={`grid grid-cols-2 sm:grid-cols-4 mb-3 sm:mb-6 ${isMobile ? 'text-xs' : ''}`}>
           <TabsTrigger value="generator">Générateur de PDF</TabsTrigger>
           <TabsTrigger value="certificate">Certificats</TabsTrigger>
           <TabsTrigger value="mrc">Contenu MRC</TabsTrigger>
           <TabsTrigger value="youtube">YouTube</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="generator">
-          <PDFGenerator />
-        </TabsContent>
-        
-        <TabsContent value="certificate">
-          <CertificateGenerator />
-        </TabsContent>
-        
-        <TabsContent value="mrc">
-          <MRCContentManager />
-        </TabsContent>
-        
-        <TabsContent value="youtube">
-          <YouTubeDownloader />
-        </TabsContent>
+        <div className="p-2 sm:p-4 bg-white rounded-lg shadow-sm">
+          <TabsContent value="generator">
+            <PDFGenerator />
+          </TabsContent>
+          
+          <TabsContent value="certificate">
+            <CertificateGenerator />
+          </TabsContent>
+          
+          <TabsContent value="mrc">
+            <MRCContentManager />
+          </TabsContent>
+          
+          <TabsContent value="youtube">
+            <YouTubeDownloader />
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   );

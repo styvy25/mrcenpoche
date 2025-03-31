@@ -6,6 +6,7 @@ import PDFHeader from "./PDFHeader";
 import PDFErrorState from "./PDFErrorState";
 import { useToast } from "@/hooks/use-toast";
 import { pdfjs } from "react-pdf";
+import { useScreenSize } from "@/hooks/useScreenSize";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 
@@ -24,6 +25,7 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
   const [scale, setScale] = useState(1.0);
   const [loadError, setLoadError] = useState(false);
   const { toast } = useToast();
+  const { isMobile } = useScreenSize();
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -87,14 +89,14 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
     });
 
     // Check if it's a mobile device
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     // Create an invisible link element
     const link = document.createElement('a');
     link.href = pdfUrl;
     
     // Set download attribute for desktop browsers
-    if (!isMobile) {
+    if (!isMobileDevice) {
       link.setAttribute('download', `MRC-Support-${moduleName.replace(/\s+/g, '-')}.pdf`);
     } else {
       // For mobile, open in a new tab which will usually trigger the browser's built-in PDF viewer
@@ -113,15 +115,16 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-1 sm:p-4">
+      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-h-[95vh] flex flex-col
+                      ${isMobile ? "max-w-full" : "max-w-4xl"}`}>
         <PDFHeader moduleName={moduleName} onClose={onClose} />
         
-        <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-100">
+        <div className="flex-1 overflow-auto p-1 sm:p-4 flex items-center justify-center bg-gray-100">
           <PDFDocument 
             pdfUrl={pdfUrl}
             pageNumber={pageNumber}
-            scale={scale}
+            scale={isMobile ? 0.8 : scale}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
             loadError={loadError}
@@ -134,12 +137,13 @@ const PDFPreview = ({ pdfUrl, onClose, moduleName }: PDFPreviewProps) => {
           <PDFToolbar 
             pageNumber={pageNumber}
             numPages={numPages}
-            scale={scale}
+            scale={isMobile ? 0.8 : scale}
             onPrevPage={handlePrevPage}
             onNextPage={handleNextPage}
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
             onDownload={handleDownload}
+            isMobile={isMobile}
           />
         )}
       </div>
