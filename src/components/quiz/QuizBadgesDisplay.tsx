@@ -20,7 +20,7 @@ const QuizBadgesDisplay: React.FC<QuizBadgesDisplayProps> = ({ badges }) => {
         return (
           <div 
             key={badge.id} 
-            className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
+            className={`bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 hover:shadow-md transition-shadow`}
           >
             <div className={`p-2 rounded-full bg-${badge.color}-100 text-${badge.color}-600`}>
               {IconComponent && <IconComponent className="h-5 w-5" />}
