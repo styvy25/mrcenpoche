@@ -31,6 +31,19 @@ export const searchMRCVideos = async (apiKey: string, query: string): Promise<Yo
       return (await import("./youtube/offlineData")).offlineVideos;
     }
 
+    // If no API key is provided, try to get the default one
+    if (!apiKey) {
+      const { getYouTubeApiKey } = await import('./youtubeApiService');
+      const defaultKey = await getYouTubeApiKey();
+      if (!defaultKey) {
+        throw {
+          type: YouTubeErrorType.INVALID_API_KEY,
+          message: "Aucune clé API YouTube n'a été fournie"
+        };
+      }
+      apiKey = defaultKey;
+    }
+
     return await searchMRCVideosInternal(apiKey, query);
   } catch (error: any) {
     console.error("Error searching MRC videos:", error);
@@ -140,10 +153,46 @@ export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
       return false;
     }
     
+    // If no API key is provided, try to get the default one
+    if (!apiKey) {
+      const { getYouTubeApiKey } = await import('./youtubeApiService');
+      const defaultKey = await getYouTubeApiKey();
+      if (!defaultKey) {
+        throw {
+          type: YouTubeErrorType.INVALID_API_KEY,
+          message: "Aucune clé API YouTube n'a été fournie"
+        };
+      }
+      apiKey = defaultKey;
+    }
+    
     await refreshCache(apiKey);
     return true;
   } catch (error) {
     console.error("Error refreshing YouTube cache:", error);
+    return false;
+  }
+};
+
+// Test the YouTube API key to validate it works
+export const testYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
+  try {
+    if (!apiKey) return false;
+    
+    // Make a simple request to validate the key
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&maxResults=1&key=${apiKey}`
+    );
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("YouTube API key validation failed:", errorData);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error testing YouTube API key:", error);
     return false;
   }
 };

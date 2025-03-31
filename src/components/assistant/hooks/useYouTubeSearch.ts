@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { searchMRCVideos, getVideoInfo } from "../services/youtubeService";
@@ -26,21 +25,13 @@ export function useYouTubeSearch() {
     if (videoId) {
       // Process as direct video URL
       try {
-        const apiKeys = localStorage.getItem("api_keys");
-        if (!apiKeys) {
+        const { getYouTubeApiKey } = await import("../services/youtubeApiService");
+        const apiKey = await getYouTubeApiKey();
+        
+        if (!apiKey) {
           toast({
             title: "Configuration requise",
-            description: "Veuillez d'abord configurer votre clé API YouTube.",
-            variant: "destructive",
-          });
-          return;
-        }
-  
-        const { youtube } = JSON.parse(apiKeys);
-        if (!youtube) {
-          toast({
-            title: "Clé API YouTube manquante",
-            description: "Veuillez configurer votre clé API YouTube dans les paramètres.",
+            description: "Veuillez d'abord configurer votre clé API YouTube dans les paramètres.",
             variant: "destructive",
           });
           return;
@@ -49,7 +40,7 @@ export function useYouTubeSearch() {
         setIsSearchingYouTube(true);
         
         // Get video details
-        const videoInfo = await getVideoInfo(youtube, videoId);
+        const videoInfo = await getVideoInfo(apiKey, videoId);
         
         // Create a single result with the video
         const video = {
@@ -84,20 +75,12 @@ export function useYouTubeSearch() {
     }
     
     // Regular search query
-    const apiKeys = localStorage.getItem("api_keys");
-    if (!apiKeys) {
+    const { getYouTubeApiKey } = await import("../services/youtubeApiService");
+    const apiKey = await getYouTubeApiKey();
+    
+    if (!apiKey) {
       toast({
         title: "Configuration requise",
-        description: "Veuillez d'abord configurer votre clé API YouTube.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const { youtube } = JSON.parse(apiKeys);
-    if (!youtube) {
-      toast({
-        title: "Clé API YouTube manquante",
         description: "Veuillez configurer votre clé API YouTube dans les paramètres.",
         variant: "destructive",
       });
@@ -106,7 +89,7 @@ export function useYouTubeSearch() {
 
     setIsSearchingYouTube(true);
     try {
-      const videos = await searchMRCVideos(youtube, query);
+      const videos = await searchMRCVideos(apiKey, query);
       setYoutubeResults(videos);
       setDownloadLinks(null); // Reset download links for regular search
     } catch (error) {
@@ -130,15 +113,34 @@ export function useYouTubeSearch() {
       return;
     }
     
+    const { getYouTubeApiKey } = await import("../services/youtubeApiService");
+    const youtubeKey = await getYouTubeApiKey();
+    
+    if (!youtubeKey) {
+      toast({
+        title: "Configuration requise",
+        description: "Veuillez configurer votre clé API YouTube dans les paramètres.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const apiKeys = localStorage.getItem("api_keys");
     if (!apiKeys) return;
 
-    const { youtube, perplexity } = JSON.parse(apiKeys);
-    if (!youtube || !perplexity) return;
+    const { perplexity } = JSON.parse(apiKeys);
+    if (!perplexity) {
+      toast({
+        title: "Clé Perplexity manquante",
+        description: "Veuillez configurer votre clé API Perplexity dans les paramètres.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
-      const videoInfo = await getVideoInfo(youtube, videoId);
+      const videoInfo = await getVideoInfo(youtubeKey, videoId);
       
       // Generate download links
       const links = generateDownloadLinks(videoId);
