@@ -53,7 +53,7 @@ const AIChat = () => {
         const savedKeys = localStorage.getItem("api_keys");
         if (savedKeys) {
           const keys = JSON.parse(savedKeys);
-          setHasApiKey(Boolean(keys.perplexity));
+          setHasApiKey(Boolean(keys?.perplexity));
         } else {
           setHasApiKey(false);
         }
@@ -87,7 +87,9 @@ const AIChat = () => {
   };
   
   const handleGeneratePDF = () => {
-    generatePDF(messages);
+    if (messages.length > 0) {
+      generatePDF(messages);
+    }
   };
 
   return (
@@ -164,6 +166,7 @@ const AIChat = () => {
       
       <ChatHeader 
         onGeneratePDF={handleGeneratePDF} 
+        onClearChat={handleClearMessages}
         isOnline={isOnline}
       />
       

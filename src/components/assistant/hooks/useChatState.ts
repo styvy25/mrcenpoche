@@ -78,8 +78,15 @@ export const useChatState = () => {
     setIsLoading(true);
     try {
       await messageHandler.handleSendMessage(content, isOnline, handleYouTubeSearch);
-      const messages = messageHandler.messages;
-      setMessages(messages);
+      // Use the messages from messageHandler instead of directly setting
+      setMessages([...messageHandler.messages]);
+    } catch (error) {
+      console.error("Error processing message:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur s'est produite lors du traitement de votre message",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +97,9 @@ export const useChatState = () => {
     handleYouTubeSearch, 
     handleVideoSelect,
     setYoutubeResults,
-    checkAndUseFeature
+    setDownloadLinks,
+    checkAndUseFeature,
+    toast
   ]);
 
   const handleClearMessages = useCallback(() => {

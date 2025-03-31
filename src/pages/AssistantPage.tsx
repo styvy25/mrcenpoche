@@ -50,7 +50,7 @@ const AssistantPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.5 }}
-          className="mt-8 text-center text-sm text-gray-400"
+          className="text-center text-sm text-gray-400"
         >
           <p>Propulsé par l'intelligence artificielle au service des militants du MRC</p>
           <p className="mt-1">Les réponses fournies sont génératives et à titre informatif uniquement</p>

@@ -4,8 +4,8 @@ import { Message } from './types/message';
 import MessageDisplay from './MessageDisplay';
 import LoadingIndicator from './LoadingIndicator';
 import YouTubeResults from './YouTubeResults';
+import { FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FileDown, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 interface ChatContentProps {
   messages: Message[];
@@ -64,7 +64,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
             <MessageDisplay key={index} message={message} />
           ))}
           
-          {youtubeResults.length > 0 && (
+          {youtubeResults && youtubeResults.length > 0 && (
             <YouTubeResults 
               results={youtubeResults} 
               isLoading={isSearchingYouTube}
@@ -78,7 +78,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
               <h3 className="text-lg font-medium mb-2">Liens de téléchargement</h3>
               <p className="text-gray-400 text-sm mb-3">Utilisez ces services pour télécharger la vidéo:</p>
               <div className="flex flex-wrap gap-2">
-                {downloadLinks.downloadServices.map((service: any, idx: number) => (
+                {downloadLinks.downloadServices && downloadLinks.downloadServices.map((service: any, idx: number) => (
                   <Button 
                     key={idx}
                     variant="outline" 
@@ -89,14 +89,16 @@ const ChatContent: React.FC<ChatContentProps> = ({
                     <FileDown className="h-4 w-4 mr-1" /> {service.name}
                   </Button>
                 ))}
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center"
-                  onClick={() => window.open(downloadLinks.watchUrl, '_blank')}
-                >
-                  Voir sur YouTube
-                </Button>
+                {downloadLinks.watchUrl && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex items-center"
+                    onClick={() => window.open(downloadLinks.watchUrl, '_blank')}
+                  >
+                    Voir sur YouTube
+                  </Button>
+                )}
               </div>
             </div>
           )}
