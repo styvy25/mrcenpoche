@@ -1,4 +1,6 @@
 
+"use client";
+
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
@@ -63,12 +65,10 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem(storageKey, theme);
-        } catch (e) {
-          console.error("Error setting theme in localStorage:", e);
-        }
+      try {
+        localStorage.setItem(storageKey, theme);
+      } catch (e) {
+        console.error("Error setting theme in localStorage:", e);
       }
       setTheme(theme);
     },
