@@ -2,15 +2,18 @@
 import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import QuizContainer from "@/components/quiz/QuizContainer";
-import { categories } from "@/components/quiz/data/categories";
+import { categories as categoriesData } from "@/components/quiz/data/categories";
 import { useToast } from "@/hooks/use-toast";
 import SocialShareButtons from "@/components/shared/SocialShareButtons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Share2, Award } from "lucide-react";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { culturalQuizData } from "@/components/quiz/culturalQuizData";
 
 const QuizPage = () => {
   const { toast } = useToast();
   const [showSharing, setShowSharing] = useState(false);
+  const { isMobile } = useMediaQuery("(max-width: 768px)");
   
   // This would be replaced with real user data in a production app
   const userData = {
@@ -19,21 +22,22 @@ const QuizPage = () => {
     highScore: 90
   };
   
-  // Show achievement toasts based on user actions
-  const showAchievementToast = (achievement: string) => {
-    toast({
-      title: "🏆 Nouveau badge débloqué !",
-      description: `Vous avez débloqué: ${achievement}`,
-      duration: 5000,
-    });
-  };
+  // Format categories correctly for the QuizContainer component
+  const formattedCategories = culturalQuizData.categories.map(category => ({
+    id: category.id,
+    name: category.name,
+    description: category.description || "",
+    color: category.color || "blue-500",
+    questions: culturalQuizData.categories.find(c => c.id === category.id)?.questions || [],
+    label: category.name
+  }));
   
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 pt-20 pb-12">
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="container mx-auto px-4 pt-16 md:pt-20 pb-12">
+        <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-mrc-blue mb-2">Quiz Camerounais</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-mrc-blue mb-2">Quiz Camerounais</h1>
             <p className="text-gray-600">
               Testez vos connaissances sur le Cameroun et le MRC à travers ces quizzes interactifs.
             </p>
@@ -60,7 +64,7 @@ const QuizPage = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
-            <QuizContainer categories={categories} />
+            <QuizContainer categories={formattedCategories} />
           </div>
           
           <div className="space-y-6">
@@ -89,7 +93,7 @@ const QuizPage = () => {
               </CardContent>
             </Card>
             
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50">
+            <Card className={`bg-gradient-to-r from-blue-50 to-indigo-50 ${isMobile ? 'p-4' : ''}`}>
               <CardContent className="pt-6">
                 <div className="text-center">
                   <h3 className="font-semibold text-lg mb-2">Défiez vos amis!</h3>

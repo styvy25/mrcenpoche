@@ -44,7 +44,7 @@ export interface BadgeProps {
   imageUrl?: string;
   threshold?: number;
   category?: string;
-  icon?: BadgeIcon;
+  icon?: React.ReactNode;
   earnedAt?: Date;
   color?: string;
   condition?: (result: QuizResult) => boolean;
@@ -65,6 +65,9 @@ export interface QuizResultProps {
   categoryName: string;
   onRestart: () => void;
   result?: QuizResult;
+  selectedAnswers?: (number | undefined)[];
+  questions?: QuizQuestion[];
+  earnedBadges?: BadgeProps[];
 }
 
 export interface QuizAchievementType {

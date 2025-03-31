@@ -33,6 +33,15 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
     }
   }, [selectedAnswer]);
 
+  // Check if currentQuestion is valid
+  if (!currentQuestion) {
+    return (
+      <div className="p-4 text-center">
+        <p>Aucune question disponible</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className={`w-full transition-all duration-300 ${isMobile ? 'px-2' : 'p-4'}`}>

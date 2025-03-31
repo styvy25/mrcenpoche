@@ -5,6 +5,7 @@ import Footer from './Footer';
 import { cn } from '@/lib/utils';
 import Navbar from './Navbar';
 import ResponsiveContainer from './ResponsiveContainer';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -23,11 +24,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   fullWidth = false,
   padBottom = true
 }) => {
+  const { isMobile } = useMediaQuery("(max-width: 768px)");
+  
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {showHeader && <Navbar />}
       
-      <main className={cn('flex-1 w-full', className)}>
+      <main className={cn(
+        'flex-1 w-full', 
+        isMobile ? 'pt-14' : 'pt-0',
+        className
+      )}>
         <ResponsiveContainer fullWidth={fullWidth} padBottom={padBottom}>
           {children}
         </ResponsiveContainer>

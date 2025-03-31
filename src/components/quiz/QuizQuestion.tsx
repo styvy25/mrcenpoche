@@ -1,9 +1,9 @@
 
+import React, { useState, useEffect } from "react";
 import { QuizQuestion as QuestionType } from "./types";
 import { cn } from "@/lib/utils";
 import { CheckCircle, XCircle, HelpCircle } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useState, useEffect } from "react";
 
 interface QuizQuestionProps {
   question: QuestionType;
@@ -18,7 +18,7 @@ const QuizQuestion = ({
   selectedAnswer,
   showFeedback = false
 }: QuizQuestionProps) => {
-  const isSmallScreen = useMediaQuery("(max-width: 640px)");
+  const { isMobile } = useMediaQuery("(max-width: 640px)");
   const [showImage, setShowImage] = useState(false);
   const [animateQuestion, setAnimateQuestion] = useState(false);
   
@@ -34,11 +34,16 @@ const QuizQuestion = ({
     return () => clearTimeout(timer);
   }, [question.id]);
 
+  // Convert correctAnswer to a number if it's a string
+  const correctAnswerNum = typeof question.correctAnswer === 'string' 
+    ? parseInt(question.correctAnswer, 10) 
+    : question.correctAnswer;
+
   return (
     <div className={`space-y-4 transition-all duration-300 ${animateQuestion ? 'animate-fade-in' : 'opacity-0'}`}>
       <div className="flex items-start gap-2">
         <HelpCircle className="h-5 w-5 text-blue-500 mt-1 flex-shrink-0" />
-        <h3 className={`${isSmallScreen ? 'text-lg' : 'text-xl'} font-semibold mb-4 text-gray-800`}>
+        <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold mb-4 text-gray-800`}>
           {question.question}
         </h3>
       </div>
@@ -57,7 +62,7 @@ const QuizQuestion = ({
       <div className="space-y-2.5">
         {question.options.map((option, index) => {
           const isSelected = selectedAnswer === index;
-          const isCorrect = question.correctAnswer === index;
+          const isCorrect = correctAnswerNum === index;
           const isIncorrect = isSelected && !isCorrect;
           
           return (
@@ -90,7 +95,7 @@ const QuizQuestion = ({
                 )}>
                   {String.fromCharCode(65 + index)}
                 </span>
-                <span className={`${isSmallScreen ? 'text-sm' : 'text-base'}`}>{option}</span>
+                <span className={`${isMobile ? 'text-sm' : 'text-base'}`}>{option}</span>
               </div>
               
               {showFeedback && isSelected && (
@@ -109,7 +114,7 @@ const QuizQuestion = ({
       
       {showFeedback && question.explanation && (
         <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
-          <p className={`${isSmallScreen ? 'text-sm' : 'text-base'} text-gray-700`}>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'} text-gray-700`}>
             {question.explanation}
           </p>
         </div>

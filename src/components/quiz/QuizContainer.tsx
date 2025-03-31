@@ -25,33 +25,33 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
   const [currentCategory, setCurrentCategory] = useState<Category | undefined>(initialCategory);
   const [isStarted, setIsStarted] = useState(false);
   const [isCategorySelectionOpen, setIsCategorySelectionOpen] = useState(false);
-  const isSmallScreen = useMediaQuery("(max-width: 640px)");
+  const { isMobile } = useMediaQuery("(max-width: 640px)");
 
   // Validate that we have a valid category
   useEffect(() => {
     if (!currentCategory) {
       setCurrentCategory(initialCategory);
     }
+    
+    // Reset the quiz state when category changes
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers([]);
+    setQuizResults(null);
+    setIsStarted(false);
   }, [currentCategory, initialCategory]);
 
   const handleCategoryChange = (index: number) => {
     setCurrentCategoryIndex(index);
     setCurrentCategory(categories[index]);
-    setCurrentQuestionIndex(0);
-    setSelectedAnswers([]);
-    setQuizResults(null);
-    setIsStarted(false);
   };
 
   const handleAnswer = (answerIndex: number) => {
-    const category = categories[currentCategoryIndex];
-
-    if (!category) {
+    if (!currentCategory) {
       console.error("No current category found");
       return;
     }
 
-    const question = category.questions[currentQuestionIndex];
+    const question = currentCategory.questions[currentQuestionIndex];
 
     if (!question) {
       console.error("No current question found");
@@ -64,7 +64,7 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
     setSelectedAnswers(updatedAnswers);
 
     // Check if this is the last question
-    const isLastQuestion = currentQuestionIndex === category.questions.length - 1;
+    const isLastQuestion = currentQuestionIndex === currentCategory.questions.length - 1;
 
     if (isLastQuestion) {
       calculateResults();
@@ -78,18 +78,20 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
   };
 
   const calculateResults = () => {
-    const category = categories[currentCategoryIndex];
-
-    if (!category) {
+    if (!currentCategory) {
       console.error("No current category found");
       return;
     }
 
-    const questions = category.questions;
+    const questions = currentCategory.questions;
     let score = 0;
 
     questions.forEach((question, index) => {
-      if (question.correctAnswer === selectedAnswers[index]) {
+      const correctAnswer = typeof question.correctAnswer === 'string' 
+        ? parseInt(question.correctAnswer, 10) 
+        : question.correctAnswer;
+      
+      if (correctAnswer === selectedAnswers[index]) {
         score++;
       }
     });
@@ -213,7 +215,7 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
   }
 
   return (
-    <div className={`bg-white shadow-lg rounded-xl overflow-hidden transition-all ${isSmallScreen ? 'p-4' : 'p-6'} animate-fade-in`}>
+    <div className={`bg-white shadow-lg rounded-xl overflow-hidden transition-all ${isMobile ? 'p-4' : 'p-6'} animate-fade-in`}>
       <div className="relative">
         {quizResults ? (
           <ResultsScreen
