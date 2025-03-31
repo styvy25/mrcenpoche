@@ -31,7 +31,6 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   
-  // Initialize theme from localStorage once the component is mounted
   useEffect(() => {
     const loadTheme = () => {
       try {

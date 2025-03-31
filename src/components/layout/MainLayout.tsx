@@ -27,7 +27,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     <div className="flex flex-col min-h-screen bg-background">
       {showHeader && <Navbar />}
       
-      <main className={cn('flex-1', className)}>
+      <main className={cn('flex-1 w-full', className)}>
         <ResponsiveContainer fullWidth={fullWidth} padBottom={padBottom}>
           {children}
         </ResponsiveContainer>

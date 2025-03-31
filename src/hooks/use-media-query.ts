@@ -5,28 +5,23 @@ export function useMediaQuery(query: string): {
   matches: boolean;
   isMobile: boolean;
 } {
-  const [matches, setMatches] = useState<boolean>(() => {
-    // Check on the client side only
-    if (typeof window !== "undefined") {
-      return window.matchMedia(query).matches;
-    }
-    return false;
-  });
+  const [matches, setMatches] = useState<boolean>(false);
 
   useEffect(() => {
+    // Only run on client side
     if (typeof window === "undefined") return;
     
+    // Initialize with the current match state
     const mediaQuery = window.matchMedia(query);
+    setMatches(mediaQuery.matches);
     
+    // Set up the listener
     const handleChange = (event: MediaQueryListEvent) => {
       setMatches(event.matches);
     };
     
-    // Add the listener
+    // Modern API
     mediaQuery.addEventListener("change", handleChange);
-    
-    // Set the initial state
-    setMatches(mediaQuery.matches);
     
     // Clean up
     return () => {
@@ -34,7 +29,7 @@ export function useMediaQuery(query: string): {
     };
   }, [query]);
 
-  // Provide a convenience flag for mobile devices
+  // Determine if it's mobile based on the query
   const isMobile = matches;
 
   return { matches, isMobile };

@@ -2,19 +2,19 @@
 @layer base {
   @media (max-width: 640px) {
     h1 {
-      @apply text-xl;
+      @apply text-xl leading-tight;
     }
     
     h2 {
-      @apply text-lg;
+      @apply text-lg leading-tight;
     }
     
     .container {
-      @apply px-4;
+      @apply px-3;
     }
     
     .card {
-      @apply rounded-lg shadow-sm;
+      @apply rounded-lg shadow-sm p-4;
     }
 
     .mobile-padding {
@@ -23,11 +23,6 @@
     
     .mobile-text-sm {
       font-size: 0.875rem !important;
-    }
-    
-    .mobile-card {
-      border-radius: 0.5rem !important;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
     }
     
     .mobile-stack {
@@ -46,6 +41,30 @@
     .mobile-space-y {
       margin-top: 0.5rem !important;
       margin-bottom: 0.5rem !important;
+    }
+    
+    /* Improved button spacing for mobile */
+    button, .button {
+      @apply py-2 px-3;
+    }
+    
+    /* Better card styles for mobile */
+    .card {
+      @apply mb-3;
+    }
+    
+    /* Reduce margins and paddings */
+    .p-6 {
+      @apply p-3;
+    }
+    
+    .m-6 {
+      @apply m-3;
+    }
+    
+    /* Properly align text in mobile view */
+    .text-center {
+      @apply mx-auto;
     }
   }
 
@@ -66,6 +85,21 @@
     transform: translateZ(0);
     backface-visibility: hidden;
     perspective: 1000px;
+  }
+  
+  /* Grid fixes for mobile */
+  @media (max-width: 768px) {
+    .grid {
+      @apply gap-3;
+    }
+    
+    .grid-cols-3 {
+      @apply grid-cols-1;
+    }
+    
+    .md\:grid-cols-2 {
+      @apply grid-cols-1;
+    }
   }
 }
 
@@ -97,4 +131,15 @@
 @keyframes placeholder-shine {
   0% { background-position: -100% 0; }
   100% { background-position: 100% 0; }
+}
+
+/* Mobile-specific animations */
+@media (max-width: 768px) {
+  .hover\:shadow-md {
+    @apply shadow-sm;
+  }
+  
+  .transition-shadow {
+    transition: none;
+  }
 }

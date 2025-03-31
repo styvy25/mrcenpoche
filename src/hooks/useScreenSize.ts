@@ -12,6 +12,9 @@ export const useScreenSize = () => {
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     const handleResize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -25,11 +28,22 @@ export const useScreenSize = () => {
     // Set initial values
     handleResize();
     
+    // Use a debounced resize event for better performance
+    let timeoutId: NodeJS.Timeout;
+    
+    const debouncedResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(handleResize, 100);
+    };
+    
     // Add event listener
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', debouncedResize);
     
     // Clean up
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', debouncedResize);
+    };
   }, []);
 
   return {
