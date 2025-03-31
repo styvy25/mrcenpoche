@@ -36,8 +36,8 @@ const QuizBadgesDisplay: React.FC<QuizBadgesDisplayProps> = ({ badges }) => {
           key={badge.id}
           className="flex flex-col items-center p-4 rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow"
         >
-          <div className="p-3 rounded-full mb-2 bg-blue-100">
-            <span className="text-blue-500">
+          <div className={`p-3 rounded-full mb-2 ${badge.color ? badge.color.replace('text-', 'bg-').replace('-500', '-100') : 'bg-blue-100'}`}>
+            <span className={badge.color || "text-blue-500"}>
               {getIconComponent(badge.icon)}
             </span>
           </div>

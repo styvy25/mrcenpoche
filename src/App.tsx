@@ -13,33 +13,38 @@ import ForumPage from './pages/ForumPage';
 import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
 import QuizPage from './pages/QuizPage';
+import GlowMenuDemoPage from './pages/GlowMenuDemo';
 import { AppProvider } from '@/context/AppContext';
 import { Toaster } from '@/components/ui/toaster';
 import NotFound from './pages/NotFound';
+import { ThemeProvider } from '@/components/ui/theme-provider';
 
 function App() {
   return (
-    <AuthProvider>
-      <AppProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/index" element={<Index />} />
-            <Route path="/assistant" element={<AssistantPage />} />
-            <Route path="/chat-237" element={<Chat237Page />} />
-            <Route path="/documents" element={<DocumentsPage />} />
-            <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
-            <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
-            <Route path="/forum" element={<ForumPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/quiz" element={<QuizPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </Router>
-      </AppProvider>
-    </AuthProvider>
+    <ThemeProvider defaultTheme="system" storageKey="theme">
+      <AuthProvider>
+        <AppProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/index" element={<Index />} />
+              <Route path="/assistant" element={<AssistantPage />} />
+              <Route path="/chat-237" element={<Chat237Page />} />
+              <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
+              <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
+              <Route path="/forum" element={<ForumPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/glow-menu" element={<GlowMenuDemoPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </Router>
+        </AppProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
