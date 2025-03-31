@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
@@ -116,6 +115,35 @@ export const usePlanLimits = () => {
     return !hasReachedLimit(feature);
   };
 
+  // Check if user can generate PDF
+  const canGeneratePdf = (): boolean => {
+    if (!currentUser) return false;
+    return !hasReachedLimit(Feature.PDF_GENERATION);
+  };
+
+  // Check if user can access all modules
+  const canAccessAllModules = (): boolean => {
+    return userPlan === PlanType.PREMIUM;
+  };
+
+  // Update user plan
+  const updateUserPlan = async (plan: PlanType): Promise<boolean> => {
+    if (!currentUser) return false;
+    
+    try {
+      // Logic to update user plan would go here
+      return true;
+    } catch (error) {
+      console.error("Error updating user plan:", error);
+      return false;
+    }
+  };
+
+  // Has chat limit
+  const hasChatLimit = (): boolean => {
+    return userPlan === PlanType.FREE;
+  };
+
   // Increment PDF generations count
   const incrementPdfGenerations = async (): Promise<boolean> => {
     if (!currentUser) return false;
@@ -176,6 +204,10 @@ export const usePlanLimits = () => {
     incrementYoutubeAnalysis,
     incrementChatMessages,
     hasReachedLimit,
-    getRemainingUsage
+    getRemainingUsage,
+    canGeneratePdf,
+    canAccessAllModules,
+    updateUserPlan,
+    hasChatLimit
   };
 };

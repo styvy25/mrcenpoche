@@ -1,47 +1,75 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Download, Award, CheckCircle } from "lucide-react";
-import { useScreenSize } from '@/hooks/useScreenSize';
+import { jsPDF } from 'jspdf';
+import { User } from '@/types';
 
-const CertificateGenerator = () => {
-  const { isMobile } = useScreenSize();
+interface CertificateProps {
+  moduleName: string;
+  completionDate: Date;
+  user?: User;
+}
+
+const downloadCertificate = async (props: CertificateProps): Promise<void> => {
+  const { moduleName, completionDate, user } = props;
   
+  // Create new PDF
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4'
+  });
+  
+  // Add certificate title
+  doc.setFontSize(30);
+  doc.setTextColor(31, 87, 164); // MRC blue
+  doc.text('Certificat de Réussite', 148, 50, { align: 'center' });
+  
+  // Add MRC logo/header
+  doc.setFontSize(18);
+  doc.setTextColor(0);
+  doc.text('Mouvement pour la Renaissance du Cameroun', 148, 30, { align: 'center' });
+  
+  // Add recipient name
+  doc.setFontSize(24);
+  doc.text(`${user?.email || 'Participant'}`, 148, 80, { align: 'center' });
+  
+  // Add certificate text
+  doc.setFontSize(16);
+  doc.text('a complété avec succès le module de formation', 148, 100, { align: 'center' });
+  
+  // Add module name
+  doc.setFontSize(20);
+  doc.setTextColor(46, 125, 50); // Green
+  doc.text(`"${moduleName}"`, 148, 120, { align: 'center' });
+  
+  // Add date
+  doc.setFontSize(14);
+  doc.setTextColor(0);
+  doc.text(`Date d'achèvement: ${completionDate.toLocaleDateString('fr-FR')}`, 148, 140, { align: 'center' });
+  
+  // Add signature
+  doc.text('Maurice Kamto', 80, 180);
+  doc.text('Président du MRC', 80, 188);
+  
+  // Add certificate ID
+  const certId = `MRC-CERT-${Date.now().toString().slice(-8)}`;
+  doc.setFontSize(10);
+  doc.text(`ID du certificat: ${certId}`, 148, 200, { align: 'center' });
+  
+  // Save PDF
+  doc.save(`Certificat_${moduleName.replace(/\s+/g, '_')}.pdf`);
+};
+
+const CertificateGenerator: React.FC<CertificateProps> = (props) => {
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-2">
-        <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
-          <Award className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-amber-500`} />
-          Générateur de Certificats
-        </CardTitle>
-        <CardDescription className={isMobile ? 'text-xs' : 'text-sm'}>
-          Créez des certificats officiels pour les formations MRC
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent>
-        <div className={`flex flex-col items-center justify-center ${isMobile ? 'p-4' : 'p-8'} border-2 border-dashed rounded-lg`}>
-          <Award className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} text-amber-500 mb-4`} />
-          <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-center mb-2`}>Certificat de Completion</h3>
-          <p className={`text-center text-muted-foreground mb-6 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-            Générez un certificat en validant vos modules de formation
-          </p>
-          <Button className="bg-amber-500 hover:bg-amber-600">
-            <CheckCircle className="mr-2 h-4 w-4" />
-            Vérifier mon éligibilité
-          </Button>
-        </div>
-      </CardContent>
-      
-      <CardFooter className="flex justify-end">
-        <Button variant="outline" className="border-amber-500 text-amber-700 hover:bg-amber-50">
-          <Download className="mr-2 h-4 w-4" />
-          Télécharger un exemple
-        </Button>
-      </CardFooter>
-    </Card>
+    <button 
+      onClick={() => downloadCertificate(props)}
+      className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/80"
+    >
+      Télécharger le certificat
+    </button>
   );
 };
 
+export { downloadCertificate };
 export default CertificateGenerator;

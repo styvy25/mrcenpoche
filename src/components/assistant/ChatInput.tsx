@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Mic, Send, Image, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
-import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface ChatInputProps {
   isLoading: boolean;
@@ -24,7 +22,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const { incrementChatMessages } = usePlanLimits();
-  const { isMobile } = useMediaQuery("(max-width: 768px)");
+  const isMobile = window.innerWidth < 768;
   
   const {
     isListening,

@@ -53,6 +53,7 @@ export interface Appointment {
   duration?: number;
   startTime?: string; // Add support for startTime
   endTime?: string; // Add support for endTime
+  participant?: string; // Add participant property to fix errors
 }
 
 export interface AppointmentRequest {

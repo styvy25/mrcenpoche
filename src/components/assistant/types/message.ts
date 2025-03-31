@@ -1,4 +1,5 @@
 
-import { Message as BaseMessage } from '@/types/message';
+import { Message as BaseMessage } from '@/types';
 
 export type Message = BaseMessage;
+
