@@ -12,18 +12,21 @@ import MatchResults from "./components/quiz/matches/MatchResults";
 import Index from './pages/Index';
 import PaymentPage from './pages/PaymentPage';
 import { useApiKeys } from './hooks/useApiKeys';
+import { createCheckoutSession, SUBSCRIPTION_PLANS } from './services/paymentService';
 
-// Initialize Stripe (utilisez une clé de test pour le développement)
-const stripePromise = loadStripe('pk_test_placeholder');
+// Initialize Stripe with a defined test key (actual key will be used in production)
+const stripePromise = loadStripe('pk_test_51OwnO5KsLcDuIw418sLRNrUEyO0mKVDN0zWlwfgcl7qFmUF2cE3tZq6hnD6DQOPHrDqMu9FZtUv6OW2sTsCWfGmt00WYw7d0m5');
 
 interface AppContextProps {
   isApiKeySet: boolean;
   setIsApiKeySet: React.Dispatch<React.SetStateAction<boolean>>;
+  createPremiumCheckout: (priceId?: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextProps>({
   isApiKeySet: false,
   setIsApiKeySet: () => {},
+  createPremiumCheckout: async () => {},
 });
 
 export const useAppContext = () => useContext(AppContext);
@@ -51,9 +54,23 @@ function App() {
     };
   }, [loadKeys]);
 
+  // Helper function to create premium checkout
+  const createPremiumCheckout = async (priceId?: string) => {
+    try {
+      // Use the provided priceId or default to premium plan
+      const premiumPriceId = priceId || SUBSCRIPTION_PLANS.find(plan => plan.planType === 'premium')?.priceId;
+      
+      if (premiumPriceId) {
+        await createCheckoutSession(premiumPriceId);
+      }
+    } catch (error) {
+      console.error('Error creating premium checkout:', error);
+    }
+  };
+
   return (
     <div>
-      <AppContext.Provider value={{ isApiKeySet, setIsApiKeySet }}>
+      <AppContext.Provider value={{ isApiKeySet, setIsApiKeySet, createPremiumCheckout }}>
         <Elements stripe={stripePromise}>
           <Router>
             <Routes>

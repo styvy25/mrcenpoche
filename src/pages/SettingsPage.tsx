@@ -6,7 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import APIKeyManager from "@/components/settings/APIKeyManager";
 import AppearanceSection from "@/components/settings/sections/AppearanceSection";
 import AccountSection from "@/components/settings/sections/AccountSection";
-import { Bell, Key, Palette, UserCircle, AlertCircle } from "lucide-react";
+import SubscriptionSection from "@/components/settings/sections/SubscriptionSection";
+import { Bell, Key, Palette, UserCircle, AlertCircle, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -41,15 +42,19 @@ const SettingsPage = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="api-keys" className="w-full">
+      <Tabs defaultValue="account" className="w-full">
         <TabsList className="mb-4 flex flex-wrap">
-          <TabsTrigger value="api-keys" className="flex items-center gap-2">
-            <Key className="h-4 w-4" />
-            Clés API
-          </TabsTrigger>
           <TabsTrigger value="account" className="flex items-center gap-2">
             <UserCircle className="h-4 w-4" />
             Compte
+          </TabsTrigger>
+          <TabsTrigger value="subscription" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Abonnement
+          </TabsTrigger>
+          <TabsTrigger value="api-keys" className="flex items-center gap-2">
+            <Key className="h-4 w-4" />
+            Clés API
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
@@ -60,6 +65,14 @@ const SettingsPage = () => {
             Apparence
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="account">
+          <AccountSection />
+        </TabsContent>
+        
+        <TabsContent value="subscription">
+          <SubscriptionSection />
+        </TabsContent>
 
         <TabsContent value="api-keys">
           <div className="grid gap-6">
@@ -107,10 +120,6 @@ const SettingsPage = () => {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        <TabsContent value="account">
-          <AccountSection />
         </TabsContent>
 
         <TabsContent value="notifications">
