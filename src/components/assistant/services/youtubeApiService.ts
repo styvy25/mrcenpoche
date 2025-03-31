@@ -36,7 +36,7 @@ export const getYouTubeApiKey = async (): Promise<string | null> => {
       }
     }
     
-    // Fallback to default key if provided in env
+    // Fallback to default key
     const defaultKey = '4e63f34b-ce2e-b148-452d-5f6ad73e9f1a';
     if (defaultKey) {
       updateLocalStorageApiKey('youtube', defaultKey);
