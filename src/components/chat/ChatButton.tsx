@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { usePlanLimits, Feature } from '@/hooks/usePlanLimits';
 import { useNavigate } from 'react-router-dom';
 
 interface ChatButtonProps {
@@ -27,9 +27,9 @@ const ChatButton: React.FC<ChatButtonProps> = ({
     hasLimit 
   } = usePlanLimits();
   
-  const chatLimitReached = hasReachedLimit('aiChat');
-  const remainingChats = getRemainingUsage('aiChat');
-  const hasChatLimit = hasLimit('aiChat');
+  const chatLimitReached = hasReachedLimit(Feature.AI_CHAT);
+  const remainingChats = getRemainingUsage(Feature.AI_CHAT);
+  const hasChatLimit = hasLimit(Feature.AI_CHAT);
   
   const handleClick = () => {
     navigate('/assistant');

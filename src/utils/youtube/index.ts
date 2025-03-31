@@ -1,5 +1,5 @@
 
-import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { usePlanLimits, Feature } from "@/hooks/usePlanLimits";
 import { extractVideoId } from "./extractVideoId";
 import { useVideoAnalysis } from "./videoAnalysis";
 import { usePdfGenerator } from "./pdfGenerator";

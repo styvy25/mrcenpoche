@@ -1,234 +1,195 @@
 
-import { useState, useCallback } from "react";
-import { useAuth } from "./useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from 'react';
+import { useAuth } from './useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
-// Define all the features available in the application
 export enum Feature {
-  CHAT = "chat",
-  AI_CHAT = "aiChat",
-  PDF_EXPORT = "pdfExport",
-  YOUTUBE_ANALYSIS = "youtubeAnalysis",
-  MODULE_ACCESS = "moduleAccess",
-  DOCUMENT_GENERATION = "documentGeneration",
-  QUIZ_ADVANCED = "quizAdvanced"
+  PDF_GENERATION = 'pdfGeneration',
+  YOUTUBE_ANALYSIS = 'youtubeAnalysis',
+  AI_CHAT = 'aiChat',
+  PREMIUM_MODULES = 'premiumModules',
+  MAX_CHATS = 'maxChats',
+  VOICE_MESSAGES = 'voiceMessages',
+  ATTACHMENTS = 'attachments'
 }
 
-export type Plan = "free" | "premium";
-
-export interface FeatureUsage {
-  limit: number;
-  used: number;
+export enum Plan {
+  FREE = 'free',
+  PREMIUM = 'premium'
 }
+
+// Interface pour les limites d'utilisation
+interface UsageLimits {
+  [Feature.PDF_GENERATION]: number;
+  [Feature.YOUTUBE_ANALYSIS]: number;
+  [Feature.AI_CHAT]: number;
+  [Feature.MAX_CHATS]: number;
+  [Feature.VOICE_MESSAGES]: number;
+  [Feature.ATTACHMENTS]: number;
+}
+
+// Limites par défaut pour chaque plan
+const DEFAULT_LIMITS: Record<Plan, UsageLimits> = {
+  [Plan.FREE]: {
+    [Feature.PDF_GENERATION]: 5,
+    [Feature.YOUTUBE_ANALYSIS]: 3,
+    [Feature.AI_CHAT]: 20,
+    [Feature.MAX_CHATS]: 5,
+    [Feature.VOICE_MESSAGES]: 10,
+    [Feature.ATTACHMENTS]: 5
+  },
+  [Plan.PREMIUM]: {
+    [Feature.PDF_GENERATION]: 1000,
+    [Feature.YOUTUBE_ANALYSIS]: 1000,
+    [Feature.AI_CHAT]: 1000,
+    [Feature.MAX_CHATS]: 1000,
+    [Feature.VOICE_MESSAGES]: 1000,
+    [Feature.ATTACHMENTS]: 1000
+  }
+};
 
 export const usePlanLimits = () => {
-  const { isAuthenticated, currentUser } = useAuth();
-  const [userPlan, setUserPlan] = useState<Plan>(
-    currentUser?.subscription?.plan || "free"
-  );
-  
-  // Track feature usage
-  const [usage, setUsage] = useState<Record<Feature, number>>({
-    [Feature.CHAT]: 0,
-    [Feature.AI_CHAT]: 0,
-    [Feature.PDF_EXPORT]: 0,
-    [Feature.YOUTUBE_ANALYSIS]: 0,
-    [Feature.MODULE_ACCESS]: 0,
-    [Feature.DOCUMENT_GENERATION]: 0,
-    [Feature.QUIZ_ADVANCED]: 0
-  });
+  const { currentUser } = useAuth();
+  const [usage, setUsage] = useState<Partial<UsageLimits>>({});
+  const userPlan = currentUser?.subscription?.plan || Plan.FREE;
 
-  // Define limits based on plan
-  const planLimits: Record<Plan, Record<Feature, number>> = {
-    free: {
-      [Feature.CHAT]: 10,
-      [Feature.AI_CHAT]: 5,
-      [Feature.PDF_EXPORT]: 2,
-      [Feature.YOUTUBE_ANALYSIS]: 3,
-      [Feature.MODULE_ACCESS]: 3,
-      [Feature.DOCUMENT_GENERATION]: 1,
-      [Feature.QUIZ_ADVANCED]: 5
-    },
-    premium: {
-      [Feature.CHAT]: Infinity,
-      [Feature.AI_CHAT]: Infinity,
-      [Feature.PDF_EXPORT]: Infinity,
-      [Feature.YOUTUBE_ANALYSIS]: Infinity,
-      [Feature.MODULE_ACCESS]: Infinity,
-      [Feature.DOCUMENT_GENERATION]: Infinity,
-      [Feature.QUIZ_ADVANCED]: Infinity
+  // Charger l'utilisation actuelle depuis Supabase
+  useEffect(() => {
+    const loadUsage = async () => {
+      if (!currentUser) return;
+
+      try {
+        // Chargement des statistiques de PDF
+        const { count: pdfCount } = await supabase
+          .from('pdf_generation_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', currentUser.id)
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+        // Chargement des analyses YouTube
+        const { count: youtubeCount } = await supabase
+          .from('pdf_documents')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', currentUser.id)
+          .eq('document_type', 'youtube_analysis')
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+        // Chargement des chats IA
+        const { count: chatCount } = await supabase
+          .from('chat_messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', currentUser.id)
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+        setUsage({
+          [Feature.PDF_GENERATION]: pdfCount || 0,
+          [Feature.YOUTUBE_ANALYSIS]: youtubeCount || 0,
+          [Feature.AI_CHAT]: chatCount || 0
+        });
+      } catch (error) {
+        console.error("Erreur lors du chargement des limites d'utilisation:", error);
+      }
+    };
+
+    loadUsage();
+  }, [currentUser]);
+
+  // Obtenir la limite pour une fonctionnalité
+  const getLimitForFeature = (feature: Feature): number => {
+    return DEFAULT_LIMITS[userPlan][feature as keyof UsageLimits] || 0;
+  };
+
+  // Vérifier si la fonctionnalité a une limite
+  const hasLimit = (feature: Feature): boolean => {
+    return userPlan === Plan.FREE;
+  };
+
+  // Obtenir l'utilisation actuelle pour une fonctionnalité
+  const getUsage = (feature: Feature): number => {
+    return usage[feature as keyof UsageLimits] || 0;
+  };
+
+  // Vérifier si une limite a été atteinte
+  const hasReachedLimit = (feature: Feature): boolean => {
+    if (!hasLimit(feature)) return false;
+    return getUsage(feature) >= getLimitForFeature(feature);
+  };
+
+  // Obtenir l'utilisation restante pour une fonctionnalité
+  const getRemainingUsage = (feature: Feature): number => {
+    if (!hasLimit(feature)) return 9999;
+    return Math.max(0, getLimitForFeature(feature) - getUsage(feature));
+  };
+
+  // Vérifier si l'utilisateur peut générer un PDF
+  const canGeneratePdf = (): boolean => {
+    return !hasReachedLimit(Feature.PDF_GENERATION);
+  };
+
+  // Vérifier si l'utilisateur peut analyser YouTube
+  const canAnalyzeYoutube = (): boolean => {
+    return !hasReachedLimit(Feature.YOUTUBE_ANALYSIS);
+  };
+
+  // Vérifier si l'utilisateur a accès à tous les modules
+  const canAccessAllModules = (): boolean => {
+    return userPlan === Plan.PREMIUM;
+  };
+
+  // Incrémenter l'utilisation de PDF
+  const incrementPdfGenerations = async (): Promise<boolean> => {
+    if (!currentUser) return false;
+    if (hasReachedLimit(Feature.PDF_GENERATION)) return false;
+
+    try {
+      const { data } = await supabase.rpc('increment_pdf_generations', {
+        user_id: currentUser.id
+      });
+      
+      if (data) {
+        setUsage(prev => ({
+          ...prev,
+          [Feature.PDF_GENERATION]: (prev[Feature.PDF_GENERATION] || 0) + 1
+        }));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Erreur lors de l'incrémentation des générations de PDF:", error);
+      return false;
     }
   };
 
-  // Check if user has access to a feature
-  const hasFeatureAccess = useCallback(
-    (feature: Feature): boolean => {
-      if (!isAuthenticated) return false;
-      return usage[feature] < planLimits[userPlan][feature];
-    },
-    [isAuthenticated, userPlan, usage]
-  );
+  // Incrémenter l'utilisation des analyses YouTube
+  const incrementYoutubeAnalysis = (): boolean => {
+    if (!currentUser) return false;
+    if (hasReachedLimit(Feature.YOUTUBE_ANALYSIS)) return false;
 
-  // Get limit for a feature
-  const getLimitForFeature = useCallback(
-    (feature: Feature): number => {
-      return planLimits[userPlan][feature];
-    },
-    [userPlan]
-  );
-
-  // Check if feature has a limit
-  const hasLimit = useCallback(
-    (feature: Feature): boolean => {
-      return planLimits[userPlan][feature] !== Infinity;
-    },
-    [userPlan]
-  );
-
-  // Get usage for a feature
-  const getUsage = useCallback(
-    (feature: Feature): number => {
-      return usage[feature];
-    },
-    [usage]
-  );
-
-  // Increment usage counter for a feature
-  const incrementUsage = useCallback(
-    (feature: Feature): void => {
-      setUsage((prev) => ({
-        ...prev,
-        [feature]: prev[feature] + 1
-      }));
-    },
-    []
-  );
-
-  // Reset usage counter for a feature
-  const resetUsage = useCallback(
-    (feature: Feature): void => {
-      setUsage((prev) => ({
-        ...prev,
-        [feature]: 0
-      }));
-    },
-    []
-  );
-
-  // Reset all usage counters
-  const resetAllUsage = useCallback((): void => {
-    setUsage({
-      [Feature.CHAT]: 0,
-      [Feature.AI_CHAT]: 0,
-      [Feature.PDF_EXPORT]: 0,
-      [Feature.YOUTUBE_ANALYSIS]: 0,
-      [Feature.MODULE_ACCESS]: 0,
-      [Feature.DOCUMENT_GENERATION]: 0,
-      [Feature.QUIZ_ADVANCED]: 0
-    });
-  }, []);
-
-  // Specific incrementers for each feature
-  const incrementChatMessages = useCallback((): void => {
-    incrementUsage(Feature.CHAT);
-  }, [incrementUsage]);
-
-  const incrementAIChat = useCallback((): void => {
-    incrementUsage(Feature.AI_CHAT);
-  }, [incrementUsage]);
-
-  const incrementPDFExport = useCallback((): void => {
-    incrementUsage(Feature.PDF_EXPORT);
-  }, [incrementUsage]);
-
-  const incrementYouTubeAnalysis = useCallback((): void => {
-    incrementUsage(Feature.YOUTUBE_ANALYSIS);
-  }, [incrementUsage]);
-
-  // Check if user can generate PDFs
-  const canGeneratePdf = useCallback(async (): Promise<boolean> => {
-    if (!isAuthenticated || !currentUser) return false;
+    setUsage(prev => ({
+      ...prev,
+      [Feature.YOUTUBE_ANALYSIS]: (prev[Feature.YOUTUBE_ANALYSIS] || 0) + 1
+    }));
     
-    if (userPlan === "premium") return true;
-    
-    try {
-      const { data, error } = await supabase.rpc('can_generate_pdf', {
-        user_id: currentUser.id
-      });
-      
-      if (error) {
-        console.error("Error checking PDF limit:", error);
-        return false;
-      }
-      
-      return data === true;
-    } catch (error) {
-      console.error("Error checking PDF generation limit:", error);
-      return false;
-    }
-  }, [isAuthenticated, currentUser, userPlan]);
+    return true;
+  };
 
-  // Increment PDF generation count
-  const incrementPdfGenerations = useCallback(async (): Promise<boolean> => {
-    if (!isAuthenticated || !currentUser) return false;
-    
-    try {
-      const { data, error } = await supabase.rpc('increment_pdf_generations', {
-        user_id: currentUser.id
-      });
-      
-      if (error) {
-        console.error("Error incrementing PDF count:", error);
-        return false;
-      }
-      
-      return data === true;
-    } catch (error) {
-      console.error("Error incrementing PDF generation count:", error);
-      return false;
-    }
-  }, [isAuthenticated, currentUser]);
-
-  // Update user's plan
-  const updateUserPlan = useCallback((plan: Plan): void => {
-    setUserPlan(plan);
-  }, []);
-
-  // Remaining uses calculation
-  const getRemainingUses = useCallback(
-    (feature: Feature): number => {
-      const limit = planLimits[userPlan][feature];
-      if (limit === Infinity) return Infinity;
-      return Math.max(0, limit - usage[feature]);
-    },
-    [userPlan, usage]
-  );
-
-  // Check if user can use feature based on limits
-  const canUseFeature = useCallback(
-    (feature: Feature): boolean => {
-      return getRemainingUses(feature) > 0;
-    },
-    [getRemainingUses]
-  );
+  // Vérifier si l'utilisateur a une limite de chat
+  const hasChatLimit = (): boolean => {
+    return userPlan === Plan.FREE;
+  };
 
   return {
     userPlan,
     getLimitForFeature,
     hasLimit,
     getUsage,
-    hasFeatureAccess,
-    incrementChatMessages,
-    incrementAIChat,
-    incrementPDFExport,
-    incrementYouTubeAnalysis,
-    incrementUsage,
-    resetUsage,
-    resetAllUsage,
-    updateUserPlan,
-    getRemainingUses,
-    canUseFeature,
     canGeneratePdf,
-    incrementPdfGenerations
+    canAnalyzeYoutube,
+    canAccessAllModules,
+    incrementPdfGenerations,
+    incrementYoutubeAnalysis,
+    hasReachedLimit,
+    getRemainingUsage,
+    hasChatLimit
   };
 };

@@ -1,56 +1,102 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import YouTubeAnalyzer from '@/components/youtube/YouTubeAnalyzer';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CreditCard, YoutubeIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import VideoTab from '@/components/youtube/tabs/VideoTab';
+import AnalysisTab from '@/components/youtube/tabs/AnalysisTab';
+import { useYouTubeAnalyzerState } from '@/components/youtube/hooks/useYouTubeAnalyzer';
+import { usePlanLimits, Feature } from '@/hooks/usePlanLimits';
+import AuthenticationNotice from '@/components/documents/AuthenticationNotice';
+import PremiumUpsell from '@/components/premium/PremiumUpsell';
+import { useAuth } from '@/hooks/useAuth';
 
 const YouTubeAnalyzerPage = () => {
-  const { canUseFeature } = usePlanLimits();
-  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { hasReachedLimit } = usePlanLimits();
+  const limitReached = hasReachedLimit(Feature.YOUTUBE_ANALYSIS);
   
-  const canAnalyzeYoutube = canUseFeature('youtubeAnalysis');
-  
-  const handleUpgrade = () => {
-    navigate('/payment');
-  };
-  
+  const {
+    videoUrl,
+    videoTitle,
+    videoDescription,
+    analysis,
+    isLoading,
+    isVideoLoading,
+    error,
+    activeTab,
+    setActiveTab,
+    videoId,
+    remainingAnalyses,
+    hasLimit,
+    handleValidateUrl,
+    handleAnalyzeVideo
+  } = useYouTubeAnalyzerState();
+
+  // Si l'utilisateur n'est pas authentifié, on affiche une notice
+  if (!isAuthenticated) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto py-6">
+          <h1 className="text-2xl font-bold mb-6">Analyseur de vidéos YouTube</h1>
+          <AuthenticationNotice 
+            title="Analyseur de vidéos YouTube" 
+            description="Connectez-vous pour analyser des vidéos YouTube et générer des résumés détaillés."
+          />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Si l'utilisateur a atteint sa limite d'analyses
+  if (limitReached) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto py-6">
+          <h1 className="text-2xl font-bold mb-6">Analyseur de vidéos YouTube</h1>
+          <PremiumUpsell 
+            title="Limite d'analyses atteinte" 
+            description="Vous avez atteint votre limite d'analyses vidéo. Passez à Premium pour des analyses illimitées."
+            feature="youtube"
+          />
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
-      <div className="py-8 px-4 max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-          <YoutubeIcon className="h-7 w-7 text-red-500" />
-          Analyse de vidéos MRC
-        </h1>
-        <p className="text-muted-foreground mb-8">
-          Analysez les vidéos du MRC pour en extraire les points clés et générer des rapports PDF détaillés
-        </p>
+      <div className="container mx-auto py-6">
+        <h1 className="text-2xl font-bold mb-6">Analyseur de vidéos YouTube</h1>
         
-        {canAnalyzeYoutube ? (
-          <YouTubeAnalyzer />
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Fonctionnalité Premium</CardTitle>
-              <CardDescription>
-                L'analyse de vidéos YouTube est une fonctionnalité réservée aux utilisateurs Premium
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4">
-                Passez à la version premium pour accéder à l'analyse détaillée des vidéos YouTube du MRC
-                et générer des rapports PDF pédagogiques.
-              </p>
-              <Button onClick={handleUpgrade}>
-                <CreditCard className="mr-2 h-4 w-4" />
-                Passer à Premium
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="video">Vidéo</TabsTrigger>
+            <TabsTrigger value="analysis" disabled={!analysis}>Analyse</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="video" className="space-y-4">
+            <VideoTab
+              videoTitle={videoTitle}
+              videoDescription={videoDescription}
+              error={error}
+              videoUrl={videoUrl}
+              isVideoLoading={isVideoLoading}
+              isLoading={isLoading}
+              hasLimit={hasLimit}
+              remainingAnalyses={remainingAnalyses}
+              handleValidateUrl={handleValidateUrl}
+              handleAnalyzeVideo={handleAnalyzeVideo}
+            />
+          </TabsContent>
+          
+          <TabsContent value="analysis" className="space-y-4">
+            <AnalysisTab 
+              analysis={analysis} 
+              videoId={videoId} 
+              videoTitle={videoTitle} 
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </MainLayout>
   );

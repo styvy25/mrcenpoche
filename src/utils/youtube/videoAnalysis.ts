@@ -11,7 +11,11 @@ export const useVideoAnalysis = () => {
   /**
    * Analyzes a YouTube video and returns the analysis
    */
-  const analyzeYoutubeVideo = async (videoUrl: string, canAnalyzeYoutube: () => boolean, incrementYoutubeAnalysis: () => void): Promise<VideoAnalysisResult> => {
+  const analyzeYoutubeVideo = async (
+    videoUrl: string, 
+    canAnalyzeYoutube: () => boolean, 
+    incrementYoutubeAnalysis: () => boolean
+  ): Promise<VideoAnalysisResult> => {
     if (!canAnalyzeYoutube()) {
       toast({
         title: "Limite atteinte",

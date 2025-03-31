@@ -50,8 +50,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             id: session.user.id,
             email: session.user.email || '',
             subscription: userSubscription ? {
-              plan: userSubscription.plan_type,
-              features: userSubscription.features || []
+              plan: userSubscription.plan_type as 'free' | 'premium',
+              features: Array.isArray(userSubscription.features) ? userSubscription.features : []
             } : undefined
           });
           setIsAuthenticated(true);
@@ -80,8 +80,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               id: session.user.id,
               email: session.user.email || '',
               subscription: userSubscription ? {
-                plan: userSubscription.plan_type,
-                features: userSubscription.features || []
+                plan: userSubscription.plan_type as 'free' | 'premium',
+                features: Array.isArray(userSubscription.features) ? userSubscription.features : []
               } : undefined
             });
             setIsAuthenticated(true);
@@ -124,8 +124,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         id: data.user.id,
         email: data.user.email || '',
         subscription: userSubscription ? {
-          plan: userSubscription.plan_type,
-          features: userSubscription.features || []
+          plan: userSubscription.plan_type as 'free' | 'premium',
+          features: Array.isArray(userSubscription.features) ? userSubscription.features : []
         } : undefined
       });
       setIsAuthenticated(true);
