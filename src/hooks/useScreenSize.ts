@@ -1,55 +1,48 @@
 
 import { useState, useEffect } from 'react';
 
-export const useScreenSize = () => {
-  const [screenSize, setScreenSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+export interface ScreenSizeReturn {
+  width: number;
+  height: number;
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  isLargeDesktop: boolean;
+}
+
+export const useScreenSize = (): ScreenSizeReturn => {
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
   });
-  
-  const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
-    
+    // Fonction de gestionnaire pour mettre à jour la taille de la fenêtre
     const handleResize = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      
-      setScreenSize({ width, height });
-      setIsMobile(width < 640);
-      setIsTablet(width >= 640 && width < 1024);
-      setIsDesktop(width >= 1024);
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
     };
 
-    // Set initial values
+    // Ajouter l'écouteur d'événement
+    window.addEventListener('resize', handleResize);
+    
+    // Appeler une fois pour définir la taille initiale
     handleResize();
     
-    // Use a debounced resize event for better performance
-    let timeoutId: NodeJS.Timeout;
-    
-    const debouncedResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleResize, 100);
-    };
-    
-    // Add event listener
-    window.addEventListener('resize', debouncedResize);
-    
-    // Clean up
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', debouncedResize);
-    };
+    // Nettoyer l'écouteur d'événement lors du démontage
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return {
-    screenSize,
-    isMobile,
-    isTablet,
-    isDesktop,
+    width: windowSize.width,
+    height: windowSize.height,
+    isMobile: windowSize.width < 640,
+    isTablet: windowSize.width >= 640 && windowSize.width < 1024,
+    isDesktop: windowSize.width >= 1024 && windowSize.width < 1280,
+    isLargeDesktop: windowSize.width >= 1280
   };
 };
+
+export default useScreenSize;

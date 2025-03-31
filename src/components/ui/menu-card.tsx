@@ -1,104 +1,91 @@
 
-import { ReactNode } from 'react';
-import { ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-export interface MenuCardProps {
+interface MenuCardProps {
   title: string;
-  value: string | number;
+  value: string;
   subtitle: string;
-  icon: ReactNode;
-  color: 'purple' | 'green' | 'yellow' | 'pink' | 'blue' | 'orange' | 'red' | 'teal' | 'cyan' | 'gold';
-  onClick?: () => void;
-  className?: string;
-  index?: number;  // pour l'animation
+  icon: React.ReactNode;
+  onClick: () => void;
+  color?: "blue" | "green" | "red" | "purple" | "yellow" | "orange" | "teal" | "pink" | "cyan" | "indigo";
+  index?: number;
+  disabled?: boolean;
 }
 
-const colorMap = {
-  purple: {
-    bg: 'bg-gradient-to-br from-palette-purple-500 to-palette-purple-700',
-    light: 'bg-palette-purple-100/50',
-    iconBg: 'bg-palette-purple-400/30',
-  },
-  green: {
-    bg: 'bg-gradient-to-br from-palette-green-500 to-palette-green-700',
-    light: 'bg-palette-green-100/50',
-    iconBg: 'bg-palette-green-400/30',
-  },
-  yellow: {
-    bg: 'bg-gradient-to-br from-palette-gold-500 to-palette-gold-700',
-    light: 'bg-palette-gold-100/50',
-    iconBg: 'bg-palette-gold-400/30',
-  },
-  pink: {
-    bg: 'bg-gradient-to-br from-palette-pink-500 to-palette-pink-700',
-    light: 'bg-palette-pink-100/50',
-    iconBg: 'bg-palette-pink-400/30',
-  },
-  blue: {
-    bg: 'bg-gradient-to-br from-palette-royalblue-500 to-palette-royalblue-700',
-    light: 'bg-palette-royalblue-100/50',
-    iconBg: 'bg-palette-royalblue-400/30',
-  },
-  orange: {
-    bg: 'bg-gradient-to-br from-palette-orange-500 to-palette-orange-700',
-    light: 'bg-palette-orange-100/50',
-    iconBg: 'bg-palette-orange-400/30',
-  },
-  red: {
-    bg: 'bg-gradient-to-br from-palette-red-500 to-palette-red-700',
-    light: 'bg-palette-red-100/50',
-    iconBg: 'bg-palette-red-400/30',
-  },
-  teal: {
-    bg: 'bg-gradient-to-br from-palette-teal-500 to-palette-teal-700',
-    light: 'bg-palette-teal-100/50',
-    iconBg: 'bg-palette-teal-400/30',
-  },
-  cyan: {
-    bg: 'bg-gradient-to-br from-palette-cyan-500 to-palette-cyan-700',
-    light: 'bg-palette-cyan-100/50',
-    iconBg: 'bg-palette-cyan-400/30',
-  },
-  gold: {
-    bg: 'bg-gradient-to-br from-palette-gold-500 to-palette-gold-700',
-    light: 'bg-palette-gold-100/50',
-    iconBg: 'bg-palette-gold-400/30',
-  },
+const colors = {
+  blue: "bg-blue-500 hover:bg-blue-600",
+  green: "bg-green-500 hover:bg-green-600",
+  red: "bg-red-500 hover:bg-red-600",
+  purple: "bg-purple-500 hover:bg-purple-600",
+  yellow: "bg-amber-500 hover:bg-amber-600",
+  orange: "bg-orange-500 hover:bg-orange-600",
+  teal: "bg-teal-500 hover:bg-teal-600",
+  pink: "bg-pink-500 hover:bg-pink-600",
+  cyan: "bg-cyan-500 hover:bg-cyan-600",
+  indigo: "bg-indigo-500 hover:bg-indigo-600",
 };
 
-export function MenuCard({ title, value, subtitle, icon, color, onClick, className, index = 0 }: MenuCardProps) {
-  const colorStyles = colorMap[color] || colorMap.blue;
-  const animationDelay = `delay-${(index + 1) * 100}`;
-  
+export function MenuCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  onClick,
+  color = "blue",
+  index = 0,
+  disabled = false
+}: MenuCardProps) {
   return (
-    <div 
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.1 }}
+      whileHover={{ scale: disabled ? 1 : 1.03 }}
+      whileTap={{ scale: disabled ? 1 : 0.98 }}
       className={cn(
-        `${colorStyles.bg} menu-card text-white cursor-pointer opacity-0 animate-fade-in-up ${animationDelay}`,
-        className
+        "relative overflow-hidden rounded-xl bg-white shadow-md dark:bg-gray-800 transition-all duration-200 cursor-pointer border border-gray-100 dark:border-gray-700",
+        disabled && "opacity-60 cursor-not-allowed"
       )}
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
     >
-      <div className="relative p-5 z-10">
+      <div className="p-6">
         <div className="flex justify-between items-start mb-4">
-          <div className={`menu-icon ${colorStyles.iconBg}`}>
-            {icon}
+          <div>
+            <h3 className="text-lg font-semibold mb-1 text-gray-900 dark:text-white">{title}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
           </div>
-          <div className="p-2 bg-white/20 rounded-full">
-            <ArrowRight size={16} />
+          <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center", colors[color])}>
+            {icon}
           </div>
         </div>
         
-        <div className="menu-value">{value}</div>
-        <div className="menu-title">{title}</div>
-        <div className="menu-subtitle">{subtitle}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">{value}</div>
+          
+          <motion.div
+            whileHover={{ x: 5 }}
+            className="text-sm font-medium text-primary flex items-center"
+          >
+            <span className="mr-1">Explorer</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="h-4 w-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.25 4.5l7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </motion.div>
+        </div>
       </div>
-      
-      {/* Abstract shapes in the background */}
-      <div className="menu-bubble menu-bubble-1" style={{ background: `url('/lovable-uploads/bubble-${color}.svg')` }}></div>
-      <div className="menu-bubble menu-bubble-2" style={{ background: `url('/lovable-uploads/bubble-small-${color}.svg')` }}></div>
-      
-      <div className="menu-gradient-overlay"></div>
-    </div>
+    </motion.div>
   );
 }

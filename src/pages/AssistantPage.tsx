@@ -1,83 +1,96 @@
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useSEO } from '@/hooks/useSEO';
 import MainLayout from '@/components/layout/MainLayout';
 import AIChat from '@/components/assistant/AIChat';
-import { usePlanLimits, Feature } from '@/hooks/usePlanLimits';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, Info, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useNavigate } from 'react-router-dom';
 
 const AssistantPage = () => {
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(true);
+  const { setPageTitle, setPageDescription } = useSEO();
+  const navigate = useNavigate();
   const { 
     hasReachedLimit, 
     getRemainingUsage, 
-    hasChatLimit,
-    canUseFeature 
+    userPlan, 
+    hasChatLimit 
   } = usePlanLimits();
-  const navigate = useNavigate();
   
-  const hasLimit = hasChatLimit();
-  const chatLimitReached = hasReachedLimit('maxChats');
-  const remainingChats = getRemainingUsage('maxChats');
-  const offlineMode = canUseFeature('offlineMode' as Feature);
-  
+  const chatLimitReached = hasReachedLimit('aiChat');
+  const remainingChats = getRemainingUsage('aiChat');
+
+  useEffect(() => {
+    setPageTitle("Assistant IA - MRC en Poche");
+    setPageDescription("Conversez avec notre assistant IA spécialisé sur le MRC et la politique camerounaise.");
+  }, [setPageTitle, setPageDescription]);
+
   const handleUpgrade = () => {
     navigate('/payment');
   };
-  
+
   return (
     <MainLayout>
-      <div className="py-8 px-4 max-w-4xl mx-auto">
+      <div className="py-8 px-4 max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">Assistant MRC</h1>
-        <p className="text-muted-foreground mb-8">
-          Posez vos questions sur le MRC, la politique camerounaise et le processus électoral
+        <p className="text-muted-foreground mb-6">
+          Posez toutes vos questions sur le MRC et recevez des réponses précises et détaillées
         </p>
         
-        {hasLimit && !chatLimitReached && showUpgradePrompt && (
-          <Card className="mb-6 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950">
-            <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <div>
-                  <p className="font-medium">Il vous reste {remainingChats} discussions</p>
-                  <p className="text-sm text-muted-foreground">Passez à la version premium pour des conversations illimitées</p>
-                </div>
-                <div className="flex gap-2 mt-4 sm:mt-0">
-                  <Button variant="outline" size="sm" onClick={() => setShowUpgradePrompt(false)}>
-                    Ignorer
-                  </Button>
-                  <Button variant="default" size="sm" onClick={handleUpgrade}>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Débloquer
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {userPlan === 'free' && hasChatLimit() && (
+          <Alert 
+            variant={chatLimitReached ? "destructive" : "default"}
+            className="mb-6"
+          >
+            <AlertTitle className="flex items-center gap-2">
+              {chatLimitReached ? (
+                <>
+                  <AlertTriangle className="h-4 w-4" />
+                  Limite atteinte
+                </>
+              ) : (
+                <>
+                  <Info className="h-4 w-4" />
+                  Plan gratuit
+                </>
+              )}
+            </AlertTitle>
+            <AlertDescription className="flex flex-col gap-2">
+              {chatLimitReached ? (
+                <p>Vous avez atteint votre limite de conversations pour le plan gratuit.</p>
+              ) : (
+                <p>Il vous reste {remainingChats} conversations dans votre plan gratuit.</p>
+              )}
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleUpgrade}
+                className="self-start mt-1"
+              >
+                <CreditCard className="h-3 w-3 mr-1" />
+                Passer au premium
+              </Button>
+            </AlertDescription>
+          </Alert>
         )}
         
         {chatLimitReached ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Limite de discussions atteinte</CardTitle>
-              <CardDescription>
-                Vous avez atteint votre limite de discussions gratuites
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4">
-                Pour continuer à utiliser l'assistant, passez à la version premium pour obtenir des discussions illimitées
-                et d'autres fonctionnalités exclusives.
-              </p>
-              <Button onClick={handleUpgrade}>
-                <CreditCard className="mr-2 h-4 w-4" />
-                Passer à Premium
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold mb-4">Limite de conversations atteinte</h2>
+            <p className="mb-6">
+              Vous avez utilisé toutes vos conversations disponibles dans votre plan actuel.
+              Passez au premium pour des conversations illimitées avec l'assistant.
+            </p>
+            <Button onClick={handleUpgrade}>
+              <CreditCard className="mr-2 h-4 w-4" />
+              Passer au premium
+            </Button>
+          </div>
         ) : (
-          <AIChat offlineMode={offlineMode} />
+          <AIChat />
         )}
       </div>
     </MainLayout>

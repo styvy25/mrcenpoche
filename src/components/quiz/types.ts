@@ -12,6 +12,7 @@ export interface QuizQuestion {
   text?: string; // Added for backward compatibility
   answers?: any; // Added for backward compatibility
   category?: string; // Added for category support
+  imageSrc?: string; // Pour les questions avec images
 }
 
 export interface BadgeProps {
@@ -51,6 +52,7 @@ export interface Appointment {
   maxParticipants?: number;
   duration?: number;
   startTime?: string; // Add support for startTime
+  endTime?: string; // Add support for endTime
 }
 
 export interface AppointmentRequest {
@@ -120,3 +122,18 @@ export interface QuizUserStats {
   streakDays?: number;
   lastQuizDate?: Date;
 }
+
+// Définir les niveaux de difficulté
+export type DifficultyLevel = "Débutant" | "Intermédiaire" | "Avancé";
+
+// Définir les types de fonctionnalités pour les limites du plan
+export type Feature = 
+  "pdfGeneration" | 
+  "quizzes" | 
+  "aiChat" | 
+  "videoDownload" | 
+  "youtubeAnalysis" | 
+  "maxChats";
+
+// Définir les types de plan
+export type Plan = "free" | "standard" | "premium";

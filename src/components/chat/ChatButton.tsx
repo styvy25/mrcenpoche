@@ -27,8 +27,8 @@ const ChatButton: React.FC<ChatButtonProps> = ({
     hasChatLimit 
   } = usePlanLimits();
   
-  const chatLimitReached = hasReachedLimit('maxChats');
-  const remainingChats = getRemainingUsage('maxChats');
+  const chatLimitReached = hasReachedLimit('aiChat');
+  const remainingChats = getRemainingUsage('aiChat');
   const hasLimit = hasChatLimit();
   
   const handleClick = () => {

@@ -114,10 +114,12 @@ const QuizContent: React.FC<QuizContentProps> = ({ moduleId, onBack, onComplete 
       // Show toast for achievement when quiz is completed
       toast({
         title: "Quiz terminé !",
-        description: <div className="flex items-center">
-          <Award className="h-5 w-5 text-yellow-500 mr-2" />
-          <span>Vous avez obtenu un nouvel accomplissement !</span>
-        </div>,
+        description: (
+          <div className="flex items-center">
+            <Award className="h-5 w-5 text-yellow-500 mr-2" />
+            <span>Vous avez obtenu un nouvel accomplissement !</span>
+          </div>
+        ),
       });
       
       onComplete(finalScore, quiz.questions.length);

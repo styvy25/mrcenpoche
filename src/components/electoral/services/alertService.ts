@@ -8,6 +8,15 @@ export interface AlertData {
   mediaType?: 'photo' | 'audio' | null;
 }
 
+export interface FraudAlert {
+  id: string;
+  description: string;
+  location: string;
+  timestamp: Date;
+  status: 'new' | 'pending' | 'resolved';
+  mediaUrl?: string;
+}
+
 export const submitAlert = async (alertData: AlertData): Promise<boolean> => {
   try {
     // Ici, vous pourriez implémenter l'envoi réel à une API
@@ -36,6 +45,27 @@ export const updateRecording = async (recordingId: string, data: any): Promise<b
     console.error("Error updating recording:", error);
     return false;
   }
+};
+
+export const subscribeToFraudAlerts = (callback: (alerts: FraudAlert[]) => void): () => void => {
+  // Simuler des alertes en direct
+  const interval = setInterval(() => {
+    // Générer une alerte aléatoire de manière occasionnelle (1 chance sur 10)
+    if (Math.random() > 0.9) {
+      const mockAlert: FraudAlert = {
+        id: `alert-${Date.now()}`,
+        description: "Suspicion de bourrage d'urnes",
+        location: "Douala, Cameroun",
+        timestamp: new Date(),
+        status: 'new'
+      };
+      
+      callback([mockAlert]);
+    }
+  }, 30000); // Vérifier toutes les 30 secondes
+  
+  // Retourner une fonction pour se désabonner
+  return () => clearInterval(interval);
 };
 
 export const useAlertService = () => {
