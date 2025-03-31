@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import UserChat from "@/components/chat/UserChat";
+import FuturisticUserChat from "@/components/chat/FuturisticUserChat";
 import AIChat from "@/components/assistant/AIChat";
 import { Button } from "@/components/ui/button";
 import { Bot, Users, Info } from "lucide-react";
@@ -59,7 +59,7 @@ const ModuleChatView = () => {
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <h2 className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-mrc-blue to-mrc-green">
+        <h2 className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-mrc-blue to-mrc-green animate-gradient">
           Espace de discussion
         </h2>
         <div className="flex gap-2">
@@ -84,7 +84,7 @@ const ModuleChatView = () => {
         </div>
       </div>
       
-      {chatType === "user" ? <UserChat /> : <AIChat />}
+      {chatType === "user" ? <FuturisticUserChat /> : <AIChat />}
 
       <Dialog open={showAPIKeyDialog} onOpenChange={setShowAPIKeyDialog}>
         <DialogContent>
@@ -105,7 +105,7 @@ const ModuleChatView = () => {
                 toast({
                   title: "Configuration nécessaire",
                   description: "Veuillez configurer vos clés API dans les paramètres",
-                  variant: "destructive"  // Updated from "warning" to "destructive"
+                  variant: "destructive"
                 });
               }}
             >

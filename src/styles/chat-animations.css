@@ -52,6 +52,38 @@
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+}
+
+@keyframes user-appear {
+  0% {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 /* Classes d'animations */
 .highlight-glow {
   animation: pulse-border 1.5s ease-out;
@@ -69,6 +101,20 @@
 .typing-effect::after {
   content: '|';
   animation: blink 1s step-end infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1) 8%, rgba(255, 255, 255, 0.2) 18%, rgba(255, 255, 255, 0.1) 33%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.animate-glow {
+  animation: glow 2s infinite ease-in-out;
+}
+
+.user-appear {
+  animation: user-appear 0.5s ease-out forwards;
 }
 
 /* Scrollbar customisée */
@@ -112,4 +158,45 @@
   background: inherit;
   border-radius: inherit;
   animation: pulse-border 2s infinite;
+}
+
+/* Animation futuriste pour les boutons */
+.futuristic-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.futuristic-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: 0.5s;
+}
+
+.futuristic-button:hover::after {
+  left: 100%;
+}
+
+/* Animation pour les avatars */
+.avatar-glow {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  transition: box-shadow 0.3s ease;
+}
+
+.avatar-glow:hover {
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+}
+
+/* Animation pour le texte typing */
+.typing-animation {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0;
+  letter-spacing: 0.15em;
+  animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
 }
