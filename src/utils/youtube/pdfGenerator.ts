@@ -1,160 +1,129 @@
 
-import { useToast } from "@/hooks/use-toast";
-import { jsPDF } from "jspdf";
-import { PdfGenerationOptions } from "./types";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useState } from 'react';
+import { VideoAnalysisResult, PdfGenerationOptions } from '@/types';
+import { jsPDF } from 'jspdf';
+import { useToast } from '@/hooks/use-toast';
 
 export const usePdfGenerator = () => {
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
-  const { currentUser } = useAuth();
 
   /**
-   * Génère un document PDF à partir de l'analyse vidéo
+   * Generates a PDF from a video analysis
    */
-  const generateAnalysisPDF = async (options: PdfGenerationOptions): Promise<string | null> => {
-    const { videoId, title, analysis } = options;
-    
-    if (!currentUser) {
-      toast({
-        title: "Authentification requise",
-        description: "Veuillez vous connecter pour générer des PDF",
-        variant: "destructive",
-      });
-      return null;
-    }
-    
-    try {
-      // Vérifier si l'utilisateur peut générer un PDF via l'edge function
-      const { data: optimizeData, error: optimizeError } = await supabase.functions.invoke(
-        'optimize-pdf',
-        {
-          body: {
-            userId: currentUser.id,
-            content: {
-              videoId,
-              title,
-              analysis
-            },
-            options: {
-              templateId: null
-            }
-          }
-        }
-      );
-      
-      if (optimizeError || !optimizeData?.success) {
-        toast({
-          title: "Erreur d'autorisation",
-          description: optimizeError?.message || optimizeData?.error || "Limite de génération atteinte",
-          variant: "destructive",
-        });
-        return null;
-      }
-      
-      // Créer un nouveau document PDF
-      const doc = new jsPDF();
-      
-      // Ajouter le titre
-      doc.setFontSize(22);
-      doc.setTextColor(31, 87, 164); // MRC blue
-      doc.text("Analyse Vidéo MRC", 105, 20, { align: "center" });
-      
-      // Ajouter le titre de la vidéo
-      doc.setFontSize(16);
-      doc.setTextColor(0, 0, 0);
-      const titleLines = doc.splitTextToSize(title, 180);
-      doc.text(titleLines, 105, 35, { align: "center" });
-      
-      // Ajouter l'aperçu YouTube
-      doc.setFontSize(10);
-      doc.setTextColor(80, 80, 80);
-      doc.text("Vidéo YouTube:", 20, 55);
-      doc.setTextColor(0, 0, 255);
-      doc.textWithLink("Ouvrir la vidéo sur YouTube", 70, 55, {
-        url: `https://www.youtube.com/watch?v=${videoId}`
-      });
-
-      // Ajouter la vignette vidéo si possible
-      try {
-        const img = new Image();
-        img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-        });
-        doc.addImage(img, 'JPEG', 55, 60, 100, 60);
-      } catch (error) {
-        console.error("Could not add thumbnail:", error);
-      }
-      
-      // Ajouter le contenu de l'analyse
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text("Analyse détaillée:", 20, 130);
-      
-      // Formater le contenu de l'analyse
-      const analysisLines = doc.splitTextToSize(analysis, 170);
-      let yPosition = 140;
-      
-      // Ajouter un saut de ligne pour la lisibilité
-      for (let i = 0; i < analysisLines.length; i++) {
-        // Vérifier si nous avons besoin d'ajouter une nouvelle page
-        if (yPosition > 280) {
-          doc.addPage();
-          yPosition = 20;
-        }
-        
-        // Ajouter une ligne de texte
-        doc.text(analysisLines[i], 20, yPosition);
-        yPosition += 7; // Espacement des lignes
-      }
-      
-      // Ajouter un pied de page
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(10);
-        doc.setTextColor(150);
-        doc.text(`Analyse MRC | Page ${i} sur ${pageCount}`, 105, 290, { align: "center" });
-      }
-      
-      // Générer le blob PDF
-      const pdfBlob = doc.output('blob');
-      const url = URL.createObjectURL(pdfBlob);
-      
-      // Store the PDF document reference in Supabase
-      const { data: docData, error: docError } = await supabase
-        .from('pdf_documents')
-        .insert({
-          title: `Analyse de "${title}"`,
-          document_type: 'youtube_analysis',
-          user_id: currentUser.id,
-          file_url: null, // On pourrait stocker le fichier dans un bucket storage
-          content: {
-            videoId,
-            title,
-            analysisExcerpt: analysis.substring(0, 200) + '...'
-          }
-        })
-        .select()
-        .single();
-      
-      if (docError) {
-        console.error("Error storing PDF document reference:", docError);
-      }
-      
-      return url;
-    } catch (error) {
-      console.error("Error generating PDF:", error);
+  const generateAnalysisPDF = async (
+    analysis: VideoAnalysisResult,
+    options: PdfGenerationOptions = {}
+  ): Promise<boolean> => {
+    if (!analysis.success || !analysis.title) {
       toast({
         title: "Erreur",
-        description: "Impossible de générer le PDF d'analyse",
-        variant: "destructive",
+        description: "Impossible de générer un PDF sans analyse valide",
+        variant: "destructive"
       });
-      return null;
+      return false;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      // Create PDF document
+      const pdf = new jsPDF();
+      let yPos = 20;
+      
+      // Add title
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(analysis.title, 20, yPos);
+      yPos += 10;
+
+      // Add analysis date
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Analyse générée le: ${new Date().toLocaleDateString()}`, 20, yPos);
+      yPos += 15;
+
+      // Add summary section
+      if (analysis.summary) {
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text("Résumé", 20, yPos);
+        yPos += 8;
+
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        const summaryLines = pdf.splitTextToSize(analysis.summary, 170);
+        pdf.text(summaryLines, 20, yPos);
+        yPos += summaryLines.length * 5 + 10;
+      }
+
+      // Add key points section
+      if (analysis.keyPoints && analysis.keyPoints.length > 0) {
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text("Points clés", 20, yPos);
+        yPos += 8;
+
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        
+        for (const point of analysis.keyPoints) {
+          const pointText = `• ${point}`;
+          const pointLines = pdf.splitTextToSize(pointText, 165);
+          pdf.text(pointLines, 20, yPos);
+          yPos += pointLines.length * 5 + 3;
+          
+          // Add new page if needed
+          if (yPos > 270) {
+            pdf.addPage();
+            yPos = 20;
+          }
+        }
+        
+        yPos += 10;
+      }
+
+      // Add transcript if requested
+      if (options.includeTranscript && analysis.transcript) {
+        // Always add transcript on a new page
+        pdf.addPage();
+        yPos = 20;
+        
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text("Transcription", 20, yPos);
+        yPos += 8;
+
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        const transcriptLines = pdf.splitTextToSize(analysis.transcript, 170);
+        pdf.text(transcriptLines, 20, yPos);
+      }
+
+      // Save the PDF
+      pdf.save(`Analyse - ${analysis.title.substring(0, 30)}.pdf`);
+      
+      toast({
+        title: "PDF généré",
+        description: "Le PDF d'analyse a été téléchargé avec succès"
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Erreur de génération",
+        description: "Impossible de générer le PDF",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  return { generateAnalysisPDF };
+  return {
+    isGenerating,
+    generateAnalysisPDF
+  };
 };

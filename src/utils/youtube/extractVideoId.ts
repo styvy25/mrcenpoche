@@ -1,22 +1,23 @@
 
 /**
- * Extracts YouTube video ID from different URL formats
+ * Extracts the YouTube video ID from a URL
  */
 export const extractVideoId = (url: string): string | null => {
-  // Handle youtu.be links
-  const shortMatch = /youtu\.be\/([a-zA-Z0-9_-]{11})/.exec(url);
-  if (shortMatch) return shortMatch[1];
+  if (!url) return null;
   
-  // Handle youtube.com links
-  const regularMatch = /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/.exec(url);
-  if (regularMatch) return regularMatch[1];
+  // Regular expression patterns for different YouTube URL formats
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/watch\?.*v=|youtube\.com\/watch\?.*&v=)([^#\&\?\n]+)/,
+    /youtube\.com\/shorts\/([^#\&\?\n]+)/,
+    /youtube\.com\/live\/([^#\&\?\n]+)/
+  ];
   
-  // Handle embed links
-  const embedMatch = /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/.exec(url);
-  if (embedMatch) return embedMatch[1];
-  
-  // Handle already provided IDs (11 characters)
-  if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
   
   return null;
 };

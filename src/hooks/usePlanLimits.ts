@@ -1,24 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
+import { Feature, PlanType } from '@/types';
 
-export enum Feature {
-  PDF_GENERATION = 'pdfGeneration',
-  YOUTUBE_ANALYSIS = 'youtubeAnalysis',
-  AI_CHAT = 'aiChat',
-  PREMIUM_MODULES = 'premiumModules',
-  MAX_CHATS = 'maxChats',
-  VOICE_MESSAGES = 'voiceMessages',
-  ATTACHMENTS = 'attachments'
-}
-
-export enum Plan {
-  FREE = 'free',
-  PREMIUM = 'premium'
-}
-
-// Interface pour les limites d'utilisation
+// Interface for usage limits
 interface UsageLimits {
   [Feature.PDF_GENERATION]: number;
   [Feature.YOUTUBE_ANALYSIS]: number;
@@ -26,47 +12,50 @@ interface UsageLimits {
   [Feature.MAX_CHATS]: number;
   [Feature.VOICE_MESSAGES]: number;
   [Feature.ATTACHMENTS]: number;
+  [Feature.CHAT]: number;
 }
 
-// Limites par défaut pour chaque plan
-const DEFAULT_LIMITS: Record<Plan, UsageLimits> = {
-  [Plan.FREE]: {
+// Default limits for each plan
+const DEFAULT_LIMITS: Record<PlanType, UsageLimits> = {
+  [PlanType.FREE]: {
     [Feature.PDF_GENERATION]: 5,
     [Feature.YOUTUBE_ANALYSIS]: 3,
     [Feature.AI_CHAT]: 20,
     [Feature.MAX_CHATS]: 5,
     [Feature.VOICE_MESSAGES]: 10,
-    [Feature.ATTACHMENTS]: 5
+    [Feature.ATTACHMENTS]: 5,
+    [Feature.CHAT]: 20
   },
-  [Plan.PREMIUM]: {
+  [PlanType.PREMIUM]: {
     [Feature.PDF_GENERATION]: 1000,
     [Feature.YOUTUBE_ANALYSIS]: 1000,
     [Feature.AI_CHAT]: 1000,
     [Feature.MAX_CHATS]: 1000,
     [Feature.VOICE_MESSAGES]: 1000,
-    [Feature.ATTACHMENTS]: 1000
+    [Feature.ATTACHMENTS]: 1000,
+    [Feature.CHAT]: 1000
   }
 };
 
 export const usePlanLimits = () => {
   const { currentUser } = useAuth();
   const [usage, setUsage] = useState<Partial<UsageLimits>>({});
-  const userPlan = currentUser?.subscription?.plan || Plan.FREE;
+  const userPlan = currentUser?.subscription?.plan || PlanType.FREE;
 
-  // Charger l'utilisation actuelle depuis Supabase
+  // Load usage from Supabase
   useEffect(() => {
     const loadUsage = async () => {
       if (!currentUser) return;
 
       try {
-        // Chargement des statistiques de PDF
+        // Load PDF generation stats
         const { count: pdfCount } = await supabase
           .from('pdf_generation_logs')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', currentUser.id)
           .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
-        // Chargement des analyses YouTube
+        // Load YouTube analysis stats
         const { count: youtubeCount } = await supabase
           .from('pdf_documents')
           .select('*', { count: 'exact', head: true })
@@ -74,7 +63,7 @@ export const usePlanLimits = () => {
           .eq('document_type', 'youtube_analysis')
           .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
-        // Chargement des chats IA
+        // Load AI chat stats
         const { count: chatCount } = await supabase
           .from('chat_messages')
           .select('*', { count: 'exact', head: true })
@@ -84,59 +73,50 @@ export const usePlanLimits = () => {
         setUsage({
           [Feature.PDF_GENERATION]: pdfCount || 0,
           [Feature.YOUTUBE_ANALYSIS]: youtubeCount || 0,
-          [Feature.AI_CHAT]: chatCount || 0
+          [Feature.AI_CHAT]: chatCount || 0,
+          [Feature.CHAT]: chatCount || 0
         });
       } catch (error) {
-        console.error("Erreur lors du chargement des limites d'utilisation:", error);
+        console.error("Error loading usage limits:", error);
       }
     };
 
     loadUsage();
   }, [currentUser]);
 
-  // Obtenir la limite pour une fonctionnalité
+  // Get limit for a feature
   const getLimitForFeature = (feature: Feature): number => {
-    return DEFAULT_LIMITS[userPlan][feature as keyof UsageLimits] || 0;
+    return DEFAULT_LIMITS[userPlan as PlanType][feature as keyof UsageLimits] || 0;
   };
 
-  // Vérifier si la fonctionnalité a une limite
+  // Check if a feature has a limit
   const hasLimit = (feature: Feature): boolean => {
-    return userPlan === Plan.FREE;
+    return userPlan === PlanType.FREE;
   };
 
-  // Obtenir l'utilisation actuelle pour une fonctionnalité
+  // Get current usage for a feature
   const getUsage = (feature: Feature): number => {
     return usage[feature as keyof UsageLimits] || 0;
   };
 
-  // Vérifier si une limite a été atteinte
+  // Check if limit has been reached
   const hasReachedLimit = (feature: Feature): boolean => {
     if (!hasLimit(feature)) return false;
     return getUsage(feature) >= getLimitForFeature(feature);
   };
 
-  // Obtenir l'utilisation restante pour une fonctionnalité
+  // Get remaining usage for a feature
   const getRemainingUsage = (feature: Feature): number => {
     if (!hasLimit(feature)) return 9999;
     return Math.max(0, getLimitForFeature(feature) - getUsage(feature));
   };
 
-  // Vérifier si l'utilisateur peut générer un PDF
-  const canGeneratePdf = (): boolean => {
-    return !hasReachedLimit(Feature.PDF_GENERATION);
+  // Check if user has access to a feature
+  const hasFeatureAccess = (feature: Feature): boolean => {
+    return !hasReachedLimit(feature);
   };
 
-  // Vérifier si l'utilisateur peut analyser YouTube
-  const canAnalyzeYoutube = (): boolean => {
-    return !hasReachedLimit(Feature.YOUTUBE_ANALYSIS);
-  };
-
-  // Vérifier si l'utilisateur a accès à tous les modules
-  const canAccessAllModules = (): boolean => {
-    return userPlan === Plan.PREMIUM;
-  };
-
-  // Incrémenter l'utilisation de PDF
+  // Increment PDF generations count
   const incrementPdfGenerations = async (): Promise<boolean> => {
     if (!currentUser) return false;
     if (hasReachedLimit(Feature.PDF_GENERATION)) return false;
@@ -155,12 +135,12 @@ export const usePlanLimits = () => {
       }
       return false;
     } catch (error) {
-      console.error("Erreur lors de l'incrémentation des générations de PDF:", error);
+      console.error("Error incrementing PDF generations:", error);
       return false;
     }
   };
 
-  // Incrémenter l'utilisation des analyses YouTube
+  // Increment YouTube analysis count
   const incrementYoutubeAnalysis = (): boolean => {
     if (!currentUser) return false;
     if (hasReachedLimit(Feature.YOUTUBE_ANALYSIS)) return false;
@@ -173,9 +153,17 @@ export const usePlanLimits = () => {
     return true;
   };
 
-  // Vérifier si l'utilisateur a une limite de chat
-  const hasChatLimit = (): boolean => {
-    return userPlan === Plan.FREE;
+  // Increment chat messages count
+  const incrementChatMessages = (): boolean => {
+    if (!currentUser) return false;
+    if (hasReachedLimit(Feature.CHAT)) return false;
+
+    setUsage(prev => ({
+      ...prev,
+      [Feature.CHAT]: (prev[Feature.CHAT] || 0) + 1
+    }));
+    
+    return true;
   };
 
   return {
@@ -183,13 +171,11 @@ export const usePlanLimits = () => {
     getLimitForFeature,
     hasLimit,
     getUsage,
-    canGeneratePdf,
-    canAnalyzeYoutube,
-    canAccessAllModules,
+    hasFeatureAccess,
     incrementPdfGenerations,
     incrementYoutubeAnalysis,
+    incrementChatMessages,
     hasReachedLimit,
-    getRemainingUsage,
-    hasChatLimit
+    getRemainingUsage
   };
 };

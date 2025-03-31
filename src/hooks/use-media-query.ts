@@ -1,39 +1,42 @@
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function useMediaQuery(query: string) {
+/**
+ * Hook to detect if a media query matches
+ */
+export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
     const media = window.matchMedia(query);
     
-    // Fonction pour mettre à jour l'état en fonction de la requête média
-    const updateMatches = () => {
-      setMatches(media.matches);
-      
-      // Mettre à jour les états pour les appareils courants
-      setIsMobile(window.matchMedia('(max-width: 640px)').matches);
-      setIsTablet(window.matchMedia('(min-width: 641px) and (max-width: 1024px)').matches);
-      setIsDesktop(window.matchMedia('(min-width: 1025px)').matches);
+    // Update state initially
+    setMatches(media.matches);
+    
+    // Create handler function
+    const listener = (event: MediaQueryListEvent) => {
+      setMatches(event.matches);
     };
     
-    // Définir l'état initial
-    updateMatches();
-    
-    // Ajouter un écouteur d'événements pour les changements
-    const listener = () => updateMatches();
+    // Add listener
     media.addEventListener('change', listener);
     
-    // Nettoyer
+    // Clean up
     return () => {
       media.removeEventListener('change', listener);
     };
   }, [query]);
 
-  return { matches, isMobile, isTablet, isDesktop };
+  return matches;
 }
 
-export default useMediaQuery;
+/**
+ * Hook that provides common responsive breakpoints
+ */
+export function useResponsive() {
+  const isMobile = useMediaQuery('(max-width: 639px)');
+  const isTablet = useMediaQuery('(min-width: 640px) and (max-width: 1023px)');
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  
+  return { isMobile, isTablet, isDesktop };
+}

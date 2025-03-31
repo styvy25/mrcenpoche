@@ -1,25 +1,18 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
+import { User } from '@/types';
 
-// Define user type
-export type User = {
-  id: string;
-  email: string;
-  subscription?: {
-    plan: 'free' | 'premium';
-    features: string[];
-  };
-};
-
-// Create context
-const AuthContext = createContext<{
+interface AuthContextType {
   isAuthenticated: boolean;
   currentUser: User | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-}>({
+}
+
+// Create context
+const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   currentUser: null,
   login: async () => ({ success: false }),
@@ -150,8 +143,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (data.user) {
-        // Note: In Supabase, the user isn't considered fully signed up until
-        // they confirm their email, unless email confirmation is disabled
         return { success: true };
       }
 
@@ -169,7 +160,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   if (isLoading) {
-    // You could return a loading component here
     return <div>Loading authentication...</div>;
   }
 

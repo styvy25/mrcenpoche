@@ -1,7 +1,7 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { extractVideoId } from "./extractVideoId";
-import { VideoAnalysisResult } from "./types";
+import { VideoAnalysisResult } from "@/types";
 import { useYoutubeApi } from "./youtubeApi";
 
 export const useVideoAnalysis = () => {

@@ -1,18 +1,20 @@
 
-import { usePlanLimits, Feature } from "@/hooks/usePlanLimits";
+import { Feature } from "@/types";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { extractVideoId } from "./extractVideoId";
 import { useVideoAnalysis } from "./videoAnalysis";
 import { usePdfGenerator } from "./pdfGenerator";
-import { VideoAnalysisResult, PdfGenerationOptions } from "./types";
 import { useYoutubeApi } from "./youtubeApi";
 
 /**
  * Main hook for YouTube functionality
  */
 export const useYoutubeAnalyzer = () => {
-  const { canAnalyzeYoutube, incrementYoutubeAnalysis } = usePlanLimits();
+  const { hasFeatureAccess, hasReachedLimit, incrementYoutubeAnalysis } = usePlanLimits();
   const { analyzeYoutubeVideo } = useVideoAnalysis();
   const { generateAnalysisPDF } = usePdfGenerator();
+  
+  const canAnalyzeYoutube = () => hasFeatureAccess(Feature.YOUTUBE_ANALYSIS);
   
   return {
     extractVideoId,
@@ -22,6 +24,5 @@ export const useYoutubeAnalyzer = () => {
   };
 };
 
-// Re-export types and API hook for convenience
-export type { VideoAnalysisResult, PdfGenerationOptions };
+// Re-export API hook for convenience
 export { useYoutubeApi };
