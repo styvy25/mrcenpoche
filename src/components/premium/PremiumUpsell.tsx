@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Crown, Star, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '@/App';
 import { useToast } from '@/hooks/use-toast';
 
 export interface PremiumUpsellProps {
@@ -25,7 +24,6 @@ const PremiumUpsell: React.FC<PremiumUpsellProps> = ({
   className = ""
 }) => {
   const navigate = useNavigate();
-  const { createPremiumCheckout } = useAppContext();
   const { toast } = useToast();
 
   const handleUpgrade = async () => {
@@ -35,7 +33,7 @@ const PremiumUpsell: React.FC<PremiumUpsellProps> = ({
         description: "Vous allez être redirigé vers notre plateforme de paiement sécurisée.",
       });
       
-      await createPremiumCheckout();
+      navigate('/payment');
     } catch (error) {
       console.error('Error navigating to premium checkout:', error);
       navigate('/payment');
