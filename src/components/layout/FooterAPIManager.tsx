@@ -1,24 +1,17 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Key, ExternalLink } from "lucide-react";
-import { testPerplexityApiKey } from "@/components/assistant/services/perplexityChat";
-import { persistApiKeys, loadApiKeys } from "@/hooks/api-keys/storage";
-import { useApiKeys } from "@/hooks/useApiKeys";
+import { useApiKeys } from "@/hooks/api-keys";
 
 const FooterAPIManager = () => {
-  const { keys, keyStatus, updateKey, saveKeys } = useApiKeys();
+  const { keys, keyStatus, updateKey, saveKeys, isAuthenticated } = useApiKeys();
   const [isEditing, setIsEditing] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const { toast } = useToast();
-
-  // Chargement des clés API au montage du composant
-  useEffect(() => {
-    // Les clés sont déjà chargées par le hook useApiKeys
-  }, []);
 
   const handleSaveKey = async () => {
     if (!keys.perplexity.trim()) {
@@ -37,7 +30,9 @@ const FooterAPIManager = () => {
       if (result.success) {
         toast({
           title: "Clé API sauvegardée",
-          description: "Votre clé API a été configurée avec succès.",
+          description: isAuthenticated 
+            ? "Votre clé API a été configurée avec succès et partagée entre vos appareils." 
+            : "Votre clé API a été configurée avec succès sur cet appareil.",
           variant: "default",
         });
         
@@ -130,7 +125,7 @@ const FooterAPIManager = () => {
             </Button>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Votre clé sera stockée de façon permanente et sécurisée pour le domaine mrcenpoche.xyz.
+            Votre clé sera stockée {isAuthenticated ? "de façon sécurisée et partagée entre vos appareils" : "localement sur cet appareil"}.
           </p>
         </div>
       )}

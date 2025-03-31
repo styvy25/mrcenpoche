@@ -5,7 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import APIKeyManagerHeader from "./APIKeyManagerHeader";
 import APIKeysList from "./APIKeysList";
 import APIKeyActions from "./APIKeyActions";
-import { useApiKeys } from "@/hooks/useApiKeys";
+import { useApiKeys } from "@/hooks/api-keys";
+import { refreshYouTubeCache } from "@/hooks/api-keys/storage";
 
 const APIKeyManager = () => {
   const { keys, keyStatus, isTesting, updateKey, saveKeys } = useApiKeys();
