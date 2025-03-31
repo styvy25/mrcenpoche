@@ -3,17 +3,48 @@ export interface Challenge {
   id: string;
   title: string;
   description: string;
+  type: 'daily' | 'weekly' | 'monthly';
   points: number;
-  type: "quiz" | "reading" | "video" | "practice";
-  difficulty: "facile" | "moyen" | "difficile";
-  estimatedTime: number; // in minutes
-  completed?: boolean;
-  progress?: number;
+  deadline: Date;
+  isCompleted: boolean;
 }
 
-export interface ChallengeState {
-  dailyChallenge: Challenge | null;
-  streakCount: number;
-  totalPoints: number;
-  nextRefresh: Date;
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: Date;
+  location: string;
+  isVirtual: boolean;
+  link?: string;
+  organizer: string;
+  capacity: number;
+  registered: number;
+}
+
+export interface Appointment {
+  id: string;
+  title: string;
+  description: string;
+  date: Date;
+  startTime: string;
+  endTime: string;
+  status: 'pending' | 'confirmed' | 'canceled';
+  type: 'meeting' | 'training' | 'consultation';
+  participant: {
+    name: string;
+    email: string;
+    phone?: string;
+  };
+}
+
+export interface Session {
+  id: string;
+  title: string;
+  date: Date;
+  startTime: string;
+  endTime: string;
+  facilitator: string;
+  availableSpots: number;
+  status: 'open' | 'full' | 'canceled';
 }

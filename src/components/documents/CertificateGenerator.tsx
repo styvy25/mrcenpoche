@@ -116,3 +116,5 @@ export const downloadCertificate = (module: Module, userName?: string) => {
   // Save the PDF
   doc.save(fileName);
 };
+
+export default { generateCertificate, downloadCertificate };

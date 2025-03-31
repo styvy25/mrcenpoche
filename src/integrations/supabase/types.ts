@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string | null
+          description: string
+          icon: string | null
+          id: string
+          name: string
+          points: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          icon?: string | null
+          id?: string
+          name: string
+          points?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          points?: number
+        }
+        Relationships: []
+      }
       ai_context: {
         Row: {
           active: boolean | null
@@ -244,6 +271,42 @@ export type Database = {
         }
         Relationships: []
       }
+      api_integrations: {
+        Row: {
+          additional_data: Json | null
+          api_key: string | null
+          created_at: string | null
+          id: string
+          last_checked: string | null
+          name: string
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          additional_data?: Json | null
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          last_checked?: string | null
+          name: string
+          status: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          additional_data?: Json | null
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          last_checked?: string | null
+          name?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           active: boolean | null
@@ -301,6 +364,39 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           youtube_key?: string | null
+        }
+        Relationships: []
+      }
+      book_examples: {
+        Row: {
+          cover_image: string | null
+          created_at: string
+          description: string
+          generation_source: string
+          id: string
+          language: string
+          preview_content: Json | null
+          title: string
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string
+          description: string
+          generation_source: string
+          id?: string
+          language?: string
+          preview_content?: Json | null
+          title: string
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string
+          description?: string
+          generation_source?: string
+          id?: string
+          language?: string
+          preview_content?: Json | null
+          title?: string
         }
         Relationships: []
       }
@@ -477,86 +573,6 @@ export type Database = {
         }
         Relationships: []
       }
-      course_documents: {
-        Row: {
-          course_id: string | null
-          created_at: string | null
-          file_name: string
-          file_size: number
-          file_type: string
-          file_url: string
-          id: string
-          updated_at: string | null
-        }
-        Insert: {
-          course_id?: string | null
-          created_at?: string | null
-          file_name: string
-          file_size: number
-          file_type: string
-          file_url: string
-          id?: string
-          updated_at?: string | null
-        }
-        Update: {
-          course_id?: string | null
-          created_at?: string | null
-          file_name?: string
-          file_size?: number
-          file_type?: string
-          file_url?: string
-          id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "course_documents_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      courses: {
-        Row: {
-          author_id: string | null
-          category: string
-          content: string
-          created_at: string | null
-          description: string
-          id: string
-          keywords: string[] | null
-          published: boolean | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          author_id?: string | null
-          category: string
-          content: string
-          created_at?: string | null
-          description: string
-          id?: string
-          keywords?: string[] | null
-          published?: boolean | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          author_id?: string | null
-          category?: string
-          content?: string
-          created_at?: string | null
-          description?: string
-          id?: string
-          keywords?: string[] | null
-          published?: boolean | null
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       document_generation_history: {
         Row: {
           created_at: string | null
@@ -724,59 +740,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "electoral_districts_country_code_fkey"
-            columns: ["country_code"]
-            isOneToOne: false
-            referencedRelation: "countries"
-            referencedColumns: ["code"]
-          },
-        ]
-      }
-      electoral_events: {
-        Row: {
-          additional_info: Json | null
-          country_code: string | null
-          created_at: string | null
-          description: string | null
-          end_date: string | null
-          event_type: string
-          id: string
-          registration_deadline: string | null
-          requirements: Json | null
-          start_date: string
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          additional_info?: Json | null
-          country_code?: string | null
-          created_at?: string | null
-          description?: string | null
-          end_date?: string | null
-          event_type: string
-          id?: string
-          registration_deadline?: string | null
-          requirements?: Json | null
-          start_date: string
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          additional_info?: Json | null
-          country_code?: string | null
-          created_at?: string | null
-          description?: string | null
-          end_date?: string | null
-          event_type?: string
-          id?: string
-          registration_deadline?: string | null
-          requirements?: Json | null
-          start_date?: string
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "electoral_events_country_code_fkey"
             columns: ["country_code"]
             isOneToOne: false
             referencedRelation: "countries"
@@ -1004,15 +967,7 @@ export type Database = {
           status?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "electoral_reminders_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "electoral_events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       electoral_statistics: {
         Row: {
@@ -1051,15 +1006,79 @@ export type Database = {
           voter_demographics?: Json | null
           votes_obtained?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "electoral_statistics_leader_id_fkey"
-            columns: ["leader_id"]
-            isOneToOne: false
-            referencedRelation: "political_leaders"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      fraud_evidence_recordings: {
+        Row: {
+          alert_id: string
+          audio_url: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          id: string
+          user_id: string | null
+          video_url: string | null
+        }
+        Insert: {
+          alert_id: string
+          audio_url?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          alert_id?: string
+          audio_url?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      generated_books: {
+        Row: {
+          book_content: Json | null
+          created_at: string
+          description: string | null
+          generation_source: string
+          id: string
+          language: string
+          source_data: Json | null
+          title: string
+          tone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          book_content?: Json | null
+          created_at?: string
+          description?: string | null
+          generation_source: string
+          id?: string
+          language?: string
+          source_data?: Json | null
+          title: string
+          tone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          book_content?: Json | null
+          created_at?: string
+          description?: string | null
+          generation_source?: string
+          id?: string
+          language?: string
+          source_data?: Json | null
+          title?: string
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       generated_documents: {
         Row: {
@@ -1166,15 +1185,7 @@ export type Database = {
           leader_id?: string | null
           verification_sources?: string[] | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "leader_achievements_leader_id_fkey"
-            columns: ["leader_id"]
-            isOneToOne: false
-            referencedRelation: "political_leaders"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       leader_ratings: {
         Row: {
@@ -1210,58 +1221,65 @@ export type Database = {
           sample_size?: number | null
           trust_rating?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "leader_ratings_leader_id_fkey"
-            columns: ["leader_id"]
-            isOneToOne: false
-            referencedRelation: "political_leaders"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      news_articles: {
+      messages: {
         Row: {
-          author: string
-          category: string
+          content: string | null
           created_at: string | null
-          description: string
           id: string
-          image_url: string | null
-          is_generated: boolean | null
-          published_at: string
-          source: string
-          title: string
-          updated_at: string | null
-          url: string | null
+          media_type: string | null
+          media_url: string | null
+          user_avatar: string | null
+          user_id: string | null
+          user_name: string
         }
         Insert: {
-          author: string
-          category: string
+          content?: string | null
           created_at?: string | null
-          description: string
           id?: string
-          image_url?: string | null
-          is_generated?: boolean | null
-          published_at?: string
-          source: string
-          title: string
-          updated_at?: string | null
-          url?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          user_avatar?: string | null
+          user_id?: string | null
+          user_name: string
         }
         Update: {
-          author?: string
-          category?: string
+          content?: string | null
           created_at?: string | null
-          description?: string
           id?: string
-          image_url?: string | null
-          is_generated?: boolean | null
-          published_at?: string
-          source?: string
+          media_type?: string | null
+          media_url?: string | null
+          user_avatar?: string | null
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: []
+      }
+      mrc_content: {
+        Row: {
+          content_type: string
+          created_at: string | null
+          id: string
+          indexed: boolean | null
+          title: string
+          url: string
+        }
+        Insert: {
+          content_type: string
+          created_at?: string | null
+          id?: string
+          indexed?: boolean | null
+          title: string
+          url: string
+        }
+        Update: {
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          indexed?: boolean | null
           title?: string
-          updated_at?: string | null
-          url?: string | null
+          url?: string
         }
         Relationships: []
       }
@@ -1490,68 +1508,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      political_leaders: {
-        Row: {
-          country_code: string | null
-          created_at: string | null
-          education: string[] | null
-          electoral_program: string[] | null
-          full_name: string
-          id: string
-          key_achievements: Json | null
-          mandate_end: string | null
-          mandate_start: string | null
-          opposition_role: string | null
-          party_name: string
-          position: string
-          previous_positions: Json | null
-          social_media: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          country_code?: string | null
-          created_at?: string | null
-          education?: string[] | null
-          electoral_program?: string[] | null
-          full_name: string
-          id?: string
-          key_achievements?: Json | null
-          mandate_end?: string | null
-          mandate_start?: string | null
-          opposition_role?: string | null
-          party_name: string
-          position: string
-          previous_positions?: Json | null
-          social_media?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          country_code?: string | null
-          created_at?: string | null
-          education?: string[] | null
-          electoral_program?: string[] | null
-          full_name?: string
-          id?: string
-          key_achievements?: Json | null
-          mandate_end?: string | null
-          mandate_start?: string | null
-          opposition_role?: string | null
-          party_name?: string
-          position?: string
-          previous_positions?: Json | null
-          social_media?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "political_leaders_country_code_fkey"
-            columns: ["country_code"]
-            isOneToOne: false
-            referencedRelation: "countries"
-            referencedColumns: ["code"]
-          },
-        ]
       }
       political_parties: {
         Row: {
@@ -2128,6 +2084,98 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          features: Json
+          id: string
+          name: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json
+          id?: string
+          name: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json
+          id?: string
+          name?: string
+          price?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ui_settings: {
+        Row: {
+          component_name: string
+          created_at: string
+          id: string
+          is_visible: boolean
+          style_options: Json
+          updated_at: string
+        }
+        Insert: {
+          component_name: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          style_options?: Json
+          updated_at?: string
+        }
+        Update: {
+          component_name?: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          style_options?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_interactions: {
         Row: {
           context_data: Json | null
@@ -2222,6 +2270,45 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          limits: Json
+          plan_type: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          features: Json
+          id?: string
+          is_active?: boolean
+          limits: Json
+          plan_type?: string
+          start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          limits?: Json
+          plan_type?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       voter_requirements: {
         Row: {
@@ -2443,6 +2530,12 @@ export type Database = {
           p_attempt_id: string
         }
         Returns: number
+      }
+      can_generate_pdf: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
       }
       cleanup_old_chat_sessions: {
         Args: Record<PropertyKey, never>
@@ -2783,6 +2876,12 @@ export type Database = {
         Args: {
           curlopt: string
           value: string
+        }
+        Returns: boolean
+      }
+      increment_pdf_generations: {
+        Args: {
+          user_id: string
         }
         Returns: boolean
       }

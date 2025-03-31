@@ -1,6 +1,6 @@
 
 export interface Message {
-  role: "assistant" | "user";
+  role: "assistant" | "user" | "system";
   content: string;
   timestamp: Date;
   source?: "youtube" | "perplexity" | "rugby-xv";
@@ -13,4 +13,7 @@ export interface Message {
       substitutes: string[];
     };
   };
+  // Adding optional fields for compatibility with other Message types
+  text?: string;
+  sender?: string;
 }
