@@ -34,6 +34,7 @@ function App() {
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/documents" element={<DocumentsPage />} />
                 <Route path="/chat" element={<AssistantPage />} />
+                <Route path="/assistant" element={<AssistantPage />} />
                 <Route path="/news" element={<NewsPage />} />
                 <Route path="/quiz" element={<QuizPage />} />
                 <Route path="/module-quiz/:id" element={<ModuleQuizPage />} />
