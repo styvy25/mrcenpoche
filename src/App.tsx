@@ -20,6 +20,7 @@ import { StripeProvider } from "./providers/StripeProvider";
 import PageTransition from "@/components/ui/page-transition";
 
 import "./App.css";
+import "./styles/chat-animations.css";
 
 function App() {
   return (

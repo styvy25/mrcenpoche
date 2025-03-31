@@ -8,11 +8,11 @@ import { Sparkles } from "lucide-react";
 const AssistantPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
-      {/* Animated interactive background */}
+      {/* Animated interactive background with more intense effects */}
       <AnimatedBackground 
-        numberOfOrbs={7}
-        blur={90}
-        intensity={0.6}
+        numberOfOrbs={9}
+        blur={95}
+        intensity={0.75}
       />
       
       <Navbar />
@@ -23,10 +23,34 @@ const AssistantPage = () => {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-mrc-red via-mrc-blue to-mrc-green bg-clip-text text-transparent sm:text-5xl mb-2 flex items-center justify-center gap-2">
-            <Sparkles className="h-8 w-8 text-mrc-blue" />
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-mrc-red via-mrc-blue to-mrc-green bg-clip-text text-transparent sm:text-5xl mb-2 flex items-center justify-center gap-2 animate-gradient">
+            <motion.div
+              animate={{ 
+                rotate: [0, 5, 0, -5, 0],
+                scale: [1, 1.1, 1, 1.1, 1]
+              }}
+              transition={{ 
+                duration: 5,
+                repeat: Infinity,
+                repeatDelay: 3
+              }}
+            >
+              <Sparkles className="h-8 w-8 text-mrc-blue" />
+            </motion.div>
             Assistant IA Styvy237
-            <Sparkles className="h-8 w-8 text-mrc-green" />
+            <motion.div
+              animate={{ 
+                rotate: [0, -5, 0, 5, 0],
+                scale: [1, 1.1, 1, 1.1, 1]
+              }}
+              transition={{ 
+                duration: 5,
+                repeat: Infinity,
+                repeatDelay: 3
+              }}
+            >
+              <Sparkles className="h-8 w-8 text-mrc-green" />
+            </motion.div>
           </h1>
           <motion.p 
             initial={{ opacity: 0 }}
@@ -42,7 +66,9 @@ const AssistantPage = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="relative"
         >
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-mrc-blue via-purple-500 to-mrc-green rounded-xl blur opacity-20 animate-gradient"></div>
           <AIChat />
         </motion.div>
         
@@ -50,7 +76,7 @@ const AssistantPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.5 }}
-          className="text-center text-sm text-gray-400"
+          className="text-center text-sm text-gray-400 mt-8"
         >
           <p>Propulsé par l'intelligence artificielle au service des militants du MRC</p>
           <p className="mt-1">Les réponses fournies sont génératives et à titre informatif uniquement</p>
