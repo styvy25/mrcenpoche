@@ -1,14 +1,23 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import Chat237 from "@/components/chat/Chat237";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import AuthDialog from "@/components/auth/AuthDialog";
 import { Info, MessageCircle } from "lucide-react";
+import { useNotificationsDemo } from "@/hooks/useNotificationsDemo";
 
 const Chat237Page = () => {
   const { isAuthenticated } = useAuth();
+  const { createDemoNotifications } = useNotificationsDemo();
+  
+  // Create demo notifications when visiting the chat page
+  useEffect(() => {
+    if (isAuthenticated) {
+      createDemoNotifications();
+    }
+  }, [isAuthenticated, createDemoNotifications]);
   
   return (
     <MainLayout>

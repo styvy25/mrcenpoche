@@ -5,9 +5,7 @@ import {
   Bell, 
   BookOpen, 
   MessageSquare, 
-  PanelLeft,
-  Award,
-  LucideIcon
+  Home
 } from 'lucide-react';
 import { 
   Dock, 
@@ -18,22 +16,15 @@ import {
 import { useNotifications } from '@/context/NotificationContext';
 import NotificationBadge from './NotificationBadge';
 
-interface DockItemType {
-  icon: LucideIcon;
-  label: string;
-  path: string;
-  category?: 'system' | 'modules' | 'messages' | 'challenges';
-}
-
 const MobileNotificationDock = () => {
   const navigate = useNavigate();
   const { getUnreadCountByCategory } = useNotifications();
 
-  const dockItems: DockItemType[] = [
-    { icon: PanelLeft, label: 'Menu', path: '/index' },
+  // Simplified dock items based on core functionality
+  const dockItems = [
+    { icon: Home, label: 'Accueil', path: '/', category: null },
     { icon: BookOpen, label: 'Modules', path: '/modules', category: 'modules' },
     { icon: MessageSquare, label: 'Chat', path: '/chat-237', category: 'messages' },
-    { icon: Award, label: 'Défis', path: '/quiz', category: 'challenges' },
     { icon: Bell, label: 'Notifications', path: '/notifications', category: 'system' }
   ];
 

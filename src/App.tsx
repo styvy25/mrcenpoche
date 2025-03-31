@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from '@/components/auth/AuthContext';
 import HomePage from './pages/HomePage';
 import Index from './pages/Index';
@@ -21,30 +21,45 @@ import { Toaster } from '@/components/ui/toaster';
 import NotFound from './pages/NotFound';
 import MobileNotificationDock from '@/components/notifications/MobileNotificationDock';
 
+// Component to conditionally render mobile dock based on route
+const AppContent = () => {
+  const location = useLocation();
+  
+  // Routes where we don't want to show the mobile dock
+  const excludedRoutes = ['/settings', '/'];
+  const shouldShowDock = !excludedRoutes.includes(location.pathname);
+  
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/index" element={<Index />} />
+        <Route path="/assistant" element={<AssistantPage />} />
+        <Route path="/chat-237" element={<Chat237Page />} />
+        <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
+        <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
+        <Route path="/forum" element={<ForumPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/quiz" element={<QuizPage />} />
+        <Route path="/modules" element={<ModulesPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      {shouldShowDock && <MobileNotificationDock />}
+      <Toaster />
+    </>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
       <AppProvider>
         <NotificationProvider>
           <Router>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/index" element={<Index />} />
-              <Route path="/assistant" element={<AssistantPage />} />
-              <Route path="/chat-237" element={<Chat237Page />} />
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
-              <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
-              <Route path="/forum" element={<ForumPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/quiz" element={<QuizPage />} />
-              <Route path="/modules" element={<ModulesPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <MobileNotificationDock />
-            <Toaster />
+            <AppContent />
           </Router>
         </NotificationProvider>
       </AppProvider>

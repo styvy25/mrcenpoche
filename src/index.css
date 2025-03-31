@@ -3,6 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import styles in correct order */
 @import './styles/base.css';
 @import './styles/mobile.css';
 @import './styles/animations.css';
@@ -52,6 +53,23 @@
   will-change: transform, opacity;
   backface-visibility: hidden;
   transform: translateZ(0);
+}
+
+/* Mobile dock specific styling */
+.mobile-dock {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dock-item-active {
+  color: #3b82f6;
+  font-weight: 500;
 }
 
 /* Améliorations des cards */
