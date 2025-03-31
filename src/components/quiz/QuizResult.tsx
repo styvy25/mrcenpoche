@@ -8,8 +8,25 @@ import ProgressSection from "./components/ProgressSection";
 import EarnedBadgesSection from "./components/EarnedBadgesSection";
 import ResultActions from "./components/ResultActions";
 import { useQuizResult } from "./hooks/useQuizResult";
+import { BadgeProps } from "./types";
 
-const QuizResult = ({ score, totalQuestions, categoryName, onRestart, result, earnedBadges }) => {
+interface QuizResultProps {
+  score: number;
+  totalQuestions: number;
+  categoryName: string;
+  onRestart: () => void;
+  earnedBadges?: BadgeProps[];
+  result?: any;
+}
+
+const QuizResult: React.FC<QuizResultProps> = ({ 
+  score, 
+  totalQuestions, 
+  categoryName, 
+  onRestart, 
+  earnedBadges = [], 
+  result = null
+}) => {
   const { 
     showNotification,
     setShowNotification,

@@ -17,8 +17,8 @@ interface UseQuizResultProps {
 export const useQuizResult = ({ 
   score, 
   totalQuestions, 
-  earnedBadges, 
-  result 
+  earnedBadges = [], 
+  result = null 
 }: UseQuizResultProps) => {
   const [showNotification, setShowNotification] = useState(false);
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
