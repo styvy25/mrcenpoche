@@ -15,6 +15,7 @@ const QuizBadgesDisplay: React.FC<QuizBadgesDisplayProps> = ({ badges }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {badges.map((badge) => {
+        // Properly render the icon component
         const IconComponent = badge.icon as LucideIcon;
         
         return (
@@ -22,7 +23,7 @@ const QuizBadgesDisplay: React.FC<QuizBadgesDisplayProps> = ({ badges }) => {
             key={badge.id} 
             className={`bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 hover:shadow-md transition-shadow`}
           >
-            <div className={`p-2 rounded-full bg-${badge.color}-100 text-${badge.color}-600`}>
+            <div className={`p-2 rounded-full bg-${badge.color || 'blue'}-100 text-${badge.color || 'blue'}-600`}>
               {IconComponent && <IconComponent className="h-5 w-5" />}
             </div>
             <div>

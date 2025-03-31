@@ -1,3 +1,4 @@
+
 import React from "react";
 import { LucideIcon } from "lucide-react";
 
@@ -38,7 +39,7 @@ export interface BadgeProps {
   imageUrl?: string;
   threshold?: number;
   category?: string;
-  icon?: LucideIcon | React.FC<any>;
+  icon?: React.ComponentType<any>;
   earnedAt?: Date;
   color?: string;
   condition?: (result: QuizResult) => boolean;

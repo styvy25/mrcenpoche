@@ -1,82 +1,52 @@
 
+import { Award, Trophy, Star, Zap, BookOpen } from "lucide-react";
 import { BadgeProps, QuizResult } from "./types";
-import { Award, Trophy, Zap, Target, Flag, Medal } from "lucide-react";
 
 export const calculateEarnedBadges = (score: number, totalQuestions: number): BadgeProps[] => {
-  const badges: BadgeProps[] = [];
   const percentage = (score / totalQuestions) * 100;
+  const earnedBadges: BadgeProps[] = [];
 
-  // Perfect score badge
+  // Perfect Score Badge
   if (percentage === 100) {
-    badges.push({
+    earnedBadges.push({
       id: "perfect-score",
       name: "Score Parfait",
-      description: "Vous avez obtenu un score parfait!",
+      description: "Vous avez répondu correctement à toutes les questions!",
       icon: Trophy,
       color: "yellow",
-      earnedAt: new Date(),
     });
   }
 
-  // Expert badge (80%+)
-  if (percentage >= 80) {
-    badges.push({
-      id: "expert-badge",
+  // Expert Badge
+  if (percentage >= 90) {
+    earnedBadges.push({
+      id: "expert",
       name: "Expert",
-      description: "Vous avez démontré une expertise dans ce domaine!",
-      icon: Award,
+      description: "Vous maîtrisez ce sujet!",
+      icon: Star,
       color: "blue",
-      earnedAt: new Date(),
     });
   }
-
-  // Good knowledge badge (60%+)
-  if (percentage >= 60 && percentage < 80) {
-    badges.push({
-      id: "good-knowledge",
-      name: "Bonne Connaissance",
-      description: "Vous avez une bonne connaissance du sujet!",
-      icon: Medal,
+  
+  // Good Performance Badge
+  else if (percentage >= 70) {
+    earnedBadges.push({
+      id: "good-performance",
+      name: "Bonne Performance",
+      description: "Bonne connaissance du sujet.",
+      icon: Award,
       color: "green",
-      earnedAt: new Date(),
     });
   }
-
-  // First try badge
-  badges.push({
-    id: "first-attempt",
-    name: "Premier Essai",
-    description: "Vous avez terminé votre premier quiz!",
-    icon: Flag,
+  
+  // Quick learner - for anyone who completes a quiz
+  earnedBadges.push({
+    id: "quiz-complete",
+    name: "Quiz Terminé",
+    description: "Vous avez terminé un quiz!",
+    icon: BookOpen,
     color: "purple",
-    earnedAt: new Date(),
   });
 
-  // Challenge badge (for difficult quizzes)
-  if (totalQuestions >= 10 && percentage >= 70) {
-    badges.push({
-      id: "challenger",
-      name: "Challenger",
-      description: "Vous avez relevé un défi difficile!",
-      icon: Target,
-      color: "red",
-      earnedAt: new Date(),
-    });
-  }
-
-  return badges;
-};
-
-export const getBadgesByCategory = (category: string): BadgeProps[] => {
-  // Implementation for category-specific badges
-  return [
-    {
-      id: `${category}-mastery`,
-      name: `Maîtrise ${category}`,
-      description: `Vous avez maîtrisé la catégorie ${category}`,
-      icon: Zap,
-      color: "indigo",
-      earnedAt: new Date(),
-    }
-  ];
+  return earnedBadges;
 };

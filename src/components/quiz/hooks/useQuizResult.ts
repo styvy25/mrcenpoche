@@ -48,10 +48,12 @@ export const useQuizResult = ({
       setShowNotification(true);
       
       // Show toast notification
-      toast.success("Nouveau badge débloqué !", {
-        description: `Vous avez débloqué : ${badgesToShow[0].name}`,
-        duration: 4000,
-      });
+      if (badgesToShow[0]) {
+        toast.success("Nouveau badge débloqué !", {
+          description: `Vous avez débloqué : ${badgesToShow[0].name}`,
+          duration: 4000,
+        });
+      }
     }
   }, [result?.unlockedBadges, earnedBadges]);
 
