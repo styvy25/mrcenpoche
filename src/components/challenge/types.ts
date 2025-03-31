@@ -3,10 +3,30 @@ export interface Challenge {
   id: string;
   title: string;
   description: string;
-  type: 'daily' | 'weekly' | 'monthly';
+  type: 'daily' | 'weekly' | 'monthly' | 'quiz' | 'reading' | 'video' | 'practice';
   points: number;
-  deadline: Date;
+  deadline: string;
+  isNew: boolean;
   isCompleted: boolean;
+  image?: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  estimatedTime: string;
+  progress: number;
+}
+
+export type AppointmentType = 'reunion' | 'formation' | 'evenement' | 'autre';
+
+export interface Appointment {
+  id: string;
+  title: string;
+  date: Date;
+  time: string;
+  type: AppointmentType;
+  description?: string;
+  location?: string;
+  participant?: string[];
+  isVirtual?: boolean;
+  link?: string;
 }
 
 export interface Event {
@@ -15,36 +35,16 @@ export interface Event {
   description: string;
   date: Date;
   location: string;
+  image?: string;
   isVirtual: boolean;
   link?: string;
-  organizer: string;
-  capacity: number;
-  registered: number;
+  attendees?: number;
 }
 
-export interface Appointment {
-  id: string;
-  title: string;
-  description: string;
-  date: Date;
-  startTime: string;
-  endTime: string;
-  status: 'pending' | 'confirmed' | 'canceled';
-  type: 'meeting' | 'training' | 'consultation';
-  participant: {
-    name: string;
-    email: string;
-    phone?: string;
-  };
-}
-
-export interface Session {
-  id: string;
-  title: string;
-  date: Date;
-  startTime: string;
-  endTime: string;
-  facilitator: string;
-  availableSpots: number;
-  status: 'open' | 'full' | 'canceled';
+export interface ChallengeState {
+  challenges: Challenge[];
+  appointments: Appointment[];
+  events: Event[];
+  loading: boolean;
+  error: string | null;
 }

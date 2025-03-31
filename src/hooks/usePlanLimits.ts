@@ -1,143 +1,124 @@
-
+import { useSubscription } from "./useSubscription";
 import { useState, useEffect } from 'react';
-import { Feature, PlanType } from './api-keys/types';
+import { canUseFeature, incrementFeatureUsage } from "@/services/paymentService";
+import { Feature } from "./api-keys/types";
 
-// Define the limits for each plan
-const PLAN_LIMITS = {
-  free: {
-    [Feature.AI_CHAT]: 20,
-    [Feature.PDF_EXPORT]: 3,
-    [Feature.VIDEO_ANALYSIS]: 5,
-    [Feature.DOCUMENT_GENERATOR]: 2,
-    [Feature.PREMIUM_MODULES]: 0,
-    [Feature.QUIZ_ACCESS]: 10,
-    [Feature.FORUM_ACCESS]: true
-  },
-  premium: {
-    [Feature.AI_CHAT]: 100,
-    [Feature.PDF_EXPORT]: 25,
-    [Feature.VIDEO_ANALYSIS]: 50,
-    [Feature.DOCUMENT_GENERATOR]: 25,
-    [Feature.PREMIUM_MODULES]: true,
-    [Feature.QUIZ_ACCESS]: true,
-    [Feature.FORUM_ACCESS]: true
-  },
-  enterprise: {
-    [Feature.AI_CHAT]: Number.POSITIVE_INFINITY,
-    [Feature.PDF_EXPORT]: Number.POSITIVE_INFINITY,
-    [Feature.VIDEO_ANALYSIS]: Number.POSITIVE_INFINITY,
-    [Feature.DOCUMENT_GENERATOR]: Number.POSITIVE_INFINITY,
-    [Feature.PREMIUM_MODULES]: true,
-    [Feature.QUIZ_ACCESS]: true,
-    [Feature.FORUM_ACCESS]: true
-  }
-};
+export interface UsePlanLimitsReturn {
+  // General limits
+  canAccessAllModules: () => boolean;
+  canGeneratePdf: () => Promise<boolean>;
+  canAccessAIChat: () => Promise<boolean>;
+  canUseVideoAnalysis: () => Promise<boolean>;
+  
+  // Check if premium is required for this action
+  isPremiumRequired: (feature: Feature) => boolean;
+  
+  // Keep track of used features
+  trackFeatureUsage: (feature: Feature) => Promise<boolean>;
+  
+  // For loading states
+  checkingAccess: boolean;
+}
 
-export const usePlanLimits = () => {
-  const [userPlan, setUserPlan] = useState<PlanType>('free');
-  const [usage, setUsage] = useState<Record<string, number>>({
-    [Feature.AI_CHAT]: 0,
-    [Feature.PDF_EXPORT]: 0,
-    [Feature.VIDEO_ANALYSIS]: 0,
-    [Feature.DOCUMENT_GENERATOR]: 0,
-    [Feature.QUIZ_ACCESS]: 0
-  });
-
-  // Load user plan and usage from local storage on mount
-  useEffect(() => {
-    const storedPlan = localStorage.getItem('user_plan');
-    if (storedPlan && (storedPlan === 'free' || storedPlan === 'premium' || storedPlan === 'enterprise')) {
-      setUserPlan(storedPlan as PlanType);
-    }
-
-    const storedUsage = localStorage.getItem('usage_data');
-    if (storedUsage) {
-      try {
-        setUsage(JSON.parse(storedUsage));
-      } catch (e) {
-        console.error('Failed to parse usage data:', e);
+export function usePlanLimits(): UsePlanLimitsReturn {
+  const { isPremium, isSubscriptionActive } = useSubscription();
+  const [checkingAccess, setCheckingAccess] = useState(false);
+  
+  // Check if the feature requires premium
+  const isPremiumRequired = (feature: Feature): boolean => {
+    // List of features that require premium
+    const premiumFeatures: Feature[] = [
+      'PDF_EXPORT',
+      'AI_CHAT',
+      'VIDEO_ANALYSIS',
+      'PREMIUM_MODULES'
+    ];
+    
+    return premiumFeatures.includes(feature);
+  };
+  
+  // Check if user can access all modules
+  const canAccessAllModules = (): boolean => {
+    return Boolean(isPremium && isSubscriptionActive);
+  };
+  
+  // Check if user can generate PDFs
+  const canGeneratePdf = async (): Promise<boolean> => {
+    setCheckingAccess(true);
+    try {
+      // Premium users can always generate PDFs
+      if (isPremium && isSubscriptionActive) {
+        return true;
       }
+      
+      // Free users have limited access via feature limit check
+      const hasAccess = await canUseFeature('PDF_EXPORT');
+      return hasAccess;
+    } catch (error) {
+      console.error('Error checking PDF access:', error);
+      return false;
+    } finally {
+      setCheckingAccess(false);
     }
-  }, []);
-
-  // Get the limit for a feature based on user's plan
-  const getLimitForFeature = (feature: Feature) => {
-    return PLAN_LIMITS[userPlan][feature];
   };
-
-  // Check if a feature has a numerical limit
-  const hasLimit = (feature: Feature) => {
-    const limit = PLAN_LIMITS[userPlan][feature];
-    return typeof limit === 'number' && limit !== Number.POSITIVE_INFINITY;
+  
+  // Check if user can access AI chat
+  const canAccessAIChat = async (): Promise<boolean> => {
+    setCheckingAccess(true);
+    try {
+      // Premium users can always use AI chat
+      if (isPremium && isSubscriptionActive) {
+        return true;
+      }
+      
+      // Free users have limited access via feature limit check
+      const hasAccess = await canUseFeature('AI_CHAT');
+      return hasAccess;
+    } catch (error) {
+      console.error('Error checking AI chat access:', error);
+      return false;
+    } finally {
+      setCheckingAccess(false);
+    }
   };
-
-  // Get current usage for a feature
-  const getUsage = (feature: Feature) => {
-    return usage[feature] || 0;
+  
+  // Check if user can use video analysis
+  const canUseVideoAnalysis = async (): Promise<boolean> => {
+    setCheckingAccess(true);
+    try {
+      // Only premium users can use video analysis
+      return Boolean(isPremium && isSubscriptionActive);
+    } catch (error) {
+      console.error('Error checking video analysis access:', error);
+      return false;
+    } finally {
+      setCheckingAccess(false);
+    }
   };
-
-  // Check if user has exceeded the limit for a feature
-  const hasExceededLimit = (feature: Feature) => {
-    if (!hasLimit(feature)) return false;
-    return getUsage(feature) >= getLimitForFeature(feature);
+  
+  // Track feature usage
+  const trackFeatureUsage = async (feature: Feature): Promise<boolean> => {
+    // Premium users don't need to track usage
+    if (isPremium && isSubscriptionActive) {
+      return true;
+    }
+    
+    // For free users, increment feature usage in the database
+    try {
+      return await incrementFeatureUsage(feature);
+    } catch (error) {
+      console.error(`Error tracking ${feature} usage:`, error);
+      return false;
+    }
   };
-
-  // Increment usage for a feature
-  const incrementUsage = (feature: Feature) => {
-    const newUsage = { ...usage, [feature]: (usage[feature] || 0) + 1 };
-    setUsage(newUsage);
-    localStorage.setItem('usage_data', JSON.stringify(newUsage));
-    return !hasExceededLimit(feature);
-  };
-
-  // Reset usage for a feature
-  const resetUsage = (feature: Feature) => {
-    const newUsage = { ...usage, [feature]: 0 };
-    setUsage(newUsage);
-    localStorage.setItem('usage_data', JSON.stringify(newUsage));
-  };
-
-  // Update user's plan
-  const updateUserPlan = (plan: PlanType) => {
-    setUserPlan(plan);
-    localStorage.setItem('user_plan', plan);
-  };
-
-  // Get remaining usage for a feature
-  const getRemainingUsage = (feature: Feature) => {
-    if (!hasLimit(feature)) return Number.POSITIVE_INFINITY;
-    return Math.max(0, getLimitForFeature(feature) - getUsage(feature));
-  };
-
-  // Feature-specific convenience methods
-  const canGeneratePdf = () => {
-    return !hasExceededLimit(Feature.PDF_EXPORT);
-  };
-
-  const canAccessAllModules = () => {
-    return userPlan !== 'free';
-  };
-
-  const hasChatLimit = () => {
-    return hasLimit(Feature.AI_CHAT);
-  };
-
+  
   return {
-    userPlan,
-    getLimitForFeature,
-    hasLimit,
-    getUsage,
-    hasExceededLimit,
-    incrementUsage,
-    resetUsage,
-    updateUserPlan,
-    getRemainingUsage,
-    // Feature-specific methods
-    canGeneratePdf,
     canAccessAllModules,
-    hasChatLimit
+    canGeneratePdf,
+    canAccessAIChat,
+    canUseVideoAnalysis,
+    isPremiumRequired,
+    trackFeatureUsage,
+    checkingAccess
   };
-};
-
-export { Feature };
-
+}

@@ -134,20 +134,22 @@ export const getUserSubscription = async (): Promise<UserSubscription | null> =>
       return null;
     }
 
-    return data ? {
+    if (!data) return null;
+    
+    return {
       id: data.id,
       userId: data.user_id,
       stripeCustomerId: data.stripe_customer_id,
       stripeSubscriptionId: data.stripe_subscription_id,
       stripePriceId: data.stripe_price_id,
       status: data.status,
-      planType: data.plan_type,
+      planType: data.plan_type as 'free' | 'premium' | 'enterprise',
       currentPeriodStart: data.current_period_start ? new Date(data.current_period_start) : null,
       currentPeriodEnd: data.current_period_end ? new Date(data.current_period_end) : null,
       cancelAtPeriodEnd: data.cancel_at_period_end,
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at)
-    } : null;
+    };
   } catch (error) {
     console.error('Error:', error);
     return null;
@@ -197,7 +199,7 @@ export const canUseFeature = async (feature: Feature): Promise<boolean> => {
       return false;
     }
 
-    return data || false;
+    return Boolean(data);
   } catch (error) {
     console.error('Error:', error);
     return false;
@@ -220,7 +222,7 @@ export const incrementFeatureUsage = async (feature: Feature): Promise<boolean> 
       return false;
     }
 
-    return data || false;
+    return Boolean(data);
   } catch (error) {
     console.error('Error:', error);
     return false;

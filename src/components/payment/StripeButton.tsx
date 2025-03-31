@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Key, Loader2, ShoppingCart, Crown } from 'lucide-react';
 import { createCheckoutSession } from '@/services/paymentService';
