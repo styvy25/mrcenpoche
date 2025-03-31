@@ -39,12 +39,12 @@ const QuizScreens: React.FC<QuizScreensProps> = ({
 
   return (
     <div className={`p-3 ${isMobile ? 'mobile-padding' : 'sm:p-6'}`}>
-      <div className="mb-3 sm:mb-4">
-        <h2 className="text-lg sm:text-xl font-bold mb-1">{quiz.title}</h2>
+      <div className="mb-2 sm:mb-4">
+        <h2 className="text-base sm:text-xl font-bold mb-1">{quiz.title}</h2>
         <p className="text-gray-600 text-xs sm:text-sm">Question {currentQuestion + 1} sur {quiz.questions.length}</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-3 sm:mb-4">
+      <div className="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-2 sm:mb-4">
         {showFeedback ? (
           <AnswerFeedback 
             isCorrect={isCorrect}
