@@ -1,230 +1,118 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/components/auth/AuthContext';
 import { Feature, Plan } from '@/components/quiz/types';
 
 interface PlanLimits {
-  maxQuizzes: number;
-  maxPdfs: number;
-  maxChats: number;
-  maxVideoDownloads: number;
-  allowYoutubeAnalysis: boolean;
+  [key: string]: {
+    [key in Feature]?: number;
+  }
 }
 
-const PLAN_LIMITS: Record<Plan, PlanLimits> = {
+const DEFAULT_LIMITS: PlanLimits = {
   free: {
-    maxQuizzes: 3,
-    maxPdfs: 2,
-    maxChats: 10,
-    maxVideoDownloads: 5,
-    allowYoutubeAnalysis: false
+    pdfGeneration: 5,
+    quizzes: 10,
+    aiChat: 20,
+    videoDownload: 3,
+    youtubeAnalysis: 5
   },
   standard: {
-    maxQuizzes: 10,
-    maxPdfs: 10,
-    maxChats: 50,
-    maxVideoDownloads: 15,
-    allowYoutubeAnalysis: true
+    pdfGeneration: 20,
+    quizzes: 50,
+    aiChat: 100,
+    videoDownload: 15,
+    youtubeAnalysis: 25
   },
   premium: {
-    maxQuizzes: -1, // illimité
-    maxPdfs: -1, // illimité
-    maxChats: -1, // illimité
-    maxVideoDownloads: -1, // illimité
-    allowYoutubeAnalysis: true
+    pdfGeneration: -1, // unlimited
+    quizzes: -1, // unlimited
+    aiChat: -1, // unlimited
+    videoDownload: -1, // unlimited
+    youtubeAnalysis: -1 // unlimited
   }
 };
 
-interface UsageStats {
-  quizzesTaken: number;
-  pdfsGenerated: number;
-  chatMessages: number;
-  videosDownloaded: number;
-}
-
 export const usePlanLimits = () => {
-  const { currentUser } = useAuth();
   const [userPlan, setUserPlan] = useState<Plan>('free');
-  const [usage, setUsage] = useState<UsageStats>({
-    quizzesTaken: 0,
-    pdfsGenerated: 0,
-    chatMessages: 0,
-    videosDownloaded: 0
+  const [usage, setUsage] = useState<{[key in Feature]?: number}>({
+    pdfGeneration: 0,
+    quizzes: 0,
+    aiChat: 3,
+    videoDownload: 0,
+    youtubeAnalysis: 0
   });
 
-  // Chargement du plan et de l'utilisation à partir du localStorage
   useEffect(() => {
-    const loadUsageData = () => {
-      if (currentUser) {
-        // Dans une application réelle, ces données viendraient du backend
-        const storedPlan = localStorage.getItem(`plan_${currentUser.id}`) as Plan || 'free';
-        const storedUsage = JSON.parse(localStorage.getItem(`usage_${currentUser.id}`) || '{}');
-        
-        setUserPlan(storedPlan);
-        setUsage({
-          quizzesTaken: storedUsage.quizzesTaken || 0,
-          pdfsGenerated: storedUsage.pdfsGenerated || 0,
-          chatMessages: storedUsage.chatMessages || 0,
-          videosDownloaded: storedUsage.videosDownloaded || 0
-        });
-      } else {
-        // Utilisateur anonyme
-        const storedUsage = JSON.parse(localStorage.getItem('usage_anonymous') || '{}');
-        
-        setUserPlan('free');
-        setUsage({
-          quizzesTaken: storedUsage.quizzesTaken || 0,
-          pdfsGenerated: storedUsage.pdfsGenerated || 0,
-          chatMessages: storedUsage.chatMessages || 0,
-          videosDownloaded: storedUsage.videosDownloaded || 0
-        });
-      }
+    // Simuler le chargement des données utilisateur
+    const loadUserData = async () => {
+      // Ici, vous appelleriez normalement votre API
+      // Pour l'instant, on utilise des données simulées
+      const userData = {
+        plan: localStorage.getItem('userPlan') as Plan || 'free',
+        usage: JSON.parse(localStorage.getItem('userUsage') || '{}')
+      };
+      
+      setUserPlan(userData.plan);
+      setUsage(userData.usage);
     };
-
-    loadUsageData();
-  }, [currentUser]);
-
-  // Sauvegarde de l'utilisation dans le localStorage
-  const saveUsage = (newUsage: UsageStats) => {
-    if (currentUser) {
-      localStorage.setItem(`usage_${currentUser.id}`, JSON.stringify(newUsage));
-    } else {
-      localStorage.setItem('usage_anonymous', JSON.stringify(newUsage));
-    }
-  };
-
-  // Vérifier si une fonctionnalité est disponible dans le plan actuel
-  const canUseFeature = (feature: Feature): boolean => {
-    const limits = PLAN_LIMITS[userPlan];
     
-    switch (feature) {
-      case 'pdfGeneration':
-        return limits.maxPdfs === -1 || usage.pdfsGenerated < limits.maxPdfs;
-      case 'quizzes':
-        return limits.maxQuizzes === -1 || usage.quizzesTaken < limits.maxQuizzes;
-      case 'aiChat':
-      case 'maxChats':
-        return limits.maxChats === -1 || usage.chatMessages < limits.maxChats;
-      case 'videoDownload':
-        return limits.maxVideoDownloads === -1 || usage.videosDownloaded < limits.maxVideoDownloads;
-      case 'youtubeAnalysis':
-        return limits.allowYoutubeAnalysis;
-      default:
-        return false;
-    }
+    loadUserData();
+  }, []);
+
+  const getLimitForFeature = (feature: Feature): number => {
+    return DEFAULT_LIMITS[userPlan]?.[feature] ?? -1;
   };
 
-  // Vérifier si une limite a été atteinte
-  const hasReachedLimit = (feature: Feature): boolean => {
-    return !canUseFeature(feature);
-  };
-
-  // Vérifier s'il y a une limite pour une fonctionnalité
   const hasLimit = (feature: Feature): boolean => {
-    const limits = PLAN_LIMITS[userPlan];
-    
-    switch (feature) {
-      case 'pdfGeneration':
-        return limits.maxPdfs !== -1;
-      case 'quizzes':
-        return limits.maxQuizzes !== -1;
-      case 'aiChat':
-      case 'maxChats':
-        return limits.maxChats !== -1;
-      case 'videoDownload':
-        return limits.maxVideoDownloads !== -1;
-      case 'youtubeAnalysis':
-        return !limits.allowYoutubeAnalysis;
-      default:
-        return true;
-    }
+    const limit = getLimitForFeature(feature);
+    return limit !== -1;
   };
 
-  // Obtenir le nombre d'utilisations restantes
+  const getUsage = (feature: Feature): number => {
+    return usage[feature] || 0;
+  };
+
   const getRemainingUsage = (feature: Feature): number => {
-    const limits = PLAN_LIMITS[userPlan];
+    const limit = getLimitForFeature(feature);
+    const currentUsage = getUsage(feature);
     
-    switch (feature) {
-      case 'pdfGeneration':
-        return limits.maxPdfs === -1 ? -1 : limits.maxPdfs - usage.pdfsGenerated;
-      case 'quizzes':
-        return limits.maxQuizzes === -1 ? -1 : limits.maxQuizzes - usage.quizzesTaken;
-      case 'aiChat':
-      case 'maxChats':
-        return limits.maxChats === -1 ? -1 : limits.maxChats - usage.chatMessages;
-      case 'videoDownload':
-        return limits.maxVideoDownloads === -1 ? -1 : limits.maxVideoDownloads - usage.videosDownloaded;
-      default:
-        return 0;
-    }
+    if (limit === -1) return -1; // unlimited
+    return Math.max(0, limit - currentUsage);
   };
 
-  // Incrémenter l'utilisation d'une fonctionnalité
-  const incrementQuizzes = (): boolean => {
-    if (canUseFeature('quizzes')) {
-      const newUsage = { ...usage, quizzesTaken: usage.quizzesTaken + 1 };
-      setUsage(newUsage);
-      saveUsage(newUsage);
-      return true;
-    }
-    return false;
+  const hasReachedLimit = (feature: Feature): boolean => {
+    const limit = getLimitForFeature(feature);
+    const currentUsage = getUsage(feature);
+    
+    if (limit === -1) return false; // unlimited
+    return currentUsage >= limit;
   };
 
-  const incrementPdfGenerations = (): boolean => {
-    if (canUseFeature('pdfGeneration')) {
-      const newUsage = { ...usage, pdfsGenerated: usage.pdfsGenerated + 1 };
-      setUsage(newUsage);
-      saveUsage(newUsage);
-      return true;
-    }
-    return false;
-  };
-
-  const incrementChatMessages = (): boolean => {
-    if (canUseFeature('maxChats')) {
-      const newUsage = { ...usage, chatMessages: usage.chatMessages + 1 };
-      setUsage(newUsage);
-      saveUsage(newUsage);
-      return true;
-    }
-    return false;
-  };
-
-  const incrementVideoDownloads = (): boolean => {
-    if (canUseFeature('videoDownload')) {
-      const newUsage = { ...usage, videosDownloaded: usage.videosDownloaded + 1 };
-      setUsage(newUsage);
-      saveUsage(newUsage);
-      return true;
-    }
-    return false;
-  };
-
-  // Vérifier si l'utilisateur a une limite de chat
-  const hasChatLimit = (): boolean => {
-    return hasLimit('maxChats');
-  };
-
-  // Mettre à jour le plan de l'utilisateur
-  const updateUserPlan = (plan: Plan) => {
-    setUserPlan(plan);
-    if (currentUser) {
-      localStorage.setItem(`plan_${currentUser.id}`, plan);
-    }
+  const incrementUsage = async (feature: Feature, amount: number = 1): Promise<boolean> => {
+    if (hasReachedLimit(feature)) return false;
+    
+    const newUsage = {
+      ...usage,
+      [feature]: (usage[feature] || 0) + amount
+    };
+    
+    setUsage(newUsage);
+    
+    // Simuler la mise à jour dans la base de données
+    localStorage.setItem('userUsage', JSON.stringify(newUsage));
+    
+    return true;
   };
 
   return {
     userPlan,
-    usage,
-    canUseFeature,
-    hasReachedLimit,
+    getLimitForFeature,
     hasLimit,
+    getUsage,
     getRemainingUsage,
-    incrementQuizzes,
-    incrementPdfGenerations,
-    incrementChatMessages,
-    incrementVideoDownloads,
-    hasChatLimit,
-    updateUserPlan
+    hasReachedLimit,
+    incrementUsage
   };
 };
+
+export default usePlanLimits;

@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.31.0'
 import { JSDOM } from 'https://esm.sh/jsdom@22.1.0'
 import { extract } from 'https://esm.sh/article-parser@7.0.0'
@@ -299,7 +298,7 @@ function extractKeywords(text: string): string[] {
   // This is a simple keyword extraction
   // In a real implementation, you would use NLP techniques
   const words = text.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/)
-  const wordCount = {}
+  const wordCount: {[key: string]: number} = {}
   
   words.forEach(word => {
     if (word.length > 3 && !['avec', 'pour', 'dans', 'cette', 'votre', 'notre'].includes(word)) {

@@ -1,36 +1,39 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-export function useMediaQuery(query: string): { 
-  matches: boolean;
-  isMobile: boolean;
-} {
-  const [matches, setMatches] = useState<boolean>(false);
+export function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
+    const media = window.matchMedia(query);
     
-    // Initialize with the current match state
-    const mediaQuery = window.matchMedia(query);
-    setMatches(mediaQuery.matches);
-    
-    // Set up the listener
-    const handleChange = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
+    // Fonction pour mettre à jour l'état en fonction de la requête média
+    const updateMatches = () => {
+      setMatches(media.matches);
+      
+      // Mettre à jour les états pour les appareils courants
+      setIsMobile(window.matchMedia('(max-width: 640px)').matches);
+      setIsTablet(window.matchMedia('(min-width: 641px) and (max-width: 1024px)').matches);
+      setIsDesktop(window.matchMedia('(min-width: 1025px)').matches);
     };
     
-    // Modern API
-    mediaQuery.addEventListener("change", handleChange);
+    // Définir l'état initial
+    updateMatches();
     
-    // Clean up
+    // Ajouter un écouteur d'événements pour les changements
+    const listener = () => updateMatches();
+    media.addEventListener('change', listener);
+    
+    // Nettoyer
     return () => {
-      mediaQuery.removeEventListener("change", handleChange);
+      media.removeEventListener('change', listener);
     };
   }, [query]);
 
-  // Determine if it's mobile based on the query
-  const isMobile = matches;
-
-  return { matches, isMobile };
+  return { matches, isMobile, isTablet, isDesktop };
 }
+
+export default useMediaQuery;

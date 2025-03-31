@@ -1,142 +1,253 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import YouTubeUrlInput from './youtube/YouTubeUrlInput';
-import VideoInfoDisplay from './youtube/VideoInfoDisplay';
-import ErrorAlert from './youtube/ErrorAlert';
-import { useYoutubeAnalyzer } from '@/utils/youtube/index';
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Download, Youtube, FileVideo, Check } from "lucide-react";
 import { useScreenSize } from '@/hooks/useScreenSize';
-import YouTubeAnalysisPDF from '../youtube/YouTubeAnalysisPDF';
+
+interface DownloadOption {
+  id: string;
+  label: string;
+  quality: string;
+  format: string;
+  size: string;
+}
 
 const YouTubeDownloader = () => {
-  const [videoUrl, setVideoUrl] = useState('');
-  const [videoId, setVideoId] = useState<string | null>(null);
-  const [videoTitle, setVideoTitle] = useState('');
-  const [videoDescription, setVideoDescription] = useState('');
-  const [analysis, setAnalysis] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('url');
-  const { extractVideoId, analyzeYoutubeVideo } = useYoutubeAnalyzer();
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [videoInfo, setVideoInfo] = useState<any>(null);
+  const [downloadOptions, setDownloadOptions] = useState<DownloadOption[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadComplete, setDownloadComplete] = useState(false);
+  const { toast } = useToast();
   const { isMobile } = useScreenSize();
 
-  const handleUrlChange = (url: string) => {
-    setVideoUrl(url);
-    setError(null);
-    
-    const extractedId = extractVideoId(url);
-    if (extractedId) {
-      setVideoId(extractedId);
-    } else if (url && url.trim() !== '') {
-      setError('URL YouTube invalide');
-    }
-  };
-
   const handleAnalyze = async () => {
-    if (!videoId) {
-      setError('Veuillez entrer une URL YouTube valide');
+    if (!url) {
+      toast({
+        title: "URL requise",
+        description: "Veuillez entrer une URL YouTube valide",
+        variant: "destructive"
+      });
       return;
     }
 
-    setIsAnalyzing(true);
-    setError(null);
-
     try {
-      const result = await analyzeYoutubeVideo(videoUrl);
+      setAnalyzing(true);
       
-      if (result.success && result.analysis) {
-        setVideoTitle(result.title || 'Vidéo YouTube');
-        setAnalysis(result.analysis);
-        setActiveTab('analysis');
-      } else {
-        setError('Impossible d\'analyser cette vidéo. Veuillez vérifier l\'URL ou réessayer plus tard.');
-      }
+      // Simulation de l'analyse de la vidéo YouTube
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Données simulées
+      const mockVideoInfo = {
+        title: "MRC - Discours important sur la situation politique",
+        thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+        duration: "10:32",
+        channel: "MRC Officiel",
+        views: "245,302"
+      };
+      
+      const mockOptions = [
+        { id: "1", label: "720p MP4", quality: "720p", format: "mp4", size: "85 MB" },
+        { id: "2", label: "480p MP4", quality: "480p", format: "mp4", size: "45 MB" },
+        { id: "3", label: "360p MP4", quality: "360p", format: "mp4", size: "28 MB" },
+        { id: "4", label: "Audio seulement (MP3)", quality: "128kbps", format: "mp3", size: "12 MB" }
+      ];
+      
+      setVideoInfo(mockVideoInfo);
+      setDownloadOptions(mockOptions);
+      setSelectedOption(mockOptions[0].id);
+      
     } catch (error) {
-      console.error('Error analyzing video:', error);
-      setError('Une erreur s\'est produite lors de l\'analyse de la vidéo.');
+      console.error('Error analyzing YouTube video:', error);
+      toast({
+        title: "Erreur d'analyse",
+        description: "Impossible d'analyser cette vidéo YouTube. Vérifiez l'URL et réessayez.",
+        variant: "destructive"
+      });
     } finally {
-      setIsAnalyzing(false);
+      setAnalyzing(false);
     }
   };
 
-  return (
-    <Card className="shadow-lg border-gray-200 dark:border-gray-800 overflow-hidden transition-all duration-300 hover:shadow-xl">
-      <CardHeader className="pb-2 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900/70 dark:to-gray-800/70">
-        <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
-          <Youtube className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-red-600`} />
-          YouTube Analyzer
-        </CardTitle>
-        <CardDescription className={isMobile ? 'text-xs' : 'text-sm'}>
-          Analysez des vidéos YouTube sur le MRC et la politique camerounaise
-        </CardDescription>
-      </CardHeader>
+  const handleDownload = async () => {
+    if (!selectedOption) {
+      toast({
+        title: "Option requise",
+        description: "Veuillez sélectionner une option de téléchargement",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setDownloading(true);
       
-      <CardContent className="p-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="px-4 pt-4">
-            <TabsList className="mb-4 w-full">
-              <TabsTrigger value="url" className="flex-1">URL de la vidéo</TabsTrigger>
-              <TabsTrigger value="analysis" disabled={!analysis} className="flex-1">Analyse</TabsTrigger>
-            </TabsList>
-          </div>
-          
-          <TabsContent value="url" className="p-4 space-y-4">
-            <YouTubeUrlInput 
-              onSubmit={handleUrlChange}
-              isLoading={isAnalyzing}
-            />
+      // Simuler le téléchargement
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setDownloadComplete(true);
+      
+      toast({
+        title: "Téléchargement réussi",
+        description: "Votre vidéo a été téléchargée avec succès",
+      });
+      
+      // Réinitialiser après un certain temps
+      setTimeout(() => {
+        setDownloadComplete(false);
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Error downloading video:', error);
+      toast({
+        title: "Erreur de téléchargement",
+        description: "Impossible de télécharger cette vidéo. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setUrl('');
+    setVideoInfo(null);
+    setDownloadOptions([]);
+    setSelectedOption(null);
+    setDownloadComplete(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold">Téléchargeur YouTube</h2>
+        <p className="text-muted-foreground">
+          Téléchargez des vidéos YouTube pour un usage hors ligne
+        </p>
+      </div>
+      
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div className={`flex ${isMobile ? 'flex-col space-y-2' : 'space-x-2'}`}>
+              <Input
+                placeholder="Collez l'URL de la vidéo YouTube ici"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                disabled={analyzing || downloading}
+                className="flex-grow"
+              />
+              <Button
+                onClick={handleAnalyze}
+                disabled={!url || analyzing || downloading}
+                className={isMobile ? 'w-full' : ''}
+              >
+                {analyzing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                    Analyse en cours...
+                  </>
+                ) : (
+                  <>Analyser</>
+                )}
+              </Button>
+            </div>
             
-            {error && <ErrorAlert message={error} />}
-            
-            {videoId && !error && (
-              <div className="rounded-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.01]">
-                <VideoInfoDisplay videoId={videoId} />
-              </div>
-            )}
-            
-            {videoId && !error && (
-              <div className="flex justify-end">
-                <Button 
-                  onClick={handleAnalyze} 
-                  disabled={isAnalyzing} 
-                  className="bg-red-600 hover:bg-red-700 text-white transition-colors duration-300"
-                  size={isMobile ? "sm" : "default"}
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                      Analyse en cours...
-                    </>
-                  ) : (
-                    'Analyser la vidéo'
-                  )}
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="analysis" className="space-y-4 p-4 pb-6">
-            {analysis && videoId && (
-              <div className="space-y-4">
-                <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto max-h-[400px] shadow-inner">
-                  <h3 className="font-semibold mb-2 text-lg text-gray-900 dark:text-gray-100">{videoTitle}</h3>
-                  <p className="whitespace-pre-line text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{analysis}</p>
+            {videoInfo && (
+              <div className="space-y-4 pt-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="md:w-1/3">
+                    <img 
+                      src={videoInfo.thumbnail} 
+                      alt={videoInfo.title}
+                      className="w-full h-auto rounded-md object-cover shadow-md"
+                    />
+                  </div>
+                  <div className="md:w-2/3 space-y-2">
+                    <h3 className="text-lg font-semibold">{videoInfo.title}</h3>
+                    <div className="text-sm text-muted-foreground">
+                      <p>{videoInfo.channel}</p>
+                      <p>Durée: {videoInfo.duration} | Vues: {videoInfo.views}</p>
+                    </div>
+                    
+                    <div className="space-y-3 pt-3">
+                      <p className="text-sm font-medium">Sélectionnez une option de téléchargement:</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {downloadOptions.map((option) => (
+                          <Button
+                            key={option.id}
+                            variant={selectedOption === option.id ? "default" : "outline"}
+                            className="justify-start text-left"
+                            onClick={() => setSelectedOption(option.id)}
+                          >
+                            <FileVideo className="mr-2 h-4 w-4" />
+                            <div className="flex flex-col items-start">
+                              <span>{option.label}</span>
+                              <span className="text-xs text-muted-foreground">{option.size}</span>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4 flex space-x-2">
+                      <Button
+                        onClick={handleDownload}
+                        disabled={!selectedOption || downloading || downloadComplete}
+                        className="flex-grow"
+                      >
+                        {downloadComplete ? (
+                          <>
+                            <Check className="mr-2 h-4 w-4" /> 
+                            Téléchargement terminé
+                          </>
+                        ) : downloading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                            Téléchargement...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="mr-2 h-4 w-4" /> 
+                            Télécharger
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleReset}
+                        disabled={downloading}
+                      >
+                        Réinitialiser
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                
-                <YouTubeAnalysisPDF 
-                  videoId={videoId}
-                  videoTitle={videoTitle}
-                  analysis={analysis}
-                />
               </div>
             )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <div className="rounded-lg border p-4 bg-muted/50">
+        <div className="flex gap-3 items-start">
+          <Youtube className="h-8 w-8 text-red-500 mt-1 flex-shrink-0" />
+          <div>
+            <h3 className="font-medium mb-1">Téléchargez vos vidéos YouTube préférées</h3>
+            <p className="text-sm text-muted-foreground">
+              Cet outil vous permet de télécharger des vidéos YouTube pour pouvoir les regarder hors ligne. 
+              Idéal pour accéder aux discours et présentations du MRC même sans connexion internet.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
