@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { FilePdf, Wifi, WifiOff, Trash2 } from 'lucide-react';
+import { FileText, Wifi, WifiOff, Trash2 } from 'lucide-react';
 
 export interface ChatHeaderProps {
   onGeneratePDF: () => void;
@@ -35,7 +35,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           onClick={onGeneratePDF}
           className="h-8 gap-1 text-xs"
         >
-          <FilePdf className="h-4 w-4" />
+          <FileText className="h-4 w-4" />
           Exporter
         </Button>
         <Button 
