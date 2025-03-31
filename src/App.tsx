@@ -13,6 +13,7 @@ import ForumPage from './pages/ForumPage';
 import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
 import QuizPage from './pages/QuizPage';
+import ModulesPage from './pages/ModulesPage';
 import { AppProvider } from '@/context/AppContext';
 import { Toaster } from '@/components/ui/toaster';
 import NotFound from './pages/NotFound';
@@ -34,6 +35,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/quiz" element={<QuizPage />} />
+            <Route path="/modules" element={<ModulesPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
