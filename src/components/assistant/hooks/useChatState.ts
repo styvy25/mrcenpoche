@@ -1,85 +1,107 @@
 
-import { useEffect } from "react";
-import { useYouTubeSearch } from "./useYouTubeSearch";
+import { useState, useCallback } from "react";
+import { Message } from "../types/message";
 import { useMessageHandler } from "./useMessageHandler";
+import { useYouTubeSearch } from "./useYouTubeSearch";
 import { useOfflineMode } from "./useOfflineMode";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { Feature } from "@/hooks/api-keys/types";
+import { useToast } from "@/hooks/use-toast";
 
-export function useChatState() {
-  const { 
-    messages, 
-    isLoading, 
-    setIsLoading,
-    handleSendMessage: baseHandleSendMessage, 
-    clearConversation,
-    initializeMessages,
-    setMessages
-  } = useMessageHandler();
-  
-  const {
-    youtubeResults,
-    isSearchingYouTube,
-    handleYouTubeSearch,
-    handleVideoSelect: baseHandleVideoSelect,
-    setYoutubeResults
-  } = useYouTubeSearch();
-  
+export const useChatState = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { handleMessage } = useMessageHandler(setMessages, setIsLoading);
   const { isOnline } = useOfflineMode();
+  const { 
+    youtubeResults, 
+    isSearchingYouTube, 
+    downloadLinks,
+    handleYouTubeSearch, 
+    handleVideoSelect,
+    setYoutubeResults,
+    setDownloadLinks
+  } = useYouTubeSearch();
+  const { checkAndUseFeature } = usePlanLimits();
+  const { toast } = useToast();
 
-  // Ensure all messages have a timestamp that's a Date object
-  const normalizeMessages = (msgs) => {
-    return msgs.map(msg => {
-      if (msg.timestamp && typeof msg.timestamp === 'string') {
-        return {
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        };
-      } else if (!msg.timestamp) {
-        return {
-          ...msg,
-          timestamp: new Date()
-        };
-      }
-      return msg;
-    });
-  };
+  const handleSendMessage = useCallback(async (content: string) => {
+    // Check if user can use AI Chat feature
+    const canUse = await checkAndUseFeature(Feature.AI_CHAT);
+    if (!canUse) {
+      return;
+    }
 
-  // Initialize messages from localStorage if available
-  useEffect(() => {
-    initializeMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
-  // Save messages to localStorage whenever they change
-  useEffect(() => {
-    if (messages.length > 0) {
-      // Make sure all messages have proper timestamps before saving
-      const normalizedMessages = normalizeMessages(messages);
-      localStorage.setItem('mrc_chat_messages', JSON.stringify(normalizedMessages));
-      
-      // Update messages with normalized timestamps
-      if (JSON.stringify(messages) !== JSON.stringify(normalizedMessages)) {
-        setMessages(normalizedMessages);
+    // Clear YouTube results
+    setYoutubeResults([]);
+    
+    // Add user message
+    const userMessage: Message = {
+      role: "user",
+      content,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Check for YouTube search commands
+    if (content.toLowerCase().startsWith("/youtube ")) {
+      const query = content.substring(9).trim();
+      if (query) {
+        await handleYouTubeSearch(query, isOnline);
+        return;
       }
     }
-  }, [messages, setMessages]);
+    
+    // Check for YouTube URL
+    const youtubeUrlRegex = /(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)[a-zA-Z0-9_-]+/i;
+    if (youtubeUrlRegex.test(content)) {
+      await handleYouTubeSearch(content, isOnline);
+      return;
+    }
+    
+    // Check if this is a video analysis request
+    const videoAnalysisRegex = /analyser?\s+(?:la|cette)?\s*vidéo|analyse\s+(?:de|cette|la)?\s*vidéo/i;
+    if (videoAnalysisRegex.test(content) && youtubeResults.length > 0) {
+      // If user asks to analyze a video and we have YouTube results, 
+      // analyze the first video
+      await handleVideoSelect(
+        youtubeResults[0].id,
+        isOnline,
+        setIsLoading,
+        setMessages
+      );
+      return;
+    }
+    
+    // Process regular message
+    await handleMessage(content, isOnline);
+  }, [
+    messages, 
+    handleMessage, 
+    isOnline, 
+    youtubeResults, 
+    handleYouTubeSearch, 
+    handleVideoSelect,
+    setYoutubeResults,
+    checkAndUseFeature
+  ]);
 
-  const handleSendMessage = (input: string) => {
-    return baseHandleSendMessage(input, isOnline, handleYouTubeSearch);
-  };
-
-  const handleVideoSelect = (videoId: string) => {
-    return baseHandleVideoSelect(videoId, isOnline, setIsLoading, setMessages);
-  };
+  const handleClearMessages = useCallback(() => {
+    setMessages([]);
+    setYoutubeResults([]);
+    setDownloadLinks(null);
+  }, [setYoutubeResults, setDownloadLinks]);
 
   return {
-    messages: normalizeMessages(messages),
+    messages,
     isLoading,
     youtubeResults,
     isSearchingYouTube,
-    isOnline,
+    downloadLinks,
     handleSendMessage,
-    handleVideoSelect,
-    handleYouTubeSearch: (query: string) => handleYouTubeSearch(query, isOnline),
-    clearConversation
+    handleClearMessages,
+    handleVideoSelect: (videoId: string) => 
+      handleVideoSelect(videoId, isOnline, setIsLoading, setMessages)
   };
-}
+};

@@ -123,12 +123,13 @@ export const getUserSubscription = async (): Promise<UserSubscription | null> =>
 
     if (!data) return null;
     
+    // Fix type issues by mapping the data fields
     return {
       id: data.id,
       userId: data.user_id,
-      stripeCustomerId: data.stripe_customer_id,
-      stripeSubscriptionId: data.stripe_subscription_id,
-      stripePriceId: data.stripe_price_id,
+      stripeCustomerId: data.stripe_customer_id || null,
+      stripeSubscriptionId: data.stripe_subscription_id || null,
+      stripePriceId: data.stripe_price_id || null,
       status: data.status || (data.is_active ? 'active' : 'inactive'),
       planType: data.plan_type as 'free' | 'premium' | 'enterprise',
       currentPeriodStart: data.start_date ? new Date(data.start_date) : null,
@@ -149,8 +150,9 @@ export const getUserPoints = async (): Promise<UserPoints | null> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return null;
 
+    // Fix the table name to match what's in the database
     const { data, error } = await supabase
-      .from('user_points')
+      .from('user_points_data')
       .select('*')
       .eq('user_id', session.user.id)
       .single();

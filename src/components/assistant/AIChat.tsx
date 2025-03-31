@@ -15,7 +15,8 @@ const AIChat = () => {
     messages, 
     isLoading, 
     youtubeResults, 
-    isSearchingYouTube, 
+    isSearchingYouTube,
+    downloadLinks,
     handleSendMessage, 
     handleVideoSelect 
   } = useChatState();
@@ -116,6 +117,7 @@ const AIChat = () => {
         isSearchingYouTube={isSearchingYouTube}
         isLoading={isLoading}
         onVideoSelect={handleVideoSelect}
+        downloadLinks={downloadLinks}
       />
       
       <ChatInput 

@@ -2,11 +2,13 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { searchMRCVideos, getVideoInfo } from "../services/youtubeService";
+import { extractVideoId, generateDownloadLinks } from "../services/youtube/videoDownloader";
 import { Message } from "../types/message";
 
 export function useYouTubeSearch() {
   const [youtubeResults, setYoutubeResults] = useState<any[]>([]);
   const [isSearchingYouTube, setIsSearchingYouTube] = useState(false);
+  const [downloadLinks, setDownloadLinks] = useState<any>(null);
   const { toast } = useToast();
 
   const handleYouTubeSearch = async (query: string, isOnline: boolean) => {
@@ -19,6 +21,69 @@ export function useYouTubeSearch() {
       return;
     }
     
+    // Check if input looks like a YouTube URL
+    const videoId = extractVideoId(query);
+    if (videoId) {
+      // Process as direct video URL
+      try {
+        const apiKeys = localStorage.getItem("api_keys");
+        if (!apiKeys) {
+          toast({
+            title: "Configuration requise",
+            description: "Veuillez d'abord configurer votre clé API YouTube.",
+            variant: "destructive",
+          });
+          return;
+        }
+  
+        const { youtube } = JSON.parse(apiKeys);
+        if (!youtube) {
+          toast({
+            title: "Clé API YouTube manquante",
+            description: "Veuillez configurer votre clé API YouTube dans les paramètres.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        setIsSearchingYouTube(true);
+        
+        // Get video details
+        const videoInfo = await getVideoInfo(youtube, videoId);
+        
+        // Create a single result with the video
+        const video = {
+          id: videoId,
+          title: videoInfo.title,
+          description: videoInfo.description,
+          thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+          publishedAt: new Date().toISOString()
+        };
+        
+        setYoutubeResults([video]);
+        
+        // Generate download links
+        const links = generateDownloadLinks(videoId);
+        setDownloadLinks(links);
+        
+        toast({
+          title: "Vidéo trouvée",
+          description: "Les liens de téléchargement sont disponibles",
+        });
+      } catch (error) {
+        console.error("Error processing video URL:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de traiter cette URL vidéo",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSearchingYouTube(false);
+      }
+      return;
+    }
+    
+    // Regular search query
     const apiKeys = localStorage.getItem("api_keys");
     if (!apiKeys) {
       toast({
@@ -43,6 +108,7 @@ export function useYouTubeSearch() {
     try {
       const videos = await searchMRCVideos(youtube, query);
       setYoutubeResults(videos);
+      setDownloadLinks(null); // Reset download links for regular search
     } catch (error) {
       toast({
         title: "Erreur YouTube",
@@ -73,6 +139,10 @@ export function useYouTubeSearch() {
     setIsLoading(true);
     try {
       const videoInfo = await getVideoInfo(youtube, videoId);
+      
+      // Generate download links
+      const links = generateDownloadLinks(videoId);
+      setDownloadLinks(links);
       
       const systemMessage: Message = {
         role: "assistant",
@@ -111,8 +181,10 @@ export function useYouTubeSearch() {
   return {
     youtubeResults,
     isSearchingYouTube,
+    downloadLinks,
     handleYouTubeSearch,
     handleVideoSelect,
-    setYoutubeResults
+    setYoutubeResults,
+    setDownloadLinks
   };
 }
