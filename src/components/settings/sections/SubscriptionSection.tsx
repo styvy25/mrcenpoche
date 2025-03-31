@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { UserLevel } from '@/components/gamification/UserLevel';
 
+const STRIPE_DIRECT_LINK = "https://buy.stripe.com/14kcQa9Cx9ME1he3cA";
+
 const SubscriptionSection = () => {
   const { subscription, userPoints, loading, currentPlan } = useSubscription();
   const { toast } = useToast();
@@ -47,6 +49,10 @@ const SubscriptionSection = () => {
         variant: "destructive",
       });
     }
+  };
+  
+  const handleDirectPurchase = () => {
+    window.open(STRIPE_DIRECT_LINK, '_blank');
   };
 
   return (
@@ -136,7 +142,7 @@ const SubscriptionSection = () => {
               </>
             )}
           </CardContent>
-          <CardFooter className="flex justify-end">
+          <CardFooter className="flex justify-end gap-2">
             {loading ? (
               <Skeleton className="h-9 w-40" />
             ) : subscription?.stripeSubscriptionId ? (
@@ -164,7 +170,7 @@ const SubscriptionSection = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full justify-start" onClick={() => window.open('https://buy.stripe.com/14kcQa9Cx9ME1he3cA', '_blank')}>
+              <Button variant="outline" className="w-full justify-start" onClick={handleDirectPurchase}>
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Acheter directement via Stripe
               </Button>

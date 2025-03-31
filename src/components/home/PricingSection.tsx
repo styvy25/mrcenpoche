@@ -1,45 +1,15 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Crown, Shield, Users } from "lucide-react";
-import { createCheckoutSession, SUBSCRIPTION_PLANS } from "@/services/paymentService";
-import { Feature } from "@/hooks/api-keys/types";
-import { useToast } from "@/hooks/use-toast";
+import { SUBSCRIPTION_PLANS } from "@/services/paymentService";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import StripeButton from "@/components/payment/StripeButton";
 
 const PricingSection = () => {
-  const { toast } = useToast();
   const { subscription, loading, currentPlan, isPremium } = useSubscription();
-  
-  const handleSubscribe = async (priceId: string) => {
-    try {
-      // Don't process free plan through Stripe
-      if (priceId === 'price_free') {
-        toast({
-          title: "Plan gratuit",
-          description: "Vous utilisez déjà le plan gratuit",
-        });
-        return;
-      }
-      
-      toast({
-        title: "Redirection vers la page de paiement",
-        description: "Vous allez être redirigé vers notre plateforme de paiement sécurisée.",
-      });
-      
-      await createCheckoutSession(priceId);
-    } catch (error) {
-      console.error('Error subscribing:', error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur s'est produite lors de la souscription",
-        variant: "destructive",
-      });
-    }
-  };
 
   const getPlanIcon = (planType: string) => {
     switch (planType) {
@@ -139,22 +109,18 @@ const PricingSection = () => {
               </CardContent>
               
               <CardFooter>
-                <Button 
-                  onClick={() => handleSubscribe(plan.priceId)}
+                <StripeButton 
+                  priceId={plan.priceId}
                   variant={plan.isPopular ? "default" : "outline"}
                   className={`w-full ${
                     plan.isPopular 
                       ? 'bg-mrc-blue hover:bg-blue-700' 
                       : ''
-                  } ${
-                    currentPlan?.planType === plan.planType && subscription?.status === 'active'
-                      ? 'cursor-default opacity-70'
-                      : ''
                   }`}
-                  disabled={loading || (currentPlan?.planType === plan.planType && subscription?.status === 'active')}
+                  showIcon={true}
                 >
                   {getButtonText(plan.planType)}
-                </Button>
+                </StripeButton>
               </CardFooter>
             </Card>
           ))}

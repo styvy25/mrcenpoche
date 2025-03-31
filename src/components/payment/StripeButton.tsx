@@ -1,18 +1,18 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Key, Loader2, ShoppingCart, Crown } from 'lucide-react';
-import { createCheckoutSession } from '@/services/paymentService';
+import { Loader2, ShoppingCart, Crown, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
 
 interface StripeButtonProps {
-  priceId: string;
+  priceId?: string; // Made optional since we'll use a direct link
   children: React.ReactNode;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "gradient" | "glow";
   className?: string;
   showIcon?: boolean;
   size?: "default" | "sm" | "lg" | "xl" | "icon";
+  directLink?: string;
 }
 
 const StripeButton: React.FC<StripeButtonProps> = ({ 
@@ -21,7 +21,8 @@ const StripeButton: React.FC<StripeButtonProps> = ({
   variant = "gradient",
   className = "",
   showIcon = true,
-  size = "default"
+  size = "default",
+  directLink = "https://buy.stripe.com/14kcQa9Cx9ME1he3cA" // Default to the provided link
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
@@ -60,7 +61,8 @@ const StripeButton: React.FC<StripeButtonProps> = ({
         description: "Vous allez être redirigé vers la page de paiement sécurisée",
       });
       
-      await createCheckoutSession(priceId);
+      // Use direct link instead of createCheckoutSession
+      window.location.href = directLink;
     } catch (error) {
       console.error("Payment error:", error);
       toast({
@@ -85,7 +87,7 @@ const StripeButton: React.FC<StripeButtonProps> = ({
       ) : isCurrentPlan ? (
         <Crown className="h-4 w-4 mr-2" />
       ) : showIcon ? (
-        <ShoppingCart className="h-4 w-4 mr-2" />
+        <ExternalLink className="h-4 w-4 mr-2" />
       ) : null}
       
       {isCurrentPlan ? "Plan actuel" : children}
