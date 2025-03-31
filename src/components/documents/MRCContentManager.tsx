@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Table,
   TableBody,
@@ -13,7 +14,7 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
@@ -42,7 +43,6 @@ const MRCContentManager = () => {
   const [content, setContent] = useState<ContentItem[]>([]);
   const [pdfDocuments, setPdfDocuments] = useState<PDFDocument[]>([]);
   const [selectedTab, setSelectedTab] = useState("content");
-  const { toast } = useToast();
 
   useEffect(() => {
     loadContent();
@@ -53,49 +53,23 @@ const MRCContentManager = () => {
       setLoading(true);
       
       if (selectedTab === "content" || selectedTab === "all") {
-        // Since mrc_content isn't in the DB schema, we'll use pdf_documents as a workaround
-        // and filter for web content type
         const { data: contentData, error: contentError } = await supabase
-          .from('pdf_documents')
+          .from('mrc_content')
           .select('*')
-          .eq('document_type', 'web')
           .order('created_at', { ascending: false });
         
         if (contentError) throw contentError;
-        
-        // Transform data to fit ContentItem type
-        const transformedContent: ContentItem[] = (contentData || []).map(item => ({
-          id: item.id,
-          title: item.title,
-          content_type: item.document_type,
-          url: item.file_url || '',
-          created_at: item.created_at,
-          indexed: Boolean(item.status === 'indexed')
-        }));
-        
-        setContent(transformedContent);
+        setContent(contentData || []);
       }
       
       if (selectedTab === "pdf" || selectedTab === "all") {
         const { data: pdfData, error: pdfError } = await supabase
           .from('pdf_documents')
           .select('*')
-          .eq('document_type', 'pdf')
           .order('created_at', { ascending: false });
         
         if (pdfError) throw pdfError;
-        
-        // Transform to match PDFDocument type
-        const transformedPdfs: PDFDocument[] = (pdfData || []).map(item => ({
-          id: item.id,
-          title: item.title,
-          document_type: item.document_type,
-          file_url: item.file_url || '',
-          created_at: item.created_at,
-          indexed: Boolean(item.status === 'indexed')
-        }));
-        
-        setPdfDocuments(transformedPdfs);
+        setPdfDocuments(pdfData || []);
       }
     } catch (error) {
       console.error('Error loading content:', error);
@@ -162,23 +136,16 @@ const MRCContentManager = () => {
     try {
       setLoading(true);
       
-      // Insert directly into pdf_documents table
-      const { data, error } = await supabase
-        .from('pdf_documents')
-        .insert({
-          title: `PDF Document - ${new Date().toLocaleDateString()}`,
-          document_type: 'pdf',
-          file_url: pdfUrl,
-          status: 'pending',
-          content: {}
-        })
-        .select();
+      // Call the edge function to analyze the PDF
+      const { data, error } = await supabase.functions.invoke('optimize-seo', {
+        body: { action: 'analyze_pdf', url: pdfUrl }
+      });
       
       if (error) throw error;
       
       toast({
-        title: "PDF ajouté avec succès",
-        description: `Le document ${pdfUrl} a été ajouté à l'index`,
+        title: "PDF analysé avec succès",
+        description: `Le document ${pdfUrl} a été indexé`,
       });
       
       // Refresh content
@@ -219,12 +186,6 @@ const MRCContentManager = () => {
       
       if (error) throw error;
       
-      // Update the document status to indexed
-      await supabase
-        .from('pdf_documents')
-        .update({ status: 'indexed' })
-        .eq('id', id);
-      
       toast({
         title: "SEO généré avec succès",
         description: `Les métadonnées SEO ont été générées pour ${url}`,
@@ -248,13 +209,21 @@ const MRCContentManager = () => {
     try {
       setLoading(true);
       
-      // For both types, delete from pdf_documents table
-      const { error } = await supabase
-        .from('pdf_documents')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      if (type === 'content') {
+        const { error } = await supabase
+          .from('mrc_content')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('pdf_documents')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+      }
       
       toast({
         title: "Élément supprimé",

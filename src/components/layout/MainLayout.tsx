@@ -5,7 +5,6 @@ import Footer from './Footer';
 import { cn } from '@/lib/utils';
 import Navbar from './Navbar';
 import ResponsiveContainer from './ResponsiveContainer';
-import { MenuBarDemo } from '@/components/ui/menu-bar-demo';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -30,10 +29,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       
       <main className={cn('flex-1', className)}>
         <ResponsiveContainer fullWidth={fullWidth} padBottom={padBottom}>
-          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-auto">
-            <MenuBarDemo />
-          </div>
-          
           {children}
         </ResponsiveContainer>
       </main>

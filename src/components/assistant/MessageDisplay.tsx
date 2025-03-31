@@ -37,11 +37,7 @@ const MessageDisplay = memo(({ message }: MessageDisplayProps) => {
             </p>
             <p className="mt-1 text-sm leading-relaxed whitespace-pre-line">{message.content}</p>
             <p className="text-xs text-gray-400 mt-2 text-right">
-              {message.timestamp instanceof Date 
-                ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : typeof message.timestamp === 'string' 
-                  ? new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  : ''}
+              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
         </div>

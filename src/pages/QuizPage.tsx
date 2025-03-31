@@ -1,62 +1,23 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import QuizContainer from "@/components/quiz/QuizContainer";
+import { categories } from "@/components/quiz/data/categories";
 import { useToast } from "@/hooks/use-toast";
 import SocialShareButtons from "@/components/shared/SocialShareButtons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Share2, Award } from "lucide-react";
-import { fetchCategories, getUserStats } from "@/services/quizService";
-import { useAuth } from "@/components/auth/AuthContext";
 
 const QuizPage = () => {
   const { toast } = useToast();
   const [showSharing, setShowSharing] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { currentUser } = useAuth();
   
-  // User statistics
-  const [userStats, setUserStats] = useState({
-    streak: 0,
-    totalComplete: 0,
-    highScore: 0
-  });
-  
-  // Load categories and user stats
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        
-        // Load categories
-        const categoriesData = await fetchCategories();
-        setCategories(categoriesData);
-        
-        // Load user stats if user is logged in
-        if (currentUser && currentUser.id) {
-          const stats = await getUserStats(currentUser.id);
-          setUserStats({
-            streak: stats.streakDays || 0,
-            totalComplete: stats.completedQuizzes || 0,
-            highScore: stats.totalQuestions ? Math.round((stats.correctAnswers / stats.totalQuestions) * 100) : 0
-          });
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error("Error loading quiz data:", error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger les données. Veuillez réessayer plus tard.",
-          variant: "destructive",
-        });
-        setLoading(false);
-      }
-    };
-    
-    loadData();
-  }, [currentUser, toast]);
+  // This would be replaced with real user data in a production app
+  const userData = {
+    streak: 3,
+    totalComplete: 12,
+    highScore: 90
+  };
   
   // Show achievement toasts based on user actions
   const showAchievementToast = (achievement: string) => {
@@ -99,7 +60,7 @@ const QuizPage = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
-            <QuizContainer initialCategories={categories} />
+            <QuizContainer categories={categories} />
           </div>
           
           <div className="space-y-6">
@@ -114,15 +75,15 @@ const QuizPage = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Série actuelle:</span>
-                    <span className="font-semibold">{userStats.streak} jours</span>
+                    <span className="font-semibold">{userData.streak} jours</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Quiz complétés:</span>
-                    <span className="font-semibold">{userStats.totalComplete}</span>
+                    <span className="font-semibold">{userData.totalComplete}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Meilleur score:</span>
-                    <span className="font-semibold">{userStats.highScore}%</span>
+                    <span className="font-semibold">{userData.highScore}%</span>
                   </div>
                 </div>
               </CardContent>

@@ -4,18 +4,23 @@ import { useYouTubeSearch } from "./useYouTubeSearch";
 import { useMessageHandler } from "./useMessageHandler";
 import { useOfflineMode } from "./useOfflineMode";
 import { Message } from "@/types/message";
+import { 
+  normalizeMessages, 
+  formatMessageTime, 
+  formatLastSeen,
+  saveMessagesToStorage 
+} from "@/utils/MessageUtils";
 
 export function useChatState() {
   const { 
-    messages: handlerMessages, 
+    messages, 
     isLoading, 
+    setIsLoading,
     handleSendMessage: baseHandleSendMessage, 
     clearConversation,
     initializeMessages,
-    setMessages: setHandlerMessages
+    setMessages
   } = useMessageHandler();
-  
-  const [messages, setMessages] = useState<Message[]>([]);
   
   const {
     youtubeResults,
@@ -29,20 +34,6 @@ export function useChatState() {
   
   // Use a ref to track if we've already initialized messages
   const hasInitialized = useRef(false);
-
-  // Sync messages from messageHandler
-  useEffect(() => {
-    if (handlerMessages.length > 0) {
-      const normalizedMessages = handlerMessages.map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp),
-        type: msg.type || "text",
-        senderId: msg.senderId || "user",
-        content: msg.content || ""
-      }));
-      setMessages(normalizedMessages);
-    }
-  }, [handlerMessages]);
 
   // Initialize messages from localStorage if available
   useEffect(() => {
@@ -64,16 +55,16 @@ export function useChatState() {
         timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)
       }));
       
-      localStorage.setItem('mrc_chat_messages', JSON.stringify(normalizedMessages));
+      saveMessagesToStorage(normalizedMessages);
       
       // Update messages with normalized timestamps if needed
       if (JSON.stringify(messages) !== JSON.stringify(normalizedMessages)) {
-        setHandlerMessages(normalizedMessages);
+        setMessages(normalizedMessages);
       }
-    }, 500);
+    }, 500); // Add debounce to prevent excessive writes
     
     return () => clearTimeout(timeoutId);
-  }, [messages, setHandlerMessages]);
+  }, [messages, setMessages]);
 
   const handleSendMessage = useCallback((input: string) => {
     return baseHandleSendMessage(input);
@@ -109,16 +100,8 @@ export function useChatState() {
     clearConversation,
     activeUsers,
     CURRENT_USER_ID: '1',
-    formatTime: (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    formatLastSeen: (date: Date) => {
-      const now = new Date();
-      const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-      if (diffMinutes < 1) return 'just now';
-      if (diffMinutes < 60) return `${diffMinutes}m ago`;
-      const diffHours = Math.floor(diffMinutes / 60);
-      if (diffHours < 24) return `${diffHours}h ago`;
-      return date.toLocaleDateString();
-    },
+    formatTime: formatMessageTime,
+    formatLastSeen,
     chatSettings
   };
 }

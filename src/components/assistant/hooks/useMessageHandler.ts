@@ -103,7 +103,8 @@ export function useMessageHandler() {
 
   const handleSendMessage = useCallback(async (
     input: string, 
-    isOnline: boolean = navigator.onLine
+    isOnline: boolean, 
+    handleYouTubeSearch: ((query: string, isOnline: boolean) => Promise<void>) | null = null
   ): Promise<boolean> => {
     if (!input.trim()) return false;
     
@@ -158,6 +159,12 @@ export function useMessageHandler() {
           setIsLoading(false);
           return true;
         }
+      }
+
+      // Check if the message is about YouTube videos
+      if (detectYoutubeIntent(input) && youtube && handleYouTubeSearch) {
+        const searchTerms = input.replace(/vidéo|video|youtube|regarder|voir|discours|interview|conférence|média/gi, '').trim();
+        await handleYouTubeSearch(searchTerms || "MRC Cameroun", isOnline);
       }
 
       try {

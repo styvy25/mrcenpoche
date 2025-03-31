@@ -1,23 +1,12 @@
 
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
+import AIChat from '@/components/assistant/AIChat';
+import { usePlanLimits, Feature } from '@/hooks/usePlanLimits';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Loader2 } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-// Lazy load AIChat component for better initial page load
-const AIChat = lazy(() => import('@/components/assistant/AIChat'));
-
-// Define Feature type to fix TS errors
-enum Feature {
-  CHAT = "chat",
-  OFFLINE_MODE = "offlineMode",
-  PDF_EXPORT = "pdfExport",
-  YOUTUBE_ANALYSIS = "youtubeAnalysis",
-  MAX_CHATS = "maxChats"
-}
 
 const AssistantPage = () => {
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(true);
@@ -25,40 +14,18 @@ const AssistantPage = () => {
     hasReachedLimit, 
     getRemainingUsage, 
     hasChatLimit,
-    canUseFeature,
-    incrementChatMessages
+    canUseFeature 
   } = usePlanLimits();
   const navigate = useNavigate();
   
   const hasLimit = hasChatLimit();
-  const chatLimitReached = hasReachedLimit(Feature.MAX_CHATS);
-  const remainingChats = getRemainingUsage(Feature.MAX_CHATS);
-  const offlineMode = canUseFeature(Feature.OFFLINE_MODE);
+  const chatLimitReached = hasReachedLimit('maxChats');
+  const remainingChats = getRemainingUsage('maxChats');
+  const offlineMode = canUseFeature('offlineMode' as Feature);
   
   const handleUpgrade = () => {
     navigate('/payment');
   };
-
-  // Preload necessary assets and data
-  useEffect(() => {
-    // Preload chat messages
-    try {
-      const savedMessages = localStorage.getItem('mrc_chat_messages');
-      if (!savedMessages) {
-        // If no messages, prepare initial state
-        const initialMessage = {
-          id: 'welcome',
-          content: "Bonjour, je suis Styvy237, votre assistant IA pour la formation MRC. Comment puis-je vous aider aujourd'hui?",
-          sender: 'assistant',
-          timestamp: new Date(),
-          text: "Bonjour, je suis Styvy237, votre assistant IA pour la formation MRC. Comment puis-je vous aider aujourd'hui?"
-        };
-        localStorage.setItem('mrc_chat_messages', JSON.stringify([initialMessage]));
-      }
-    } catch (error) {
-      console.error('Error preloading chat data:', error);
-    }
-  }, []);
   
   return (
     <MainLayout>
@@ -110,16 +77,7 @@ const AssistantPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <Suspense fallback={
-            <div className="flex h-[calc(100vh-12rem)] items-center justify-center">
-              <div className="flex flex-col items-center">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="mt-4">Chargement de l'assistant...</p>
-              </div>
-            </div>
-          }>
-            <AIChat offlineMode={offlineMode} />
-          </Suspense>
+          <AIChat offlineMode={offlineMode} />
         )}
       </div>
     </MainLayout>

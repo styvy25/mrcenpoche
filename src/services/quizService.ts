@@ -1,182 +1,7 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { Category, QuizQuestion, QuizResult, QuizUserStats } from '@/components/quiz/types';
+import { QuizQuestion, QuizResult, QuizUserStats } from '@/components/quiz/types';
 
-// Function to fetch quiz categories with questions
-export const fetchCategories = async (): Promise<Category[]> => {
-  try {
-    const { data: categories, error: categoriesError } = await supabase
-      .from('quiz_categories')
-      .select('*');
-
-    if (categoriesError) {
-      console.error('Error fetching categories:', categoriesError);
-      return [];
-    }
-
-    // Now fetch questions for each category
-    const categoriesWithQuestions = await Promise.all(
-      categories.map(async (category) => {
-        const { data: questions, error: questionsError } = await supabase
-          .from('quiz_questions')
-          .select('*')
-          .eq('category_id', category.id);
-
-        if (questionsError) {
-          console.error(`Error fetching questions for category ${category.id}:`, questionsError);
-          return {
-            ...category,
-            questions: []
-          };
-        }
-
-        // Transform questions to match our frontend format
-        const formattedQuestions: QuizQuestion[] = questions.map(q => ({
-          id: q.id,
-          question: q.question_text,
-          options: Array.isArray(q.options) ? q.options : JSON.parse(q.options),
-          correctAnswer: q.correct_answer,
-          explanation: q.explanation,
-          difficulty: q.difficulty_level
-        }));
-
-        return {
-          id: category.id,
-          name: category.name,
-          description: category.description,
-          icon: category.icon,
-          label: category.name,
-          questions: formattedQuestions
-        };
-      })
-    );
-
-    return categoriesWithQuestions;
-  } catch (error) {
-    console.error('Error in fetchCategories:', error);
-    return [];
-  }
-};
-
-// Save quiz attempt
-export const saveQuizAttempt = async (
-  userId: string | undefined, 
-  categoryId: string,
-  score: number,
-  totalQuestions: number,
-  answersData: { questionId: string, answer: string, isCorrect: boolean }[]
-): Promise<string | null> => {
-  try {
-    if (!userId) return null;
-
-    // Insert the attempt
-    const { data: attemptData, error: attemptError } = await supabase
-      .from('quiz_attempts')
-      .insert({
-        user_id: userId,
-        category_id: categoryId,
-        score: score,
-        total_questions: totalQuestions,
-        correct_answers: score,
-        completed_at: new Date().toISOString()
-      })
-      .select('id')
-      .single();
-
-    if (attemptError) {
-      console.error('Error saving quiz attempt:', attemptError);
-      return null;
-    }
-
-    const attemptId = attemptData.id;
-
-    // Insert the responses
-    const responsesData = answersData.map(answer => ({
-      attempt_id: attemptId,
-      question_id: answer.questionId,
-      user_answer: answer.answer,
-      is_correct: answer.isCorrect
-    }));
-
-    const { error: responsesError } = await supabase
-      .from('quiz_responses')
-      .insert(responsesData);
-
-    if (responsesError) {
-      console.error('Error saving quiz responses:', responsesError);
-    }
-
-    // Update the leaderboard
-    await updateLeaderboard(userId, categoryId, score, totalQuestions);
-
-    return attemptId;
-  } catch (error) {
-    console.error('Error in saveQuizAttempt:', error);
-    return null;
-  }
-};
-
-// Update the user's leaderboard entry
-const updateLeaderboard = async (
-  userId: string,
-  categoryId: string,
-  score: number,
-  totalQuestions: number
-): Promise<void> => {
-  try {
-    // Check if user already has a leaderboard entry
-    const { data: existingEntry, error: fetchError } = await supabase
-      .from('quiz_leaderboard')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('category_id', categoryId)
-      .maybeSingle();
-
-    if (fetchError) {
-      console.error('Error fetching leaderboard entry:', fetchError);
-      return;
-    }
-
-    const now = new Date().toISOString();
-
-    if (existingEntry) {
-      // Update existing entry
-      const { error: updateError } = await supabase
-        .from('quiz_leaderboard')
-        .update({
-          total_score: existingEntry.total_score + score,
-          quizzes_completed: existingEntry.quizzes_completed + 1,
-          average_score: (existingEntry.total_score + score) / (existingEntry.quizzes_completed + 1),
-          last_quiz_date: now
-        })
-        .eq('id', existingEntry.id);
-
-      if (updateError) {
-        console.error('Error updating leaderboard:', updateError);
-      }
-    } else {
-      // Create new entry
-      const { error: insertError } = await supabase
-        .from('quiz_leaderboard')
-        .insert({
-          user_id: userId,
-          category_id: categoryId,
-          total_score: score,
-          quizzes_completed: 1,
-          average_score: score / totalQuestions * 100,
-          last_quiz_date: now
-        });
-
-      if (insertError) {
-        console.error('Error creating leaderboard entry:', insertError);
-      }
-    }
-  } catch (error) {
-    console.error('Error in updateLeaderboard:', error);
-  }
-};
-
-// Types pour le stockage local des quiz
+// Types pour le stockage des quiz
 interface StoredQuiz {
   id: string;
   title: string;
@@ -185,55 +10,123 @@ interface StoredQuiz {
   lastUpdated: Date;
 }
 
-// Get user statistics
-export const getUserStats = async (userId: string): Promise<QuizUserStats> => {
-  try {
-    if (!userId) {
-      return {
+interface QuizAttempt {
+  id: string;
+  quizId: string;
+  userId: string;
+  score: number;
+  totalQuestions: number;
+  date: Date;
+  answers: string[];
+  timeSpent: number; // en secondes
+}
+
+// Fonctions pour gérer les quiz
+export const saveQuiz = (quiz: StoredQuiz): void => {
+  const quizzes = getQuizzes();
+  const existingIndex = quizzes.findIndex(q => q.id === quiz.id);
+  
+  if (existingIndex >= 0) {
+    quizzes[existingIndex] = { ...quiz, lastUpdated: new Date() };
+  } else {
+    quizzes.push({ ...quiz, lastUpdated: new Date() });
+  }
+  
+  localStorage.setItem('mrc_quizzes', JSON.stringify(quizzes));
+};
+
+export const getQuizzes = (): StoredQuiz[] => {
+  const quizzes = localStorage.getItem('mrc_quizzes');
+  return quizzes ? JSON.parse(quizzes) : [];
+};
+
+export const getQuizById = (quizId: string): StoredQuiz | undefined => {
+  const quizzes = getQuizzes();
+  return quizzes.find(q => q.id === quizId);
+};
+
+export const deleteQuiz = (quizId: string): void => {
+  const quizzes = getQuizzes();
+  const filteredQuizzes = quizzes.filter(q => q.id !== quizId);
+  localStorage.setItem('mrc_quizzes', JSON.stringify(filteredQuizzes));
+};
+
+// Fonctions pour gérer les tentatives de quiz
+export const saveQuizAttempt = (attempt: QuizAttempt): void => {
+  const attempts = getQuizAttempts();
+  attempts.push(attempt);
+  localStorage.setItem('mrc_quiz_attempts', JSON.stringify(attempts));
+  
+  // Mettre à jour les statistiques de l'utilisateur
+  updateUserStats(attempt);
+};
+
+export const getQuizAttempts = (): QuizAttempt[] => {
+  const attempts = localStorage.getItem('mrc_quiz_attempts');
+  return attempts ? JSON.parse(attempts) : [];
+};
+
+export const getUserQuizAttempts = (userId: string): QuizAttempt[] => {
+  const attempts = getQuizAttempts();
+  return attempts.filter(a => a.userId === userId);
+};
+
+// Fonctions pour gérer les statistiques
+const updateUserStats = (attempt: QuizAttempt): void => {
+  const statsKey = `mrc_quiz_stats_${attempt.userId}`;
+  const existingStatsJson = localStorage.getItem(statsKey);
+  const existingStats: QuizUserStats = existingStatsJson 
+    ? JSON.parse(existingStatsJson) 
+    : {
         completedQuizzes: 0,
         correctAnswers: 0,
         totalQuestions: 0,
         streakDays: 0,
         badges: []
       };
+  
+  // Mettre à jour les statistiques
+  const updatedStats: QuizUserStats = {
+    ...existingStats,
+    completedQuizzes: existingStats.completedQuizzes + 1,
+    correctAnswers: existingStats.correctAnswers + attempt.score,
+    totalQuestions: existingStats.totalQuestions + attempt.totalQuestions,
+    lastQuizDate: new Date()
+  };
+  
+  // Vérifier et mettre à jour le streak
+  const lastQuizDate = existingStats.lastQuizDate ? new Date(existingStats.lastQuizDate) : null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  if (lastQuizDate) {
+    const lastDate = new Date(lastQuizDate);
+    lastDate.setHours(0, 0, 0, 0);
+    
+    if (lastDate.getTime() === yesterday.getTime()) {
+      // Si la dernière tentative était hier, augmenter le streak
+      updatedStats.streakDays = existingStats.streakDays + 1;
+    } else if (lastDate.getTime() < yesterday.getTime()) {
+      // Si la dernière tentative était avant hier, réinitialiser le streak
+      updatedStats.streakDays = 1;
     }
+    // Si c'est le même jour, le streak reste identique
+  } else {
+    // Premier quiz
+    updatedStats.streakDays = 1;
+  }
+  
+  localStorage.setItem(statsKey, JSON.stringify(updatedStats));
+};
 
-    const { data, error } = await supabase
-      .from('quiz_leaderboard')
-      .select('quizzes_completed, total_score, average_score')
-      .eq('user_id', userId);
-
-    if (error) {
-      console.error('Error fetching user stats:', error);
-      return {
-        completedQuizzes: 0,
-        correctAnswers: 0,
-        totalQuestions: 0,
-        streakDays: 0,
-        badges: []
-      };
-    }
-
-    // Calculate overall stats across all categories
-    const stats = data.reduce((acc, entry) => {
-      return {
-        completedQuizzes: acc.completedQuizzes + entry.quizzes_completed,
-        correctAnswers: acc.correctAnswers + entry.total_score,
-        totalQuestions: acc.totalQuestions + (entry.quizzes_completed * 10), // Assuming 10 questions per quiz
-        streakDays: acc.streakDays, // This would need additional logic to track daily activity
-        badges: acc.badges
-      };
-    }, {
-      completedQuizzes: 0,
-      correctAnswers: 0,
-      totalQuestions: 0,
-      streakDays: 0,
-      badges: []
-    });
-
-    return stats;
-  } catch (error) {
-    console.error('Error in getUserStats:', error);
+export const getUserStats = (userId: string): QuizUserStats => {
+  const statsKey = `mrc_quiz_stats_${userId}`;
+  const stats = localStorage.getItem(statsKey);
+  
+  if (!stats) {
     return {
       completedQuizzes: 0,
       correctAnswers: 0,
@@ -242,16 +135,9 @@ export const getUserStats = async (userId: string): Promise<QuizUserStats> => {
       badges: []
     };
   }
+  
+  return JSON.parse(stats);
 };
-
-export interface QuizUserStats {
-  completedQuizzes: number;
-  correctAnswers: number;
-  totalQuestions: number;
-  streakDays: number;
-  badges: BadgeProps[];
-  lastQuizDate?: Date;
-}
 
 // Fonction pour générer un ID unique
 export const generateUniqueId = (): string => {
@@ -263,4 +149,75 @@ export const determineDifficulty = (correctPercentage: number): string => {
   if (correctPercentage >= 90) return "facile";
   if (correctPercentage >= 70) return "moyen";
   return "difficile";
+};
+
+// Fonction pour recommander des quiz en fonction des performances passées
+export const getRecommendedQuizzes = (userId: string): StoredQuiz[] => {
+  const attempts = getUserQuizAttempts(userId);
+  const quizzes = getQuizzes();
+  const stats = getUserStats(userId);
+  
+  if (attempts.length === 0 || quizzes.length === 0) {
+    // S'il n'y a pas d'historique, retourner les quiz de niveau débutant
+    return quizzes.filter(quiz => {
+      const avgDifficulty = determineQuizDifficulty(quiz.questions);
+      return avgDifficulty === "facile";
+    });
+  }
+  
+  // Calculer la performance moyenne
+  const avgPerformance = stats.correctAnswers / stats.totalQuestions;
+  
+  // Recommander des quiz en fonction de la performance
+  if (avgPerformance >= 0.8) {
+    // Bonne performance, recommander des quiz difficiles et moyens
+    return quizzes.filter(quiz => {
+      const avgDifficulty = determineQuizDifficulty(quiz.questions);
+      return avgDifficulty === "difficile" || avgDifficulty === "moyen";
+    });
+  } else if (avgPerformance >= 0.6) {
+    // Performance moyenne, recommander des quiz moyens
+    return quizzes.filter(quiz => {
+      const avgDifficulty = determineQuizDifficulty(quiz.questions);
+      return avgDifficulty === "moyen";
+    });
+  } else {
+    // Performance faible, recommander des quiz faciles
+    return quizzes.filter(quiz => {
+      const avgDifficulty = determineQuizDifficulty(quiz.questions);
+      return avgDifficulty === "facile";
+    });
+  }
+};
+
+// Fonction utilitaire pour déterminer la difficulté moyenne d'un quiz
+const determineQuizDifficulty = (questions: QuizQuestion[]): string => {
+  if (!questions || questions.length === 0) return "facile";
+  
+  const difficultyMap: Record<string, number> = {
+    "facile": 0,
+    "moyen": 0,
+    "difficile": 0
+  };
+  
+  questions.forEach(q => {
+    if (q.difficulty) {
+      difficultyMap[q.difficulty] = (difficultyMap[q.difficulty] || 0) + 1;
+    } else {
+      difficultyMap["moyen"] = (difficultyMap["moyen"] || 0) + 1;
+    }
+  });
+  
+  // Déterminer la difficulté dominante
+  let maxCount = 0;
+  let dominantDifficulty = "moyen";
+  
+  for (const [difficulty, count] of Object.entries(difficultyMap)) {
+    if (count > maxCount) {
+      maxCount = count;
+      dominantDifficulty = difficulty;
+    }
+  }
+  
+  return dominantDifficulty;
 };

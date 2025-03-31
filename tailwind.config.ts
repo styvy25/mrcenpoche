@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -121,25 +120,9 @@ export default {
 			},
 			backgroundImage: {
 				'gradient-mrc': 'linear-gradient(90deg, #005BAA 0%, #E30016 100%)',
-				'gradient-cameroon': 'linear-gradient(90deg, #009A44 0%, #FCD116 50%, #E30016 100%)',
-				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))'
+				'gradient-cameroon': 'linear-gradient(90deg, #009A44 0%, #FCD116 50%, #E30016 100%)'
 			}
 		}
 	},
-	// Add safelist to ensure dynamic classes are generated
-	safelist: [
-		'text-blue-500',
-		'text-orange-500',
-		'text-green-500',
-		'text-red-500',
-		'text-purple-500',
-		'text-yellow-500',
-		'group-hover:text-blue-500',
-		'group-hover:text-orange-500',
-		'group-hover:text-green-500',
-		'group-hover:text-red-500',
-		'group-hover:text-purple-500',
-		'group-hover:text-yellow-500',
-	],
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;

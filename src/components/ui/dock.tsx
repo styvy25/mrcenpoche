@@ -18,49 +18,45 @@ interface DockLabelProps extends React.HTMLAttributes<HTMLSpanElement> {
   children: React.ReactNode;
 }
 
-interface DockContextType {
+interface DockContext {
   activeIndex: number | null;
   setActiveIndex: (index: number | null) => void;
 }
 
-const DockContext = React.createContext<DockContextType>({
+const DockContext = React.createContext<DockContext>({
   activeIndex: null,
-  setActiveIndex: () => {}
+  setActiveIndex: () => {},
 });
 
-export function Dock({
-  children,
-  className,
-  ...props
-}: DockProps) {
+export function Dock({ children, className, ...props }: DockProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  
+
   return (
-    <DockContext.Provider value={{
-      activeIndex,
-      setActiveIndex
-    }}>
-      <div className={cn("flex justify-center pb-safe sticky bottom-0 z-50 px-4 [--dock-item-size:2.75rem] sm:[--dock-item-size:3.5rem]", className)} 
-           {...props}>
-        {children}
+    <DockContext.Provider value={{ activeIndex, setActiveIndex }}>
+      <div
+        className={cn(
+          "flex justify-center pb-safe sticky bottom-0 z-50 px-4 [--dock-item-size:2.75rem] sm:[--dock-item-size:3.5rem]",
+          className
+        )}
+        {...props}
+      >
+        <div
+          className={cn(
+            "flex h-[4.5rem] items-end gap-1 rounded-2xl bg-black/20 p-2 backdrop-blur-md dark:bg-white/10"
+          )}
+        >
+          {children}
+        </div>
       </div>
     </DockContext.Provider>
   );
 }
 
-export function DockItem({
-  children,
-  className,
-  ...props
-}: DockItemProps) {
-  const {
-    activeIndex,
-    setActiveIndex
-  } = React.useContext(DockContext);
-  
+export function DockItem({ children, className, ...props }: DockItemProps) {
+  const { activeIndex, setActiveIndex } = React.useContext(DockContext);
   const ref = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState<number | null>(null);
-  
+
   useEffect(() => {
     if (ref.current) {
       const parent = ref.current.parentElement;
@@ -71,18 +67,23 @@ export function DockItem({
       }
     }
   }, []);
-  
+
   const isActive = activeIndex === index;
-  
+
   return (
-    <div 
-      ref={ref} 
-      onMouseEnter={() => setActiveIndex(index)} 
-      onMouseLeave={() => setActiveIndex(null)} 
-      className={cn("group relative flex aspect-square cursor-pointer flex-col items-center justify-center transition-all", {
-        "z-10 h-[var(--dock-item-size)] w-[var(--dock-item-size)]": !isActive,
-        "z-20 h-[calc(var(--dock-item-size)*1.35)] w-[calc(var(--dock-item-size)*1.35)]": isActive
-      }, className)}
+    <div
+      ref={ref}
+      onMouseEnter={() => setActiveIndex(index)}
+      onMouseLeave={() => setActiveIndex(null)}
+      className={cn(
+        "group relative flex aspect-square cursor-pointer flex-col items-center justify-center transition-all",
+        {
+          "z-10 h-[var(--dock-item-size)] w-[var(--dock-item-size)]": !isActive,
+          "z-20 h-[calc(var(--dock-item-size)*1.35)] w-[calc(var(--dock-item-size)*1.35)]":
+            isActive,
+        },
+        className
+      )}
       {...props}
     >
       {children}
@@ -90,28 +91,25 @@ export function DockItem({
   );
 }
 
-export function DockIcon({
-  children,
-  className,
-  ...props
-}: DockIconProps) {
+export function DockIcon({ children, className, ...props }: DockIconProps) {
   return (
-    <div className={cn("flex h-full w-full items-center justify-center rounded-xl bg-background/80 shadow-sm dark:bg-gray-800/80 transition-all", className)} 
-         {...props}>
+    <div
+      className={cn(
+        "flex h-full w-full items-center justify-center rounded-xl bg-background/80 shadow-sm dark:bg-gray-800/80 transition-all",
+        className
+      )}
+      {...props}
+    >
       <div className="w-6 h-6 sm:w-7 sm:h-7">{children}</div>
     </div>
   );
 }
 
-export function DockLabel({
-  children,
-  className,
-  ...props
-}: DockLabelProps) {
+export function DockLabel({ children, className, ...props }: DockLabelProps) {
   const { activeIndex } = React.useContext(DockContext);
   const ref = useRef<HTMLSpanElement>(null);
   const [index, setIndex] = useState<number | null>(null);
-  
+
   useEffect(() => {
     if (ref.current) {
       const parent = ref.current.closest("[class*='group']");
@@ -125,15 +123,17 @@ export function DockLabel({
       }
     }
   }, []);
-  
+
   const isActive = activeIndex === index;
-  
+
   return (
-    <span 
-      ref={ref} 
-      className={cn("pointer-events-none absolute -top-8 rounded-md bg-popover px-2 py-1 text-sm font-medium shadow-sm text-popover-foreground opacity-0 transition-opacity", 
-        isActive && "opacity-100", 
-        className)} 
+    <span
+      ref={ref}
+      className={cn(
+        "pointer-events-none absolute -top-8 rounded-md bg-popover px-2 py-1 text-sm font-medium shadow-sm text-popover-foreground opacity-0 transition-opacity",
+        isActive && "opacity-100",
+        className
+      )}
       {...props}
     >
       {children}
