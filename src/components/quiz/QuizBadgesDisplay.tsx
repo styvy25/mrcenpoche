@@ -1,37 +1,33 @@
 
 import React from "react";
 import { BadgeProps } from "./types";
+import { Award } from "lucide-react";
 
 interface QuizBadgesDisplayProps {
   badges: BadgeProps[];
 }
 
 const QuizBadgesDisplay: React.FC<QuizBadgesDisplayProps> = ({ badges }) => {
-  if (badges.length === 0) return null;
+  if (!badges || badges.length === 0) {
+    return <p>Aucun badge débloqué pour le moment.</p>;
+  }
 
   return (
-    <div className="flex flex-col items-center mt-6">
-      <h3 className="text-lg font-semibold mb-3">Badges gagnés</h3>
-      <div className="flex flex-wrap justify-center gap-4">
-        {badges.map((badge) => {
-          // Check if icon is available
-          const IconComponent = badge.icon && typeof badge.icon === 'object' ? badge.icon.icon : null;
-          
-          return (
-            <div
-              key={badge.id}
-              className="flex flex-col items-center bg-white rounded-lg p-3 shadow-sm w-28"
-            >
-              {IconComponent && (
-                <IconComponent className={badge.icon?.className || "h-10 w-10 text-blue-500"} />
-              )}
-              <span className="text-sm font-medium mt-1 text-center">
-                {badge.name}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {badges.map((badge) => (
+        <div 
+          key={badge.id} 
+          className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
+        >
+          <div className={`p-2 rounded-full ${badge.color ? `bg-${badge.color}-100 text-${badge.color}-600` : 'bg-blue-100 text-blue-600'}`}>
+            {badge.icon || <Award className="h-5 w-5" />}
+          </div>
+          <div>
+            <h4 className="font-medium">{badge.name}</h4>
+            <p className="text-sm text-gray-600">{badge.description}</p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

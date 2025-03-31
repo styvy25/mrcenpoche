@@ -20,7 +20,7 @@ export interface QuizQuestion {
   explanation?: string;
   imageSrc?: string;
   difficulty?: string;
-  text?: string; // Ajout de cette propriété pour compatibilité
+  text?: string; // For compatibility
 }
 
 export interface QuizState {
@@ -33,7 +33,7 @@ export interface QuizState {
 }
 
 export interface BadgeIcon {
-  icon: LucideIcon;
+  icon: React.FC<any>;
   className?: string;
 }
 
@@ -87,7 +87,7 @@ export interface QuizUserStats {
   badges: BadgeProps[];
 }
 
-// Pour match-related functionality
+// For match-related functionality
 export interface MatchPlayer {
   id: string;
   name: string;

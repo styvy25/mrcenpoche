@@ -1,94 +1,83 @@
 
-import { Trophy, Medal, Star, Award, BookOpen, Zap } from "lucide-react";
+import React from "react";
 import { BadgeProps, QuizResult } from "./types";
-
-// Helper functions to check badge conditions
-const getScorePercentage = (result: QuizResult): number => {
-  return (result.correctAnswers / result.totalQuestions) * 100;
-};
-
-// Define badges
-export const BADGES: BadgeProps[] = [
-  {
-    id: "perfect-score",
-    name: "Score Parfait",
-    description: "Obtenir un score de 100%",
-    imageUrl: "/badges/perfect-score.png",
-    threshold: 100,
-    category: "achievement",
-    icon: { icon: Trophy, className: "h-10 w-10 text-yellow-500" },
-    condition: (result: QuizResult) => getScorePercentage(result) === 100
-  },
-  {
-    id: "expert",
-    name: "Expert",
-    description: "Obtenir un score d'au moins 90%",
-    imageUrl: "/badges/expert.png",
-    threshold: 90,
-    category: "achievement",
-    icon: { icon: Medal, className: "h-10 w-10 text-blue-500" },
-    condition: (result: QuizResult) => getScorePercentage(result) >= 90
-  },
-  {
-    id: "advanced",
-    name: "Avancé",
-    description: "Obtenir un score d'au moins 75%",
-    imageUrl: "/badges/advanced.png",
-    threshold: 75,
-    category: "achievement",
-    icon: { icon: Star, className: "h-10 w-10 text-green-500" },
-    condition: (result: QuizResult) => getScorePercentage(result) >= 75
-  },
-  {
-    id: "intermediate",
-    name: "Intermédiaire",
-    description: "Obtenir un score d'au moins 60%",
-    imageUrl: "/badges/intermediate.png",
-    threshold: 60,
-    category: "achievement",
-    icon: { icon: Award, className: "h-10 w-10 text-purple-500" },
-    condition: (result: QuizResult) => getScorePercentage(result) >= 60
-  },
-  {
-    id: "beginner",
-    name: "Débutant",
-    description: "Compléter un quiz",
-    imageUrl: "/badges/beginner.png",
-    threshold: 0,
-    category: "achievement",
-    icon: { icon: BookOpen, className: "h-10 w-10 text-indigo-500" },
-    condition: (result: QuizResult) => true
-  },
-  {
-    id: "quick-thinker",
-    name: "Esprit Rapide",
-    description: "Terminer un quiz en moins de 2 minutes",
-    imageUrl: "/badges/quick-thinker.png",
-    threshold: 120,
-    category: "speed",
-    icon: { icon: Zap, className: "h-10 w-10 text-amber-500" },
-    condition: (result: QuizResult) => result.timeSpent < 120
-  }
-];
+import { Award, Trophy, Zap, Target, Flag, Medal } from "lucide-react";
 
 export const calculateEarnedBadges = (score: number, totalQuestions: number): BadgeProps[] => {
-  // Create a mock result to check badges
-  const mockResult: QuizResult = {
-    correctAnswers: score,
-    totalQuestions: totalQuestions,
-    score: (score / totalQuestions) * 100,
-    timeSpent: 0, // We don't have actual time data here
-    date: new Date()
-  };
+  const badges: BadgeProps[] = [];
+  const percentage = (score / totalQuestions) * 100;
 
-  // Filter badges that meet the condition
-  return BADGES.filter(badge => {
-    if (badge.condition) {
-      return badge.condition(mockResult);
+  // Perfect score badge
+  if (percentage === 100) {
+    badges.push({
+      id: "perfect-score",
+      name: "Score Parfait",
+      description: "Vous avez obtenu un score parfait!",
+      icon: <Trophy className="h-5 w-5 text-yellow-500" />,
+      color: "yellow",
+      earnedAt: new Date(),
+    });
+  }
+
+  // Expert badge (80%+)
+  if (percentage >= 80) {
+    badges.push({
+      id: "expert-badge",
+      name: "Expert",
+      description: "Vous avez démontré une expertise dans ce domaine!",
+      icon: <Award className="h-5 w-5 text-blue-500" />,
+      color: "blue",
+      earnedAt: new Date(),
+    });
+  }
+
+  // Good knowledge badge (60%+)
+  if (percentage >= 60 && percentage < 80) {
+    badges.push({
+      id: "good-knowledge",
+      name: "Bonne Connaissance",
+      description: "Vous avez une bonne connaissance du sujet!",
+      icon: <Medal className="h-5 w-5 text-green-500" />,
+      color: "green",
+      earnedAt: new Date(),
+    });
+  }
+
+  // First try badge
+  badges.push({
+    id: "first-attempt",
+    name: "Premier Essai",
+    description: "Vous avez terminé votre premier quiz!",
+    icon: <Flag className="h-5 w-5 text-purple-500" />,
+    color: "purple",
+    earnedAt: new Date(),
+  });
+
+  // Challenge badge (for difficult quizzes)
+  if (totalQuestions >= 10 && percentage >= 70) {
+    badges.push({
+      id: "challenger",
+      name: "Challenger",
+      description: "Vous avez relevé un défi difficile!",
+      icon: <Target className="h-5 w-5 text-red-500" />,
+      color: "red",
+      earnedAt: new Date(),
+    });
+  }
+
+  return badges;
+};
+
+export const getBadgesByCategory = (category: string): BadgeProps[] => {
+  // Implementation for category-specific badges
+  return [
+    {
+      id: `${category}-mastery`,
+      name: `Maîtrise ${category}`,
+      description: `Vous avez maîtrisé la catégorie ${category}`,
+      icon: <Zap className="h-5 w-5 text-indigo-500" />,
+      color: "indigo",
+      earnedAt: new Date(),
     }
-    return false;
-  }).map(badge => ({
-    ...badge,
-    earnedAt: new Date()
-  }));
+  ];
 };

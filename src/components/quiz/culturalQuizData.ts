@@ -13,8 +13,12 @@ const formatQuestions = (questions: any[]): QuizQuestion[] => {
   return questions.map(q => ({
     id: q.id || String(Math.random().toString(36).substring(2)),
     question: q.question,
-    options: q.options || [],
-    correctAnswer: q.correctAnswer !== undefined ? q.correctAnswer : (q.answers ? q.answers.findIndex((a: any) => a.isCorrect) : 0),
+    options: q.options || (q.answers ? q.answers.map((a: any) => a.text) : []),
+    correctAnswer: q.correctAnswer !== undefined 
+      ? q.correctAnswer 
+      : (q.answers 
+          ? q.answers.findIndex((a: any) => a.isCorrect) 
+          : 0),
     explanation: q.explanation || "",
     difficulty: q.difficulty || "moyen",
     imageSrc: q.imageSrc || undefined

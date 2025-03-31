@@ -62,15 +62,6 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
     const updatedAnswers = [...selectedAnswers];
     updatedAnswers[currentQuestionIndex] = answerIndex;
     setSelectedAnswers(updatedAnswers);
-
-    // Check if this is the last question
-    const isLastQuestion = currentQuestionIndex === currentCategory.questions.length - 1;
-
-    if (isLastQuestion) {
-      calculateResults();
-    } else {
-      nextQuestion();
-    }
   };
 
   const nextQuestion = () => {
