@@ -84,6 +84,78 @@
   }
 }
 
+@keyframes video-participant {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes speaking-indicator {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+}
+
+@keyframes scenario-card-hover {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15);
+  }
+}
+
+@keyframes immersive-icon-rotate {
+  0% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  100% {
+    transform: rotate(-10deg);
+  }
+}
+
+@keyframes camera-button-pulse {
+  0% {
+    background-color: rgba(22, 163, 74, 0.7);
+  }
+  50% {
+    background-color: rgba(22, 163, 74, 1);
+  }
+  100% {
+    background-color: rgba(22, 163, 74, 0.7);
+  }
+}
+
+@keyframes mic-active-pulse {
+  0% {
+    background-color: rgba(37, 99, 235, 0.7);
+  }
+  50% {
+    background-color: rgba(37, 99, 235, 1);
+  }
+  100% {
+    background-color: rgba(37, 99, 235, 0.7);
+  }
+}
+
 /* Classes d'animations */
 .highlight-glow {
   animation: pulse-border 1.5s ease-out;
@@ -115,6 +187,34 @@
 
 .user-appear {
   animation: user-appear 0.5s ease-out forwards;
+}
+
+.video-participant-appear {
+  animation: video-participant 0.5s ease-out forwards;
+}
+
+.speaking-indicator {
+  animation: speaking-indicator 1.5s infinite ease-in-out;
+}
+
+.scenario-card {
+  transition: all 0.3s ease;
+}
+
+.scenario-card:hover:not(.locked) {
+  animation: scenario-card-hover 0.3s forwards;
+}
+
+.immersive-icon {
+  animation: immersive-icon-rotate 3s infinite ease-in-out;
+}
+
+.camera-active {
+  animation: camera-button-pulse 2s infinite;
+}
+
+.mic-active {
+  animation: mic-active-pulse 2s infinite;
 }
 
 /* Scrollbar customisée */
@@ -199,4 +299,69 @@
   margin: 0;
   letter-spacing: 0.15em;
   animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+/* Animations pour la video conférence */
+.video-container {
+  background: radial-gradient(circle at center, rgba(17, 24, 39, 0.7) 0%, rgba(17, 24, 39, 1) 100%);
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.video-participant {
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.video-participant.speaking {
+  box-shadow: 0 0 0 2px #22c55e;
+}
+
+.mic-indicator.active {
+  background-color: #22c55e;
+}
+
+.mic-indicator.muted {
+  background-color: #ef4444;
+}
+
+/* Animations pour l'espace immersif */
+.immersive-bg {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.immersive-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+  z-index: 0;
+}
+
+.scenario-progress {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.scenario-progress-bar {
+  height: 100%;
+  background: linear-gradient(to right, #3b82f6, #22c55e);
+  transition: width 0.5s ease;
+}
+
+.scenario-locked-overlay {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(2px);
 }
