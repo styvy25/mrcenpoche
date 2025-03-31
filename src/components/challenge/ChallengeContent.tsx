@@ -9,7 +9,7 @@ import ChallengeActions from './ChallengeActions';
 
 interface ChallengeContentProps {
   challenge: Challenge;
-  onComplete?: (id: string) => void;
+  onComplete?: () => void;
 }
 
 const ChallengeContent: React.FC<ChallengeContentProps> = ({ 
@@ -71,7 +71,7 @@ const ChallengeContent: React.FC<ChallengeContentProps> = ({
           
           <ChallengeActions 
             challenge={challenge} 
-            onComplete={onComplete} 
+            onComplete={onComplete ? () => onComplete() : undefined}
           />
         </div>
       </CardContent>

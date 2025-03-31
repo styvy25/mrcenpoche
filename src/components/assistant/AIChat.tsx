@@ -19,7 +19,8 @@ const AIChat = () => {
     isSearchingYouTube,
     downloadLinks,
     handleSendMessage, 
-    handleVideoSelect 
+    handleVideoSelect,
+    handleClearMessages
   } = useChatState();
   
   const { generatePDF } = usePdfGenerator();

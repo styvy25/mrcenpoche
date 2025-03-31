@@ -8,7 +8,7 @@ import { Sparkles } from "lucide-react";
 const AssistantPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
-      {/* Fond animé interactif */}
+      {/* Animated interactive background */}
       <AnimatedBackground 
         numberOfOrbs={7}
         blur={90}

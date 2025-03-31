@@ -58,12 +58,28 @@ export const getDifficultyColor = (difficulty: string): string => {
   }
 };
 
+interface ChallengeResult {
+  dailyChallenge: Challenge;
+  streakCount: number;
+  totalPoints: number;
+  nextRefresh: Date;
+}
+
 // Mock functions for working with challenges - these would typically connect to a real backend
-export const loadOrCreateChallenge = async (): Promise<Challenge> => {
+export const loadOrCreateChallenge = (): ChallengeResult => {
   // In a real app, this would load from an API or database
   const storedChallenge = localStorage.getItem('daily_challenge');
+  const storedStreakCount = Number(localStorage.getItem('streak_count') || '0');
+  const storedTotalPoints = Number(localStorage.getItem('total_points') || '0');
+  const nextRefresh = new Date(new Date().setHours(23, 59, 59, 999));
+  
   if (storedChallenge) {
-    return JSON.parse(storedChallenge);
+    return {
+      dailyChallenge: JSON.parse(storedChallenge),
+      streakCount: storedStreakCount,
+      totalPoints: storedTotalPoints,
+      nextRefresh
+    };
   }
   
   // Create a new challenge if none exists
@@ -82,21 +98,48 @@ export const loadOrCreateChallenge = async (): Promise<Challenge> => {
   };
   
   localStorage.setItem('daily_challenge', JSON.stringify(newChallenge));
-  return newChallenge;
+  
+  return {
+    dailyChallenge: newChallenge,
+    streakCount: storedStreakCount,
+    totalPoints: storedTotalPoints,
+    nextRefresh
+  };
 };
 
-export const saveChallengeProgress = (challenge: Challenge, progress: number): void => {
+export const saveChallengeProgress = (challenge: Challenge, progress: number): Challenge => {
   const updatedChallenge = { ...challenge, progress };
   localStorage.setItem('daily_challenge', JSON.stringify(updatedChallenge));
+  return updatedChallenge;
 };
 
-export const completeChallenge = (challenge: Challenge): Challenge => {
+interface CompleteResult {
+  completedChallenge: Challenge;
+  newStreak: number;
+  newPoints: number;
+}
+
+export const completeChallenge = (
+  challenge: Challenge,
+  currentStreak: number,
+  currentPoints: number
+): CompleteResult => {
   const completedChallenge = { 
     ...challenge, 
     isCompleted: true, 
     progress: 100 
   };
   
+  const newStreak = currentStreak + 1;
+  const newPoints = currentPoints + challenge.points;
+  
   localStorage.setItem('daily_challenge', JSON.stringify(completedChallenge));
-  return completedChallenge;
+  localStorage.setItem('streak_count', String(newStreak));
+  localStorage.setItem('total_points', String(newPoints));
+  
+  return {
+    completedChallenge,
+    newStreak,
+    newPoints
+  };
 };

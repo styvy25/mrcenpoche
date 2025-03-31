@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 export const useChatState = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { handleMessage } = useMessageHandler(setMessages, setIsLoading);
   const { isOnline } = useOfflineMode();
   const { 
     youtubeResults, 
@@ -24,6 +23,7 @@ export const useChatState = () => {
   } = useYouTubeSearch();
   const { checkAndUseFeature } = usePlanLimits();
   const { toast } = useToast();
+  const messageHandler = useMessageHandler();
 
   const handleSendMessage = useCallback(async (content: string) => {
     // Check if user can use AI Chat feature
@@ -75,10 +75,16 @@ export const useChatState = () => {
     }
     
     // Process regular message
-    await handleMessage(content, isOnline);
+    setIsLoading(true);
+    try {
+      await messageHandler.handleSendMessage(content, isOnline, handleYouTubeSearch);
+      const messages = messageHandler.messages;
+      setMessages(messages);
+    } finally {
+      setIsLoading(false);
+    }
   }, [
-    messages, 
-    handleMessage, 
+    messageHandler,
     isOnline, 
     youtubeResults, 
     handleYouTubeSearch, 
@@ -91,7 +97,8 @@ export const useChatState = () => {
     setMessages([]);
     setYoutubeResults([]);
     setDownloadLinks(null);
-  }, [setYoutubeResults, setDownloadLinks]);
+    messageHandler.clearConversation();
+  }, [setYoutubeResults, setDownloadLinks, messageHandler]);
 
   return {
     messages,

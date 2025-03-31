@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Message } from "../types/message";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,10 @@ export function useMessageHandler() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    initializeMessages();
+  }, []);
 
   // Initialize messages from localStorage if available
   const initializeMessages = () => {

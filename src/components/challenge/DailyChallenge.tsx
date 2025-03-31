@@ -26,12 +26,12 @@ const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
     const initializeChallenge = () => {
       setIsLoading(true);
       
-      const { dailyChallenge, streakCount, totalPoints, nextRefresh } = loadOrCreateChallenge();
+      const result = loadOrCreateChallenge();
       
-      setDailyChallenge(dailyChallenge);
-      setStreakCount(streakCount);
-      setTotalPoints(totalPoints);
-      setNextRefresh(nextRefresh);
+      setDailyChallenge(result.dailyChallenge);
+      setStreakCount(result.streakCount);
+      setTotalPoints(result.totalPoints);
+      setNextRefresh(result.nextRefresh);
       
       setIsLoading(false);
     };
@@ -67,15 +67,15 @@ const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
   const handleCompleteChallenge = () => {
     if (!dailyChallenge) return;
     
-    const { completedChallenge, newStreak, newPoints } = completeChallenge(
+    const result = completeChallenge(
       dailyChallenge,
       streakCount,
       totalPoints
     );
     
-    setDailyChallenge(completedChallenge);
-    setStreakCount(newStreak);
-    setTotalPoints(newPoints);
+    setDailyChallenge(result.completedChallenge);
+    setStreakCount(result.newStreak);
+    setTotalPoints(result.newPoints);
     
     toast({
       title: "Défi complété !",
@@ -96,6 +96,16 @@ const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
     );
   }
 
+  if (!dailyChallenge) {
+    return (
+      <Card className="w-full">
+        <CardContent className="py-8">
+          <p className="text-center text-gray-500">Aucun défi disponible.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">
@@ -106,7 +116,7 @@ const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
         />
       </CardHeader>
       <CardContent>
-        <ChallengeContent challenge={dailyChallenge} />
+        <ChallengeContent challenge={dailyChallenge} onComplete={handleCompleteChallenge} />
       </CardContent>
       <CardFooter className="flex flex-col gap-3">
         <ChallengeActions

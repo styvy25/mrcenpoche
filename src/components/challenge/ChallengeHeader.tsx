@@ -11,6 +11,8 @@ interface ChallengeHeaderProps {
 }
 
 const ChallengeHeader = ({ streakCount, totalPoints, nextRefresh }: ChallengeHeaderProps) => {
+  const nextRefreshStr = nextRefresh.toISOString();
+  
   return (
     <div className="flex justify-between items-start">
       <div>
@@ -23,7 +25,7 @@ const ChallengeHeader = ({ streakCount, totalPoints, nextRefresh }: ChallengeHea
       </div>
       <div className="flex flex-col items-end">
         <Badge variant="outline" className="flex gap-1 mb-1">
-          <RefreshCw className="h-3 w-3" /> Nouveau dans {formatTimeRemaining(nextRefresh)}
+          <RefreshCw className="h-3 w-3" /> Nouveau dans {formatTimeRemaining(nextRefreshStr)}
         </Badge>
         <div className="flex gap-2">
           <Badge variant="secondary" className="flex gap-1">
