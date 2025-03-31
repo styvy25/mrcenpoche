@@ -7,6 +7,8 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: string;
   explanation: string;
+  difficulty?: string;
+  text?: string; // Added for backward compatibility
 }
 
 export interface BadgeProps {
@@ -16,6 +18,7 @@ export interface BadgeProps {
   icon: LucideIcon;
   color?: string;
   earnedAt?: Date;
+  category?: string; // Added for compatibility
 }
 
 export interface QuizResult {
@@ -26,7 +29,7 @@ export interface QuizResult {
   unlockedBadges?: BadgeProps[];
 }
 
-// Add Appointment related types that are missing
+// Expanded Appointment type with all needed properties
 export interface Appointment {
   id: string;
   title: string;
@@ -38,6 +41,12 @@ export interface Appointment {
   attendees?: string[];
   color?: string;
   isAllDay?: boolean;
+  isVirtual?: boolean;
+  link?: string;
+  date?: Date;
+  participantsCount?: number;
+  maxParticipants?: number;
+  duration?: number;
 }
 
 export interface AppointmentRequest {
@@ -47,9 +56,14 @@ export interface AppointmentRequest {
   duration: number;
   description?: string;
   location?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  topic?: string;
+  message?: string;
 }
 
-// Add missing Category type
+// Expanded Category type with all required properties
 export interface Category {
   id: string;
   name: string;
@@ -57,18 +71,24 @@ export interface Category {
   icon: LucideIcon;
   color: string;
   questionCount: number;
+  questions?: QuizQuestion[];
+  label?: string;
 }
 
-// Add missing QuizState type
+// Expanded QuizState type with all required properties
 export interface QuizState {
   currentQuestion: number;
   selectedAnswers: number[];
   timeRemaining: number;
   isFinished: boolean;
   isStarted: boolean;
+  score?: number;
+  showFeedback?: boolean;
+  isCorrect?: boolean;
+  quizCompleted?: boolean;
 }
 
-// Add missing Question type
+// Add Question type with backwards compatibility for answers field
 export interface Question {
   id: string;
   text: string;
@@ -77,9 +97,10 @@ export interface Question {
   explanation: string;
   category: string;
   difficulty: string;
+  answers?: any;
 }
 
-// Add missing QuizUserStats type
+// Expanded QuizUserStats type
 export interface QuizUserStats {
   totalQuizzes: number;
   averageScore: number;
@@ -88,5 +109,9 @@ export interface QuizUserStats {
   rank: string;
   quizzesByCategory: Record<string, number>;
   badges: BadgeProps[];
+  completedQuizzes?: number[];
+  correctAnswers?: number;
+  totalQuestions?: number;
+  streakDays?: number;
+  lastQuizDate?: Date;
 }
-

@@ -31,7 +31,7 @@ const Header = () => {
         <div className="">
           <NavLink to="/" className="flex items-center gap-2 object-cover">
             <MRCLogoNew size="small" />
-            <span className="font-bold text-xl hidden sm:inline-block text-transparent bg-clip-text bg-gradient-to-r from-mrc-blue to-mrc-green">
+            <span className="font-bold text-xl hidden sm:inline-block text-transparent bg-clip-text bg-gradient-to-r from-palette-royalblue-500 to-palette-purple-500">
               MRC en Poche
             </span>
           </NavLink>
@@ -39,27 +39,27 @@ const Header = () => {
           <nav className="hidden md:flex gap-4 ml-4">
             <NavLink to="/assistant" className={({
             isActive
-          }) => `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+          }) => `text-sm font-medium ${isActive ? 'text-palette-purple-500' : 'text-muted-foreground hover:text-palette-purple-500'}`}>
               Assistant
             </NavLink>
             <NavLink to="/documents" className={({
             isActive
-          }) => `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+          }) => `text-sm font-medium ${isActive ? 'text-palette-green-500' : 'text-muted-foreground hover:text-palette-green-500'}`}>
               Documents
             </NavLink>
             <NavLink to="/quiz" className={({
             isActive
-          }) => `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+          }) => `text-sm font-medium ${isActive ? 'text-palette-gold-500' : 'text-muted-foreground hover:text-palette-gold-500'}`}>
               Quiz
             </NavLink>
             <NavLink to="/chat-237" className={({
             isActive
-          }) => `text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+          }) => `text-sm font-medium ${isActive ? 'text-palette-royalblue-500' : 'text-muted-foreground hover:text-palette-royalblue-500'}`}>
               Chat 237
             </NavLink>
             <NavLink to="/youtube-download" className={({
             isActive
-          }) => `text-sm font-medium ${isActive ? 'text-primary text-red-600' : 'text-muted-foreground hover:text-red-600'}`}>
+          }) => `text-sm font-medium ${isActive ? 'text-palette-red-500' : 'text-muted-foreground hover:text-palette-red-500'}`}>
               <span className="flex items-center">
                 <Download className="h-3 w-3 mr-1" />
                 YouTube
@@ -67,7 +67,7 @@ const Header = () => {
             </NavLink>
             <NavLink to="/dashboard" className={({
             isActive
-          }) => `text-sm font-medium ${isActive ? 'text-primary text-purple-600' : 'text-muted-foreground hover:text-purple-600'}`}>
+          }) => `text-sm font-medium ${isActive ? 'text-palette-orange-500' : 'text-muted-foreground hover:text-palette-orange-500'}`}>
               <span className="flex items-center">
                 <LayoutDashboard className="h-3 w-3 mr-1" />
                 Tableau de bord
@@ -78,22 +78,22 @@ const Header = () => {
         
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" asChild className="hidden sm:flex">
-            <NavLink to="/youtube-download">
-              <YoutubeIcon className="h-4 w-4 mr-1 text-red-600" />
+            <NavLink to="/youtube-download" className="text-palette-red-500 hover:text-palette-red-600">
+              <YoutubeIcon className="h-4 w-4 mr-1" />
               Télécharger Vidéos
             </NavLink>
           </Button>
           
           <Button variant="outline" size="sm" asChild className="hidden sm:flex">
-            <NavLink to="/chat-237">
+            <NavLink to="/chat-237" className="text-palette-royalblue-500 hover:text-palette-royalblue-600">
               <MessageCircle className="h-4 w-4 mr-1" />
               Chat 237
             </NavLink>
           </Button>
           
           <Button variant="outline" size="sm" asChild className="hidden sm:flex">
-            <NavLink to="/dashboard">
-              <LayoutDashboard className="h-4 w-4 mr-1 text-purple-600" />
+            <NavLink to="/dashboard" className="text-palette-orange-500 hover:text-palette-orange-600">
+              <LayoutDashboard className="h-4 w-4 mr-1" />
               Tableau de bord
             </NavLink>
           </Button>
@@ -121,32 +121,37 @@ const Header = () => {
       {/* Mobile Menu */}
       {isOpen && <div className="fixed inset-0 bg-background z-30 md:hidden pt-16">
           <nav className="container py-8 flex flex-col gap-6">
-            <NavLink to="/assistant" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
+            <NavLink to="/assistant" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
+              <MessageCircle className="h-5 w-5 mr-3 text-palette-purple-500" />
               Assistant
             </NavLink>
-            <NavLink to="/documents" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
+            <NavLink to="/documents" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
+              <FileText className="h-5 w-5 mr-3 text-palette-green-500" />
               Documents
             </NavLink>
-            <NavLink to="/quiz" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
+            <NavLink to="/quiz" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
+              <Brain className="h-5 w-5 mr-3 text-palette-gold-500" />
               Quiz
             </NavLink>
-            <NavLink to="/chat-237" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
+            <NavLink to="/chat-237" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
+              <MessageCircle className="h-5 w-5 mr-3 text-palette-royalblue-500" />
               Chat 237
             </NavLink>
-            <NavLink to="/youtube-download" className="text-xl font-medium py-2 border-b border-border flex items-center text-red-600" onClick={() => setIsOpen(false)}>
-              <Download className="h-4 w-4 mr-2" />
+            <NavLink to="/youtube-download" className="text-xl font-medium py-2 border-b border-border flex items-center text-palette-red-500" onClick={() => setIsOpen(false)}>
+              <Download className="h-5 w-5 mr-3" />
               Télécharger des vidéos YouTube
             </NavLink>
             <NavLink to="/youtube-analyzer" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
-              <YoutubeIcon className="h-4 w-4 mr-2 text-red-600" />
+              <YoutubeIcon className="h-5 w-5 mr-3 text-palette-red-500" />
               Analyser des vidéos YouTube
             </NavLink>
-            <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border flex items-center text-purple-600" onClick={() => setIsOpen(false)}>
-              <LayoutDashboard className="h-4 w-4 mr-2" />
+            <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border flex items-center text-palette-orange-500" onClick={() => setIsOpen(false)}>
+              <LayoutDashboard className="h-5 w-5 mr-3" />
               Tableau de bord
             </NavLink>
             {isAuthenticated && (
-              <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border" onClick={() => setIsOpen(false)}>
+              <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
+                <User className="h-5 w-5 mr-3 text-palette-cyan-500" />
                 Mon Compte
               </NavLink>
             )}

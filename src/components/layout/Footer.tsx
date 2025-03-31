@@ -10,39 +10,45 @@ const Footer = () => {
   const navItems = [
     {
       title: 'Accueil',
-      icon: <Home className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      icon: <Home className="h-full w-full" />,
       href: '/',
-      active: location.pathname === '/' || location.pathname === '/index'
+      active: location.pathname === '/' || location.pathname === '/index',
+      color: 'bg-palette-cyan-400 text-white'
     },
     {
       title: 'Assistant',
-      icon: <MessageSquare className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      icon: <MessageSquare className="h-full w-full" />,
       href: '/assistant',
-      active: location.pathname === '/assistant'
+      active: location.pathname === '/assistant',
+      color: 'bg-palette-purple-400 text-white'
     },
     {
       title: 'Documents',
-      icon: <FileText className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      icon: <FileText className="h-full w-full" />,
       href: '/documents',
-      active: location.pathname === '/documents'
+      active: location.pathname === '/documents',
+      color: 'bg-palette-green-400 text-white'
     },
     {
       title: 'Quiz',
-      icon: <Brain className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      icon: <Brain className="h-full w-full" />,
       href: '/quiz',
-      active: location.pathname === '/quiz'
+      active: location.pathname === '/quiz',
+      color: 'bg-palette-gold-400 text-white'
     },
     {
       title: 'YouTube',
-      icon: <Youtube className="h-full w-full text-red-600 dark:text-red-400" />,
+      icon: <Youtube className="h-full w-full" />,
       href: '/youtube-download',
-      active: location.pathname === '/youtube-download' || location.pathname === '/youtube-analyzer'
+      active: location.pathname === '/youtube-download' || location.pathname === '/youtube-analyzer',
+      color: 'bg-palette-red-400 text-white'
     },
     {
       title: 'Compte',
-      icon: <User className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      icon: <User className="h-full w-full" />,
       href: '/dashboard',
-      active: location.pathname === '/dashboard' || location.pathname === '/settings'
+      active: location.pathname === '/dashboard' || location.pathname === '/settings',
+      color: 'bg-palette-orange-400 text-white'
     }
   ];
 
@@ -54,8 +60,8 @@ const Footer = () => {
             <DockItem
               className={`aspect-square rounded-full ${
                 item.active 
-                  ? 'bg-mrc-blue dark:bg-mrc-blue text-white'
-                  : 'bg-gray-200 dark:bg-neutral-800'
+                  ? item.color
+                  : 'bg-gray-200 dark:bg-neutral-800 text-gray-600 dark:text-gray-300'
               }`}
             >
               <DockLabel>{item.title}</DockLabel>
