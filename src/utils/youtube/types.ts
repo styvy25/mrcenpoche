@@ -1,6 +1,4 @@
 
-import { useToast } from "@/hooks/use-toast";
-
 // Define common types for YouTube analyzer
 export interface VideoAnalysisResult {
   success: boolean;

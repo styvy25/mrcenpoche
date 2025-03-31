@@ -1,8 +1,11 @@
 
+import { Loader2 } from "lucide-react";
+
 const PDFLoadingState = () => {
   return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mrc-blue"></div>
+    <div className="flex flex-col items-center justify-center p-12">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <p className="mt-4 text-muted-foreground">Chargement du document...</p>
     </div>
   );
 };

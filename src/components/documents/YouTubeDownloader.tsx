@@ -82,9 +82,7 @@ const YouTubeDownloader = () => {
           
           <TabsContent value="url" className="space-y-4">
             <YouTubeUrlInput 
-              value={videoUrl} 
-              onChange={handleUrlChange}
-              onAnalyze={handleAnalyze}
+              onSubmit={handleUrlChange}
               isLoading={isAnalyzing}
             />
             
@@ -92,6 +90,25 @@ const YouTubeDownloader = () => {
             
             {videoId && !error && (
               <VideoInfoDisplay videoId={videoId} />
+            )}
+            
+            {videoId && !error && (
+              <div className="flex justify-end">
+                <Button 
+                  onClick={handleAnalyze} 
+                  disabled={isAnalyzing} 
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      Analyse en cours...
+                    </>
+                  ) : (
+                    'Analyser la vidéo'
+                  )}
+                </Button>
+              </div>
             )}
           </TabsContent>
           

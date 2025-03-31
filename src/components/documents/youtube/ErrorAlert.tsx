@@ -1,20 +1,20 @@
 
 import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 interface ErrorAlertProps {
-  error: string | null;
+  message: string;
 }
 
-const ErrorAlert: React.FC<ErrorAlertProps> = ({ error }) => {
-  if (!error) return null;
-
+const ErrorAlert: React.FC<ErrorAlertProps> = ({ message }) => {
+  if (!message) return null;
+  
   return (
     <Alert variant="destructive">
-      <AlertCircle className="h-4 w-4" />
+      <AlertTriangle className="h-4 w-4" />
       <AlertTitle>Erreur</AlertTitle>
-      <AlertDescription>{error}</AlertDescription>
+      <AlertDescription>{message}</AlertDescription>
     </Alert>
   );
 };

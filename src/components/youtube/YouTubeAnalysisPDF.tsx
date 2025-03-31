@@ -25,7 +25,7 @@ const YouTubeAnalysisPDF: React.FC<YouTubeAnalysisPDFProps> = ({
   const generatePDF = async () => {
     if (!canGeneratePdf()) {
       toast({
-        title: "Fonctionnalité Premium",
+        title: "Fonctionnalité premium",
         description: "L'export PDF est disponible uniquement pour les utilisateurs Premium",
         variant: "destructive"
       });

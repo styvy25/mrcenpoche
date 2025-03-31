@@ -1,6 +1,6 @@
 
-import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PDFHeaderProps {
   moduleName: string;
@@ -9,10 +9,17 @@ interface PDFHeaderProps {
 
 const PDFHeader = ({ moduleName, onClose }: PDFHeaderProps) => {
   return (
-    <div className="p-4 border-b flex justify-between items-center bg-mrc-blue/10">
-      <h3 className="text-lg font-semibold text-mrc-blue">Aperçu du PDF - {moduleName}</h3>
-      <Button variant="ghost" size="icon" onClick={onClose}>
-        <X className="h-5 w-5" />
+    <div className="flex items-center justify-between p-2 sm:p-4 border-b">
+      <h3 className="text-lg font-semibold truncate pr-4">
+        {moduleName}
+      </h3>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onClose}
+        className="ml-auto"
+      >
+        <X className="h-4 w-4" />
       </Button>
     </div>
   );
