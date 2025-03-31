@@ -7,6 +7,3 @@ export * from './textarea';
 export * from './toast';
 export * from './menu-bar';
 export * from './menu-bar-demo';
-export * from './glow-menu';
-export * from './glow-menu-demo';
-
