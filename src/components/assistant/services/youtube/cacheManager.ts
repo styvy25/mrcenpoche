@@ -13,31 +13,17 @@ export const cacheVideoInfo = async (videoId: string, videoInfo: VideoInfo): Pro
     const { data: sessionData } = await supabase.auth.getSession();
     
     if (sessionData?.session) {
-      // Store in Supabase table
-      const { error } = await supabase
-        .from('youtube_cache')
-        .upsert({
-          video_id: videoId,
-          title: videoInfo.title,
-          description: videoInfo.description,
-          transcript: videoInfo.transcript,
-          cached_at: new Date().toISOString()
-        }, { onConflict: 'video_id' });
+      // Store video info in local storage while auth is active
+      localStorage.setItem(`youtube_video_${videoId}`, JSON.stringify({
+        ...videoInfo,
+        cachedAt: new Date().toISOString()
+      }));
       
-      if (!error) {
-        console.log("Video info cached in Supabase:", videoId);
-        
-        // Also cache locally for faster access
-        localStorage.setItem(`youtube_video_${videoId}`, JSON.stringify({
-          ...videoInfo,
-          cachedAt: new Date().toISOString()
-        }));
-        
-        return true;
-      }
+      console.log("Video info cached in local storage:", videoId);
+      return true;
     }
     
-    // Fallback to localStorage if Supabase fails or user is not authenticated
+    // Fallback to localStorage if user is not authenticated
     localStorage.setItem(`youtube_video_${videoId}`, JSON.stringify({
       ...videoInfo,
       cachedAt: new Date().toISOString()
@@ -63,34 +49,7 @@ export const cacheVideoInfo = async (videoId: string, videoInfo: VideoInfo): Pro
 // Retrieve a video's information from cache
 export const retrieveVideoInfoFromCache = async (videoId: string): Promise<VideoInfo | null> => {
   try {
-    // First try to get from Supabase if user is authenticated
-    const { data: sessionData } = await supabase.auth.getSession();
-    
-    if (sessionData?.session) {
-      const { data, error } = await supabase
-        .from('youtube_cache')
-        .select('title, description, transcript, cached_at')
-        .eq('video_id', videoId)
-        .single();
-      
-      if (!error && data) {
-        // Check if the cache is still fresh (less than 1 day old)
-        const cachedAt = new Date(data.cached_at);
-        const now = new Date();
-        const cacheAgeDays = (now.getTime() - cachedAt.getTime()) / (1000 * 60 * 60 * 24);
-        
-        if (cacheAgeDays < 1) {
-          console.log("Using Supabase cached video info for", videoId);
-          return {
-            title: data.title,
-            description: data.description,
-            transcript: data.transcript || "Transcription non disponible"
-          };
-        }
-      }
-    }
-    
-    // Try localStorage if Supabase fails or returned nothing
+    // Try to get from local storage
     const cachedData = localStorage.getItem(`youtube_video_${videoId}`);
     
     if (cachedData) {
@@ -141,14 +100,6 @@ export const refreshCache = async (apiKey: string): Promise<boolean> => {
 // Clear the YouTube cache (for debugging/testing)
 export const clearYouTubeCache = async (): Promise<void> => {
   try {
-    // Clear Supabase cache if authenticated
-    const { data: sessionData } = await supabase.auth.getSession();
-    
-    if (sessionData?.session) {
-      // Note: This would typically be restricted by RLS policies
-      console.log("Attempting to clear Supabase YouTube cache");
-    }
-    
     // Clear local storage cache
     const keys = Object.keys(localStorage);
     for (const key of keys) {
