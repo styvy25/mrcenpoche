@@ -57,6 +57,7 @@ export const useQuizResult = ({
     }
   }, [result?.unlockedBadges, earnedBadges]);
 
+  // Use badges from result or fallback to earned badges
   const badgesToDisplay = result?.unlockedBadges || earnedBadges || [];
 
   return {

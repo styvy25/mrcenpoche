@@ -66,6 +66,31 @@
     .text-center {
       @apply mx-auto;
     }
+
+    /* Quiz mobile styles */
+    .quiz-card {
+      @apply p-3 rounded-lg shadow-sm mb-3;
+    }
+    
+    .quiz-question {
+      @apply text-base font-medium mb-2;
+    }
+    
+    .quiz-option {
+      @apply p-2 text-sm;
+    }
+    
+    .quiz-badges {
+      @apply grid-cols-1 gap-2;
+    }
+    
+    .quiz-badge-icon {
+      @apply h-4 w-4;
+    }
+    
+    .quiz-badge-text {
+      @apply text-xs;
+    }
   }
 
   /* Prevent layout shifts */
@@ -141,5 +166,28 @@
   
   .transition-shadow {
     transition: none;
+  }
+}
+
+/* Quiz specific mobile styles */
+@media (max-width: 640px) {
+  .quiz-results {
+    @apply p-3;
+  }
+  
+  .quiz-progress-bar {
+    @apply h-2;
+  }
+  
+  .quiz-welcome-screen {
+    @apply p-4;
+  }
+  
+  .quiz-badge-container {
+    @apply p-2 gap-1;
+  }
+  
+  .quiz-result-summary {
+    @apply text-sm;
   }
 }

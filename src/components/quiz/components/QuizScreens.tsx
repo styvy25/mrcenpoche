@@ -36,13 +36,13 @@ const QuizScreens: React.FC<QuizScreensProps> = ({
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2">{quiz.title}</h2>
-        <p className="text-gray-600">Question {currentQuestion + 1} sur {quiz.questions.length}</p>
+    <div className="p-3 sm:p-6">
+      <div className="mb-4">
+        <h2 className="text-xl font-bold mb-1">{quiz.title}</h2>
+        <p className="text-gray-600 text-sm">Question {currentQuestion + 1} sur {quiz.questions.length}</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-4">
         {showFeedback ? (
           <AnswerFeedback 
             isCorrect={isCorrect}
@@ -61,7 +61,7 @@ const QuizScreens: React.FC<QuizScreensProps> = ({
       </div>
 
       <button 
-        className="text-primary hover:underline"
+        className="text-primary hover:underline text-sm"
         onClick={onBack}
       >
         Quitter le quiz
