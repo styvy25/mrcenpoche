@@ -20,7 +20,7 @@ const UpcomingEventsWidget = () => {
     } else {
       toast({
         title: "Information sur l'événement",
-        description: `Cet événement se tiendra à ${event.location} le ${format(new Date(event.date), "dd MMMM yyyy 'à' HH'h'mm", { locale: fr })}`,
+        description: `Cet événement se tiendra à ${event.location} le ${format(event.date, "dd MMMM yyyy 'à' HH'h'mm", { locale: fr })}`,
       });
     }
   };

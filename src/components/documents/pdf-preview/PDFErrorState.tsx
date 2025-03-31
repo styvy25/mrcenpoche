@@ -1,6 +1,6 @@
 
-import { AlertCircle, RefreshCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 interface PDFErrorStateProps {
   onRetry: () => void;
@@ -9,27 +9,24 @@ interface PDFErrorStateProps {
 
 const PDFErrorState = ({ onRetry, onClose }: PDFErrorStateProps) => {
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm flex flex-col items-center">
-      <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-      <h3 className="text-lg font-semibold mb-2">Erreur de chargement du PDF</h3>
-      <p className="text-muted-foreground text-center mb-4">
-        Une erreur s'est produite lors du chargement du document. Veuillez réessayer.
+    <div className="text-center p-6 flex flex-col items-center justify-center">
+      <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
+      <p className="text-lg font-bold mb-2 text-red-500">Erreur de chargement</p>
+      <p className="mb-4 text-gray-600 dark:text-gray-300">
+        Le chargement du PDF a échoué. Cela peut être dû à des problèmes de réseau ou de restrictions d'accès.
       </p>
-      <div className="flex gap-2">
+      <div className="flex gap-3 mt-2">
+        <Button 
+          className="bg-mrc-blue hover:bg-blue-700" 
+          onClick={onRetry}
+        >
+          Réessayer
+        </Button>
         <Button 
           variant="outline" 
           onClick={onClose}
-          className="flex items-center"
         >
-          <X className="mr-2 h-4 w-4" />
           Fermer
-        </Button>
-        <Button 
-          onClick={onRetry}
-          className="flex items-center"
-        >
-          <RefreshCcw className="mr-2 h-4 w-4" />
-          Réessayer
         </Button>
       </div>
     </div>

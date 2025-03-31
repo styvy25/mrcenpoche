@@ -1,155 +1,91 @@
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, ArrowLeft, ArrowRight, Book, Play } from "lucide-react";
-import DOMPurify from "dompurify";
+import React from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { getLessonContent } from './utils/lessonContentUtil';
+import LessonEmptyState from './LessonEmptyState';
+import LessonContent from './LessonContent';
+import LessonActionButtons from './LessonActionButtons';
+import { Lesson } from "./types";
 
-// Define proper interfaces for the lazy-loaded components
-interface RosettaLearningProps {
-  moduleId: string;
-  onComplete: () => void;
+interface ModuleLessonContentProps {
+  moduleId?: string;
+  lessonId?: string | null;
+  activeLesson?: Lesson | null;
+  onMarkComplete?: (lessonId: number) => void;
 }
 
-export interface ModuleQuizProps {
-  moduleId: string;
-  questions: any[];
-  onComplete: (score?: number, totalQuestions?: number) => void;
-  quizData?: any;
-  onQuizComplete?: () => void;
-}
-
-// Import components with proper lazy loading
-const RosettaLearning = React.lazy(() => import("./rosetta/RosettaLearning")) as React.FC<RosettaLearningProps>;
-const ModuleQuiz = React.lazy(() => import("./ModuleQuiz")) as React.FC<ModuleQuizProps>;
-
-export interface ModuleLessonContentProps {
-  moduleId: string;
-  lessonId: string;
-  lessonTitle: string;
-  lessonContent: string;
-  quizData?: any;
-  onBack: () => void;
-  onNext: () => void;
-  onComplete: () => void;
-  hasNext?: boolean;
-  hasPrevious?: boolean;
-  activeLesson?: any;
-}
-
-const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({
-  moduleId,
-  lessonId,
-  lessonTitle,
-  lessonContent,
-  quizData,
-  onBack,
-  onNext,
-  onComplete,
-  hasNext = false,
-  hasPrevious = false,
-  activeLesson,
+const ModuleLessonContent: React.FC<ModuleLessonContentProps> = ({ 
+  moduleId, 
+  lessonId, 
+  activeLesson, 
+  onMarkComplete 
 }) => {
-  const [currentTab, setCurrentTab] = useState<string>("content");
-  const [lessonCompleted, setLessonCompleted] = useState<boolean>(false);
-
-  const handleLessonComplete = () => {
-    setLessonCompleted(true);
-    onComplete();
+  const { toast } = useToast();
+  const contentInfo = moduleId && lessonId 
+    ? getLessonContent(moduleId, lessonId)
+    : activeLesson 
+      ? { title: activeLesson.title, content: activeLesson.content }
+      : { title: "", content: "" };
+  
+  const { title, content } = contentInfo;
+  
+  const handleBookmark = () => {
+    toast({
+      title: "Leçon sauvegardée",
+      description: `La leçon "${title}" a été ajoutée à vos favoris.`,
+      variant: "default"
+    });
   };
-
-  const sanitizedContent = lessonContent ? DOMPurify.sanitize(lessonContent) : "";
-
+  
+  const handleComplete = () => {
+    toast({
+      title: "Leçon terminée",
+      description: `Félicitations ! Vous avez terminé la leçon "${title}".`,
+      variant: "default"
+    });
+    
+    if (onMarkComplete && activeLesson) {
+      onMarkComplete(Number(activeLesson.id));
+    }
+  };
+  
+  const handleShare = () => {
+    // Copy current page URL to clipboard
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => {
+        toast({
+          title: "Lien copié !",
+          description: "Le lien de cette leçon a été copié dans votre presse-papiers.",
+          variant: "default"
+        });
+      })
+      .catch(err => {
+        console.error('Erreur lors de la copie du lien: ', err);
+        toast({
+          title: "Erreur",
+          description: "Impossible de copier le lien.",
+          variant: "destructive"
+        });
+      });
+  };
+  
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-semibold">{lessonTitle}</CardTitle>
-          {lessonCompleted && (
-            <div className="flex items-center text-green-600">
-              <CheckCircle className="mr-1 h-5 w-5" />
-              <span className="text-sm">Complété</span>
-            </div>
-          )}
-        </div>
-        <CardDescription>Module: {moduleId}</CardDescription>
-      </CardHeader>
-
-      <Tabs defaultValue="content" value={currentTab} onValueChange={setCurrentTab}>
-        <div className="px-6">
-          <TabsList className="w-full">
-            <TabsTrigger value="content" className="flex-1">
-              <Book className="mr-2 h-4 w-4" />
-              Contenu
-            </TabsTrigger>
-            <TabsTrigger value="interactive" className="flex-1">
-              <Play className="mr-2 h-4 w-4" />
-              Apprentissage interactif
-            </TabsTrigger>
-            {quizData && (
-              <TabsTrigger value="quiz" className="flex-1">
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Quiz
-              </TabsTrigger>
-            )}
-          </TabsList>
-        </div>
-
-        <CardContent className="pt-6">
-          <TabsContent value="content">
-            <div 
-              className="prose prose-sm lg:prose-base max-w-none dark:prose-invert prose-headings:text-primary"
-              dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6 transition-colors duration-300">
+      {!lessonId && !activeLesson ? (
+        <LessonEmptyState title={title} content={content} />
+      ) : (
+        <>
+          <LessonContent title={title} content={content} />
+          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+            <LessonActionButtons 
+              onBookmark={handleBookmark}
+              onComplete={handleComplete}
+              onShare={handleShare}
             />
-          </TabsContent>
-
-          <TabsContent value="interactive">
-            <React.Suspense fallback={<div>Chargement...</div>}>
-              <RosettaLearning 
-                moduleId={moduleId}
-                onComplete={handleLessonComplete}
-              />
-            </React.Suspense>
-          </TabsContent>
-
-          {quizData && (
-            <TabsContent value="quiz">
-              <React.Suspense fallback={<div>Chargement...</div>}>
-                <ModuleQuiz
-                  moduleId={moduleId}
-                  questions={quizData.questions || []}
-                  onComplete={handleLessonComplete}
-                  quizData={quizData}
-                  onQuizComplete={handleLessonComplete}
-                />
-              </React.Suspense>
-            </TabsContent>
-          )}
-        </CardContent>
-      </Tabs>
-
-      <CardFooter className="flex justify-between pt-2">
-        <Button
-          variant="outline"
-          onClick={onBack}
-          disabled={!hasPrevious}
-          className="flex items-center"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Précédent
-        </Button>
-
-        <Button
-          onClick={onNext}
-          disabled={!hasNext}
-          className="flex items-center"
-        >
-          Suivant
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </CardFooter>
-    </Card>
+          </div>
+        </>
+      )}
+    </div>
   );
 };
 

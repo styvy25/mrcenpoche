@@ -2,19 +2,19 @@
 @layer base {
   @media (max-width: 640px) {
     h1 {
-      @apply text-xl leading-tight;
+      @apply text-xl;
     }
     
     h2 {
-      @apply text-lg leading-tight;
+      @apply text-lg;
     }
     
     .container {
-      @apply px-3;
+      @apply px-4;
     }
     
     .card {
-      @apply rounded-lg shadow-sm p-4;
+      @apply rounded-lg shadow-sm;
     }
 
     .mobile-padding {
@@ -23,6 +23,11 @@
     
     .mobile-text-sm {
       font-size: 0.875rem !important;
+    }
+    
+    .mobile-card {
+      border-radius: 0.5rem !important;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
     }
     
     .mobile-stack {
@@ -42,152 +47,5 @@
       margin-top: 0.5rem !important;
       margin-bottom: 0.5rem !important;
     }
-    
-    /* Improved button spacing for mobile */
-    button, .button {
-      @apply py-2 px-3;
-    }
-    
-    /* Better card styles for mobile */
-    .card {
-      @apply mb-2;
-    }
-    
-    /* Reduce margins and paddings */
-    .p-6 {
-      @apply p-3;
-    }
-    
-    .m-6 {
-      @apply m-3;
-    }
-    
-    /* Properly align text in mobile view */
-    .text-center {
-      @apply mx-auto;
-    }
-
-    /* Quiz mobile styles */
-    .quiz-card {
-      @apply p-2 rounded-lg shadow-sm mb-2;
-    }
-    
-    .quiz-question {
-      @apply text-sm font-medium mb-1.5;
-    }
-    
-    .quiz-option {
-      @apply p-1.5 text-xs;
-    }
-    
-    .quiz-badges {
-      @apply grid-cols-1 gap-1.5;
-    }
-    
-    .quiz-badge-icon {
-      @apply h-3 w-3;
-    }
-    
-    .quiz-badge-text {
-      @apply text-[10px];
-    }
-  }
-
-  /* Prevent layout shifts */
-  img, video, iframe {
-    aspect-ratio: attr(width) / attr(height);
-  }
-
-  /* Improve scrolling performance */
-  .scrollable {
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-    overscroll-behavior: contain;
-  }
-
-  /* Prevent jumpy animations */
-  .animate-safe {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-  }
-  
-  /* Grid fixes for mobile */
-  @media (max-width: 768px) {
-    .grid {
-      @apply gap-2;
-    }
-    
-    .grid-cols-3 {
-      @apply grid-cols-1;
-    }
-    
-    .md\:grid-cols-2 {
-      @apply grid-cols-1;
-    }
-  }
-}
-
-/* Optimize transitions */
-.fade-transition {
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-  will-change: opacity, transform;
-}
-
-/* Prevent layout shifts during loading */
-.content-placeholder {
-  min-height: 1rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.content-placeholder::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2), rgba(255,255,255,0.1));
-  animation: placeholder-shine 1.5s ease infinite;
-  background-size: 200% 100%;
-}
-
-@keyframes placeholder-shine {
-  0% { background-position: -100% 0; }
-  100% { background-position: 100% 0; }
-}
-
-/* Mobile-specific animations */
-@media (max-width: 768px) {
-  .hover\:shadow-md {
-    @apply shadow-sm;
-  }
-  
-  .transition-shadow {
-    transition: none;
-  }
-}
-
-/* Quiz specific mobile styles */
-@media (max-width: 640px) {
-  .quiz-results {
-    @apply p-2;
-  }
-  
-  .quiz-progress-bar {
-    @apply h-1.5;
-  }
-  
-  .quiz-welcome-screen {
-    @apply p-3;
-  }
-  
-  .quiz-badge-container {
-    @apply p-1.5 gap-1;
-  }
-  
-  .quiz-result-summary {
-    @apply text-xs;
   }
 }

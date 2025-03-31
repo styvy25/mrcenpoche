@@ -1,107 +1,95 @@
 
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { FileText, Download, Info } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
-import PremiumDialog from "@/components/premium/PremiumDialog";
-import PremiumBanner from "@/components/premium/PremiumBanner";
-import ModuleSelector from './ModuleSelector';
-import PDFActions from './PDFActions';
-import { useScreenSize } from '@/hooks/useScreenSize';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileText, Settings, BookOpen } from "lucide-react";
+import ModuleSelector from "./ModuleSelector";
+import PDFActions from "./PDFActions";
+import PDFPreview from "./pdf-preview/PDFPreview";
+import ModuleMetadata from "./module-selection/ModuleMetadata";
+import ContentTab from "./pdf-content/ContentTab";
+import OptionsTab from "./pdf-options/OptionsTab";
+import APIKeyDialog from "./dialogs/APIKeyDialog";
+import AuthenticationNotice from "./AuthenticationNotice";
+import { MODULE_PDF_URLS, MODULE_NAMES } from "./pdfUtils";
+import { usePDFGenerator } from "./hooks/usePDFGenerator";
+import { generateAndDownloadPDF } from "./services/pdfGenerationService";
 
-interface PDFGeneratorProps {
-  onGenerate?: () => void;
-  isGenerating?: boolean;
-  isGenerateEnabled?: boolean;
-}
-
-const PDFGenerator: React.FC<PDFGeneratorProps> = ({ 
-  onGenerate = () => {}, 
-  isGenerating = false,
-  isGenerateEnabled = true
-}) => {
-  const { toast } = useToast();
-  const { canGeneratePdf, incrementPdfGenerations, userPlan } = usePlanLimits();
-  const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
-  const [selectedModule, setSelectedModule] = useState('');
-  const [pdfGenerated, setPdfGenerated] = useState(false);
-  const { isMobile } = useScreenSize();
-
-  const handleGeneratePDF = () => {
-    if (!selectedModule) {
-      toast({
-        title: "Sélection requise",
-        description: "Veuillez sélectionner un module avant de générer le PDF."
-      });
-      return;
-    }
-    
-    if (!isGenerateEnabled) {
-      toast({
-        title: "Impossible de générer le PDF",
-        description: "Veuillez remplir tous les champs obligatoires avant de générer le PDF."
-      });
-      return;
-    }
-    
-    // Vérifier si l'utilisateur peut générer un PDF
-    if (!canGeneratePdf()) {
-      setIsPremiumDialogOpen(true);
-      return;
-    }
-    
-    // Incrémenter le compteur de PDF
-    const canGenerate = incrementPdfGenerations();
-    if (!canGenerate) return;
-    
-    onGenerate();
-    setPdfGenerated(true);
-    
-    toast({
-      title: "PDF généré avec succès",
-      description: "Votre PDF a été généré et est prêt à être téléchargé."
-    });
-  };
+const PDFGenerator = () => {
+  const {
+    selectedModule,
+    setSelectedModule,
+    isGenerating,
+    showPreview,
+    setShowPreview,
+    pdfGenerated,
+    activeTab,
+    setActiveTab,
+    userName,
+    setUserName,
+    options,
+    setOptions,
+    showAPIKeyDialog,
+    setShowAPIKeyDialog,
+    handleGeneratePDF,
+    isAuthenticated
+  } = usePDFGenerator();
 
   const handlePreviewPDF = () => {
-    toast({
-      title: "Aperçu du PDF",
-      description: "Chargement de l'aperçu du PDF..."
-    });
+    setShowPreview(true);
   };
 
   const handleDownloadPDF = () => {
-    toast({
-      title: "Téléchargement en cours",
-      description: "Votre PDF est en cours de téléchargement..."
-    });
+    generateAndDownloadPDF(selectedModule, userName, options);
   };
 
+  if (!isAuthenticated) {
+    return <AuthenticationNotice />;
+  }
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-          <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-          Générateur de PDF de formation
-        </CardTitle>
-        <CardDescription className="text-xs sm:text-sm">
-          Créez des documents PDF à partir du contenu de formation MRC
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {userPlan === 'free' && (
-          <PremiumBanner type="pdf" />
-        )}
-        
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium">Sélectionnez un module</h3>
-          <ModuleSelector onSelect={setSelectedModule} selected={selectedModule} />
-        </div>
-        
-        <div className={`${isMobile ? 'space-y-2' : 'flex gap-2'} mt-4`}>
+    <>
+      <Card className="w-full">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-bold text-mrc-blue">Générateur de Supports PDF</CardTitle>
+          <CardDescription>
+            Créez des supports de formation personnalisés adaptés à vos besoins
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ModuleSelector 
+            selectedModule={selectedModule} 
+            setSelectedModule={setSelectedModule} 
+          />
+          
+          {selectedModule && <ModuleMetadata selectedModule={selectedModule} />}
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-2 mb-4">
+              <TabsTrigger value="content" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Contenu
+              </TabsTrigger>
+              <TabsTrigger value="options" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Options
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="content">
+              <ContentTab selectedModule={selectedModule} />
+            </TabsContent>
+            
+            <TabsContent value="options">
+              <OptionsTab 
+                userName={userName}
+                setUserName={setUserName}
+                options={options}
+                setOptions={setOptions}
+              />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+        <CardFooter className="flex flex-col sm:flex-row gap-3 w-full">
           <PDFActions 
             isGenerating={isGenerating}
             pdfGenerated={pdfGenerated}
@@ -110,14 +98,22 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
             handlePreviewPDF={handlePreviewPDF}
             handleDownloadPDF={handleDownloadPDF}
           />
-        </div>
-      </CardContent>
+        </CardFooter>
+      </Card>
 
-      <PremiumDialog 
-        isOpen={isPremiumDialogOpen} 
-        onClose={() => setIsPremiumDialogOpen(false)} 
+      {showPreview && (
+        <PDFPreview 
+          pdfUrl={MODULE_PDF_URLS[selectedModule as keyof typeof MODULE_PDF_URLS]} 
+          onClose={() => setShowPreview(false)} 
+          moduleName={MODULE_NAMES[selectedModule as keyof typeof MODULE_NAMES]} 
+        />
+      )}
+
+      <APIKeyDialog 
+        showDialog={showAPIKeyDialog} 
+        onClose={() => setShowAPIKeyDialog(false)} 
       />
-    </Card>
+    </>
   );
 };
 

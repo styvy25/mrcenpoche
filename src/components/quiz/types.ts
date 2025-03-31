@@ -1,140 +1,113 @@
 
-import { LucideIcon } from "lucide-react";
-import { ReactNode } from "react";
+export interface QuizResult {
+  correctAnswers: number;
+  totalQuestions: number;
+  score: number;
+  timeSpent: number;
+  badge?: string;
+  unlockedBadges?: any[]; 
+  date?: Date;
+}
 
+export interface Answer {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface Question {
+  id: string;
+  text: string;
+  answers: Answer[];
+  explanation?: string;
+}
+
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  threshold: number;
+  category: string;
+}
+
+export interface Appointment {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  participant?: {
+    name: string;
+    email: string;
+    phone?: string;
+  };
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "scheduled";
+  isVirtual?: boolean;
+  link?: string;
+  duration?: number;
+  participantsCount?: number;
+  maxParticipants?: number;
+  type?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  badge: string;
+  color: string;
+  icon: string;
+  description: string;
+  label?: string;
+  questions?: QuizQuestion[]; 
+}
+
+// Extended types for the quiz functionality
 export interface QuizQuestion {
   id: string;
-  question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
+  text: string;
+  question: string; 
+  options: string[]; 
+  answers: Answer[];
+  correctAnswer: string | number;
+  explanation?: string;
+  category?: string;
   difficulty?: string;
-  text?: string; // Added for backward compatibility
-  answers?: any; // Added for backward compatibility
-  category?: string; // Added for category support
-  imageSrc?: string; // Pour les questions avec images
+  imageSrc?: string;
 }
 
 export interface BadgeProps {
   id: string;
   name: string;
   description: string;
-  icon: LucideIcon | ReactNode;
-  color?: string;
+  imageUrl: string;
+  threshold: number;
+  category: string;
+  icon?: any; 
   earnedAt?: Date;
-  category?: string; // Added for compatibility
-}
-
-export interface QuizResult {
-  score: number;
-  totalQuestions: number;
-  correctAnswers: string[] | number;
-  wrongAnswers: string[];
-  unlockedBadges?: BadgeProps[];
-}
-
-// Expanded Appointment type with all needed properties
-export interface Appointment {
-  id: string;
-  title: string;
-  start: Date | string;
-  end: Date | string;
-  description?: string;
-  location?: string;
-  organizer?: string;
-  attendees?: string[];
-  color?: string;
-  isAllDay?: boolean;
-  isVirtual?: boolean;
-  link?: string;
-  date?: Date | string;
-  participantsCount?: number;
-  maxParticipants?: number;
-  duration?: number;
-  startTime?: string; // Add support for startTime
-  endTime?: string; // Add support for endTime
-  participant?: string; // Add participant property to fix errors
+  condition?: (result: QuizResult) => boolean;
+  colorClass?: string;
 }
 
 export interface AppointmentRequest {
   title: string;
-  date: Date | string;
-  time: string;
-  duration: number;
-  description?: string;
-  location?: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  participant?: {
+    name: string;
+    email: string;
+    phone?: string;
+  };
   name?: string;
   email?: string;
   phone?: string;
   topic?: string;
   message?: string;
+  preferredDate?: Date;
   type?: string;
 }
-
-// Expanded Category type with all required properties
-export interface Category {
-  id: string;
-  name: string;
-  description: string;
-  icon: LucideIcon;
-  color: string;
-  questionCount: number;
-  questions?: QuizQuestion[];
-  label?: string;
-}
-
-// Expanded QuizState type with all required properties
-export interface QuizState {
-  currentQuestion: number;
-  selectedAnswers: number[] | undefined[] | string[];
-  timeRemaining?: number;
-  isFinished?: boolean;
-  isStarted?: boolean;
-  score?: number;
-  showFeedback?: boolean;
-  isCorrect?: boolean;
-  quizCompleted?: boolean;
-}
-
-// Add Question type with backwards compatibility for answers field
-export interface Question {
-  id: string;
-  text: string;
-  options: string[];
-  correctAnswer: number | string;
-  explanation: string;
-  category: string;
-  difficulty: string;
-  answers?: any;
-}
-
-// Expanded QuizUserStats type
-export interface QuizUserStats {
-  totalQuizzes: number;
-  averageScore: number;
-  bestCategory: string;
-  totalPoints: number;
-  rank: string;
-  quizzesByCategory: Record<string, number>;
-  badges: BadgeProps[];
-  completedQuizzes?: number[] | number;
-  correctAnswers?: number | number[];
-  totalQuestions?: number;
-  streakDays?: number;
-  lastQuizDate?: Date;
-}
-
-// Définir les niveaux de difficulté
-export type DifficultyLevel = "Débutant" | "Intermédiaire" | "Avancé";
-
-// Définir les types de fonctionnalités pour les limites du plan
-export type Feature = 
-  "pdfGeneration" | 
-  "quizzes" | 
-  "aiChat" | 
-  "videoDownload" | 
-  "youtubeAnalysis" | 
-  "maxChats";
-
-// Définir les types de plan
-export type Plan = "free" | "standard" | "premium";

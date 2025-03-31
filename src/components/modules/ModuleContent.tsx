@@ -8,12 +8,12 @@ import { useEffect } from "react";
 interface ModuleContentProps {
   selectedModule: Module | null;
   showQuiz: boolean;
-  currentQuizModule: number | null; // Changed from string to number | null
+  currentQuizModule: string;
   onBackToModules: () => void;
   onQuizComplete: (score: number, totalQuestions: number) => void;
   onChallengeClick: () => void;
   onChatClick: () => void;
-  onStartQuiz: (moduleId: number) => void; // Changed from string to number
+  onStartQuiz: (moduleId: string) => void;
   onChallengeComplete: () => void;
 }
 
@@ -34,10 +34,10 @@ const ModuleContent = ({
   }, [selectedModule, showQuiz]);
   
   if (selectedModule) {
-    if (showQuiz && currentQuizModule !== null) {
+    if (showQuiz) {
       return (
         <QuizContent
-          moduleId={currentQuizModule.toString()} // Convert to string for QuizContent
+          moduleId={currentQuizModule}
           onBack={onBackToModules}
           onComplete={onQuizComplete}
         />

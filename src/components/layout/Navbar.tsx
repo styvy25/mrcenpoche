@@ -1,98 +1,137 @@
 
-import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { useAppContext } from "@/context/AppContext";
-import AuthDialog from "@/components/auth/AuthDialog";
-import { useIsMobile } from "@/hooks/use-mobile";
-import NavbarDropdownMenu from "./NavbarDropdownMenu";
-import NavbarNavigationButtons from "./NavbarNavigationButtons";
-import NavbarLinks from "./NavbarLinks";
-import NavbarMobileMenu from "./NavbarMobileMenu";
-import MRCLogoNew from "@/components/branding/MRCLogoNew";
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Download, MessageSquare } from "lucide-react";
-import NotificationCenter from "@/components/notifications/NotificationCenter";
-import { useNotificationsDemo } from "@/hooks/useNotificationsDemo";
+import { Menu, X, Sun, Moon, Newspaper, Home, Book, FileText, Bot, User, Key } from "lucide-react";
 
-const Navbar = () => {
+interface NavbarProps {
+  navEndElement?: React.ReactNode;
+}
+
+const Navbar = ({
+  navEndElement
+}: NavbarProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
-  const { isApiKeySet } = useAppContext();
-  const isMobile = useIsMobile();
-  const [previousLocation, setPreviousLocation] = useState<string>("");
-  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(!isApiKeySet);
-  const { createDemoNotifications } = useNotificationsDemo();
+  const navigate = useNavigate();
+  
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.classList.toggle("dark");
+  };
 
-  // Load demo notifications
-  useEffect(() => {
-    createDemoNotifications();
-  }, [createDemoNotifications]);
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
-  // Track navigation history for back button
-  useEffect(() => {
-    if (location.pathname !== previousLocation && previousLocation !== "") {
-      // Store last 5 locations
-      const history = JSON.parse(localStorage.getItem('navigationHistory') || '[]');
-      if (history.length >= 5) {
-        history.shift(); // Remove oldest entry
-      }
-      history.push(previousLocation);
-      localStorage.setItem('navigationHistory', JSON.stringify(history));
-    }
-    setPreviousLocation(location.pathname);
-  }, [location.pathname, previousLocation]);
-
+  const handleAPIButtonClick = () => {
+    navigate('/settings');
+  };
+  
   return (
-    <header className="fixed w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-10">
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-1 mr-4">
-            <NavbarDropdownMenu isApiKeySet={isApiKeySet} />
-            
-            <div className="hidden sm:flex">
-              <NavbarNavigationButtons />
+    <nav className="bg-white dark:bg-mrc-dark border-b border-gray-200 dark:border-gray-700 fixed w-full z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Link to="/" className="font-bold text-xl text-mrc-blue">MRC en Poche</Link>
+            </div>
+            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <Link to="/" className={`border-transparent ${isActive('/') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+                <Home className="h-4 w-4 mr-1" />
+                Accueil
+              </Link>
+              <Link to="/modules" className={`border-transparent ${isActive('/modules') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+                <Book className="h-4 w-4 mr-1" />
+                Modules
+              </Link>
+              <Link to="/news" className={`border-transparent ${isActive('/news') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+                <Newspaper className="h-4 w-4 mr-1" />
+                Actualités
+              </Link>
+              <Link to="/chat" className={`border-transparent ${isActive('/chat') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+                <Bot className="h-4 w-4 mr-1" />
+                Assistant IA
+              </Link>
+              <Link to="/quiz" className={`border-transparent ${isActive('/quiz') ? 'text-mrc-blue border-mrc-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'} hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}>
+                <FileText className="h-4 w-4 mr-1" />
+                Quiz
+              </Link>
             </div>
           </div>
-          
-          <Link to="/" className="flex items-center">
-            <MRCLogoNew size="small" />
-            <span className="ml-2 text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-mrc-blue via-mrc-red to-mrc-blue">
-              MRC en Poche
-            </span>
-          </Link>
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1">
-          <NavbarLinks isApiKeySet={isApiKeySet} />
-          
-          <Link to="/forum">
-            <Button variant="outline" size="sm" className="ml-2 text-purple-600 border-purple-200 hover:bg-purple-50">
-              <MessageSquare className="mr-1 h-4 w-4" />
-              Forum
+          <div className="hidden sm:ml-6 sm:flex sm:items-center gap-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAPIButtonClick}
+              className="flex items-center gap-2 text-mrc-blue border-mrc-blue/30 hover:bg-mrc-blue/10"
+            >
+              <Key className="h-4 w-4" />
+              API
             </Button>
-          </Link>
-          
-          <Link to="/youtube-download">
-            <Button variant="outline" size="sm" className="ml-2 text-red-600 border-red-200 hover:bg-red-50">
-              <Download className="mr-1 h-4 w-4" />
-              Télécharger Vidéos
+            <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="rounded-full">
+              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
-          </Link>
+            {navEndElement}
+          </div>
           
-          <NotificationCenter />
-        </nav>
-
-        {/* Mobile Navigation */}
-        <div className="md:hidden">
-          <NavbarMobileMenu isApiKeySet={isApiKeySet} />
-        </div>
-
-        <div className="flex items-center">
-          <AuthDialog />
+          <div className="-mr-2 flex items-center sm:hidden">
+            <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
         </div>
       </div>
-    </header>
+
+      {isOpen && <div className="sm:hidden bg-white dark:bg-mrc-dark animate-fade-in">
+          <div className="pt-2 pb-3 space-y-1">
+            <Link to="/" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
+              <div className="flex items-center">
+                <Home className="h-4 w-4 mr-2" />
+                Accueil
+              </div>
+            </Link>
+            <Link to="/modules" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
+              <div className="flex items-center">
+                <Book className="h-4 w-4 mr-2" />
+                Modules
+              </div>
+            </Link>
+            <Link to="/news" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
+              <div className="flex items-center">
+                <Newspaper className="h-4 w-4 mr-2" />
+                Actualités
+              </div>
+            </Link>
+            <Link to="/chat" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
+              <div className="flex items-center">
+                <Bot className="h-4 w-4 mr-2" />
+                Assistant IA
+              </div>
+            </Link>
+            <Link to="/quiz" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
+              <div className="flex items-center">
+                <FileText className="h-4 w-4 mr-2" />
+                Quiz
+              </div>
+            </Link>
+            <Link to="/settings" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 hover:text-gray-800">
+              <div className="flex items-center">
+                <Key className="h-4 w-4 mr-2" />
+                API & Paramètres
+              </div>
+            </Link>
+            <div className="flex items-center justify-between px-3 py-2">
+              <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="rounded-full">
+                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+              {navEndElement}
+            </div>
+          </div>
+        </div>}
+    </nav>
   );
-};
+}
 
 export default Navbar;

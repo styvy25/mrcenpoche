@@ -68,13 +68,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         email: formData.email || '',
         phone: formData.phone
       },
-      status: "scheduled", // Changed from 'pending' to 'scheduled' to match allowed types
+      status: "pending",
       isVirtual: true,
       link: "https://meet.google.com/abc-defg-hij",
       duration: 60,
       participantsCount: 1,
       maxParticipants: 1,
-      type: "training" // Changed from 'private' to 'training' to match allowed types
+      type: "private"
     };
 
     onSubmit(appointment);

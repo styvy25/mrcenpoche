@@ -2,26 +2,15 @@
 import { jsPDF } from "jspdf";
 import { Message } from "../types/message";
 import { useToast } from "@/hooks/use-toast";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 export const usePdfGenerator = () => {
   const { toast } = useToast();
-  const { canGeneratePdf, incrementPdfGenerations } = usePlanLimits();
 
   const generatePDF = (messages: Message[]) => {
     if (!messages || messages.length === 0) {
       toast({
         title: "Erreur",
         description: "Aucun message à exporter en PDF",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!canGeneratePdf()) {
-      toast({
-        title: "Limite atteinte",
-        description: "Vous avez atteint votre limite de génération de PDF. Passez à Premium pour un accès illimité.",
         variant: "destructive",
       });
       return;
@@ -64,8 +53,8 @@ export const usePdfGenerator = () => {
         const isAssistant = message.role === "assistant";
         const messageHeader = isAssistant ? "Assistant Styvy237" : "Vous";
         const messageDate = message.timestamp ? (
-          new Date(message.timestamp).toLocaleDateString('fr-FR') + ' ' + 
-          new Date(message.timestamp).toLocaleTimeString('fr-FR', { 
+          message.timestamp.toLocaleDateString('fr-FR') + ' ' + 
+          message.timestamp.toLocaleTimeString('fr-FR', { 
             hour: '2-digit', 
             minute: '2-digit'
           })
@@ -126,9 +115,6 @@ export const usePdfGenerator = () => {
       
       // Save the PDF
       doc.save("Conversation-Styvy237.pdf");
-      
-      // Update usage counter
-      incrementPdfGenerations();
       
       toast({
         title: "PDF généré avec succès",

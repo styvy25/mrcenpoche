@@ -1,44 +1,33 @@
 
-import React from 'react';
-import { Check } from 'lucide-react';
-import { useScreenSize } from '@/hooks/useScreenSize';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MODULE_NAMES } from "./pdfUtils";
+import { Label } from "@/components/ui/label";
+import { Book } from "lucide-react";
 
 interface ModuleSelectorProps {
-  selected: string;
-  onSelect: (moduleId: string) => void;
+  selectedModule: string;
+  setSelectedModule: (value: string) => void;
 }
 
-const ModuleSelector: React.FC<ModuleSelectorProps> = ({ selected, onSelect }) => {
-  const { isMobile } = useScreenSize();
-  
-  const modules = [
-    { id: 'histoire', name: 'Histoire et Valeurs' },
-    { id: 'mobilisation', name: 'Techniques de Mobilisation' },
-    { id: 'communication', name: 'Communication Politique' },
-    { id: 'enjeux', name: 'Enjeux Politiques' },
-    { id: 'campagne', name: 'Organisation de Campagne' }
-  ];
-
+const ModuleSelector = ({ selectedModule, setSelectedModule }: ModuleSelectorProps) => {
   return (
-    <div className="grid grid-cols-1 gap-2">
-      {modules.map((module) => (
-        <div
-          key={module.id}
-          className={`
-            flex items-center gap-2 p-3 rounded-lg border cursor-pointer
-            ${selected === module.id ? 'border-primary bg-primary/10' : 'border-gray-200 hover:border-gray-300'}
-          `}
-          onClick={() => onSelect(module.id)}
-        >
-          <div className={`
-            flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center
-            ${selected === module.id ? 'bg-primary text-white' : 'border border-gray-300'}
-          `}>
-            {selected === module.id && <Check className="h-3 w-3" />}
-          </div>
-          <span className={`${isMobile ? 'text-sm' : ''}`}>{module.name}</span>
-        </div>
-      ))}
+    <div className="space-y-2">
+      <Label htmlFor="module-select" className="flex items-center gap-2 text-sm font-medium">
+        <Book size={16} className="text-mrc-blue" />
+        Sélectionnez un module de formation
+      </Label>
+      <Select value={selectedModule} onValueChange={setSelectedModule}>
+        <SelectTrigger id="module-select" className="w-full">
+          <SelectValue placeholder="Choisir un module" />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(MODULE_NAMES).map(([key, name]) => (
+            <SelectItem key={key} value={key} className="cursor-pointer">
+              {name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };

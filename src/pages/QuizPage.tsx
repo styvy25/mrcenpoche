@@ -1,118 +1,114 @@
 
-import React, { useState } from "react";
-import MainLayout from "@/components/layout/MainLayout";
+import { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Book, Medal, Smartphone, Info, Trophy, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import QuizContainer from "@/components/quiz/QuizContainer";
-import { categories as categoriesData } from "@/components/quiz/data/categories";
-import { useToast } from "@/hooks/use-toast";
-import SocialShareButtons from "@/components/shared/SocialShareButtons";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Award } from "lucide-react";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import BadgesDisplay from "@/components/quiz/BadgesDisplay";
+import MatchesList from "@/components/quiz/matches/MatchesList";
+import { Category } from "@/components/quiz/types";
 import { culturalQuizData } from "@/components/quiz/culturalQuizData";
+import "../quiz.css";
 
 const QuizPage = () => {
-  const { toast } = useToast();
-  const [showSharing, setShowSharing] = useState(false);
-  const { isMobile } = useMediaQuery("(max-width: 768px)");
-  
-  // This would be replaced with real user data in a production app
-  const userData = {
-    streak: 3,
-    totalComplete: 12,
-    highScore: 90
-  };
-  
-  // Format categories correctly for the QuizContainer component
-  const formattedCategories = culturalQuizData.categories.map(category => ({
+  const [activeTab, setActiveTab] = useState("quiz");
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Convert culturalQuizData.categories to match Category interface
+  const categories: Category[] = culturalQuizData.categories.map((category: any) => ({
     id: category.id,
     name: category.name,
+    badge: category.badge || "", // Add default values for required fields
+    color: category.color || "",
+    icon: category.icon || "",
     description: category.description || "",
-    color: category.color || "blue-500",
-    questions: culturalQuizData.categories.find(c => c.id === category.id)?.questions || [],
-    label: category.name
+    label: category.name,
+    questions: culturalQuizData.quizQuestions?.filter((q: any) => q.category === category.id) || []
   }));
-  
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <MainLayout>
-      <div className="container mx-auto px-4 pt-16 md:pt-20 pb-12">
-        <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-mrc-blue mb-2">Quiz Camerounais</h1>
-            <p className="text-gray-600">
-              Testez vos connaissances sur le Cameroun et le MRC à travers ces quizzes interactifs.
+    <div className="min-h-screen bg-gradient-to-br from-mrc-blue/5 to-mrc-yellow/10">
+      <main className="container mx-auto px-4 py-10 pt-24">
+        <div className="text-center mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold text-mrc-blue gradient-text">Quiz Culturel Camerounais</h1>
+          <p className="text-gray-600 mt-2">Testez vos connaissances et affrontez d'autres membres</p>
+          
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+            <Badge className="bg-mrc-green text-white">Culture</Badge>
+            <Badge className="bg-mrc-red text-white">Histoire</Badge>
+            <Badge className="bg-mrc-yellow text-mrc-dark">Traditions</Badge>
+            <Badge className="bg-purple-500 text-white">Épreuve Test</Badge>
+            <Badge className="bg-blue-500 text-white flex items-center gap-1">
+              <Smartphone size={12} />
+              <span>Optimisé Mobile</span>
+            </Badge>
+          </div>
+          
+          <div className="max-w-md mx-auto mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800 flex items-start gap-2">
+            <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+            <p className="text-left">
+              <span className="font-bold">Nouveau:</span> Affrontez vos amis dans des matchs d'incollables sur le MRC et la politique camerounaise. Invitez directement via WhatsApp!
             </p>
           </div>
+        </div>
+
+        <Tabs 
+          defaultValue="quiz" 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="max-w-4xl mx-auto animate-fade-in"
+        >
+          <TabsList className="grid grid-cols-3 w-full mb-8">
+            <TabsTrigger value="quiz" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
+              <Book className="h-4 w-4" />
+              Quiz
+            </TabsTrigger>
+            <TabsTrigger value="matches" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
+              <Trophy className="h-4 w-4" />
+              Matchs
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="flex items-center gap-2 data-[state=active]:bg-mrc-blue data-[state=active]:text-white">
+              <Medal className="h-4 w-4" />
+              Mes Badges
+            </TabsTrigger>
+          </TabsList>
           
-          <div className="flex flex-shrink-0">
-            {!showSharing ? (
-              <button 
-                onClick={() => setShowSharing(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-mrc-blue text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Share2 className="h-4 w-4" />
-                Partager
-              </button>
+          <TabsContent value="quiz" className="p-1">
+            {isLoading ? (
+              <div className="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg animate-pulse flex flex-col items-center justify-center" style={{ height: "400px" }}>
+                <Trophy className="h-12 w-12 text-mrc-blue/30 mb-4" />
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+                <div className="space-y-3 w-full">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-12 bg-gray-200 rounded w-full"></div>
+                  ))}
+                </div>
+              </div>
             ) : (
-              <SocialShareButtons 
-                title="Testez vos connaissances sur le Cameroun avec MRC en Poche!"
-                description="Des quiz interactifs sur l'histoire, la culture et la politique camerounaise."
-                compact={true}
-              />
+              <QuizContainer categories={categories} />
             )}
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3">
-            <QuizContainer categories={formattedCategories} />
-          </div>
+          </TabsContent>
           
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5 text-purple-500" />
-                  Vos statistiques
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Série actuelle:</span>
-                    <span className="font-semibold">{userData.streak} jours</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Quiz complétés:</span>
-                    <span className="font-semibold">{userData.totalComplete}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Meilleur score:</span>
-                    <span className="font-semibold">{userData.highScore}%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className={`bg-gradient-to-r from-blue-50 to-indigo-50 ${isMobile ? 'p-4' : ''}`}>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <h3 className="font-semibold text-lg mb-2">Défiez vos amis!</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Invitez vos amis à tester leurs connaissances et comparez vos scores.
-                  </p>
-                  <SocialShareButtons
-                    title="Relevez le défi du quiz MRC!"
-                    description="Je vous défie de battre mon score sur ce quiz. Rejoignez MRC en Poche maintenant!"
-                    type="quiz"
-                    compact={true}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </MainLayout>
+          <TabsContent value="matches" className="p-1">
+            <MatchesList />
+          </TabsContent>
+          
+          <TabsContent value="badges" className="p-1">
+            <BadgesDisplay badges={[]} />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
   );
 };
 

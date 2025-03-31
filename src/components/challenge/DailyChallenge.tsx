@@ -1,121 +1,121 @@
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/components/auth/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { createMatch } from "@/services/matchService";
-
-interface Challenge {
-  id: string;
-  title: string;
-  description: string;
-  questions: any[];
-}
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { Challenge } from "./types";
+import { loadOrCreateChallenge, saveChallengeProgress, completeChallenge } from "./challengeUtils";
+import ChallengeHeader from "./ChallengeHeader";
+import ChallengeContent from "./ChallengeContent";
+import ChallengeActions from "./ChallengeActions";
+import AvailableSessions from "./AvailableSessions";
 
 interface DailyChallengeProps {
   onComplete?: () => void;
 }
 
-const defaultAvatar = 'https://ui-avatars.com/api/?name=User&background=random';
-
-const DailyChallenge: React.FC<DailyChallengeProps> = ({ onComplete }) => {
-  const { currentUser: user } = useAuth();
-  const navigate = useNavigate();
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [loading, setLoading] = useState(true);
+const DailyChallenge = ({ onComplete }: DailyChallengeProps) => {
+  const [dailyChallenge, setDailyChallenge] = useState<Challenge | null>(null);
+  const [streakCount, setStreakCount] = useState<number>(0);
+  const [totalPoints, setTotalPoints] = useState<number>(0);
+  const [nextRefresh, setNextRefresh] = useState<Date>(new Date());
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate fetching a daily challenge
-    const fetchChallenge = async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const mockChallenge: Challenge = {
-        id: "1",
-        title: "Défi Quotidien MRC",
-        description: "Testez vos connaissances sur le MRC avec ce défi quotidien.",
-        questions: [
-          {
-            questionText: "Quelle est la date de création du MRC ?",
-            options: ["2010", "2012", "2014", "2016"],
-            correctAnswer: "2012",
-          },
-          {
-            questionText: "Qui est le président du MRC ?",
-            options: ["Paul Biya", "Maurice Kamto", "John Fru Ndi", "Akere Muna"],
-            correctAnswer: "Maurice Kamto",
-          },
-        ],
-      };
-
-      setChallenge(mockChallenge);
-      setLoading(false);
+    // Initialize challenge data
+    const initializeChallenge = () => {
+      setIsLoading(true);
+      
+      const { dailyChallenge, streakCount, totalPoints, nextRefresh } = loadOrCreateChallenge();
+      
+      setDailyChallenge(dailyChallenge);
+      setStreakCount(streakCount);
+      setTotalPoints(totalPoints);
+      setNextRefresh(nextRefresh);
+      
+      setIsLoading(false);
     };
 
-    fetchChallenge();
+    initializeChallenge();
+    
+    // Set up timer to check for refresh
+    const intervalId = setInterval(() => {
+      const now = new Date();
+      const storedDate = localStorage.getItem('dailyChallengeDate');
+      
+      if (storedDate !== now.toDateString()) {
+        initializeChallenge();
+      }
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(intervalId);
   }, []);
 
-  const handleStartChallenge = () => {
-    if (!user) return;
+  const startChallenge = () => {
+    if (!dailyChallenge) return;
     
-    const participantData = {
-      id: user.id,
-      name: user.username || user.email?.split('@')[0] || 'User',
-      displayName: user.displayName || user.email?.split('@')[0] || 'User',
-      avatar: user.avatar || `https://ui-avatars.com/api/?name=${user.email?.split('@')[0] || 'User'}&background=random`,
-    };
-
-    if (challenge) {
-      // Fix: providing title, category and questions as separate arguments
-      const newMatch = createMatch(
-        challenge.title, 
-        "test", 
-        user.username || user.email?.split('@')[0] || 'User'
-      );
-
-      if (newMatch) {
-        toast.success("Défi lancé !");
-        navigate(`/quiz-match/${newMatch.id}`);
-        // Call onComplete if provided
-        if (onComplete) {
-          onComplete();
-        }
-      } else {
-        toast.error("Erreur lors du lancement du défi.");
-      }
-    }
+    const updatedChallenge = saveChallengeProgress(dailyChallenge, 20);
+    setDailyChallenge(updatedChallenge);
+    
+    // Simulate starting the challenge (in a real app, navigate to the challenge)
+    toast({
+      title: "Défi commencé",
+      description: `Vous avez commencé le défi "${dailyChallenge.title}"`,
+    });
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-32">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-      </div>
+  const handleCompleteChallenge = () => {
+    if (!dailyChallenge) return;
+    
+    const { completedChallenge, newStreak, newPoints } = completeChallenge(
+      dailyChallenge,
+      streakCount,
+      totalPoints
     );
-  }
+    
+    setDailyChallenge(completedChallenge);
+    setStreakCount(newStreak);
+    setTotalPoints(newPoints);
+    
+    toast({
+      title: "Défi complété !",
+      description: `Félicitations ! Vous avez gagné ${dailyChallenge.points} points.`,
+    });
+    
+    if (onComplete) onComplete();
+  };
 
-  if (!challenge) {
+  if (isLoading) {
     return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Défi Quotidien</CardTitle>
-          <CardDescription>Aucun défi disponible pour le moment.</CardDescription>
-        </CardHeader>
+      <Card className="w-full h-[400px] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-mrc-blue"></div>
+          <p className="text-sm text-gray-500">Chargement du défi quotidien...</p>
+        </div>
       </Card>
     );
   }
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>{challenge.title}</CardTitle>
-        <CardDescription>{challenge.description}</CardDescription>
+      <CardHeader className="pb-3">
+        <ChallengeHeader 
+          streakCount={streakCount}
+          totalPoints={totalPoints}
+          nextRefresh={nextRefresh}
+        />
       </CardHeader>
       <CardContent>
-        <Button onClick={handleStartChallenge}>Commencer le défi</Button>
+        <ChallengeContent challenge={dailyChallenge} />
       </CardContent>
+      <CardFooter className="flex flex-col gap-3">
+        <ChallengeActions
+          challenge={dailyChallenge}
+          onStart={startChallenge}
+          onComplete={handleCompleteChallenge}
+        />
+        <AvailableSessions />
+      </CardFooter>
     </Card>
   );
 };

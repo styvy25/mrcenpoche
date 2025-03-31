@@ -10,8 +10,6 @@ import QuizQuestionComponent from "../QuizQuestion";
 import { ArrowRight, Award, Users, Share2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import ScoreAnimation from "./ScoreAnimation";
-import DuelVisualEffects from "./components/DuelVisualEffects";
-import { motion } from "framer-motion";
 
 const MatchGame: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -24,21 +22,6 @@ const MatchGame: React.FC = () => {
   const [participant, setParticipant] = useState<MatchParticipant | null>(null);
   const [showScoreAnimation, setShowScoreAnimation] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [showEffect, setShowEffect] = useState<'correct' | 'incorrect' | 'victory' | 'start' | null>('start');
-  
-  // Effet de démarrage du jeu
-  useEffect(() => {
-    // Afficher l'animation de démarrage
-    setShowEffect('start');
-    
-    // Cacher l'animation après 2.5 secondes
-    const timer = setTimeout(() => {
-      setShowEffect(null);
-    }, 2500);
-    
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (!matchId) return;
@@ -66,12 +49,9 @@ const MatchGame: React.FC = () => {
     
     setPointsEarned(earnedPoints);
     setShowScoreAnimation(true);
-    setIsCorrect(isCorrect);
-    setShowEffect(isCorrect ? 'correct' : 'incorrect');
     
     setTimeout(() => {
       setShowScoreAnimation(false);
-      setShowEffect(null);
     }, 1500);
     
     if (participant && matchId) {
@@ -96,21 +76,14 @@ const MatchGame: React.FC = () => {
 
   const nextQuestion = () => {
     setSelectedAnswer(undefined);
-    setIsCorrect(null);
-    
     if (currentQuestionIndex < (match?.questions.length || 0) - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // End of game - afficher l'animation de victoire
-      setShowEffect('victory');
-      
-      // Attendre que l'animation soit finie avant de rediriger
-      setTimeout(() => {
-        if (match && matchId) {
-          completeMatch(matchId);
-          navigate(`/quiz-match/${matchId}/results`);
-        }
-      }, 3500);
+      // End of game
+      if (match && matchId) {
+        completeMatch(matchId);
+        navigate(`/quiz-match/${matchId}/results`);
+      }
     }
   };
 
@@ -126,7 +99,7 @@ const MatchGame: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -146,97 +119,54 @@ const MatchGame: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-4">
-      {/* Composant d'effets visuels */}
-      <DuelVisualEffects 
-        isCorrect={isCorrect} 
-        isAnimating={showScoreAnimation} 
-        score={score}
-        showEffect={showEffect}
-      />
-      
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card className="shadow-lg border-2 overflow-hidden">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>{match.title}</CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={shareOnWhatsApp}
-                className="hover:bg-blue-50"
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Inviter
-              </Button>
+      <Card className="shadow-lg">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>{match.title}</CardTitle>
+            <Button variant="outline" size="sm" onClick={shareOnWhatsApp}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Inviter
+            </Button>
+          </div>
+          <CardDescription>
+            {match.category === "test" ? "MRC Test" : "Politique Camerounaise"}
+          </CardDescription>
+          <div className="flex justify-between items-center mt-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="text-sm">{match.participants.length} participant(s)</span>
             </div>
-            <CardDescription>
-              {match.category === "test" ? "MRC Test" : "Politique Camerounaise"}
-            </CardDescription>
-            <div className="flex justify-between items-center mt-2">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span className="text-sm">{match.participants.length} participant(s)</span>
-              </div>
-              <motion.div 
-                className="flex items-center gap-2 font-semibold"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
-              >
-                <Award className="h-4 w-4 text-yellow-500" />
-                <span className="text-sm">{score} points</span>
-              </motion.div>
+            <div className="flex items-center gap-2">
+              <Award className="h-4 w-4" />
+              <span className="text-sm font-semibold">{score} points</span>
             </div>
-            <Progress value={progress} className="h-2 mt-4 bg-gray-200" />
-            <div className="text-right text-sm mt-1">
-              Question {currentQuestionIndex + 1}/{match.questions.length}
-            </div>
-          </CardHeader>
+          </div>
+          <Progress value={progress} className="h-2 mt-4" />
+          <div className="text-right text-sm mt-1">
+            Question {currentQuestionIndex + 1}/{match.questions.length}
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          {showScoreAnimation && <ScoreAnimation points={pointsEarned} />}
           
-          <CardContent>
-            {showScoreAnimation && <ScoreAnimation points={pointsEarned} />}
-            
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-              key={currentQuestionIndex}
-            >
-              <QuizQuestionComponent
-                question={currentQuestion}
-                onAnswer={handleAnswer}
-                selectedAnswer={selectedAnswer}
-                showFeedback={selectedAnswer !== undefined}
-              />
-            </motion.div>
-          </CardContent>
-          
-          <CardFooter className="flex justify-end">
-            {selectedAnswer !== undefined && (
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button 
-                  onClick={nextQuestion} 
-                  className="relative overflow-hidden bg-gradient-to-r from-mrc-blue to-mrc-green hover:from-mrc-green hover:to-mrc-blue"
-                >
-                  {currentQuestionIndex === match.questions.length - 1 ? "Voir les résultats" : "Question suivante"}
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                  
-                  {/* Effet de vague sur le bouton */}
-                  <span className="absolute inset-0 overflow-hidden rounded-lg">
-                    <span className="absolute inset-0 opacity-0 hover:opacity-10 bg-white transform -translate-x-full hover:translate-x-full transition-all duration-1000 ease-out"></span>
-                  </span>
-                </Button>
-              </motion.div>
-            )}
-          </CardFooter>
-        </Card>
-      </motion.div>
+          <QuizQuestionComponent
+            question={currentQuestion}
+            onAnswer={handleAnswer}
+            selectedAnswer={selectedAnswer}
+            showFeedback={selectedAnswer !== undefined}
+          />
+        </CardContent>
+        
+        <CardFooter className="flex justify-end">
+          {selectedAnswer !== undefined && (
+            <Button onClick={nextQuestion}>
+              {currentQuestionIndex === match.questions.length - 1 ? "Voir les résultats" : "Question suivante"}
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
     </div>
   );
 };

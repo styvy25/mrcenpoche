@@ -1,18 +1,17 @@
 
 import React from "react";
 import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Shield } from "lucide-react";
+import { Key } from "lucide-react";
 
 const APIKeyManagerHeader = () => {
   return (
     <CardHeader>
-      <div className="flex items-center gap-2">
-        <Shield className="h-5 w-5 text-primary" />
-        <CardTitle>Clés API</CardTitle>
-      </div>
+      <CardTitle className="flex items-center gap-2">
+        <Key className="h-5 w-5 text-mrc-blue" />
+        Gestionnaire de clés API
+      </CardTitle>
       <CardDescription>
-        Configurez vos clés API pour accéder à toutes les fonctionnalités de l'application.
-        Les clés sont stockées en local et ne sont jamais partagées.
+        Configurez vos clés API pour activer les fonctionnalités en ligne de MRC en Poche
       </CardDescription>
     </CardHeader>
   );

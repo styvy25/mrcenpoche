@@ -1,75 +1,118 @@
 
-import React from 'react';
-import { jsPDF } from 'jspdf';
-import { User } from '@/types';
+import { jsPDF } from "jspdf";
+import { Module } from "@/components/modules/types";
 
-interface CertificateProps {
-  moduleName: string;
-  completionDate: Date;
-  user?: User;
+interface GenerateCertificateOptions {
+  module: Module;
+  userName?: string;
+  completionDate?: Date;
 }
 
-const downloadCertificate = async (props: CertificateProps): Promise<void> => {
-  const { moduleName, completionDate, user } = props;
-  
-  // Create new PDF
+export const generateCertificate = ({
+  module,
+  userName = "Participant",
+  completionDate = new Date(),
+}: GenerateCertificateOptions) => {
+  // Create a new PDF document
   const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: 'a4'
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4",
+  });
+
+  // Set background color
+  doc.setFillColor(248, 250, 252); // Light gray background
+  doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, "F");
+
+  // Add decorative border
+  doc.setDrawColor(31, 87, 164); // MRC blue
+  doc.setLineWidth(3);
+  doc.rect(10, 10, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 20, "S");
+
+  // Add second inner border
+  doc.setDrawColor(31, 87, 164, 0.5); // MRC blue with opacity
+  doc.setLineWidth(1);
+  doc.rect(15, 15, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 30, "S");
+
+  // Add MRC header
+  doc.setFontSize(28);
+  doc.setTextColor(31, 87, 164); // MRC blue
+  doc.setFont("helvetica", "bold");
+  doc.text("CERTIFICAT DE RÉUSSITE", doc.internal.pageSize.width / 2, 40, { align: "center" });
+
+  // Add MRC subtitle
+  doc.setFontSize(16);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont("helvetica", "normal");
+  doc.text("Mouvement pour la Renaissance du Cameroun", doc.internal.pageSize.width / 2, 50, { align: "center" });
+  doc.text("Plateforme de Formation en Ligne", doc.internal.pageSize.width / 2, 58, { align: "center" });
+
+  // Add decorative line
+  doc.setDrawColor(31, 87, 164);
+  doc.setLineWidth(1);
+  doc.line(80, 65, doc.internal.pageSize.width - 80, 65);
+
+  // Certificate text
+  doc.setFontSize(14);
+  doc.setTextColor(60, 60, 60);
+  doc.text("Ce certificat est décerné à", doc.internal.pageSize.width / 2, 80, { align: "center" });
+
+  // Participant name
+  doc.setFontSize(24);
+  doc.setTextColor(31, 87, 164);
+  doc.setFont("helvetica", "bold");
+  doc.text(userName, doc.internal.pageSize.width / 2, 95, { align: "center" });
+
+  // Achievement text
+  doc.setFontSize(14);
+  doc.setTextColor(60, 60, 60);
+  doc.setFont("helvetica", "normal");
+  doc.text("pour avoir complété avec succès le module", doc.internal.pageSize.width / 2, 110, { align: "center" });
+
+  // Module title
+  doc.setFontSize(20);
+  doc.setTextColor(31, 87, 164);
+  doc.setFont("helvetica", "bold");
+  doc.text(`"${module.title}"`, doc.internal.pageSize.width / 2, 125, { align: "center" });
+
+  // Module details
+  doc.setFontSize(12);
+  doc.setTextColor(80, 80, 80);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Durée: ${module.duration} | Niveau: ${module.level}`, doc.internal.pageSize.width / 2, 138, { align: "center" });
+
+  // Date
+  const formattedDate = completionDate.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
   });
   
-  // Add certificate title
-  doc.setFontSize(30);
-  doc.setTextColor(31, 87, 164); // MRC blue
-  doc.text('Certificat de Réussite', 148, 50, { align: 'center' });
+  doc.setFontSize(12);
+  doc.text(`Délivré le ${formattedDate}`, doc.internal.pageSize.width / 2, 160, { align: "center" });
+
+  // Signature line
+  doc.setDrawColor(100, 100, 100);
+  doc.setLineWidth(0.5);
+  doc.line(100, 180, 200, 180);
   
-  // Add MRC logo/header
-  doc.setFontSize(18);
-  doc.setTextColor(0);
-  doc.text('Mouvement pour la Renaissance du Cameroun', 148, 30, { align: 'center' });
-  
-  // Add recipient name
-  doc.setFontSize(24);
-  doc.text(`${user?.email || 'Participant'}`, 148, 80, { align: 'center' });
-  
-  // Add certificate text
-  doc.setFontSize(16);
-  doc.text('a complété avec succès le module de formation', 148, 100, { align: 'center' });
-  
-  // Add module name
-  doc.setFontSize(20);
-  doc.setTextColor(46, 125, 50); // Green
-  doc.text(`"${moduleName}"`, 148, 120, { align: 'center' });
-  
-  // Add date
-  doc.setFontSize(14);
-  doc.setTextColor(0);
-  doc.text(`Date d'achèvement: ${completionDate.toLocaleDateString('fr-FR')}`, 148, 140, { align: 'center' });
-  
-  // Add signature
-  doc.text('Maurice Kamto', 80, 180);
-  doc.text('Président du MRC', 80, 188);
-  
-  // Add certificate ID
-  const certId = `MRC-CERT-${Date.now().toString().slice(-8)}`;
   doc.setFontSize(10);
-  doc.text(`ID du certificat: ${certId}`, 148, 200, { align: 'center' });
-  
-  // Save PDF
-  doc.save(`Certificat_${moduleName.replace(/\s+/g, '_')}.pdf`);
+  doc.text("Signature du responsable de formation", doc.internal.pageSize.width / 2, 188, { align: "center" });
+
+  // Generate a filename for the certificate
+  const fileName = `Certificat_${module.title.replace(/\s+/g, '_')}_${userName.replace(/\s+/g, '_')}.pdf`;
+
+  // Return the document and filename
+  return { doc, fileName };
 };
 
-const CertificateGenerator: React.FC<CertificateProps> = (props) => {
-  return (
-    <button 
-      onClick={() => downloadCertificate(props)}
-      className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/80"
-    >
-      Télécharger le certificat
-    </button>
-  );
-};
+export const downloadCertificate = (module: Module, userName?: string) => {
+  const { doc, fileName } = generateCertificate({
+    module,
+    userName,
+    completionDate: new Date(),
+  });
 
-export { downloadCertificate };
-export default CertificateGenerator;
+  // Save the PDF
+  doc.save(fileName);
+};

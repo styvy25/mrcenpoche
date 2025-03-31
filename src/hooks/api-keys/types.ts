@@ -1,39 +1,13 @@
 
-export interface ApiKeys {
-  perplexity: string;
-  youtube: string;
-  stripe: string;
-}
-
+// API Key related types
 export interface ApiKeyStatus {
   perplexity: boolean;
   youtube: boolean;
   stripe: boolean;
 }
 
-export enum Feature {
-  // Chat features
-  CHAT = "chat",
-  MAX_CHATS = "maxChats",
-  VOICE_MESSAGES = "voiceMessages",
-  ATTACHMENTS = "attachments",
-  
-  // Document features
-  PDF_EXPORT = "pdfExport",
-  CERTIFICATE = "certificate",
-  
-  // Analysis features
-  YOUTUBE_ANALYSIS = "youtubeAnalysis",
-  YOUTUBE_DOWNLOAD = "youtubeDownload",
-  AI_ASSISTANT = "aiAssistant",
-  
-  // Premium features
-  PREMIUM_MODULES = "premiumModules",
-  PREMIUM_QUIZZES = "premiumQuizzes"
-}
-
-export enum Plan {
-  FREE = "free",
-  BASIC = "basic",
-  PREMIUM = "premium"
+export interface ApiKeys {
+  perplexity: string;
+  youtube: string;
+  stripe: string;
 }

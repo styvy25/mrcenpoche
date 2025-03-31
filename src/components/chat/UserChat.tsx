@@ -1,125 +1,49 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { useMessageHandler } from './hooks/useMessageHandler';
-import { usePresenceManagement } from './hooks/usePresenceManagement'; 
-import MessagesContainer from './MessagesContainer';
-import MessageInput from './MessageInput';
-import ActiveUsersList from './ActiveUsersList';
-import { Card } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users } from "lucide-react";
+import MessagesContainer from "./MessagesContainer";
+import MessageInput from "./MessageInput";
+import ActiveUsersList from "./ActiveUsersList";
+import { useChatState } from "./hooks/useChatState";
 
-interface UserChatProps {
-  userId?: string;
-  containerClassName?: string;
-  isInDialog?: boolean;
-}
-
-const UserChat: React.FC<UserChatProps> = ({ 
-  userId, 
-  containerClassName = '',
-  isInDialog = false
-}) => {
-  const {
-    messages,
-    isLoading,
-    handleSendMessage,
-    clearConversation,
-    initializeMessages,
-    setMessages
-  } = useMessageHandler();
-  
-  const { activeUsers, currentUser } = usePresenceManagement();
-  const [error, setError] = useState<Error | null>(null);
-
-  // Format the timestamp for messages - memoized to avoid recreating on every render
-  const formatTime = useCallback((date: Date): string => {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }, []);
-
-  // Mark messages as read when component mounts
-  useEffect(() => {
-    try {
-      initializeMessages();
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to initialize messages'));
-    }
-  }, [initializeMessages]);
-
-  // Handle sending messages
-  const sendMessage = useCallback((text: string) => {
-    try {
-      return handleSendMessage(text);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to send message'));
-      return false;
-    }
-  }, [handleSendMessage]);
-
-  // Format the timestamp for last seen
-  const formatLastSeen = useCallback((date: Date): string => {
-    return new Date(date).toLocaleTimeString();
-  }, []);
-
-  // If we're still loading the chat data
-  if (isLoading) {
-    return (
-      <Card className={`flex items-center justify-center h-96 ${containerClassName}`}>
-        <div className="text-center p-4">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Chargement de la conversation...
-          </p>
-        </div>
-      </Card>
-    );
-  }
-
-  // If there was an error
-  if (error) {
-    return (
-      <Card className={`flex items-center justify-center h-96 ${containerClassName}`}>
-        <Alert variant="destructive" className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Erreur de connexion</AlertTitle>
-          <AlertDescription>
-            Impossible de charger la conversation. Veuillez vérifier votre connexion réseau.
-            <p className="text-sm mt-2 opacity-80">{error.message}</p>
-          </AlertDescription>
-        </Alert>
-      </Card>
-    );
-  }
+const UserChat = () => {
+  const { 
+    messages, 
+    activeUsers, 
+    CURRENT_USER_ID, 
+    handleSendMessage, 
+    formatTime, 
+    formatLastSeen 
+  } = useChatState();
 
   return (
-    <div className={`flex flex-col h-full ${containerClassName}`}>
-      <div className="flex flex-col md:flex-row h-full gap-4">
-        {/* Main chat area */}
-        <div className="flex flex-col flex-grow">
-          <Card className="flex flex-col h-full">
-            <MessagesContainer 
-              messages={messages} 
-              currentUserId={currentUser.id}
-              formatTime={formatTime}
-            />
-            <MessageInput 
-              onSendMessage={sendMessage}
-            />
-          </Card>
-        </div>
-        
-        {/* Active users sidebar */}
-        {!isInDialog && (
-          <div className="w-full md:w-64 order-first md:order-last">
-            <ActiveUsersList 
-              users={activeUsers} 
-              currentUserId={currentUser.id}
-              formatLastSeen={formatLastSeen}
-            />
-          </div>
-        )}
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[calc(100vh-12rem)]">
+      <Card className="md:col-span-3 flex flex-col h-full bg-gradient-to-br from-gray-900 to-gray-800 border-white/10">
+        <CardHeader className="pb-3 pt-4 border-b border-white/10">
+          <CardTitle className="text-xl flex items-center gap-2 text-white">
+            <div className="p-1.5 rounded-full bg-mrc-blue">
+              <Users size={18} className="text-white" />
+            </div>
+            Discussion entre apprenants
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col h-full p-0">
+          <MessagesContainer 
+            messages={messages} 
+            currentUserId={CURRENT_USER_ID}
+            formatTime={formatTime}
+          />
+          <MessageInput onSendMessage={handleSendMessage} />
+        </CardContent>
+      </Card>
+
+      <ActiveUsersList 
+        users={activeUsers}
+        currentUserId={CURRENT_USER_ID}
+        formatLastSeen={formatLastSeen}
+      />
     </div>
   );
 };
 
-export default React.memo(UserChat);
+export default UserChat;

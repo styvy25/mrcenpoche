@@ -1,67 +1,75 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
-import { AuthProvider } from '@/components/auth/AuthContext';
-import HomePage from './pages/HomePage';
-import Index from './pages/Index';
-import AssistantPage from './pages/AssistantPage';
-import Chat237Page from './pages/Chat237Page';
-import DocumentsPage from './pages/DocumentsPage';
-import YouTubeAnalyzerPage from './pages/YouTubeAnalyzerPage';
-import YouTubeDownloadPage from './pages/YouTubeDownloadPage';
-import ForumPage from './pages/ForumPage';
-import DashboardPage from './pages/DashboardPage';
+import React, { useState, createContext, useContext, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import SettingsPage from './pages/SettingsPage';
-import QuizPage from './pages/QuizPage';
-import NotificationsPage from './pages/NotificationsPage';
-import { AppProvider } from '@/context/AppContext';
-import { NotificationProvider } from '@/context/NotificationContext';
-import { Toaster } from '@/components/ui/toaster';
-import NotFound from './pages/NotFound';
-import MobileNotificationDock from '@/components/notifications/MobileNotificationDock';
+import AIChat from './components/assistant/AIChat';
+import ModulePage from './pages/ModulesPage';
+import QuizPage from "./pages/QuizPage";
+import MatchGame from "./components/quiz/matches/MatchGame";
+import MatchResults from "./components/quiz/matches/MatchResults";
+import Index from './pages/Index';
+import PaymentPage from './pages/PaymentPage';
+import { useApiKeys } from './hooks/useApiKeys';
 
-// Component to conditionally render mobile dock based on route
-const AppContent = () => {
-  const location = useLocation();
-  
-  // Routes where we don't want to show the mobile dock
-  const excludedRoutes = ['/settings', '/'];
-  const shouldShowDock = !excludedRoutes.includes(location.pathname);
-  
-  return (
-    <>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/index" element={<Index />} />
-        <Route path="/assistant" element={<AssistantPage />} />
-        <Route path="/chat-237" element={<Chat237Page />} />
-        <Route path="/documents" element={<DocumentsPage />} />
-        <Route path="/youtube-analyzer" element={<YouTubeAnalyzerPage />} />
-        <Route path="/youtube-download" element={<YouTubeDownloadPage />} />
-        <Route path="/forum" element={<ForumPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/quiz" element={<QuizPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      {shouldShowDock && <MobileNotificationDock />}
-      <Toaster />
-    </>
-  );
-};
+// Initialize Stripe (utilisez une clé de test pour le développement)
+const stripePromise = loadStripe('pk_test_placeholder');
+
+interface AppContextProps {
+  isApiKeySet: boolean;
+  setIsApiKeySet: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const AppContext = createContext<AppContextProps>({
+  isApiKeySet: false,
+  setIsApiKeySet: () => {},
+});
+
+export const useAppContext = () => useContext(AppContext);
 
 function App() {
+  const [isApiKeySet, setIsApiKeySet] = useState<boolean>(false);
+  const { keyStatus, loadKeys } = useApiKeys();
+  
+  // Mettre à jour le statut des clés API lorsque keyStatus change
+  useEffect(() => {
+    const hasAnyKey = keyStatus.perplexity || keyStatus.youtube || keyStatus.stripe;
+    setIsApiKeySet(hasAnyKey);
+  }, [keyStatus]);
+  
+  // Recharger les clés API au focus de la fenêtre (utile pour les multiples onglets)
+  useEffect(() => {
+    const handleFocus = () => {
+      loadKeys();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [loadKeys]);
+
   return (
-    <AuthProvider>
-      <AppProvider>
-        <NotificationProvider>
+    <div>
+      <AppContext.Provider value={{ isApiKeySet, setIsApiKeySet }}>
+        <Elements stripe={stripePromise}>
           <Router>
-            <AppContent />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/chat" element={<AIChat />} />
+              <Route path="/modules" element={<ModulePage />} />
+              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/quiz-match/:matchId" element={<MatchGame />} />
+              <Route path="/quiz-match/:matchId/results" element={<MatchResults />} />
+              <Route path="/payment" element={<PaymentPage />} />
+            </Routes>
           </Router>
-        </NotificationProvider>
-      </AppProvider>
-    </AuthProvider>
+        </Elements>
+      </AppContext.Provider>
+    </div>
   );
 }
 

@@ -1,9 +1,8 @@
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect } from "react";
 import { useYouTubeSearch } from "./useYouTubeSearch";
 import { useMessageHandler } from "./useMessageHandler";
 import { useOfflineMode } from "./useOfflineMode";
-import { Message } from "../types/message";
 
 export function useChatState() {
   const { 
@@ -25,12 +24,9 @@ export function useChatState() {
   } = useYouTubeSearch();
   
   const { isOnline } = useOfflineMode();
-  
-  // Use a ref to track if we've already initialized messages
-  const hasInitialized = useRef(false);
 
   // Ensure all messages have a timestamp that's a Date object
-  const normalizeMessages = useCallback((msgs: Message[]) => {
+  const normalizeMessages = (msgs) => {
     return msgs.map(msg => {
       if (msg.timestamp && typeof msg.timestamp === 'string') {
         return {
@@ -45,42 +41,35 @@ export function useChatState() {
       }
       return msg;
     });
-  }, []);
+  };
 
   // Initialize messages from localStorage if available
   useEffect(() => {
-    if (!hasInitialized.current) {
-      initializeMessages();
-      hasInitialized.current = true;
-    }
+    initializeMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
-  // Save messages to localStorage whenever they change - with debounce
+  // Save messages to localStorage whenever they change
   useEffect(() => {
-    if (messages.length === 0) return;
-    
-    const timeoutId = setTimeout(() => {
+    if (messages.length > 0) {
       // Make sure all messages have proper timestamps before saving
       const normalizedMessages = normalizeMessages(messages);
       localStorage.setItem('mrc_chat_messages', JSON.stringify(normalizedMessages));
       
-      // Update messages with normalized timestamps if needed
+      // Update messages with normalized timestamps
       if (JSON.stringify(messages) !== JSON.stringify(normalizedMessages)) {
         setMessages(normalizedMessages);
       }
-    }, 500); // Add debounce to prevent excessive writes
-    
-    return () => clearTimeout(timeoutId);
-  }, [messages, normalizeMessages, setMessages]);
+    }
+  }, [messages, setMessages]);
 
-  const handleSendMessage = useCallback((input: string) => {
+  const handleSendMessage = (input: string) => {
     return baseHandleSendMessage(input, isOnline, handleYouTubeSearch);
-  }, [baseHandleSendMessage, isOnline, handleYouTubeSearch]);
+  };
 
-  const handleVideoSelect = useCallback((videoId: string) => {
+  const handleVideoSelect = (videoId: string) => {
     return baseHandleVideoSelect(videoId, isOnline, setIsLoading, setMessages);
-  }, [baseHandleVideoSelect, isOnline, setIsLoading, setMessages]);
+  };
 
   return {
     messages: normalizeMessages(messages),
@@ -90,7 +79,7 @@ export function useChatState() {
     isOnline,
     handleSendMessage,
     handleVideoSelect,
-    handleYouTubeSearch: useCallback((query: string) => handleYouTubeSearch(query, isOnline), [handleYouTubeSearch, isOnline]),
+    handleYouTubeSearch: (query: string) => handleYouTubeSearch(query, isOnline),
     clearConversation
   };
 }

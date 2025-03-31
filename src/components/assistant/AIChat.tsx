@@ -1,36 +1,29 @@
 
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import ChatContent from "./ChatContent";
 import { useChatState } from "./hooks/useChatState";
-import PDFExportButton from "./PDFExportButton";
+import { usePdfGenerator } from "./utils/pdfUtils";
 import { Button } from "@/components/ui/button";
 import { Key, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
 
-interface AIChatProps {
-  offlineMode?: boolean;
-}
-
-const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
+const AIChat = () => {
   const { 
     messages, 
     isLoading, 
     youtubeResults, 
     isSearchingYouTube, 
-    isOnline: chatIsOnline,
     handleSendMessage, 
-    handleVideoSelect,
-    clearConversation
+    handleVideoSelect 
   } = useChatState();
   
+  const { generatePDF } = usePdfGenerator();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [showApiKeyAlert, setShowApiKeyAlert] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
   
   useEffect(() => {
     // Check if API keys are configured
@@ -39,14 +32,13 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
         const savedKeys = localStorage.getItem("api_keys");
         if (savedKeys) {
           const keys = JSON.parse(savedKeys);
-          const hasApiKey = Boolean(keys.perplexity);
-          setShowApiKeyAlert(!hasApiKey);
+          setHasApiKey(Boolean(keys.perplexity));
         } else {
-          setShowApiKeyAlert(true);
+          setHasApiKey(false);
         }
       } catch (error) {
         console.error("Error checking API keys:", error);
-        setShowApiKeyAlert(true);
+        setHasApiKey(false);
       }
     };
     
@@ -72,28 +64,13 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
   const handleGoToSettings = () => {
     navigate('/settings');
   };
-
-  const handleRefresh = async () => {
-    try {
-      clearConversation();
-      toast({
-        title: "Conversation rafraîchie",
-        description: "Votre conversation a été réinitialisée avec succès.",
-      });
-      return true;
-    } catch (error) {
-      console.error("Error refreshing conversation:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors du rafraîchissement de la conversation.",
-        variant: "destructive",
-      });
-      return false;
-    }
+  
+  const handleGeneratePDF = () => {
+    generatePDF(messages);
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-black rounded-xl shadow-xl overflow-hidden border border-white/10 optimize-animation">
+    <div className="flex flex-col h-[calc(100vh-12rem)] bg-gradient-to-br from-gray-900 to-black rounded-xl shadow-xl overflow-hidden border border-white/10">
       {!isOnline && (
         <Alert variant="destructive" className="mx-4 mt-4 bg-amber-500/20 border-amber-500/30">
           <AlertTriangle className="h-4 w-4" />
@@ -107,14 +84,14 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
         </Alert>
       )}
       
-      {isOnline && showApiKeyAlert && (
+      {isOnline && !hasApiKey && (
         <Alert variant="default" className="mx-4 mt-4 bg-blue-500/10 border-blue-500/20">
           <AlertTitle className="flex items-center gap-2">
             <Key className="h-4 w-4" />
-            Mode de base
+            Configuration requise
           </AlertTitle>
           <AlertDescription className="flex flex-col gap-2">
-            <p>L'assistant fonctionne actuellement en mode de base avec des réponses limitées. Pour des réponses plus avancées, vous pouvez configurer une clé API Perplexity.</p>
+            <p>Configurez votre clé API Perplexity pour activer toutes les fonctionnalités de l'assistant IA.</p>
             <Button 
               variant="outline" 
               size="sm" 
@@ -122,16 +99,15 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
               className="self-start mt-1"
             >
               <Key className="h-3 w-3 mr-1" />
-              Configurer API (optionnel)
+              Configurer API
             </Button>
           </AlertDescription>
         </Alert>
       )}
       
       <ChatHeader 
-        onClearConversation={clearConversation}
-        onRefresh={handleRefresh}
-        isOnline={chatIsOnline || offlineMode}
+        onGeneratePDF={handleGeneratePDF} 
+        isOnline={isOnline}
       />
       
       <ChatContent
@@ -145,11 +121,10 @@ const AIChat = memo(({ offlineMode = false }: AIChatProps) => {
       <ChatInput 
         isLoading={isLoading} 
         onSendMessage={handleSendMessage} 
+        onGeneratePDF={handleGeneratePDF} 
       />
     </div>
   );
-});
-
-AIChat.displayName = 'AIChat';
+};
 
 export default AIChat;

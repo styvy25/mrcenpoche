@@ -1,99 +1,36 @@
 
-import React, { useEffect } from 'react';
-import { useSEO } from '@/hooks/useSEO';
-import MainLayout from '@/components/layout/MainLayout';
-import AIChat from '@/components/assistant/AIChat';
-import { Button } from '@/components/ui/button';
-import { CreditCard, Info, AlertTriangle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
-import { useNavigate } from 'react-router-dom';
+import Navbar from "@/components/layout/Navbar";
+import AIChat from "@/components/assistant/AIChat";
 
 const AssistantPage = () => {
-  const { setPageTitle, setPageDescription } = useSEO();
-  const navigate = useNavigate();
-  const { 
-    hasReachedLimit, 
-    getRemainingUsage, 
-    userPlan, 
-    hasChatLimit 
-  } = usePlanLimits();
-  
-  const chatLimitReached = hasReachedLimit('aiChat');
-  const remainingChats = getRemainingUsage('aiChat');
-
-  useEffect(() => {
-    setPageTitle("Assistant IA - MRC en Poche");
-    setPageDescription("Conversez avec notre assistant IA spécialisé sur le MRC et la politique camerounaise.");
-  }, [setPageTitle, setPageDescription]);
-
-  const handleUpgrade = () => {
-    navigate('/payment');
-  };
-
   return (
-    <MainLayout>
-      <div className="py-8 px-4 max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">Assistant MRC</h1>
-        <p className="text-muted-foreground mb-6">
-          Posez toutes vos questions sur le MRC et recevez des réponses précises et détaillées
-        </p>
-        
-        {userPlan === 'free' && hasChatLimit() && (
-          <Alert 
-            variant={chatLimitReached ? "destructive" : "default"}
-            className="mb-6"
-          >
-            <AlertTitle className="flex items-center gap-2">
-              {chatLimitReached ? (
-                <>
-                  <AlertTriangle className="h-4 w-4" />
-                  Limite atteinte
-                </>
-              ) : (
-                <>
-                  <Info className="h-4 w-4" />
-                  Plan gratuit
-                </>
-              )}
-            </AlertTitle>
-            <AlertDescription className="flex flex-col gap-2">
-              {chatLimitReached ? (
-                <p>Vous avez atteint votre limite de conversations pour le plan gratuit.</p>
-              ) : (
-                <p>Il vous reste {remainingChats} conversations dans votre plan gratuit.</p>
-              )}
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleUpgrade}
-                className="self-start mt-1"
-              >
-                <CreditCard className="h-3 w-3 mr-1" />
-                Passer au premium
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        {chatLimitReached ? (
-          <div className="text-center py-8">
-            <h2 className="text-xl font-semibold mb-4">Limite de conversations atteinte</h2>
-            <p className="mb-6">
-              Vous avez utilisé toutes vos conversations disponibles dans votre plan actuel.
-              Passez au premium pour des conversations illimitées avec l'assistant.
-            </p>
-            <Button onClick={handleUpgrade}>
-              <CreditCard className="mr-2 h-4 w-4" />
-              Passer au premium
-            </Button>
-          </div>
-        ) : (
-          <AIChat />
-        )}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+      {/* Éléments décoratifs inspirés des couleurs du MRC */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-96 h-96 rounded-full bg-mrc-red opacity-10 blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-mrc-blue opacity-10 blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-mrc-green opacity-5 blur-3xl"></div>
       </div>
-    </MainLayout>
+      
+      <Navbar />
+      <div className="pt-24 pb-12 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-mrc-red via-mrc-blue to-mrc-green bg-clip-text text-transparent sm:text-5xl mb-2">
+            Assistant IA Styvy237
+          </h1>
+          <p className="text-gray-300 max-w-3xl mx-auto text-lg">
+            Votre guide personnalisé pour la formation MRC. Posez vos questions et obtenez des réponses précises et adaptées.
+          </p>
+        </div>
+        
+        <AIChat />
+        
+        <div className="mt-8 text-center text-sm text-gray-400">
+          <p>Propulsé par l'intelligence artificielle au service des militants du MRC</p>
+          <p className="mt-1">Les réponses fournies sont génératives et à titre informatif uniquement</p>
+        </div>
+      </div>
+    </div>
   );
 };
 

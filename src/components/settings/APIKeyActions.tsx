@@ -1,66 +1,50 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Save, Trash, Shield, Video } from "lucide-react";
+import { RefreshCcw, Key } from "lucide-react";
 
 interface APIKeyActionsProps {
-  onSave: () => Promise<any>;
-  onRefreshCache: () => Promise<any>;
+  onSave: () => void;
+  onRefreshCache: () => void;
   isYoutubeKeyValid: boolean;
   isTesting: boolean;
 }
 
-const APIKeyActions: React.FC<APIKeyActionsProps> = ({
-  onSave,
-  onRefreshCache,
-  isYoutubeKeyValid,
-  isTesting
-}) => {
+const APIKeyActions = ({ 
+  onSave, 
+  onRefreshCache, 
+  isYoutubeKeyValid, 
+  isTesting 
+}: APIKeyActionsProps) => {
   return (
-    <div className="flex flex-wrap gap-3 justify-between w-full">
-      <div>
-        {isYoutubeKeyValid && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefreshCache}
-            disabled={isTesting}
-            className="mr-2 flex items-center"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Rafraîchir le cache YouTube
-          </Button>
+    <div className="flex justify-between gap-4">
+      <Button 
+        variant="outline" 
+        onClick={onRefreshCache}
+        disabled={isTesting || !isYoutubeKeyValid}
+        className="flex items-center gap-2"
+      >
+        <RefreshCcw className="h-4 w-4" />
+        Rafraîchir le cache
+      </Button>
+      
+      <Button 
+        onClick={onSave}
+        disabled={isTesting}
+        className="flex items-center gap-2"
+      >
+        {isTesting ? (
+          <>
+            <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-1"></span>
+            Test en cours...
+          </>
+        ) : (
+          <>
+            <Key className="h-4 w-4" />
+            Enregistrer et tester
+          </>
         )}
-      </div>
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={isTesting}
-          className="bg-red-50 border-red-200 hover:bg-red-100 text-red-700 flex items-center"
-        >
-          <Video className="mr-2 h-4 w-4" />
-          Tester les fonctionnalités YouTube
-        </Button>
-        <Button
-          variant="default"
-          onClick={onSave}
-          disabled={isTesting}
-          className="bg-green-600 hover:bg-green-700 flex items-center"
-        >
-          {isTesting ? (
-            <>
-              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-              Vérification...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Enregistrer les clés API
-            </>
-          )}
-        </Button>
-      </div>
+      </Button>
     </div>
   );
 };

@@ -1,112 +1,188 @@
 
-import { YouTubeErrorType, YouTubeVideo } from './types';
+import { YouTubeVideo, YouTubeErrorType, YouTubeError } from './types';
+import { offlineVideos } from './offlineData';
+import { getCachedSearch, cacheSearchResults } from './cacheManager';
 
-// Check if the device is online
+/**
+ * Check if the device is currently online
+ */
 export const isOnline = (): boolean => {
   return navigator.onLine;
 };
 
-// Search for MRC videos on YouTube
-export const searchMRCVideos = async (apiKey: string, query: string): Promise<YouTubeVideo[]> => {
+/**
+ * Recherche des vidéos YouTube liées au MRC
+ */
+export const searchMRCVideos = async (
+  apiKey: string,
+  query: string = "MRC Cameroun"
+): Promise<YouTubeVideo[]> => {
   try {
+    // Check if we're offline
     if (!isOnline()) {
-      throw { type: YouTubeErrorType.NETWORK_ERROR, message: "Device is offline" };
+      console.log("Device is offline. Using fallback videos.");
+      return offlineVideos;
     }
 
-    // Make the actual request to YouTube Data API
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=MRC+Cameroun+${encodeURIComponent(query)}&type=video&maxResults=5&key=${apiKey}`
-    );
+    // Check cache first
+    const cachedResults = getCachedSearch(query);
+    if (cachedResults) {
+      console.log("Using cached search results for", query);
+      return cachedResults;
+    }
 
-    if (!response.ok) {
-      if (response.status === 403) {
-        throw { type: YouTubeErrorType.QUOTA_EXCEEDED, message: "YouTube API quota exceeded" };
-      } else if (response.status === 400) {
-        throw { type: YouTubeErrorType.INVALID_API_KEY, message: "Invalid YouTube API key" };
+    const searchResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
+        query
+      )}&maxResults=5&type=video&key=${apiKey}`
+    );
+    
+    if (!searchResponse.ok) {
+      const errorData = await searchResponse.json().catch(() => ({}));
+      
+      // Handle different error types
+      if (searchResponse.status === 403) {
+        throw {
+          type: YouTubeErrorType.QUOTA_EXCEEDED,
+          message: 'Quota YouTube dépassée. Réessayez plus tard.'
+        };
+      } else if (searchResponse.status === 400) {
+        throw {
+          type: YouTubeErrorType.INVALID_API_KEY,
+          message: 'Clé API YouTube invalide. Vérifiez vos paramètres.'
+        };
       } else {
-        throw { type: YouTubeErrorType.API_ERROR, message: `YouTube API error: ${response.status}` };
+        throw {
+          type: YouTubeErrorType.API_ERROR,
+          message: `Erreur API YouTube (${searchResponse.status}): ${errorData.error?.message || 'Erreur inconnue'}`,
+          originalError: errorData
+        };
       }
     }
-
-    const data = await response.json();
     
-    // Parse and return the videos from the response
-    return data.items.map((item: any) => ({
+    const searchData = await searchResponse.json();
+    
+    if (!searchData.items) {
+      return [];
+    }
+    
+    const videos = searchData.items.map((item: any) => ({
       id: item.id.videoId,
       title: item.snippet.title,
       description: item.snippet.description,
-      thumbnail: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
-      channelTitle: item.snippet.channelTitle,
+      thumbnail: item.snippet.thumbnails.medium.url,
       publishedAt: item.snippet.publishedAt
     }));
+
+    // Cache the results
+    cacheSearchResults(query, videos);
+    
+    return videos;
   } catch (error: any) {
-    // Rethrow with appropriate error type
-    if (error.type) {
+    console.error("Erreur recherche YouTube:", error);
+    
+    // If it's already a YouTubeError, rethrow it
+    if (error.type && Object.values(YouTubeErrorType).includes(error.type)) {
       throw error;
-    } else {
-      console.error("YouTube search error:", error);
-      throw { type: YouTubeErrorType.NETWORK_ERROR, message: "Network error during YouTube search" };
     }
+    
+    // If it's a network error
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      throw {
+        type: YouTubeErrorType.NETWORK_ERROR,
+        message: 'Erreur de connexion. Vérifiez votre connexion internet.',
+        originalError: error
+      };
+    }
+    
+    // Default to unknown error
+    throw {
+      type: YouTubeErrorType.UNKNOWN_ERROR,
+      message: 'Erreur inconnue lors de la recherche YouTube.',
+      originalError: error
+    };
   }
 };
 
-// Get details for a specific video
-export const getVideoDetails = async (apiKey: string, videoId: string) => {
+/**
+ * Get detailed information about a video
+ */
+export const getVideoDetails = async (
+  apiKey: string, 
+  videoId: string
+): Promise<{ title: string, description: string }> => {
   try {
+    // Check if we're offline
     if (!isOnline()) {
-      throw { type: YouTubeErrorType.NETWORK_ERROR, message: "Device is offline" };
+      throw {
+        type: YouTubeErrorType.NETWORK_ERROR,
+        message: 'Appareil hors ligne. Impossible de récupérer les détails de la vidéo.'
+      };
     }
 
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${apiKey}`
+    const videoResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`
     );
-
-    if (!response.ok) {
-      if (response.status === 403) {
-        throw { type: YouTubeErrorType.QUOTA_EXCEEDED, message: "YouTube API quota exceeded" };
-      } else if (response.status === 400) {
-        throw { type: YouTubeErrorType.INVALID_API_KEY, message: "Invalid YouTube API key" };
+    
+    if (!videoResponse.ok) {
+      const errorData = await videoResponse.json().catch(() => ({}));
+      
+      if (videoResponse.status === 403) {
+        throw {
+          type: YouTubeErrorType.QUOTA_EXCEEDED,
+          message: 'Quota YouTube dépassée. Réessayez plus tard.'
+        };
+      } else if (videoResponse.status === 400) {
+        throw {
+          type: YouTubeErrorType.INVALID_API_KEY,
+          message: 'Clé API YouTube invalide. Vérifiez vos paramètres.'
+        };
       } else {
-        throw { type: YouTubeErrorType.API_ERROR, message: `YouTube API error: ${response.status}` };
+        throw {
+          type: YouTubeErrorType.API_ERROR,
+          message: `Erreur API YouTube (${videoResponse.status}): ${errorData.error?.message || 'Erreur inconnue'}`,
+          originalError: errorData
+        };
       }
     }
-
-    const data = await response.json();
     
-    if (!data.items || data.items.length === 0) {
-      throw { type: YouTubeErrorType.VIDEO_NOT_FOUND, message: "Video not found" };
+    const videoData = await videoResponse.json();
+    
+    if (!videoData.items || videoData.items.length === 0) {
+      throw {
+        type: YouTubeErrorType.API_ERROR,
+        message: 'Vidéo non trouvée'
+      };
     }
-
-    const videoDetails = data.items[0].snippet;
+    
+    const videoDetails = videoData.items[0].snippet;
     
     return {
       title: videoDetails.title,
-      description: videoDetails.description,
-      channelTitle: videoDetails.channelTitle,
-      publishedAt: videoDetails.publishedAt
+      description: videoDetails.description
     };
   } catch (error: any) {
-    // Rethrow with appropriate error type
-    if (error.type) {
-      throw error;
-    } else {
-      console.error("YouTube video details error:", error);
-      throw { type: YouTubeErrorType.NETWORK_ERROR, message: "Network error getting video details" };
-    }
-  }
-};
-
-// Test if a YouTube API key is valid
-export const testYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
-  try {
-    // Make a minimal API call to test the key
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=MRC+test&maxResults=1&key=${apiKey}`
-    );
+    console.error("Erreur récupération détails vidéo:", error);
     
-    return response.ok;
-  } catch (error) {
-    console.error("Error testing YouTube API key:", error);
-    return false;
+    // If it's already a YouTubeError, rethrow it
+    if (error.type && Object.values(YouTubeErrorType).includes(error.type)) {
+      throw error;
+    }
+    
+    // If it's a network error
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      throw {
+        type: YouTubeErrorType.NETWORK_ERROR,
+        message: 'Erreur de connexion. Vérifiez votre connexion internet.',
+        originalError: error
+      };
+    }
+    
+    // Default to unknown error
+    throw {
+      type: YouTubeErrorType.UNKNOWN_ERROR,
+      message: 'Erreur inconnue lors de la récupération des détails de la vidéo.',
+      originalError: error
+    };
   }
 };

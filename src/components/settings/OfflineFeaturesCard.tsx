@@ -1,47 +1,44 @@
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Wifi, WifiOff } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
 
 const OfflineFeaturesCard = () => {
   return (
-    <Card className="mt-4 bg-gradient-to-r from-blue-50 to-white dark:from-blue-950/30 dark:to-gray-900">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-md flex items-center gap-2">
-          <WifiOff className="h-4 w-4 text-gray-500" />
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-amber-500" />
           Fonctionnalités hors-ligne
         </CardTitle>
+        <CardDescription>
+          Informations sur le fonctionnement de l'application en mode hors-ligne
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Ces fonctionnalités sont disponibles même sans clés API configurées.
-        </p>
-        
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">
-              Assistant IA en mode de base (réponses génériques)
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">
-              Générateur de documents de base
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">
-              Consulter les modules et quizzes MRC
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">
-              Chat en mode texte
-            </span>
-          </div>
+        <div className="space-y-4 text-sm">
+          <p>
+            MRC en Poche est conçu pour fonctionner même sans connexion Internet. Voici comment les fonctionnalités principales se comportent en mode hors-ligne:
+          </p>
+          
+          <ul className="list-disc pl-5 space-y-2">
+            <li>
+              <strong>Assistant IA:</strong> Utilise des réponses prédéfinies et des réponses précédemment mises en cache.
+            </li>
+            <li>
+              <strong>Vidéos YouTube:</strong> Affiche des vidéos préchargées liées au MRC.
+            </li>
+            <li>
+              <strong>Modules de formation:</strong> Tout le contenu des modules est disponible hors-ligne.
+            </li>
+            <li>
+              <strong>Documents PDF:</strong> Les documents précédemment générés sont accessibles hors-ligne.
+            </li>
+          </ul>
+          
+          <p>
+            Pour une expérience optimale, nous recommandons de vous connecter périodiquement à Internet afin de mettre à jour le contenu et d'accéder à toutes les fonctionnalités.
+          </p>
         </div>
       </CardContent>
     </Card>

@@ -33,17 +33,8 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
     }
   }, [selectedAnswer]);
 
-  // Check if currentQuestion is valid
-  if (!currentQuestion) {
-    return (
-      <div className="p-3 sm:p-4 text-center">
-        <p className="text-sm sm:text-base">Aucune question disponible</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+    <div className="flex flex-col items-center space-y-4">
       <div className={`w-full transition-all duration-300 ${isMobile ? 'px-2' : 'p-4'}`}>
         <QuizQuestionComponent
           question={currentQuestion}
@@ -53,24 +44,24 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({
       </div>
       
       {selectedAnswer !== undefined && (
-        <div className={`mt-3 sm:mt-6 transition-all duration-300 transform ${animateButton ? 'scale-in' : 'opacity-0 scale-95'}`}>
+        <div className={`mt-4 md:mt-6 transition-all duration-300 transform ${animateButton ? 'scale-in' : 'opacity-0 scale-95'}`}>
           {!isLastQuestion ? (
             <Button 
               onClick={onNextQuestion} 
-              className="bg-mrc-blue hover:bg-blue-700 transition-colors flex items-center gap-1 sm:gap-2 px-3 sm:px-4 md:px-6 text-xs sm:text-sm"
-              size={isMobile ? "sm" : "default"}
+              className="bg-mrc-blue hover:bg-blue-700 transition-colors flex items-center gap-2 px-4 md:px-6"
+              size={isMobile ? "default" : "lg"}
             >
               <span>Question Suivante</span>
-              <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
+              <ArrowRight className="h-4 w-4" />
             </Button>
           ) : (
             <Button 
               onClick={onCalculateResults}
-              className="bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-1 sm:gap-2 px-3 sm:px-4 md:px-6 text-xs sm:text-sm"
-              size={isMobile ? "sm" : "default"}
+              className="bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2 px-4 md:px-6"
+              size={isMobile ? "default" : "lg"}
             >
               <span>Voir les résultats</span>
-              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
+              <CheckCircle2 className="h-4 w-4" />
             </Button>
           )}
         </div>

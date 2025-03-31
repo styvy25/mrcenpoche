@@ -1,114 +1,172 @@
-import React from 'react';
-import { Check, ShieldCheck, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
 
-// Update the PlanType type to include 'group'
-type PlanType = 'free' | 'premium' | 'enterprise' | 'group';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle } from "lucide-react";
+import StripeButton from "../payment/StripeButton";
 
-interface PricingPlanProps {
-  plan: PlanType;
-  name: string;
-  price: number;
-  description: string;
-  features: string[];
-  mostPopular?: boolean;
-}
-
-const PricingSection: React.FC = () => {
-  const { canAccessAllModules } = usePlanLimits();
-
-  const pricingPlans: PricingPlanProps[] = [
-    {
-      plan: 'free',
-      name: 'Gratuit',
-      price: 0,
-      description: 'Pour ceux qui débutent',
-      features: [
-        'Accès limité aux modules',
-        'Support communautaire',
-        'Mises à jour de base'
-      ]
-    },
-    {
-      plan: 'premium',
-      name: 'Premium',
-      price: 29,
-      description: 'Pour les utilisateurs avancés',
-      features: [
-        'Accès illimité aux modules',
-        'Support prioritaire',
-        'Mises à jour premium',
-        'Accès aux nouvelles fonctionnalités'
-      ],
-      mostPopular: true
-    },
-    {
-      plan: 'enterprise',
-      name: 'Entreprise',
-      price: 99,
-      description: 'Pour les grandes organisations',
-      features: [
-        'Accès illimité aux modules',
-        'Support dédié',
-        'Formation personnalisée',
-        'Intégrations avancées'
-      ]
-    }
-  ];
-
+const PricingSection = () => {
   return (
-    <section className="bg-gray-100 py-12">
-      <div className="container mx-auto text-center">
-        <h2 className="text-3xl font-bold mb-4">Choisissez le plan qui vous convient</h2>
-        <p className="text-gray-700 mb-8">
-          Découvrez nos plans tarifaires flexibles adaptés à vos besoins.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {pricingPlans.map((plan) => (
-            <PricingCard key={plan.plan} plan={plan.plan} name={plan.name} price={plan.price} description={plan.description} features={plan.features} mostPopular={plan.mostPopular} />
-          ))}
+    <section className="py-12 md:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
+            Tarifs simples et transparents
+          </h2>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            Choisissez l'offre qui correspond à vos besoins et commencez votre formation dès aujourd'hui.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Free Plan */}
+          <Card className="border-t-4 border-t-gray-500">
+            <CardHeader>
+              <CardTitle className="text-xl">Gratuit</CardTitle>
+              <div className="mt-4">
+                <span className="text-4xl font-bold">0€</span>
+                <span className="text-gray-500 ml-2">/ mois</span>
+              </div>
+              <CardDescription className="mt-2">
+                L'essentiel pour démarrer
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Accès à 3 modules de formation</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Assistant IA (limité à 10 questions/jour)</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Génération de PDF (limité à 3/mois)</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Suivi de progression basique</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <StripeButton 
+                priceId="price_free" 
+                variant="outline" 
+                className="w-full"
+              >
+                Commencer gratuitement
+              </StripeButton>
+            </CardFooter>
+          </Card>
+          
+          {/* Premium Plan */}
+          <Card className="border-t-4 border-t-mrc-blue relative lg:scale-105 z-10 shadow-xl">
+            <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2 bg-mrc-blue text-white text-xs py-1 px-2 rounded">
+              Populaire
+            </div>
+            <CardHeader>
+              <CardTitle className="text-xl">Premium</CardTitle>
+              <div className="mt-4">
+                <span className="text-4xl font-bold">9,99€</span>
+                <span className="text-gray-500 ml-2">/ mois</span>
+              </div>
+              <CardDescription className="mt-2">
+                L'offre complète pour les militants actifs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Accès illimité à tous les modules</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Assistant IA Styvy237 sans limite</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Génération de PDF illimitée</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Suivi de progression avancé</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Accès aux webinaires exclusifs</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Certificats de formation</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <StripeButton 
+                priceId="price_premium_monthly"
+                className="w-full bg-mrc-blue hover:bg-blue-700"
+              >
+                S'abonner maintenant
+              </StripeButton>
+            </CardFooter>
+          </Card>
+          
+          {/* Groupe Plan */}
+          <Card className="border-t-4 border-t-mrc-green">
+            <CardHeader>
+              <CardTitle className="text-xl">Groupe</CardTitle>
+              <div className="mt-4">
+                <span className="text-4xl font-bold">99€</span>
+                <span className="text-gray-500 ml-2">/ mois</span>
+              </div>
+              <CardDescription className="mt-2">
+                Idéal pour les comités locaux du MRC
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Jusqu'à 15 utilisateurs</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Tous les avantages Premium</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Espace de discussion collaboratif</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Tableau de bord pour coordinateurs</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Formation sur mesure pour votre région</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Support prioritaire</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <StripeButton 
+                priceId="price_group_monthly"
+                variant="outline"
+                className="w-full"
+              >
+                Contacter pour groupe
+              </StripeButton>
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </section>
-  );
-};
-
-interface PricingCardProps {
-  plan: PlanType;
-  name: string;
-  price: number;
-  description: string;
-  features: string[];
-  mostPopular?: boolean;
-}
-
-const PricingCard: React.FC<PricingCardProps> = ({ plan, name, price, description, features, mostPopular }) => {
-  return (
-    <Card className={`shadow-md ${mostPopular ? 'border-2 border-blue-500' : ''}`}>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">{name}</CardTitle>
-        <CardDescription className="text-gray-600">{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-center">
-          <span className="text-4xl font-bold">${price}</span>
-          <span className="text-gray-500">/mois</span>
-        </div>
-        <ul className="space-y-2">
-          {features.map((feature) => (
-            <li key={feature} className="flex items-center text-gray-700">
-              <Check className="h-4 w-4 mr-2 text-green-500" />
-              {feature}
-            </li>
-          ))}
-        </ul>
-        <Button className="w-full">
-          {plan === 'free' ? 'Commencer gratuitement' : 'Choisir ce plan'}
-        </Button>
-      </CardContent>
-    </Card>
   );
 };
 

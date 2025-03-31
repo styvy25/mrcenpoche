@@ -14,8 +14,7 @@ import {
   YouTubeVideo, 
   VideoInfo,
   isOnline,
-  YouTubeErrorType,
-  testYouTubeApiKey
+  YouTubeErrorType
 } from "./youtube";
 
 // Re-export everything from the youtube module

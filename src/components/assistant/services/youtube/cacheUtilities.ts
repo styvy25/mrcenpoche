@@ -1,33 +1,59 @@
 
-import { testYouTubeApiKey as testKey } from './searchService';
+import { YouTubeErrorType } from './types';
+import { clearCache } from './cacheManager';
+import { isOnline } from './searchService';
 
-// Test if a YouTube API key is valid
-export const testYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
-  return await testKey(apiKey);
-};
-
-// Clear the YouTube cache
-export const clearYouTubeCache = (): void => {
-  localStorage.removeItem('yt_video_cache');
-};
-
-// Refresh the YouTube cache - placeholder
+/**
+ * Refresh YouTube cache by clearing it and optionally prefetching common data
+ */
 export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
   try {
-    // This would typically pre-fetch some MRC content
-    console.log('Cache refresh initiated with API key:', apiKey);
-    
-    // Just check if the API key is valid
-    const isValid = await testYouTubeApiKey(apiKey);
-    
-    if (isValid) {
-      // In a real implementation, this would actually refresh the cache
-      return true;
+    const online = isOnline();
+    if (!online) {
+      throw {
+        type: YouTubeErrorType.NETWORK_ERROR,
+        message: "Pas de connexion Internet disponible"
+      };
     }
-    
-    return false;
+
+    clearCache();
+    console.log("YouTube cache refreshed");
+    return true;
   } catch (error) {
-    console.error('Error refreshing YouTube cache:', error);
+    console.error("Error refreshing YouTube cache:", error);
+    return false;
+  }
+};
+
+/**
+ * Clear YouTube cache
+ */
+export const clearYouTubeCache = (): void => {
+  clearCache();
+};
+
+/**
+ * Test if the provided YouTube API key is valid
+ */
+export const testYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
+  try {
+    const online = isOnline();
+    if (!online) {
+      throw {
+        type: YouTubeErrorType.NETWORK_ERROR,
+        message: "Pas de connexion Internet disponible"
+      };
+    }
+
+    // Try a simple API call to validate the key
+    const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&key=${apiKey}`;
+    const response = await fetch(url);
+    
+    // Even an authentication error means the key format is valid
+    // The real validation happens on YouTube's side
+    return response.status !== 400; // 400 usually means invalid key format
+  } catch (error) {
+    console.error("Error testing YouTube API key:", error);
     return false;
   }
 };

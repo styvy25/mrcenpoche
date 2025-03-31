@@ -1,17 +1,12 @@
 
-// Types for YouTube API responses and errors
+/**
+ * Types related to YouTube service functionality
+ */
 
-export enum YouTubeErrorType {
-  NETWORK_ERROR = 'network_error',
-  API_ERROR = 'api_error',
-  QUOTA_EXCEEDED = 'quota_exceeded',
-  INVALID_API_KEY = 'invalid_api_key',
-  VIDEO_NOT_FOUND = 'video_not_found'
-}
-
-export interface YouTubeError {
-  type: YouTubeErrorType;
-  message: string;
+export interface VideoInfo {
+  title: string;
+  description: string;
+  transcript?: string;
 }
 
 export interface YouTubeVideo {
@@ -19,18 +14,30 @@ export interface YouTubeVideo {
   title: string;
   description: string;
   thumbnail: string;
-  channelTitle: string;
   publishedAt: string;
 }
 
-export interface VideoInfo {
-  title: string;
-  description: string;
-  transcript: string;
+export interface YouTubeSearchParams {
+  key: string;
+  q: string;
+  part: string;
+  type: string;
+  maxResults: number;
+  channelId?: string;
 }
 
-export interface CachedVideo {
-  videoId: string;
-  info: VideoInfo;
-  cachedAt: number;
+// Error types for better error handling
+export enum YouTubeErrorType {
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  API_ERROR = 'API_ERROR',
+  QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
+  INVALID_API_KEY = 'INVALID_API_KEY',
+  CACHE_ERROR = 'CACHE_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+}
+
+export interface YouTubeError {
+  type: YouTubeErrorType;
+  message: string;
+  originalError?: any;
 }

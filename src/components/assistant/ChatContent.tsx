@@ -1,5 +1,5 @@
 
-import { useRef, useEffect, memo } from "react";
+import { useRef, useEffect } from "react";
 import MessageDisplay from "./MessageDisplay";
 import LoadingIndicator from "./LoadingIndicator";
 import YouTubeResults from "./YouTubeResults";
@@ -13,7 +13,7 @@ interface ChatContentProps {
   onVideoSelect: (videoId: string) => void;
 }
 
-const ChatContent = memo(({ 
+const ChatContent = ({ 
   messages, 
   youtubeResults, 
   isSearchingYouTube, 
@@ -21,55 +21,20 @@ const ChatContent = memo(({
   onVideoSelect 
 }: ChatContentProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Improved scroll handling with debounce for performance
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      scrollToBottom();
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
+    scrollToBottom();
   }, [messages, youtubeResults]);
-  
-  // Apply content stabilization to prevent layout jumps
-  useEffect(() => {
-    if (contentRef.current) {
-      contentRef.current.style.minHeight = `${contentRef.current.offsetHeight}px`;
-      return () => {
-        if (contentRef.current) {
-          contentRef.current.style.minHeight = '';
-        }
-      };
-    }
-  }, []);
 
   return (
-    <div 
-      ref={contentRef}
-      className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900/80 to-black/40 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
-    >
-      {messages.length === 0 ? (
-        <div className="flex items-center justify-center h-full opacity-70">
-          <div className="text-center p-8 rounded-lg border border-gray-700/50 bg-gray-800/30 backdrop-blur-sm">
-            <h3 className="text-lg font-medium mb-2">Assistant IA à votre service</h3>
-            <p className="text-sm text-gray-300">
-              Posez vos questions concernant le MRC, la politique, ou vos besoins de formation.
-            </p>
-          </div>
-        </div>
-      ) : (
-        messages.map((message, index) => (
-          <MessageDisplay 
-            key={`message-${index}-${message.timestamp.getTime()}`} 
-            message={message} 
-          />
-        ))
-      )}
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900/80 to-black/40">
+      {messages.map((message, index) => (
+        <MessageDisplay key={index} message={message} />
+      ))}
       
       {youtubeResults.length > 0 && (
         <YouTubeResults videos={youtubeResults} onVideoSelect={onVideoSelect} />
@@ -83,11 +48,9 @@ const ChatContent = memo(({
       )}
       
       {isLoading && <LoadingIndicator />}
-      <div ref={messagesEndRef} aria-hidden="true" />
+      <div ref={messagesEndRef} />
     </div>
   );
-});
-
-ChatContent.displayName = 'ChatContent';
+};
 
 export default ChatContent;

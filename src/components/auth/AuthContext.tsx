@@ -1,184 +1,255 @@
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
+import { useState, useEffect, createContext, useContext } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
-export interface UserSubscription {
-  plan: 'free' | 'premium';
-  startDate: Date;
-  endDate?: Date;
-  active: boolean;
-}
-
-export interface UserWithSubscription extends User {
-  username?: string;
-  displayName?: string;
+interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  password: string;
   avatar?: string;
-  subscription?: UserSubscription;
-  lastLogin?: Date;
+  createdAt: string;
+  lastLogin?: string;
 }
 
-export interface AuthContextType {
-  session: Session | null;
-  currentUser: UserWithSubscription | null;
+interface AuthState {
   isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ error: any }>;
-  logout: () => Promise<void>;
-  register: (email: string, password: string, username: string) => Promise<{ error: any }>;
-  updateLastLogin: () => Promise<void>;
+  user: AuthUser | null;
 }
 
-// Create the context with default values
-const AuthContext = createContext<AuthContextType>({
-  session: null,
-  currentUser: null,
-  isAuthenticated: false,
-  isLoading: true,
-  login: async () => ({ error: null }),
-  logout: async () => {},
-  register: async () => ({ error: null }),
-  updateLastLogin: async () => {},
-});
+interface AuthContextType {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  login: (email: string, password: string, remember: boolean) => boolean;
+  register: (username: string, email: string, password: string) => boolean;
+  logout: () => void;
+  updateLastLogin: () => void;
+}
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize state
-  const [session, setSession] = useState<Session | null>(null);
-  const [currentUser, setCurrentUser] = useState<UserWithSubscription | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+const LOCAL_STORAGE_AUTH_KEY = "mrc_learnscape_auth";
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Custom hook for authentication management
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [authState, setAuthState] = useState<AuthState>({
+    isAuthenticated: false,
+    user: null,
+  });
+  const { toast } = useToast();
+
+  // Check if user is already logged in on load
   useEffect(() => {
-    // Setup auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        setSession(newSession);
-        
-        if (newSession?.user) {
-          // Enhance the user with subscription info
-          const userWithSubscription: UserWithSubscription = {
-            ...newSession.user,
-            subscription: getUserSubscription(newSession.user.id),
-            lastLogin: new Date(),
-          };
-          setCurrentUser(userWithSubscription);
-        } else {
-          setCurrentUser(null);
+    const checkAuth = () => {
+      const storedAuth = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY) || 
+                        sessionStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
+      
+      if (storedAuth) {
+        try {
+          const parsedAuth = JSON.parse(storedAuth);
+          setAuthState(parsedAuth);
+        } catch (error) {
+          console.error("Failed to parse auth data:", error);
+          localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+          sessionStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
         }
-        
-        setIsLoading(false);
       }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
-      setSession(existingSession);
-      
-      if (existingSession?.user) {
-        // Enhance the user with subscription info
-        const userWithSubscription: UserWithSubscription = {
-          ...existingSession.user,
-          subscription: getUserSubscription(existingSession.user.id),
-          lastLogin: new Date(),
-        };
-        setCurrentUser(userWithSubscription);
-      }
-      
-      setIsLoading(false);
-    });
-
+    };
+    
+    checkAuth();
+    
+    // Check authentication when window gains focus
+    window.addEventListener('focus', checkAuth);
+    
     return () => {
-      subscription.unsubscribe();
+      window.removeEventListener('focus', checkAuth);
     };
   }, []);
 
-  // Get user subscription from local storage or other source
-  // In a real app, this would come from the database
-  const getUserSubscription = (userId: string): UserSubscription => {
-    try {
-      const storedPlan = localStorage.getItem('user_plan');
-      
-      return {
-        plan: (storedPlan === 'premium') ? 'premium' : 'free',
-        startDate: new Date(),
-        active: true
-      };
-    } catch (error) {
-      console.error('Error getting user subscription:', error);
-      return {
-        plan: 'free',
-        startDate: new Date(),
-        active: true
-      };
-    }
-  };
-
-  const login = async (email: string, password: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (!error) {
-        updateLastLogin();
-      }
-      return { error };
-    } catch (error) {
-      console.error('Error during login:', error);
-      return { error };
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Error during logout:', error);
-    }
-  };
-
-  const register = async (email: string, password: string, username: string) => {
-    try {
-      const { error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-          data: {
-            username,
-          }
-        }
-      });
-      
-      return { error };
-    } catch (error) {
-      console.error('Error during registration:', error);
-      return { error };
-    }
-  };
-
-  const updateLastLogin = async () => {
-    if (!currentUser) return;
+  const login = (email: string, password: string, remember: boolean = false) => {
+    // Retrieve registered users
+    const storedUsers = localStorage.getItem("mrc_learnscape_users") || "[]";
+    let users: AuthUser[] = [];
     
     try {
-      // In a real app, update the last login time in the database
-      // For now, we'll just update the local state
-      setCurrentUser(prev => prev ? {
-        ...prev,
-        lastLogin: new Date()
-      } : null);
+      users = JSON.parse(storedUsers);
     } catch (error) {
-      console.error('Error updating last login:', error);
+      console.error("Failed to parse users data:", error);
+    }
+    
+    const user = users.find(u => u.email === email && u.password === password);
+    
+    if (user) {
+      // Update last login time
+      const updatedUser = {
+        ...user,
+        lastLogin: new Date().toISOString()
+      };
+      
+      // Update user in storage
+      const updatedUsers = users.map(u => 
+        u.id === updatedUser.id ? updatedUser : u
+      );
+      localStorage.setItem("mrc_learnscape_users", JSON.stringify(updatedUsers));
+      
+      const newAuthState = {
+        isAuthenticated: true,
+        user: updatedUser,
+      };
+      
+      setAuthState(newAuthState);
+      
+      if (remember) {
+        localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(newAuthState));
+      } else {
+        sessionStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(newAuthState));
+      }
+      
+      toast({
+        title: "Connexion réussie",
+        description: `Bienvenue, ${user.username} !`,
+      });
+      
+      return true;
+    } else {
+      toast({
+        title: "Échec de connexion",
+        description: "Email ou mot de passe incorrect",
+        variant: "destructive",
+      });
+      
+      return false;
     }
   };
 
-  const value = {
-    session,
-    currentUser,
-    isAuthenticated: !!currentUser,
-    isLoading,
-    login,
-    logout,
-    register,
-    updateLastLogin
+  const register = (username: string, email: string, password: string) => {
+    // Retrieve existing users
+    const storedUsers = localStorage.getItem("mrc_learnscape_users") || "[]";
+    let users: AuthUser[] = [];
+    
+    try {
+      users = JSON.parse(storedUsers);
+    } catch (error) {
+      console.error("Failed to parse users data:", error);
+    }
+    
+    // Check if email already exists
+    if (users.some(u => u.email === email)) {
+      toast({
+        title: "Échec d'inscription",
+        description: "Cet email est déjà utilisé",
+        variant: "destructive",
+      });
+      
+      return false;
+    }
+    
+    // Create new user
+    const newUser: AuthUser = {
+      id: crypto.randomUUID(),
+      username,
+      email,
+      password,
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
+    };
+    
+    // Add user and save
+    users.push(newUser);
+    localStorage.setItem("mrc_learnscape_users", JSON.stringify(users));
+    
+    // Auto login
+    const newAuthState = {
+      isAuthenticated: true,
+      user: newUser,
+    };
+    
+    setAuthState(newAuthState);
+    localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(newAuthState));
+    
+    toast({
+      title: "Inscription réussie",
+      description: `Bienvenue, ${username} !`,
+    });
+    
+    return true;
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const logout = () => {
+    setAuthState({
+      isAuthenticated: false,
+      user: null,
+    });
+    
+    localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+    sessionStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+    
+    toast({
+      title: "Déconnexion réussie",
+      description: "À bientôt !",
+    });
+  };
+  
+  const updateLastLogin = () => {
+    if (authState.user) {
+      // Update last login time
+      const updatedUser = {
+        ...authState.user,
+        lastLogin: new Date().toISOString()
+      };
+      
+      // Update user in local storage
+      const storedUsers = localStorage.getItem("mrc_learnscape_users") || "[]";
+      let users: AuthUser[] = [];
+      
+      try {
+        users = JSON.parse(storedUsers);
+        const updatedUsers = users.map(u => 
+          u.id === updatedUser.id ? updatedUser : u
+        );
+        localStorage.setItem("mrc_learnscape_users", JSON.stringify(updatedUsers));
+        
+        // Update auth state
+        const newAuthState = {
+          isAuthenticated: true,
+          user: updatedUser,
+        };
+        
+        setAuthState(newAuthState);
+        
+        // Update in local/session storage
+        if (localStorage.getItem(LOCAL_STORAGE_AUTH_KEY)) {
+          localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(newAuthState));
+        } else if (sessionStorage.getItem(LOCAL_STORAGE_AUTH_KEY)) {
+          sessionStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(newAuthState));
+        }
+      } catch (error) {
+        console.error("Failed to update last login:", error);
+      }
+    }
+  };
+
+  return (
+    <AuthContext.Provider 
+      value={{ 
+        user: authState.user, 
+        isAuthenticated: authState.isAuthenticated,
+        login,
+        register,
+        logout,
+        updateLastLogin
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export type { AuthUser };

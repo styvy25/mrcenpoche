@@ -4,17 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Key, ExternalLink } from "lucide-react";
-import { useApiKeys } from "@/hooks/api-keys";
+import { CheckCircle, XCircle, Key } from "lucide-react";
+import { testPerplexityApiKey } from "@/components/assistant/services/perplexityChat";
 
 const FooterAPIManager = () => {
-  const { keys, keyStatus, updateKey, saveKeys, isAuthenticated } = useApiKeys();
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem("api_keys") 
+    ? JSON.parse(localStorage.getItem("api_keys") || "{}").perplexity || ""
+    : "");
+  const [isKeyValid, setIsKeyValid] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const { toast } = useToast();
 
   const handleSaveKey = async () => {
-    if (!keys.perplexity.trim()) {
+    if (!apiKey.trim()) {
       toast({
         title: "Erreur",
         description: "Veuillez entrer une clé API valide",
@@ -25,22 +28,28 @@ const FooterAPIManager = () => {
 
     setIsTesting(true);
     try {
-      const result = await saveKeys();
+      const isValid = await testPerplexityApiKey(apiKey);
+      setIsKeyValid(isValid);
 
-      if (result.success) {
+      if (isValid) {
+        // Save to localStorage
+        const existingKeys = JSON.parse(localStorage.getItem("api_keys") || "{}");
+        localStorage.setItem("api_keys", JSON.stringify({
+          ...existingKeys,
+          perplexity: apiKey
+        }));
+
         toast({
           title: "Clé API sauvegardée",
-          description: isAuthenticated 
-            ? "Votre clé API a été configurée avec succès et partagée entre vos appareils." 
-            : "Votre clé API a été configurée avec succès sur cet appareil.",
+          description: "Votre clé API Perplexity a été configurée avec succès.",
           variant: "default",
         });
         
         setIsEditing(false);
       } else {
         toast({
-          title: "Erreur lors de la vérification",
-          description: "La clé API fournie n'a pas pu être validée.",
+          title: "Clé API invalide",
+          description: "La clé API fournie n'est pas valide ou ne peut pas être vérifiée.",
           variant: "destructive",
         });
       }
@@ -67,9 +76,9 @@ const FooterAPIManager = () => {
           <div className="flex items-center gap-2">
             <Key className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600 dark:text-gray-400">API Perplexity:</span>
-            {keys.perplexity ? (
-              <Badge variant={keyStatus.perplexity ? "default" : "outline"} className="ml-2">
-                {keyStatus.perplexity ? (
+            {apiKey ? (
+              <Badge variant={isKeyValid ? "default" : "outline"} className="ml-2">
+                {isKeyValid ? (
                   <div className="flex items-center gap-1">
                     <CheckCircle className="h-3 w-3 text-green-500" />
                     <span>Connecté</span>
@@ -85,19 +94,9 @@ const FooterAPIManager = () => {
               <Badge variant="outline" className="ml-2 text-orange-500">Non configuré</Badge>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <a 
-              href="https://www.perplexity.ai/settings/api" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:underline flex items-center"
-            >
-              Obtenir une clé <ExternalLink className="h-3 w-3 ml-1" />
-            </a>
-            <Button size="sm" variant="ghost" onClick={toggleEdit}>
-              {keys.perplexity ? "Modifier" : "Configurer"}
-            </Button>
-          </div>
+          <Button size="sm" variant="ghost" onClick={toggleEdit}>
+            {apiKey ? "Modifier" : "Configurer"}
+          </Button>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -105,8 +104,8 @@ const FooterAPIManager = () => {
             <Input
               type="password"
               placeholder="Entrez votre clé API Perplexity"
-              value={keys.perplexity}
-              onChange={(e) => updateKey("perplexity", e.target.value)}
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
               className="flex-1"
             />
             <Button 
@@ -125,7 +124,7 @@ const FooterAPIManager = () => {
             </Button>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Votre clé sera stockée {isAuthenticated ? "de façon sécurisée et partagée entre vos appareils" : "localement sur cet appareil"}.
+            Votre clé sera stockée localement dans votre navigateur et ne sera jamais partagée.
           </p>
         </div>
       )}
