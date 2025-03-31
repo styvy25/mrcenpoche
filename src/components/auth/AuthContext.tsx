@@ -29,6 +29,7 @@ export interface AuthContextType {
   updateLastLogin: () => Promise<void>;
 }
 
+// Create the context with default values
 const AuthContext = createContext<AuthContextType>({
   session: null,
   currentUser: null,
@@ -41,6 +42,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Initialize state
   const [session, setSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<UserWithSubscription | null>(null);
   const [isLoading, setIsLoading] = useState(true);

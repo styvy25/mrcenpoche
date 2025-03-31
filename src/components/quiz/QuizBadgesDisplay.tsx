@@ -14,19 +14,16 @@ const QuizBadgesDisplay: React.FC<QuizBadgesDisplayProps> = ({ badges }) => {
       <h3 className="text-lg font-semibold mb-3">Badges gagnés</h3>
       <div className="flex flex-wrap justify-center gap-4">
         {badges.map((badge) => {
-          // Check if icon is available and render it properly
-          const IconComponent = badge.icon && typeof badge.icon === 'object' && badge.icon.icon;
+          // Check if icon is available
+          const IconComponent = badge.icon && typeof badge.icon === 'object' ? badge.icon.icon : null;
           
           return (
             <div
               key={badge.id}
               className="flex flex-col items-center bg-white rounded-lg p-3 shadow-sm w-28"
             >
-              {IconComponent && React.createElement(
-                IconComponent, 
-                { 
-                  className: badge.icon?.className || "h-10 w-10 text-blue-500" 
-                }
+              {IconComponent && (
+                <IconComponent className={badge.icon?.className || "h-10 w-10 text-blue-500"} />
               )}
               <span className="text-sm font-medium mt-1 text-center">
                 {badge.name}
