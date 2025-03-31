@@ -18,8 +18,10 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm shadow-black/5 hover:bg-secondary/80 hover:scale-105 active:scale-95",
         ghost: "hover:bg-accent hover:text-accent-foreground hover:scale-105 active:scale-95",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
-        gradient: "bg-gradient-to-r from-mrc-blue to-mrc-green text-white hover:from-mrc-green hover:to-mrc-blue hover:scale-105 active:scale-95 transition-all duration-500",
+        gradient: "bg-gradient-to-r from-mrc-blue to-mrc-green text-white hover:shadow-lg hover:shadow-mrc-blue/30 hover:scale-105 active:scale-95 transition-all duration-500",
         glow: "bg-mrc-blue text-white hover:shadow-[0_0_15px_rgba(0,123,255,0.5)] hover:scale-105 active:scale-95 transition-all duration-300",
+        glass: "bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:scale-105 active:scale-95",
+        3d: "bg-primary text-primary-foreground shadow-[0_4px_0_0_#0005] hover:shadow-[0_2px_0_0_#0005] hover:translate-y-1 active:translate-y-2 active:shadow-none transition-all transform-gpu",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -34,6 +36,7 @@ const buttonVariants = cva(
         bounce: "hover:animate-bounce",
         wiggle: "hover:animate-[wiggle_1s_ease-in-out_infinite]",
         glow: "hover:animate-[glow_1.5s_ease-in-out_infinite_alternate]",
+        shine: "after:content-[''] after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent after:-translate-x-[200%] hover:after:translate-x-[200%] after:transition-transform after:duration-1000",
       }
     },
     defaultVariants: {
@@ -48,7 +51,7 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
-  animation?: "none" | "pulse" | "bounce" | "wiggle" | "glow";
+  animation?: "none" | "pulse" | "bounce" | "wiggle" | "glow" | "shine";
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

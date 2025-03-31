@@ -1,5 +1,6 @@
 
 import { LucideIcon } from "lucide-react";
+import { ReactNode } from "react";
 
 export interface QuizQuestion {
   id: string;
@@ -9,13 +10,14 @@ export interface QuizQuestion {
   explanation: string;
   difficulty?: string;
   text?: string; // Added for backward compatibility
+  answers?: any; // Added for backward compatibility
 }
 
 export interface BadgeProps {
   id: string;
   name: string;
   description: string;
-  icon: LucideIcon;
+  icon: LucideIcon | ReactNode;
   color?: string;
   earnedAt?: Date;
   category?: string; // Added for compatibility
@@ -24,7 +26,7 @@ export interface BadgeProps {
 export interface QuizResult {
   score: number;
   totalQuestions: number;
-  correctAnswers: string[];
+  correctAnswers: string[] | number;
   wrongAnswers: string[];
   unlockedBadges?: BadgeProps[];
 }
@@ -33,8 +35,8 @@ export interface QuizResult {
 export interface Appointment {
   id: string;
   title: string;
-  start: Date;
-  end: Date;
+  start: Date | string;
+  end: Date | string;
   description?: string;
   location?: string;
   organizer?: string;
@@ -43,7 +45,7 @@ export interface Appointment {
   isAllDay?: boolean;
   isVirtual?: boolean;
   link?: string;
-  date?: Date;
+  date?: Date | string;
   participantsCount?: number;
   maxParticipants?: number;
   duration?: number;
@@ -51,7 +53,7 @@ export interface Appointment {
 
 export interface AppointmentRequest {
   title: string;
-  date: Date;
+  date: Date | string;
   time: string;
   duration: number;
   description?: string;
@@ -61,6 +63,7 @@ export interface AppointmentRequest {
   phone?: string;
   topic?: string;
   message?: string;
+  type?: string;
 }
 
 // Expanded Category type with all required properties
@@ -78,7 +81,7 @@ export interface Category {
 // Expanded QuizState type with all required properties
 export interface QuizState {
   currentQuestion: number;
-  selectedAnswers: number[];
+  selectedAnswers: number[] | undefined[];
   timeRemaining: number;
   isFinished: boolean;
   isStarted: boolean;
@@ -93,7 +96,7 @@ export interface Question {
   id: string;
   text: string;
   options: string[];
-  correctAnswer: number;
+  correctAnswer: number | string;
   explanation: string;
   category: string;
   difficulty: string;
@@ -109,8 +112,8 @@ export interface QuizUserStats {
   rank: string;
   quizzesByCategory: Record<string, number>;
   badges: BadgeProps[];
-  completedQuizzes?: number[];
-  correctAnswers?: number;
+  completedQuizzes?: number[] | number;
+  correctAnswers?: number | number[];
   totalQuestions?: number;
   streakDays?: number;
   lastQuizDate?: Date;

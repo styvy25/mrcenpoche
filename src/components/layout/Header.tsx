@@ -1,162 +1,218 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { NavLink, useNavigate } from "react-router-dom";
-import { Menu, X, MessageCircle, Download, YoutubeIcon, LayoutDashboard } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import UserAvatar from "@/components/auth/UserAvatar";
-import AuthDialog from "../auth/AuthDialog";
-import InstallAppButton from "../pwa/InstallAppButton";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import MRCLogoNew from "@/components/branding/MRCLogoNew";
-import ChatButton from "@/components/chat/ChatButton";
-import AuthNavItem from "./AuthNavItem";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Menu,
+  X,
+  MessageSquare,
+  LucideIcon,
+  Settings,
+  LogOut,
+  LogIn,
+  Moon,
+  Sun,
+  FileText,
+  Brain,
+  Youtube,
+  User
+} from 'lucide-react';
+import MRCLogo from '@/components/branding/MRCLogo';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
+import { AnimatePresence, motion } from 'framer-motion';
 
-const Header = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, currentUser } = useAuth();
-  const navigate = useNavigate();
-  
-  const handleToggleMenu = () => {
-    setIsOpen(!isOpen);
+interface NavItem {
+  title: string;
+  path: string;
+  icon: LucideIcon;
+}
+
+const navItems: NavItem[] = [
+  {
+    title: 'Assistant',
+    path: '/assistant',
+    icon: MessageSquare,
+  },
+  {
+    title: 'Documents',
+    path: '/documents',
+    icon: FileText,
+  },
+  {
+    title: 'Quiz',
+    path: '/quiz',
+    icon: Brain,
+  },
+  {
+    title: 'YouTube',
+    path: '/youtube-download',
+    icon: Youtube,
+  },
+  {
+    title: 'Compte',
+    path: '/dashboard',
+    icon: User,
+  },
+];
+
+const Header: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const { isAuthenticated, logout } = useAuth();
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
-  
-  const handleAccountClick = () => {
-    navigate('/dashboard');
+
+  const handleLogout = () => {
+    logout();
+    setIsMenuOpen(false);
   };
-  
+
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-background/80 border-b border-border">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="">
-          <NavLink to="/" className="flex items-center gap-2 object-cover">
-            <MRCLogoNew size="small" />
-            <span className="font-bold text-xl hidden sm:inline-block text-transparent bg-clip-text bg-gradient-to-r from-palette-royalblue-500 to-palette-purple-500">
-              MRC en Poche
-            </span>
-          </NavLink>
-          
-          <nav className="hidden md:flex gap-4 ml-4">
-            <NavLink to="/assistant" className={({
-            isActive
-          }) => `text-sm font-medium ${isActive ? 'text-palette-purple-500' : 'text-muted-foreground hover:text-palette-purple-500'}`}>
-              Assistant
-            </NavLink>
-            <NavLink to="/documents" className={({
-            isActive
-          }) => `text-sm font-medium ${isActive ? 'text-palette-green-500' : 'text-muted-foreground hover:text-palette-green-500'}`}>
-              Documents
-            </NavLink>
-            <NavLink to="/quiz" className={({
-            isActive
-          }) => `text-sm font-medium ${isActive ? 'text-palette-gold-500' : 'text-muted-foreground hover:text-palette-gold-500'}`}>
-              Quiz
-            </NavLink>
-            <NavLink to="/chat-237" className={({
-            isActive
-          }) => `text-sm font-medium ${isActive ? 'text-palette-royalblue-500' : 'text-muted-foreground hover:text-palette-royalblue-500'}`}>
-              Chat 237
-            </NavLink>
-            <NavLink to="/youtube-download" className={({
-            isActive
-          }) => `text-sm font-medium ${isActive ? 'text-palette-red-500' : 'text-muted-foreground hover:text-palette-red-500'}`}>
-              <span className="flex items-center">
-                <Download className="h-3 w-3 mr-1" />
-                YouTube
-              </span>
-            </NavLink>
-            <NavLink to="/dashboard" className={({
-            isActive
-          }) => `text-sm font-medium ${isActive ? 'text-palette-orange-500' : 'text-muted-foreground hover:text-palette-orange-500'}`}>
-              <span className="flex items-center">
-                <LayoutDashboard className="h-3 w-3 mr-1" />
-                Tableau de bord
-              </span>
-            </NavLink>
+    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 max-w-screen-2xl items-center">
+        <div className="flex flex-1 items-center justify-between">
+          <Link to="/" className="mr-6 flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
+            <MRCLogo />
+            <span className="font-bold sm:inline-block">MRC en Poche</span>
+          </Link>
+
+          <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.title}
+                to={item.path}
+                className="flex items-center text-sm font-medium transition-colors hover:text-primary"
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                {item.title}
+              </Link>
+            ))}
           </nav>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" asChild className="hidden sm:flex">
-            <NavLink to="/youtube-download" className="text-palette-red-500 hover:text-palette-red-600">
-              <YoutubeIcon className="h-4 w-4 mr-1" />
-              Télécharger Vidéos
-            </NavLink>
-          </Button>
-          
-          <Button variant="outline" size="sm" asChild className="hidden sm:flex">
-            <NavLink to="/chat-237" className="text-palette-royalblue-500 hover:text-palette-royalblue-600">
-              <MessageCircle className="h-4 w-4 mr-1" />
-              Chat 237
-            </NavLink>
-          </Button>
-          
-          <Button variant="outline" size="sm" asChild className="hidden sm:flex">
-            <NavLink to="/dashboard" className="text-palette-orange-500 hover:text-palette-orange-600">
-              <LayoutDashboard className="h-4 w-4 mr-1" />
-              Tableau de bord
-            </NavLink>
-          </Button>
-          
-          <ThemeToggle />
-          <InstallAppButton />
-          
-          {isAuthenticated ? (
-            <div className="flex items-center gap-2">
-              <AuthNavItem />
-              <Button variant="outline" size="sm" onClick={handleAccountClick}>
-                Mon Compte
-              </Button>
+
+          <div className="flex items-center">
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mr-2"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+
+            {/* Mobile Menu Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={toggleMenu}
+              aria-label="Toggle Menu"
+            >
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+
+            {/* User Menu (Desktop) */}
+            <div className="hidden md:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" /> Tableau de bord
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" /> Paramètres
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {isAuthenticated ? (
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-500 cursor-pointer">
+                      <LogOut className="mr-2 h-4 w-4" /> Déconnexion
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link to="/auth" className="cursor-pointer">
+                        <LogIn className="mr-2 h-4 w-4" /> Connexion
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          ) : (
-            <AuthDialog />
-          )}
-          
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={handleToggleMenu}>
-            {isOpen ? <X /> : <Menu />}
-          </Button>
+          </div>
         </div>
       </div>
-      
+
       {/* Mobile Menu */}
-      {isOpen && <div className="fixed inset-0 bg-background z-30 md:hidden pt-16">
-          <nav className="container py-8 flex flex-col gap-6">
-            <NavLink to="/assistant" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
-              <MessageCircle className="h-5 w-5 mr-3 text-palette-purple-500" />
-              Assistant
-            </NavLink>
-            <NavLink to="/documents" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
-              <FileText className="h-5 w-5 mr-3 text-palette-green-500" />
-              Documents
-            </NavLink>
-            <NavLink to="/quiz" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
-              <Brain className="h-5 w-5 mr-3 text-palette-gold-500" />
-              Quiz
-            </NavLink>
-            <NavLink to="/chat-237" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
-              <MessageCircle className="h-5 w-5 mr-3 text-palette-royalblue-500" />
-              Chat 237
-            </NavLink>
-            <NavLink to="/youtube-download" className="text-xl font-medium py-2 border-b border-border flex items-center text-palette-red-500" onClick={() => setIsOpen(false)}>
-              <Download className="h-5 w-5 mr-3" />
-              Télécharger des vidéos YouTube
-            </NavLink>
-            <NavLink to="/youtube-analyzer" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
-              <YoutubeIcon className="h-5 w-5 mr-3 text-palette-red-500" />
-              Analyser des vidéos YouTube
-            </NavLink>
-            <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border flex items-center text-palette-orange-500" onClick={() => setIsOpen(false)}>
-              <LayoutDashboard className="h-5 w-5 mr-3" />
-              Tableau de bord
-            </NavLink>
-            {isAuthenticated && (
-              <NavLink to="/dashboard" className="text-xl font-medium py-2 border-b border-border flex items-center" onClick={() => setIsOpen(false)}>
-                <User className="h-5 w-5 mr-3 text-palette-cyan-500" />
-                Mon Compte
-              </NavLink>
-            )}
-          </nav>
-        </div>}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden border-t border-border/40"
+          >
+            <div className="container py-4">
+              <nav className="grid gap-2">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.title}
+                    to={item.path}
+                    className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.title}
+                  </Link>
+                ))}
+                <div className="mt-4 space-y-2">
+                  <Link to="/settings" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <Settings className="mr-2 h-4 w-4" /> Paramètres
+                    </Button>
+                  </Link>
+                  {isAuthenticated ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-red-500"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" /> Déconnexion
+                    </Button>
+                  ) : (
+                    <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" size="sm" className="w-full justify-start">
+                        <LogIn className="mr-2 h-4 w-4" /> Connexion
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              </nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

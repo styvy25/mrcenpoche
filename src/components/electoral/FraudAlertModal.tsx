@@ -23,7 +23,7 @@ const FraudAlertModal: React.FC<FraudAlertModalProps> = ({
   const [mediaType, setMediaType] = useState<'photo' | 'audio' | null>(null);
   const [isCapturingMedia, setIsCapturingMedia] = useState(false);
   
-  const { isMobile } = useMediaQuery();
+  const { isMobile } = useMediaQuery("(max-width: 768px)");
   
   const handleCaptureComplete = async (file: Blob, type: 'photo' | 'audio') => {
     setMediaFile(file);

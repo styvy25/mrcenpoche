@@ -10,7 +10,7 @@ const FraudAlertNotification = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentAlert, setCurrentAlert] = useState<FraudAlert | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const { isMobile } = useMediaQuery();
+  const { isMobile } = useMediaQuery("(max-width: 768px)");
   
   useEffect(() => {
     // Subscribe to realtime fraud alerts
