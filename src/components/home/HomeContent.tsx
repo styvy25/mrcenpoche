@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { MessageCircle, FileText, Newspaper, HelpCircle, Settings, AlertTriangle, ArrowRight, Users, Youtube, BookOpen, Video, Camera } from "lucide-react";
+import { MessageCircle, FileText, Newspaper, HelpCircle, Settings, AlertTriangle, ArrowRight, Users, Youtube } from 'lucide-react';
 import { motion } from "framer-motion";
 
 const HomeContent = () => {
@@ -212,13 +211,13 @@ const HomeContent = () => {
             
             <motion.div variants={item}>
               <AppCard 
-                title="Streaming" 
-                description="Regardez et partagez des diffusions en direct" 
-                icon={<Video className="h-5 w-5" />}
-                link="/streaming"
+                title="Chat 237" 
+                description="Échangez avec d'autres militants et sympathisants" 
+                icon={<MessageCircle className="h-5 w-5" />}
+                link="/chat-237"
                 color="bg-gradient-to-br from-blue-600 to-blue-800"
                 small
-                imageSrc="/lovable-uploads/streaming-card.jpg"
+                imageSrc="/lovable-uploads/chat-card.jpg"
               />
             </motion.div>
             

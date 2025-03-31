@@ -3,7 +3,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Bell, 
-  BookOpen, 
   MessageSquare, 
   Home
 } from 'lucide-react';
@@ -23,7 +22,6 @@ const MobileNotificationDock = () => {
   // Simplified dock items based on core functionality
   const dockItems = [
     { icon: Home, label: 'Accueil', path: '/', category: null },
-    { icon: BookOpen, label: 'Modules', path: '/modules', category: 'modules' as NotificationCategory },
     { icon: MessageSquare, label: 'Chat', path: '/chat-237', category: 'messages' as NotificationCategory },
     { icon: Bell, label: 'Notifications', path: '/notifications', category: 'system' as NotificationCategory }
   ];

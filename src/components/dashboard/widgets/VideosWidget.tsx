@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Youtube } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const VideosWidget = () => {
   return (
@@ -15,10 +16,12 @@ const VideosWidget = () => {
         <span className="text-sm font-medium">Espace utilisé</span>
         <Badge variant="outline">{(Math.random() * 500).toFixed(1)} MB</Badge>
       </div>
-      <Button variant="outline" size="sm" className="mt-2 w-full">
-        <Youtube className="h-4 w-4 mr-2 text-red-500" />
-        Télécharger une vidéo
-      </Button>
+      <Link to="/youtube-download">
+        <Button variant="outline" size="sm" className="mt-2 w-full">
+          <Youtube className="h-4 w-4 mr-2 text-red-500" />
+          Télécharger une vidéo
+        </Button>
+      </Link>
     </div>
   );
 };

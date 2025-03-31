@@ -1,5 +1,5 @@
 
-import { FileText, MessageSquare, Brain, Users, Youtube, LayoutDashboard, Settings, Camera, BookOpen, Video } from 'lucide-react';
+import { FileText, MessageSquare, Brain, Users, Youtube, LayoutDashboard, Settings } from 'lucide-react';
 import { MenuCard } from '@/components/ui/menu-card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -74,28 +74,10 @@ const HomeMenu = () => {
       tab: 'applications',
     },
     {
-      title: 'Streaming',
-      value: 'LIVE',
-      subtitle: 'Diffusion en direct',
-      icon: <Video size={24} className="text-white" />,
-      color: 'pink',
-      path: '/streaming',
-      tab: 'multimedia',
-    },
-    {
-      title: 'Formation',
-      value: '12',
-      subtitle: 'Modules disponibles',
-      icon: <BookOpen size={24} className="text-white" />,
-      color: 'teal',
-      path: '/modules',
-      tab: 'multimedia',
-    },
-    {
       title: 'Galerie',
       value: '150+',
       subtitle: 'Photos d\'événements',
-      icon: <Camera size={24} className="text-white" />,
+      icon: <MessageSquare size={24} className="text-white" />,
       color: 'cyan',
       path: '/gallery',
       tab: 'multimedia',

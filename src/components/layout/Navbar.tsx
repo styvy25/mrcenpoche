@@ -10,7 +10,7 @@ import NavbarLinks from "./NavbarLinks";
 import NavbarMobileMenu from "./NavbarMobileMenu";
 import MRCLogoNew from "@/components/branding/MRCLogoNew";
 import { Button } from "@/components/ui/button";
-import { Download, MessageSquare, YoutubeIcon } from "lucide-react";
+import { Download, MessageSquare } from "lucide-react";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import { useNotificationsDemo } from "@/hooks/useNotificationsDemo";
 
