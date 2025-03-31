@@ -2,32 +2,71 @@
 import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
 import { PdfGenerationOptions } from "./types";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export const usePdfGenerator = () => {
   const { toast } = useToast();
+  const { currentUser } = useAuth();
 
   /**
-   * Generates a PDF document from the video analysis
+   * Génère un document PDF à partir de l'analyse vidéo
    */
   const generateAnalysisPDF = async (options: PdfGenerationOptions): Promise<string | null> => {
     const { videoId, title, analysis } = options;
     
+    if (!currentUser) {
+      toast({
+        title: "Authentification requise",
+        description: "Veuillez vous connecter pour générer des PDF",
+        variant: "destructive",
+      });
+      return null;
+    }
+    
     try {
-      // Create a new PDF document
+      // Vérifier si l'utilisateur peut générer un PDF via l'edge function
+      const { data: optimizeData, error: optimizeError } = await supabase.functions.invoke(
+        'optimize-pdf',
+        {
+          body: {
+            userId: currentUser.id,
+            content: {
+              videoId,
+              title,
+              analysis
+            },
+            options: {
+              templateId: null
+            }
+          }
+        }
+      );
+      
+      if (optimizeError || !optimizeData?.success) {
+        toast({
+          title: "Erreur d'autorisation",
+          description: optimizeError?.message || optimizeData?.error || "Limite de génération atteinte",
+          variant: "destructive",
+        });
+        return null;
+      }
+      
+      // Créer un nouveau document PDF
       const doc = new jsPDF();
       
-      // Add title
+      // Ajouter le titre
       doc.setFontSize(22);
       doc.setTextColor(31, 87, 164); // MRC blue
       doc.text("Analyse Vidéo MRC", 105, 20, { align: "center" });
       
-      // Add video title
+      // Ajouter le titre de la vidéo
       doc.setFontSize(16);
       doc.setTextColor(0, 0, 0);
       const titleLines = doc.splitTextToSize(title, 180);
       doc.text(titleLines, 105, 35, { align: "center" });
       
-      // Add YouTube preview
+      // Ajouter l'aperçu YouTube
       doc.setFontSize(10);
       doc.setTextColor(80, 80, 80);
       doc.text("Vidéo YouTube:", 20, 55);
@@ -36,7 +75,7 @@ export const usePdfGenerator = () => {
         url: `https://www.youtube.com/watch?v=${videoId}`
       });
 
-      // Add video thumbnail if possible
+      // Ajouter la vignette vidéo si possible
       try {
         const img = new Image();
         img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
@@ -49,29 +88,29 @@ export const usePdfGenerator = () => {
         console.error("Could not add thumbnail:", error);
       }
       
-      // Add analysis content
+      // Ajouter le contenu de l'analyse
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       doc.text("Analyse détaillée:", 20, 130);
       
-      // Format analysis content
+      // Formater le contenu de l'analyse
       const analysisLines = doc.splitTextToSize(analysis, 170);
       let yPosition = 140;
       
-      // Add line break for readability
+      // Ajouter un saut de ligne pour la lisibilité
       for (let i = 0; i < analysisLines.length; i++) {
-        // Check if we need to add a new page
+        // Vérifier si nous avons besoin d'ajouter une nouvelle page
         if (yPosition > 280) {
           doc.addPage();
           yPosition = 20;
         }
         
-        // Add line of text
+        // Ajouter une ligne de texte
         doc.text(analysisLines[i], 20, yPosition);
-        yPosition += 7; // Line spacing
+        yPosition += 7; // Espacement des lignes
       }
       
-      // Add footer
+      // Ajouter un pied de page
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -80,9 +119,30 @@ export const usePdfGenerator = () => {
         doc.text(`Analyse MRC | Page ${i} sur ${pageCount}`, 105, 290, { align: "center" });
       }
       
-      // Generate PDF blob
+      // Générer le blob PDF
       const pdfBlob = doc.output('blob');
       const url = URL.createObjectURL(pdfBlob);
+      
+      // Store the PDF document reference in Supabase
+      const { data: docData, error: docError } = await supabase
+        .from('pdf_documents')
+        .insert({
+          title: `Analyse de "${title}"`,
+          document_type: 'youtube_analysis',
+          user_id: currentUser.id,
+          file_url: null, // On pourrait stocker le fichier dans un bucket storage
+          content: {
+            videoId,
+            title,
+            analysisExcerpt: analysis.substring(0, 200) + '...'
+          }
+        })
+        .select()
+        .single();
+      
+      if (docError) {
+        console.error("Error storing PDF document reference:", docError);
+      }
       
       return url;
     } catch (error) {

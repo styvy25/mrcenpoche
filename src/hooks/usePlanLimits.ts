@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from "react";
 import { useAuth } from "./useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 // Define all the features available in the application
 export enum Feature {
@@ -144,6 +145,50 @@ export const usePlanLimits = () => {
     incrementUsage(Feature.YOUTUBE_ANALYSIS);
   }, [incrementUsage]);
 
+  // Check if user can generate PDFs
+  const canGeneratePdf = useCallback(async (): Promise<boolean> => {
+    if (!isAuthenticated || !currentUser) return false;
+    
+    if (userPlan === "premium") return true;
+    
+    try {
+      const { data, error } = await supabase.rpc('can_generate_pdf', {
+        user_id: currentUser.id
+      });
+      
+      if (error) {
+        console.error("Error checking PDF limit:", error);
+        return false;
+      }
+      
+      return data === true;
+    } catch (error) {
+      console.error("Error checking PDF generation limit:", error);
+      return false;
+    }
+  }, [isAuthenticated, currentUser, userPlan]);
+
+  // Increment PDF generation count
+  const incrementPdfGenerations = useCallback(async (): Promise<boolean> => {
+    if (!isAuthenticated || !currentUser) return false;
+    
+    try {
+      const { data, error } = await supabase.rpc('increment_pdf_generations', {
+        user_id: currentUser.id
+      });
+      
+      if (error) {
+        console.error("Error incrementing PDF count:", error);
+        return false;
+      }
+      
+      return data === true;
+    } catch (error) {
+      console.error("Error incrementing PDF generation count:", error);
+      return false;
+    }
+  }, [isAuthenticated, currentUser]);
+
   // Update user's plan
   const updateUserPlan = useCallback((plan: Plan): void => {
     setUserPlan(plan);
@@ -182,6 +227,8 @@ export const usePlanLimits = () => {
     resetAllUsage,
     updateUserPlan,
     getRemainingUses,
-    canUseFeature
+    canUseFeature,
+    canGeneratePdf,
+    incrementPdfGenerations
   };
 };

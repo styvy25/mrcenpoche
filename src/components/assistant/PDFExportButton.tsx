@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Feature, usePlanLimits } from "@/hooks/usePlanLimits";
 import * as jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface PDFExportButtonProps {
   messages: Message[];
@@ -15,7 +16,7 @@ export interface PDFExportButtonProps {
 }
 
 // Function to generate and download PDF from messages
-const generatePDF = async (messages: Message[]): Promise<void> => {
+const generatePDF = async (messages: Message[], userId?: string): Promise<void> => {
   const doc = new jsPDF.default();
   
   // Add title
@@ -63,9 +64,19 @@ const PDFExportButton: React.FC<PDFExportButtonProps> = ({
 }) => {
   const [isExporting, setIsExporting] = React.useState(false);
   const { toast } = useToast();
-  const { hasFeatureAccess } = usePlanLimits();
+  const { hasFeatureAccess, incrementPdfGenerations, canGeneratePdf } = usePlanLimits();
+  const { currentUser } = useAuth();
   
   const handleExport = async () => {
+    if (!currentUser) {
+      toast({
+        title: "Authentification requise",
+        description: "Veuillez vous connecter pour exporter des PDF",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (!hasFeatureAccess(Feature.PDF_EXPORT)) {
       toast({
         title: "Fonctionnalité premium",
@@ -87,7 +98,23 @@ const PDFExportButton: React.FC<PDFExportButtonProps> = ({
     setIsExporting(true);
     
     try {
-      await generatePDF(messages);
+      // Vérifier si l'utilisateur peut générer un PDF
+      const canGenerate = await canGeneratePdf();
+      if (!canGenerate) {
+        toast({
+          title: "Limite atteinte",
+          description: "Vous avez atteint votre limite d'exportations PDF. Passez à Premium pour plus.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Générer le PDF
+      await generatePDF(messages, currentUser.id);
+      
+      // Incrémenter le compteur de PDF
+      await incrementPdfGenerations();
+      
       toast({
         title: "Exportation réussie",
         description: "Le fichier PDF a été téléchargé",

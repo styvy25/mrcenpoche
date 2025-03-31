@@ -1,14 +1,14 @@
 
-// Define common types for YouTube analyzer
 export interface VideoAnalysisResult {
   success: boolean;
-  analysis?: string;
   videoId?: string;
   title?: string;
+  analysis?: string;
+  error?: string;
 }
 
-export interface PdfGenerationOptions {
+export type PdfGenerationOptions = {
   videoId: string;
   title: string;
   analysis: string;
-}
+};

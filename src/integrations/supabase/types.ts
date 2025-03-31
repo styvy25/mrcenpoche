@@ -1256,6 +1256,33 @@ export type Database = {
         }
         Relationships: []
       }
+      mrc_content: {
+        Row: {
+          content_type: string
+          created_at: string | null
+          id: string
+          indexed: boolean | null
+          title: string
+          url: string
+        }
+        Insert: {
+          content_type: string
+          created_at?: string | null
+          id?: string
+          indexed?: boolean | null
+          title: string
+          url: string
+        }
+        Update: {
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          indexed?: boolean | null
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
       openai_config: {
         Row: {
           api_key: string
@@ -2504,6 +2531,12 @@ export type Database = {
         }
         Returns: number
       }
+      can_generate_pdf: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
       cleanup_old_chat_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -2843,6 +2876,12 @@ export type Database = {
         Args: {
           curlopt: string
           value: string
+        }
+        Returns: boolean
+      }
+      increment_pdf_generations: {
+        Args: {
+          user_id: string
         }
         Returns: boolean
       }
