@@ -1,103 +1,107 @@
 
-import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/custom-dialog";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, Circle } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Bell, CheckCircle, MapPin, Camera, Video } from 'lucide-react';
 import { subscribeToFraudAlerts, FraudAlert } from './services/alertService';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useToast } from '@/hooks/use-toast';
 
-const FraudAlertNotification = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentAlert, setCurrentAlert] = useState<FraudAlert | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const { isMobile } = useMediaQuery("(max-width: 768px)");
-  
+const FraudAlertNotification: React.FC = () => {
+  const [latestAlert, setLatestAlert] = useState<FraudAlert | null>(null);
+  const [viewedAlerts, setViewedAlerts] = useState<string[]>([]);
+  const { toast } = useToast();
+
   useEffect(() => {
-    // Subscribe to realtime fraud alerts
-    const unsubscribe = subscribeToFraudAlerts((alert) => {
-      setCurrentAlert(alert);
-      setIsOpen(true);
-    });
+    // Subscribe to fraud alerts
+    const unsubscribe = subscribeToFraudAlerts((alerts) => {
+      // Only show new alerts that haven't been viewed
+      const newAlerts = alerts.filter(alert => !viewedAlerts.includes(alert.id));
       
-    // Check for recording status
-    const handleRecordingStart = () => setIsRecording(true);
-    const handleRecordingStop = () => setIsRecording(false);
+      if (newAlerts.length > 0) {
+        // Update with latest alert
+        setLatestAlert(newAlerts[0]);
+        
+        // Show a toast notification
+        toast({
+          title: "Alerte de fraude électorale",
+          description: `Nouvelle alerte de ${newAlerts[0].location}`,
+          variant: "destructive",
+        });
+      }
+    });
     
-    document.addEventListener('start-fraud-recording', handleRecordingStart);
-    document.addEventListener('stop-fraud-recording', handleRecordingStop);
-    
+    // Clean up subscription
     return () => {
       unsubscribe();
-      document.removeEventListener('start-fraud-recording', handleRecordingStart);
-      document.removeEventListener('stop-fraud-recording', handleRecordingStop);
     };
-  }, []);
-  
-  if (!currentAlert) return null;
-  
+  }, [viewedAlerts, toast]);
+
+  const handleDismiss = () => {
+    if (latestAlert) {
+      // Add to viewed alerts
+      setViewedAlerts(prev => [...prev, latestAlert.id]);
+      // Clear current alert
+      setLatestAlert(null);
+    }
+  };
+
+  const handleViewDetails = () => {
+    // In a real app, navigate to alert details page
+    console.log("View details for alert:", latestAlert);
+    handleDismiss();
+  };
+
+  if (!latestAlert) return null;
+
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className={`${isMobile ? 'w-[calc(100%-2rem)] p-4' : 'sm:max-w-md'}`}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center text-mrc-red">
-              <AlertTriangle className="h-5 w-5 mr-2" />
-              Alerte de fraude électorale
-            </DialogTitle>
-            <DialogDescription>
-              Un utilisateur a signalé une fraude électorale potentielle
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="border-l-4 border-red-500 pl-3 py-2 bg-red-50 rounded-sm">
-              <p className="font-medium">Description:</p>
-              <p className={isMobile ? 'text-sm' : ''}>{currentAlert.description}</p>
-            </div>
-            
-            <div>
-              <p className="font-medium">Lieu:</p>
-              <p className={isMobile ? 'text-sm' : ''}>{currentAlert.location}</p>
-            </div>
-            
-            <div>
-              <p className="font-medium">Date/Heure:</p>
-              <p className={isMobile ? 'text-sm' : ''}>{new Date(currentAlert.timestamp).toLocaleString()}</p>
-            </div>
-            
-            {currentAlert.mediaUrl && (
-              <div>
-                <p className="font-medium mb-2">Preuve:</p>
-                {currentAlert.mediaType === 'photo' ? (
-                  <img 
-                    src={currentAlert.mediaUrl} 
-                    alt="Fraud evidence" 
-                    className="w-full rounded-md object-cover max-h-64"
-                  />
-                ) : currentAlert.mediaType === 'audio' ? (
-                  <audio src={currentAlert.mediaUrl} controls className="w-full" />
-                ) : null}
-              </div>
+    <Card className="border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800 shadow-lg max-w-md mx-auto">
+      <CardHeader className="space-y-1">
+        <div className="flex justify-between items-center">
+          <Badge variant="destructive" className="mb-1">Alert</Badge>
+          <span className="text-xs text-muted-foreground">
+            {latestAlert.timestamp.toLocaleTimeString()}
+          </span>
+        </div>
+        <CardTitle className="flex items-center space-x-2">
+          <Bell className="h-5 w-5 text-red-500" />
+          <span>Alerte de fraude électorale</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <div className="flex items-start">
+          <MapPin className="h-4 w-4 text-muted-foreground mr-2 mt-1 flex-shrink-0" />
+          <span>{latestAlert.location}</span>
+        </div>
+        
+        <AlertDescription>
+          {latestAlert.description}
+        </AlertDescription>
+        
+        {latestAlert.mediaType && (
+          <div className="flex items-center mt-2">
+            {latestAlert.mediaType === 'photo' ? (
+              <Camera className="h-4 w-4 mr-2 text-blue-500" />
+            ) : (
+              <Video className="h-4 w-4 mr-2 text-blue-500" />
             )}
+            <span className="text-sm text-muted-foreground">
+              {latestAlert.mediaType === 'photo' ? 'Photo disponible' : 'Vidéo disponible'}
+            </span>
           </div>
-          
-          <DialogFooter className="flex flex-col gap-2 sm:flex-row">
-            {isRecording && (
-              <div className="flex items-center text-red-500 gap-1 text-sm mr-auto">
-                <Circle className="h-3 w-3 fill-red-500 animate-pulse" />
-                <span>Enregistrement en cours</span>
-              </div>
-            )}
-            <Button 
-              onClick={() => setIsOpen(false)}
-              className={isMobile ? 'w-full' : ''}
-            >
-              Fermer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+        )}
+      </CardContent>
+      <CardFooter className="flex justify-between pt-0">
+        <Button variant="ghost" size="sm" onClick={handleDismiss}>
+          Ignorer
+        </Button>
+        <Button variant="default" size="sm" onClick={handleViewDetails}>
+          <CheckCircle className="mr-2 h-4 w-4" />
+          Examiner
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 

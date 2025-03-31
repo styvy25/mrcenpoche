@@ -1,5 +1,5 @@
 
-import { useNotifications } from '@/context/NotificationContext';
+import { useNotifications, NotificationCategory } from '@/context/NotificationContext';
 import { Award, BookOpen, Info, MessageSquare } from 'lucide-react';
 import React from 'react';
 

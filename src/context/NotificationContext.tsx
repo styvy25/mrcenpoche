@@ -1,10 +1,14 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 
+// Define notification categories
+export type NotificationCategory = 'system' | 'messages' | 'modules' | 'challenges';
+
+// Define notification types
 export type NotificationType = 'info' | 'success' | 'warning' | 'error';
-export type NotificationCategory = 'system' | 'modules' | 'messages' | 'challenges';
 
+// Notification interface
 export interface Notification {
   id: string;
   title: string;
@@ -12,127 +16,127 @@ export interface Notification {
   type: NotificationType;
   category: NotificationCategory;
   read: boolean;
-  date: Date;
+  timestamp: Date;
   link?: string;
   icon?: React.ReactNode;
 }
 
-interface NotificationContextType {
+// Context interface
+interface NotificationContextProps {
   notifications: Notification[];
-  unreadCount: number;
-  addNotification: (notification: Omit<Notification, 'id' | 'date' | 'read'>) => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'read' | 'timestamp'>) => void;
   markAsRead: (id: string) => void;
-  markAllAsRead: (category?: NotificationCategory) => void;
-  clearNotifications: (category?: NotificationCategory) => void;
-  getByCategory: (category: NotificationCategory) => Notification[];
+  markAllAsRead: () => void;
+  clearNotifications: () => void;
+  removeNotification: (id: string) => void;
+  getUnreadCount: () => number;
   getUnreadCountByCategory: (category: NotificationCategory) => number;
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+// Create the context
+const NotificationContext = createContext<NotificationContextProps>({
+  notifications: [],
+  addNotification: () => {},
+  markAsRead: () => {},
+  markAllAsRead: () => {},
+  clearNotifications: () => {},
+  removeNotification: () => {},
+  getUnreadCount: () => 0,
+  getUnreadCountByCategory: () => 0,
+});
 
-export const useNotifications = () => {
-  const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
-  }
-  return context;
-};
-
-interface NotificationProviderProps {
-  children: ReactNode;
-}
-
-export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
+// Provider component
+export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const { toast } = useToast();
 
   // Load notifications from localStorage on mount
   useEffect(() => {
     const savedNotifications = localStorage.getItem('notifications');
     if (savedNotifications) {
       try {
-        const parsed = JSON.parse(savedNotifications);
+        const parsedNotifications = JSON.parse(savedNotifications);
         // Convert string dates back to Date objects
-        const withDates = parsed.map((notif: any) => ({
-          ...notif,
-          date: new Date(notif.date)
+        const formattedNotifications = parsedNotifications.map((notification: any) => ({
+          ...notification,
+          timestamp: new Date(notification.timestamp)
         }));
-        setNotifications(withDates);
+        setNotifications(formattedNotifications);
       } catch (error) {
-        console.error('Failed to parse saved notifications:', error);
+        console.error('Error parsing saved notifications:', error);
       }
     }
   }, []);
 
-  // Save notifications to localStorage when they change
+  // Save notifications to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('notifications', JSON.stringify(notifications));
   }, [notifications]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const addNotification = (notification: Omit<Notification, 'id' | 'date' | 'read'>) => {
+  // Add a new notification
+  const addNotification = (notification: Omit<Notification, 'id' | 'read' | 'timestamp'>) => {
     const newNotification: Notification = {
       ...notification,
-      id: crypto.randomUUID(),
-      date: new Date(),
-      read: false
+      id: `notification-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      read: false,
+      timestamp: new Date(),
     };
-
+    
     setNotifications(prev => [newNotification, ...prev]);
-
-    // Show toast for new notification
-    toast({
-      title: notification.title,
-      description: notification.message,
-      variant: notification.type === 'error' ? 'destructive' : 'default',
-    });
   };
 
+  // Mark a notification as read
   const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === id ? { ...notification, read: true } : notification
       )
     );
   };
 
-  const markAllAsRead = (category?: NotificationCategory) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        !category || notif.category === category ? { ...notif, read: true } : notif
-      )
+  // Mark all notifications as read
+  const markAllAsRead = () => {
+    setNotifications(prev =>
+      prev.map(notification => ({ ...notification, read: true }))
     );
   };
 
-  const clearNotifications = (category?: NotificationCategory) => {
-    setNotifications(prev => 
-      !category ? [] : prev.filter(notif => notif.category !== category)
-    );
+  // Clear all notifications
+  const clearNotifications = () => {
+    setNotifications([]);
   };
 
-  const getByCategory = (category: NotificationCategory) => {
-    return notifications.filter(notif => notif.category === category);
+  // Remove a specific notification
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
   };
 
+  // Get the total count of unread notifications
+  const getUnreadCount = () => {
+    return notifications.filter(notification => !notification.read).length;
+  };
+
+  // Get the count of unread notifications by category
   const getUnreadCountByCategory = (category: NotificationCategory) => {
-    return notifications.filter(notif => notif.category === category && !notif.read).length;
+    return notifications.filter(notification => !notification.read && notification.category === category).length;
   };
 
   return (
-    <NotificationContext.Provider 
-      value={{ 
-        notifications, 
-        unreadCount, 
-        addNotification, 
-        markAsRead, 
-        markAllAsRead, 
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        addNotification,
+        markAsRead,
+        markAllAsRead,
         clearNotifications,
-        getByCategory,
-        getUnreadCountByCategory
+        removeNotification,
+        getUnreadCount,
+        getUnreadCountByCategory,
       }}
     >
       {children}
     </NotificationContext.Provider>
   );
 };
+
+// Custom hook for using the notification context
+export const useNotifications = () => useContext(NotificationContext);

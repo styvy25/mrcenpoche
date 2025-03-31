@@ -1,152 +1,187 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from "react";
+import { useAuth } from "./useAuth";
 
-export type Plan = 'free' | 'standard' | 'premium';
-
+// Define all the features available in the application
 export enum Feature {
-  PdfGeneration = 'pdfGeneration',
-  Quizzes = 'quizzes',
-  AiChat = 'aiChat',
-  VideoDownload = 'videoDownload',
-  YoutubeAnalysis = 'youtubeAnalysis'
+  CHAT = "chat",
+  AI_CHAT = "aiChat",
+  PDF_EXPORT = "pdfExport",
+  YOUTUBE_ANALYSIS = "youtubeAnalysis",
+  MODULE_ACCESS = "moduleAccess",
+  DOCUMENT_GENERATION = "documentGeneration",
+  QUIZ_ADVANCED = "quizAdvanced"
 }
 
-interface PlanLimits {
-  [key: string]: {
-    [key in Feature]?: number;
-  }
-}
+export type Plan = "free" | "premium";
 
-const DEFAULT_LIMITS: PlanLimits = {
-  free: {
-    [Feature.PdfGeneration]: 5,
-    [Feature.Quizzes]: 10,
-    [Feature.AiChat]: 20,
-    [Feature.VideoDownload]: 3,
-    [Feature.YoutubeAnalysis]: 5
-  },
-  standard: {
-    [Feature.PdfGeneration]: 20,
-    [Feature.Quizzes]: 50,
-    [Feature.AiChat]: 100,
-    [Feature.VideoDownload]: 15,
-    [Feature.YoutubeAnalysis]: 25
-  },
-  premium: {
-    [Feature.PdfGeneration]: -1, // unlimited
-    [Feature.Quizzes]: -1, // unlimited
-    [Feature.AiChat]: -1, // unlimited
-    [Feature.VideoDownload]: -1, // unlimited
-    [Feature.YoutubeAnalysis]: -1 // unlimited
-  }
-};
+export interface FeatureUsage {
+  limit: number;
+  used: number;
+}
 
 export const usePlanLimits = () => {
-  const [userPlan, setUserPlan] = useState<Plan>('free');
-  const [usage, setUsage] = useState<{[key in Feature]?: number}>({
-    [Feature.PdfGeneration]: 0,
-    [Feature.Quizzes]: 0,
-    [Feature.AiChat]: 3,
-    [Feature.VideoDownload]: 0,
-    [Feature.YoutubeAnalysis]: 0
+  const { isAuthenticated, currentUser } = useAuth();
+  const [userPlan, setUserPlan] = useState<Plan>(
+    currentUser?.subscription?.plan || "free"
+  );
+  
+  // Track feature usage
+  const [usage, setUsage] = useState<Record<Feature, number>>({
+    [Feature.CHAT]: 0,
+    [Feature.AI_CHAT]: 0,
+    [Feature.PDF_EXPORT]: 0,
+    [Feature.YOUTUBE_ANALYSIS]: 0,
+    [Feature.MODULE_ACCESS]: 0,
+    [Feature.DOCUMENT_GENERATION]: 0,
+    [Feature.QUIZ_ADVANCED]: 0
   });
 
-  useEffect(() => {
-    // Simuler le chargement des données utilisateur
-    const loadUserData = async () => {
-      // Ici, vous appelleriez normalement votre API
-      // Pour l'instant, on utilise des données simulées
-      const userData = {
-        plan: localStorage.getItem('userPlan') as Plan || 'free',
-        usage: JSON.parse(localStorage.getItem('userUsage') || '{}')
-      };
-      
-      setUserPlan(userData.plan);
-      setUsage(userData.usage);
-    };
-    
-    loadUserData();
+  // Define limits based on plan
+  const planLimits: Record<Plan, Record<Feature, number>> = {
+    free: {
+      [Feature.CHAT]: 10,
+      [Feature.AI_CHAT]: 5,
+      [Feature.PDF_EXPORT]: 2,
+      [Feature.YOUTUBE_ANALYSIS]: 3,
+      [Feature.MODULE_ACCESS]: 3,
+      [Feature.DOCUMENT_GENERATION]: 1,
+      [Feature.QUIZ_ADVANCED]: 5
+    },
+    premium: {
+      [Feature.CHAT]: Infinity,
+      [Feature.AI_CHAT]: Infinity,
+      [Feature.PDF_EXPORT]: Infinity,
+      [Feature.YOUTUBE_ANALYSIS]: Infinity,
+      [Feature.MODULE_ACCESS]: Infinity,
+      [Feature.DOCUMENT_GENERATION]: Infinity,
+      [Feature.QUIZ_ADVANCED]: Infinity
+    }
+  };
+
+  // Check if user has access to a feature
+  const hasFeatureAccess = useCallback(
+    (feature: Feature): boolean => {
+      if (!isAuthenticated) return false;
+      return usage[feature] < planLimits[userPlan][feature];
+    },
+    [isAuthenticated, userPlan, usage]
+  );
+
+  // Get limit for a feature
+  const getLimitForFeature = useCallback(
+    (feature: Feature): number => {
+      return planLimits[userPlan][feature];
+    },
+    [userPlan]
+  );
+
+  // Check if feature has a limit
+  const hasLimit = useCallback(
+    (feature: Feature): boolean => {
+      return planLimits[userPlan][feature] !== Infinity;
+    },
+    [userPlan]
+  );
+
+  // Get usage for a feature
+  const getUsage = useCallback(
+    (feature: Feature): number => {
+      return usage[feature];
+    },
+    [usage]
+  );
+
+  // Increment usage counter for a feature
+  const incrementUsage = useCallback(
+    (feature: Feature): void => {
+      setUsage((prev) => ({
+        ...prev,
+        [feature]: prev[feature] + 1
+      }));
+    },
+    []
+  );
+
+  // Reset usage counter for a feature
+  const resetUsage = useCallback(
+    (feature: Feature): void => {
+      setUsage((prev) => ({
+        ...prev,
+        [feature]: 0
+      }));
+    },
+    []
+  );
+
+  // Reset all usage counters
+  const resetAllUsage = useCallback((): void => {
+    setUsage({
+      [Feature.CHAT]: 0,
+      [Feature.AI_CHAT]: 0,
+      [Feature.PDF_EXPORT]: 0,
+      [Feature.YOUTUBE_ANALYSIS]: 0,
+      [Feature.MODULE_ACCESS]: 0,
+      [Feature.DOCUMENT_GENERATION]: 0,
+      [Feature.QUIZ_ADVANCED]: 0
+    });
   }, []);
 
-  const getLimitForFeature = (feature: Feature): number => {
-    return DEFAULT_LIMITS[userPlan]?.[feature] ?? -1;
-  };
+  // Specific incrementers for each feature
+  const incrementChatMessages = useCallback((): void => {
+    incrementUsage(Feature.CHAT);
+  }, [incrementUsage]);
 
-  const hasLimit = (feature: Feature): boolean => {
-    const limit = getLimitForFeature(feature);
-    return limit !== -1;
-  };
+  const incrementAIChat = useCallback((): void => {
+    incrementUsage(Feature.AI_CHAT);
+  }, [incrementUsage]);
 
-  const getUsage = (feature: Feature): number => {
-    return usage[feature] || 0;
-  };
+  const incrementPDFExport = useCallback((): void => {
+    incrementUsage(Feature.PDF_EXPORT);
+  }, [incrementUsage]);
 
-  const getRemainingUsage = (feature: Feature): number => {
-    const limit = getLimitForFeature(feature);
-    const currentUsage = getUsage(feature);
-    
-    if (limit === -1) return -1; // unlimited
-    return Math.max(0, limit - currentUsage);
-  };
+  const incrementYouTubeAnalysis = useCallback((): void => {
+    incrementUsage(Feature.YOUTUBE_ANALYSIS);
+  }, [incrementUsage]);
 
-  const hasReachedLimit = (feature: Feature): boolean => {
-    const limit = getLimitForFeature(feature);
-    const currentUsage = getUsage(feature);
-    
-    if (limit === -1) return false; // unlimited
-    return currentUsage >= limit;
-  };
-
-  const incrementUsage = async (feature: Feature, amount: number = 1): Promise<boolean> => {
-    if (hasReachedLimit(feature)) return false;
-    
-    const newUsage = {
-      ...usage,
-      [feature]: (usage[feature] || 0) + amount
-    };
-    
-    setUsage(newUsage);
-    
-    // Simuler la mise à jour dans la base de données
-    localStorage.setItem('userUsage', JSON.stringify(newUsage));
-    
-    return true;
-  };
-
-  // Méthodes additionnelles utiles
-  const canGeneratePdf = (): boolean => !hasReachedLimit(Feature.PdfGeneration);
-  const incrementPdfGenerations = (): Promise<boolean> => incrementUsage(Feature.PdfGeneration);
-  
-  const hasFeatureAccess = (feature: Feature): boolean => !hasReachedLimit(feature);
-  const incrementChatMessages = (): Promise<boolean> => incrementUsage(Feature.AiChat);
-  
-  const canAccessAllModules = (): boolean => userPlan === 'premium';
-  const canAnalyzeYoutube = (): boolean => !hasReachedLimit(Feature.YoutubeAnalysis);
-  const incrementYoutubeAnalysis = (): Promise<boolean> => incrementUsage(Feature.YoutubeAnalysis);
-  
-  const updateUserPlan = (plan: Plan): void => {
+  // Update user's plan
+  const updateUserPlan = useCallback((plan: Plan): void => {
     setUserPlan(plan);
-    localStorage.setItem('userPlan', plan);
-  };
+  }, []);
+
+  // Remaining uses calculation
+  const getRemainingUses = useCallback(
+    (feature: Feature): number => {
+      const limit = planLimits[userPlan][feature];
+      if (limit === Infinity) return Infinity;
+      return Math.max(0, limit - usage[feature]);
+    },
+    [userPlan, usage]
+  );
+
+  // Check if user can use feature based on limits
+  const canUseFeature = useCallback(
+    (feature: Feature): boolean => {
+      return getRemainingUses(feature) > 0;
+    },
+    [getRemainingUses]
+  );
 
   return {
     userPlan,
     getLimitForFeature,
     hasLimit,
     getUsage,
-    getRemainingUsage,
-    hasReachedLimit,
-    incrementUsage,
-    // Fonctions supplémentaires
-    canGeneratePdf,
-    incrementPdfGenerations,
     hasFeatureAccess,
     incrementChatMessages,
-    canAccessAllModules,
-    canAnalyzeYoutube,
-    incrementYoutubeAnalysis,
-    updateUserPlan
+    incrementAIChat,
+    incrementPDFExport,
+    incrementYouTubeAnalysis,
+    incrementUsage,
+    resetUsage,
+    resetAllUsage,
+    updateUserPlan,
+    getRemainingUses,
+    canUseFeature
   };
 };
-
-export default usePlanLimits;

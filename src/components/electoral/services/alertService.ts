@@ -5,7 +5,7 @@ export interface AlertData {
   description: string;
   location: string;
   mediaFile?: Blob;
-  mediaType?: 'photo' | 'audio' | null;
+  mediaType?: 'photo' | 'audio' | 'video' | null;
 }
 
 export interface FraudAlert {
@@ -15,17 +15,18 @@ export interface FraudAlert {
   timestamp: Date;
   status: 'new' | 'pending' | 'resolved';
   mediaUrl?: string;
+  mediaType?: 'photo' | 'audio' | 'video' | null;
 }
 
 export const submitAlert = async (alertData: AlertData): Promise<boolean> => {
   try {
-    // Ici, vous pourriez implémenter l'envoi réel à une API
+    // Here, you could implement the actual API call
     console.log("Sending alert data:", alertData);
     
-    // Simuler une requête réseau
+    // Simulate a network request
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Simuler une réponse réussie
+    // Simulate a successful response
     return true;
   } catch (error) {
     console.error("Error submitting alert:", error);
@@ -33,11 +34,20 @@ export const submitAlert = async (alertData: AlertData): Promise<boolean> => {
   }
 };
 
-export const updateRecording = async (recordingId: string, data: any): Promise<boolean> => {
+export const updateRecording = async (
+  recordingId: string,
+  videoUrl: string,
+  audioUrl: string,
+  durationSeconds: number
+): Promise<boolean> => {
   try {
-    console.log(`Updating recording ${recordingId} with data:`, data);
+    console.log(`Updating recording ${recordingId} with:`, {
+      videoUrl,
+      audioUrl,
+      durationSeconds
+    });
     
-    // Simuler une requête réseau
+    // Simulate a network request
     await new Promise(resolve => setTimeout(resolve, 500));
     
     return true;
@@ -48,23 +58,24 @@ export const updateRecording = async (recordingId: string, data: any): Promise<b
 };
 
 export const subscribeToFraudAlerts = (callback: (alerts: FraudAlert[]) => void): () => void => {
-  // Simuler des alertes en direct
+  // Simulate live alerts
   const interval = setInterval(() => {
-    // Générer une alerte aléatoire de manière occasionnelle (1 chance sur 10)
+    // Generate a random alert occasionally (1 in 10 chance)
     if (Math.random() > 0.9) {
       const mockAlert: FraudAlert = {
         id: `alert-${Date.now()}`,
         description: "Suspicion de bourrage d'urnes",
         location: "Douala, Cameroun",
         timestamp: new Date(),
-        status: 'new'
+        status: 'new',
+        mediaType: Math.random() > 0.5 ? 'photo' : 'video'
       };
       
       callback([mockAlert]);
     }
-  }, 30000); // Vérifier toutes les 30 secondes
+  }, 30000); // Check every 30 seconds
   
-  // Retourner une fonction pour se désabonner
+  // Return an unsubscribe function
   return () => clearInterval(interval);
 };
 

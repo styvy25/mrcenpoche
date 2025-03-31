@@ -13,7 +13,7 @@ import {
   DockIcon, 
   DockLabel 
 } from '@/components/ui/dock';
-import { useNotifications } from '@/context/NotificationContext';
+import { useNotifications, NotificationCategory } from '@/context/NotificationContext';
 import NotificationBadge from './NotificationBadge';
 
 const MobileNotificationDock = () => {
@@ -23,9 +23,9 @@ const MobileNotificationDock = () => {
   // Simplified dock items based on core functionality
   const dockItems = [
     { icon: Home, label: 'Accueil', path: '/', category: null },
-    { icon: BookOpen, label: 'Modules', path: '/modules', category: 'modules' },
-    { icon: MessageSquare, label: 'Chat', path: '/chat-237', category: 'messages' },
-    { icon: Bell, label: 'Notifications', path: '/notifications', category: 'system' }
+    { icon: BookOpen, label: 'Modules', path: '/modules', category: 'modules' as NotificationCategory },
+    { icon: MessageSquare, label: 'Chat', path: '/chat-237', category: 'messages' as NotificationCategory },
+    { icon: Bell, label: 'Notifications', path: '/notifications', category: 'system' as NotificationCategory }
   ];
 
   return (

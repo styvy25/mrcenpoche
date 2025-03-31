@@ -4,23 +4,32 @@ import { cn } from '@/lib/utils';
 
 interface NotificationBadgeProps {
   count: number;
-  max?: number;
   className?: string;
+  variant?: 'default' | 'small';
+  max?: number;
 }
 
-const NotificationBadge = ({ count, max = 99, className }: NotificationBadgeProps) => {
+const NotificationBadge: React.FC<NotificationBadgeProps> = ({
+  count,
+  className,
+  variant = 'default',
+  max = 99
+}) => {
+  if (count <= 0) return null;
+  
   const displayCount = count > max ? `${max}+` : count.toString();
   
-  return count > 0 ? (
-    <span 
+  return (
+    <div
       className={cn(
-        "absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full text-[10px] font-bold text-white bg-red-500",
+        'absolute -top-1 -right-1 flex items-center justify-center bg-red-500 text-white font-medium rounded-full',
+        variant === 'default' ? 'min-w-[1.25rem] h-[1.25rem] text-xs' : 'min-w-[1rem] h-[1rem] text-[0.625rem]',
         className
       )}
     >
       {displayCount}
-    </span>
-  ) : null;
+    </div>
+  );
 };
 
 export default NotificationBadge;

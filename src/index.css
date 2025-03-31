@@ -5,11 +5,11 @@
 
 /* Import styles in correct order */
 @import './styles/base.css';
-@import './styles/mobile.css';
 @import './styles/animations.css';
 @import './styles/prose.css';
 @import './styles/theme.css';
 @import './styles/menu.css';
+@import './styles/mobile.css';
 
 /* Ajout d'animations générales */
 @keyframes float {
