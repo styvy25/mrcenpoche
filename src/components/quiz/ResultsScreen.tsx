@@ -4,15 +4,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import QuizResult from './QuizResult';
 import { Award, Clock, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { BadgeProps } from './QuizResult';
+import { BadgeProps } from './types';
 
 interface ResultsScreenProps {
   score: number;
   totalQuestions: number;
   categoryName: string;
   onRestart: () => void;
-  timeSpent: number;
-  correctAnswers: number;
+  timeSpent?: number;
+  correctAnswers?: number;
   earnedBadges?: BadgeProps[];
   questions?: any[];
   selectedAnswers?: number[];
@@ -23,8 +23,8 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   totalQuestions,
   categoryName,
   onRestart,
-  timeSpent,
-  correctAnswers,
+  timeSpent = 0,
+  correctAnswers = 0,
   earnedBadges = [],
   questions = [],
   selectedAnswers = []

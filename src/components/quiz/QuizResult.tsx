@@ -9,15 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePoints } from '@/hooks/usePoints';
 import { motion } from 'framer-motion';
+import { BadgeProps } from './types';
 
-export interface BadgeProps {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-}
-
-export interface QuizResultProps {
+interface QuizResultProps {
   score: number;
   totalQuestions: number;
   categoryName: string;
@@ -25,6 +19,8 @@ export interface QuizResultProps {
   unlockedBadges?: BadgeProps[];
   timeSpent?: number;
   correctAnswers?: number;
+  questions?: any[];
+  selectedAnswers?: number[];
 }
 
 const QuizResult: React.FC<QuizResultProps> = ({
@@ -35,6 +31,8 @@ const QuizResult: React.FC<QuizResultProps> = ({
   unlockedBadges = [],
   timeSpent = 0,
   correctAnswers = 0,
+  questions = [],
+  selectedAnswers = []
 }) => {
   const { toast } = useToast();
   const { isPremium } = useSubscription();
