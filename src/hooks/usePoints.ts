@@ -49,11 +49,11 @@ export const usePoints = (): UsePointsReturn => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
         
-        // Check if a user points record exists
+        // Check if user_points record exists
         const { data, error } = await supabase
-          .from('profiles')
+          .from('user_points')
           .select('points, level')
-          .eq('id', session.user.id)
+          .eq('user_id', session.user.id)
           .maybeSingle();
           
         if (error) {
@@ -69,9 +69,9 @@ export const usePoints = (): UsePointsReturn => {
         } else {
           // Create initial points record if it doesn't exist
           await supabase
-            .from('profiles')
+            .from('user_points')
             .insert({
-              id: session.user.id,
+              user_id: session.user.id,
               points: 0,
               level: 1
             });
@@ -101,12 +101,12 @@ export const usePoints = (): UsePointsReturn => {
       
       // Update the database
       const { error } = await supabase
-        .from('profiles')
+        .from('user_points')
         .update({ 
           points: newPoints,
           level: newLevel 
         })
-        .eq('id', session.user.id);
+        .eq('user_id', session.user.id);
         
       if (error) {
         console.error('Error updating points:', error);

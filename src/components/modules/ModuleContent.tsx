@@ -4,6 +4,9 @@ import QuizContent from "@/components/modules/QuizContent";
 import ModulesHomeView from "@/components/modules/ModulesHomeView";
 import { Module } from "@/components/modules/types";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Video, Users } from "lucide-react";
 
 interface ModuleContentProps {
   selectedModule: Module | null;
@@ -52,12 +55,29 @@ const ModuleContent = ({
     }
   } else {
     return (
-      <ModulesHomeView 
-        onChallengeClick={onChallengeClick}
-        onChatClick={onChatClick}
-        onStartQuiz={onStartQuiz}
-        onChallengeComplete={onChallengeComplete}
-      />
+      <>
+        <div className="mb-6 flex flex-wrap gap-3">
+          <Link to="/modules/training">
+            <Button variant="outline" className="bg-gradient-to-r from-mrc-blue to-blue-600 text-white hover:from-blue-600 hover:to-mrc-blue border-none">
+              <Video className="mr-2 h-4 w-4" />
+              Formation Immersive
+            </Button>
+          </Link>
+          <Link to="/modules/reunions">
+            <Button variant="outline" className="bg-gradient-to-r from-indigo-700 to-indigo-500 text-white hover:from-indigo-500 hover:to-indigo-700 border-none">
+              <Users className="mr-2 h-4 w-4" />
+              Réunions Virtuelles
+            </Button>
+          </Link>
+        </div>
+        
+        <ModulesHomeView 
+          onChallengeClick={onChallengeClick}
+          onChatClick={onChatClick}
+          onStartQuiz={onStartQuiz}
+          onChallengeComplete={onChallengeComplete}
+        />
+      </>
     );
   }
 };

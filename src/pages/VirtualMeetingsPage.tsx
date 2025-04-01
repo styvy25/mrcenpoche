@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePoints } from "@/hooks/usePoints";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Clock, MapPin, Plus, Users, Video } from "lucide-react";
+import { ArrowLeft, Award, Calendar, Clock, MapPin, Plus, Users, Video } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

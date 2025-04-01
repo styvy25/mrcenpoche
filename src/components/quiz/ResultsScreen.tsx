@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import QuizResult, { BadgeProps } from './QuizResult';
+import QuizResult from './QuizResult';
 import { Award, Clock, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { BadgeProps } from './QuizResult';
 
 interface ResultsScreenProps {
   score: number;
