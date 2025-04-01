@@ -7,19 +7,19 @@ import { useOnClickOutside } from "usehooks-ts";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 
-interface Tab {
+export interface Tab {
   title: string;
   icon: LucideIcon;
   type?: never;
 }
 
-interface Separator {
+export interface Separator {
   type: "separator";
   title?: never;
   icon?: never;
 }
 
-type TabItem = Tab | Separator;
+export type TabItem = Tab | Separator;
 
 interface ExpandableTabsProps {
   tabs: TabItem[];
@@ -68,7 +68,7 @@ export function ExpandableTabs({
     onChange?.(index);
   };
 
-  const Separator = () => (
+  const SeparatorComponent = () => (
     <div className="mx-1 h-[24px] w-[1.2px] bg-border" aria-hidden="true" />
   );
 
@@ -81,14 +81,16 @@ export function ExpandableTabs({
       )}
     >
       {tabs.map((tab, index) => {
-        if (tab.type === "separator") {
-          return <Separator key={`separator-${index}`} />;
+        if ('type' in tab && tab.type === "separator") {
+          return <SeparatorComponent key={`separator-${index}`} />;
         }
 
-        const Icon = tab.icon;
+        const TabIcon = 'icon' in tab ? tab.icon : null;
+        if (!TabIcon) return null;
+        
         return (
           <motion.button
-            key={tab.title}
+            key={index}
             variants={buttonVariants}
             initial={false}
             animate="animate"
@@ -102,7 +104,7 @@ export function ExpandableTabs({
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            <Icon size={20} />
+            <TabIcon size={20} />
             <AnimatePresence initial={false}>
               {selected === index && (
                 <motion.span
@@ -113,7 +115,7 @@ export function ExpandableTabs({
                   transition={transition}
                   className="overflow-hidden"
                 >
-                  {tab.title}
+                  {'title' in tab ? tab.title : ''}
                 </motion.span>
               )}
             </AnimatePresence>

@@ -6,8 +6,8 @@ import DesktopNavActions from "./navbar/DesktopNavActions";
 import MobileNavButton from "./navbar/MobileNavButton";
 import MobileNavMenu from "./navbar/MobileNavMenu";
 import { useNavigation } from "./navigation/NavigationContext";
-import { navigationItems } from "./navigation/navigationData";
-import { ExpandableTabs } from "@/components/ui/expandable-tabs";
+import { navigationItems, navIcons } from "./navigation/navigationData";
+import { ExpandableTabs, TabItem } from "@/components/ui/expandable-tabs";
 
 interface NavbarProps {
   navEndElement?: React.ReactNode;
@@ -36,7 +36,7 @@ const Navbar = ({
   };
 
   // Convert navigation items to expandable tabs format
-  const navTabs = navigationItems.map(item => ({
+  const navTabs: TabItem[] = navigationItems.map(item => ({
     title: item.label,
     icon: item.getIcon().type,
   }));
