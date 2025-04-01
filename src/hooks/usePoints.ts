@@ -29,6 +29,21 @@ export const usePoints = () => {
     // Simple level calculation: level = 1 + floor(points / 100)
     return 1 + Math.floor(points / 100);
   };
+
+  // Calculate points needed for the next level
+  const pointsToNextLevel = (level: number): number => {
+    return level * 100;
+  };
+  
+  // Calculate percentage progress to next level
+  const calculatePercentToNextLevel = (points: number, level: number): number => {
+    const nextLevelThreshold = level * 100;
+    const currentLevelThreshold = (level - 1) * 100;
+    const pointsInCurrentLevel = points - currentLevelThreshold;
+    const pointsNeededForNextLevel = nextLevelThreshold - currentLevelThreshold;
+    
+    return Math.floor((pointsInCurrentLevel / pointsNeededForNextLevel) * 100);
+  };
   
   const addPoints = async (pointsToAdd: number): Promise<void> => {
     try {
@@ -53,5 +68,7 @@ export const usePoints = () => {
     isMaxLevel: userPoints.level >= 10, // Let's say 10 is the max level
     addPoints,
     calculateLevelFromPoints,
+    nextLevelPoints: pointsToNextLevel(userPoints.level + 1),
+    percentToNextLevel: calculatePercentToNextLevel(userPoints.points, userPoints.level),
   };
 };
