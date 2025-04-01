@@ -10,7 +10,7 @@ import ModuleCategoryTabs from "./ModuleCategoryTabs";
 import ModuleActionButtons from "./ModuleActionButtons";
 import QuizGrid from "./QuizGrid";
 import ModulesHelp from "./ModulesHelp";
-import { BookOpen, Award, FileText, Lightbulb, Settings, Bell } from "lucide-react";
+import { BookOpen, Award, FileText, Lightbulb, Settings, Bell, Video, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -177,6 +177,45 @@ const ModulesHomeView = ({
               </div>
             )}
           </Card>
+          
+          {/* New training options */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <Link to="/modules/training">
+              <Card className="bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <div className="p-6 flex items-start">
+                  <div className="bg-mrc-blue rounded-full p-3 h-14 w-14 flex items-center justify-center">
+                    <Video className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="font-semibold text-lg mb-1">Formation Immersive</h3>
+                    <p className="text-gray-300 text-sm">Scénarios interactifs et simulations de situations politiques</p>
+                  </div>
+                </div>
+                <div className="bg-blue-900/30 p-3 text-xs font-medium text-blue-300 flex justify-between">
+                  <span>3 scénarios disponibles</span>
+                  <span>Gagnez 50 XP par exercice</span>
+                </div>
+              </Card>
+            </Link>
+            
+            <Link to="/modules/reunions">
+              <Card className="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white overflow-hidden rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <div className="p-6 flex items-start">
+                  <div className="bg-indigo-600 rounded-full p-3 h-14 w-14 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="font-semibold text-lg mb-1">Réunions Virtuelles</h3>
+                    <p className="text-gray-300 text-sm">Participez à des réunions et formations en ligne</p>
+                  </div>
+                </div>
+                <div className="bg-indigo-900/50 p-3 text-xs font-medium text-indigo-300 flex justify-between">
+                  <span>3 réunions à venir</span>
+                  <span>Prochaine: 15 Sept. 18:00</span>
+                </div>
+              </Card>
+            </Link>
+          </div>
         </div>
         <div>
           <div className="flex items-center mb-4">

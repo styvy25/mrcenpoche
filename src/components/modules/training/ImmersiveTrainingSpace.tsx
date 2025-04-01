@@ -58,7 +58,11 @@ interface TrainingScenario {
   locked?: boolean;
 }
 
-const ImmersiveTrainingSpace = () => {
+interface ImmersiveTrainingSpaceProps {
+  onTrainingComplete?: () => void;
+}
+
+const ImmersiveTrainingSpace = ({ onTrainingComplete }: ImmersiveTrainingSpaceProps) => {
   const [level, setLevel] = useState(1);
   const [activeScenario, setActiveScenario] = useState<number | null>(null);
   const { toast } = useToast();
@@ -115,6 +119,10 @@ const ImmersiveTrainingSpace = () => {
       title: "Scénario terminé",
       description: "Félicitations! Vous avez complété ce scénario de formation.",
     });
+    
+    if (onTrainingComplete) {
+      onTrainingComplete();
+    }
   };
   
   return (

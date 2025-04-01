@@ -13,6 +13,8 @@ import SettingsPage from "@/pages/SettingsPage";
 import PaymentPage from "@/pages/PaymentPage";
 import NotFound from "@/pages/NotFound";
 import ModuleQuizPage from "@/pages/ModuleQuizPage";
+import ImmersiveTrainingPage from "@/pages/ImmersiveTrainingPage";
+import VirtualMeetingsPage from "@/pages/VirtualMeetingsPage";
 import Index from "./pages/Index";
 import { AuthProvider } from "@/components/auth/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
@@ -32,6 +34,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/modules" element={<ModulesPage />} />
+                <Route path="/modules/training" element={<ImmersiveTrainingPage />} />
+                <Route path="/modules/reunions" element={<VirtualMeetingsPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/documents" element={<DocumentsPage />} />
                 <Route path="/chat" element={<AssistantPage />} />

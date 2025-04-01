@@ -12,7 +12,9 @@ interface ResultsScreenProps {
   onRestart: () => void;
   timeSpent: number;
   correctAnswers: number;
-  unlockedBadges?: BadgeProps[];
+  earnedBadges?: BadgeProps[];
+  questions?: any[];
+  selectedAnswers?: number[];
 }
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({
@@ -22,7 +24,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   onRestart,
   timeSpent,
   correctAnswers,
-  unlockedBadges = []
+  earnedBadges = [],
+  questions = [],
+  selectedAnswers = []
 }) => {
   // Animation variants
   const containerVariants = {
@@ -53,9 +57,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
         totalQuestions={totalQuestions}
         categoryName={categoryName}
         onRestart={onRestart}
-        unlockedBadges={unlockedBadges}
+        unlockedBadges={earnedBadges}
         timeSpent={timeSpent}
         correctAnswers={correctAnswers}
+        questions={questions}
+        selectedAnswers={selectedAnswers}
       />
     </motion.div>
   );
