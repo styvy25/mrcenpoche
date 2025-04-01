@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -39,13 +40,21 @@ const inactiveStyles = `
 
 export default function DesktopNavLinks() {
   const location = useLocation();
+  
+  // Function to determine if a path is active
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <nav className="hidden md:flex items-center gap-1">
       <Link
         to="/"
         className={`${baseStyles} ${
-          location.pathname === '/' ? activeStyles : inactiveStyles
+          isActive('/') ? activeStyles : inactiveStyles
         }`}
       >
         Accueil
@@ -53,7 +62,7 @@ export default function DesktopNavLinks() {
       <Link
         to="/modules"
         className={`${baseStyles} ${
-          location.pathname === '/modules' ? activeStyles : inactiveStyles
+          isActive('/modules') ? activeStyles : inactiveStyles
         }`}
       >
         Modules
@@ -61,7 +70,7 @@ export default function DesktopNavLinks() {
       <Link
         to="/training"
         className={`${baseStyles} ${
-          location.pathname === '/training' ? activeStyles : inactiveStyles
+          isActive('/training') ? activeStyles : inactiveStyles
         }`}
       >
         Formation
@@ -69,7 +78,7 @@ export default function DesktopNavLinks() {
       <Link
         to="/quiz"
         className={`${baseStyles} ${
-          location.pathname === '/quiz' ? activeStyles : inactiveStyles
+          isActive('/quiz') ? activeStyles : inactiveStyles
         }`}
       >
         Quiz
@@ -77,7 +86,7 @@ export default function DesktopNavLinks() {
       <Link
         to="/chat"
         className={`${baseStyles} ${
-          location.pathname === '/chat' ? activeStyles : inactiveStyles
+          isActive('/chat') ? activeStyles : inactiveStyles
         }`}
       >
         Assistant IA

@@ -14,19 +14,7 @@ interface NavbarProps {
 const Navbar = ({ navEndElement }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [activeTab, setActiveTab] = useState("");
   const location = useLocation();
-  
-  useEffect(() => {
-    // Set active tab based on location
-    const path = location.pathname;
-    if (path === "/") setActiveTab("home");
-    else if (path === "/modules") setActiveTab("modules");
-    else if (path === "/news") setActiveTab("news");
-    else if (path === "/chat") setActiveTab("chat");
-    else if (path === "/quiz") setActiveTab("quiz");
-    else setActiveTab("");
-  }, [location]);
   
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -39,10 +27,7 @@ const Navbar = ({ navEndElement }: NavbarProps) => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <NavbarLogo />
-            <DesktopNavLinks 
-              activeTab={activeTab} 
-              setActiveTab={setActiveTab} 
-            />
+            <DesktopNavLinks />
           </div>
           
           <DesktopNavActions 
