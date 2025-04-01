@@ -5,6 +5,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import QuizContainer from "@/components/quiz/QuizContainer";
 import { categories } from "@/components/quiz/data/categories";
 import { useToast } from "@/hooks/use-toast";
+import { Category } from "@/components/quiz/types";
 
 const QuizPage: React.FC = () => {
   const { toast } = useToast();
@@ -25,7 +26,7 @@ const QuizPage: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold mb-6">Quiz {moduleId ? `- Module ${moduleId}` : ""}</h1>
-          <QuizContainer categories={categories} />
+          <QuizContainer categories={categories as Category[]} />
         </div>
       </div>
     </MainLayout>
