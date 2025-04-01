@@ -1,61 +1,115 @@
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import MainLayout from './components/layout/MainLayout';
+import HomePage from './pages/HomePage';
+import ModulesPage from './pages/ModulesPage';
+import ModuleQuizPage from './pages/ModuleQuizPage';
+import AssistantPage from './pages/AssistantPage';
+import SettingsPage from './pages/SettingsPage';
+import PricingPage from './pages/PricingPage';
+import AuthPage from './pages/AuthPage';
+import { useAuth } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ModulesPage from "@/pages/ModulesPage";
-import AuthPage from "@/pages/AuthPage";
-import DocumentsPage from "@/pages/DocumentsPage";
-import AssistantPage from "@/pages/AssistantPage";
-import NewsPage from "@/pages/NewsPage";
-import QuizPage from "@/pages/QuizPage";
-import LegalPage from "@/pages/LegalPage";
-import PrivacyPage from "@/pages/PrivacyPage";
-import TermsPage from "@/pages/TermsPage";
-import SettingsPage from "@/pages/SettingsPage";
-import PaymentPage from "@/pages/PaymentPage";
-import NotFound from "@/pages/NotFound";
-import ModuleQuizPage from "@/pages/ModuleQuizPage";
-import ImmersiveTrainingPage from "@/pages/ImmersiveTrainingPage";
-import VirtualMeetingsPage from "@/pages/VirtualMeetingsPage";
-import Index from "./pages/Index";
-import { AuthProvider } from "@/components/auth/AuthContext";
-import { Toaster } from "@/components/ui/sonner";
-import { StripeProvider } from "./providers/StripeProvider";
-import PageTransition from "@/components/ui/page-transition";
-
-import "./App.css";
-import "./styles/chat-animations.css";
+const LazyTrainingModulePage = lazy(() => import("./pages/TrainingModulePage"));
 
 function App() {
+  const { isLoggedIn, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="App">
-      <AuthProvider>
-        <StripeProvider>
-          <BrowserRouter>
-            <PageTransition>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/modules" element={<ModulesPage />} />
-                <Route path="/modules/training" element={<ImmersiveTrainingPage />} />
-                <Route path="/modules/reunions" element={<VirtualMeetingsPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/documents" element={<DocumentsPage />} />
-                <Route path="/chat" element={<AssistantPage />} />
-                <Route path="/assistant" element={<AssistantPage />} />
-                <Route path="/news" element={<NewsPage />} />
-                <Route path="/quiz" element={<QuizPage />} />
-                <Route path="/module-quiz/:id" element={<ModuleQuizPage />} />
-                <Route path="/legal" element={<LegalPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/payment" element={<PaymentPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </PageTransition>
-            <Toaster />
-          </BrowserRouter>
-        </StripeProvider>
-      </AuthProvider>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/auth" element={<AuthPage />} />
+
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <MainLayout>
+                <HomePage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/modules"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <MainLayout>
+                <ModulesPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/modules/quiz"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <MainLayout>
+                <ModuleQuizPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/modules/quiz/:moduleId"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <MainLayout>
+                <ModuleQuizPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assistant"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <MainLayout>
+                <AssistantPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <MainLayout>
+                <SettingsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pricing"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <MainLayout>
+                <PricingPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/training" element={
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-12 w-12 animate-spin" /></div>}>
+            <LazyTrainingModulePage />
+          </Suspense>
+        } />
+      </Routes>
+      <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="dark" />
+    </Router>
   );
 }
 
