@@ -37,7 +37,7 @@ const MobileNavMenu = ({ isOpen, isDarkMode, toggleDarkMode, navEndElement }: Mo
             }`}
           >
             <div className="flex items-center">
-              {item.icon}
+              {item.getIcon()}
               {item.label}
             </div>
           </Link>

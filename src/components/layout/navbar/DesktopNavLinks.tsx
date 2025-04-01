@@ -30,6 +30,7 @@ export default function DesktopNavLinks() {
             isActive(item.path) ? activeStyles : inactiveStyles
           }`}
         >
+          {item.getIcon()}
           {item.label}
         </Link>
       ))}
