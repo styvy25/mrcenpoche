@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -70,7 +69,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     id: 'premium',
     name: 'Premium',
     description: 'Pour les militants actifs',
-    price: 3000,
+    price: 10,
     features: [
       'Accès à tous les modules',
       'Quiz illimités',
@@ -102,7 +101,7 @@ export const plans: Plan[] = [
     id: 'premium',
     name: 'Premium',
     description: 'Pour les militants actifs',
-    price: 3000,
+    price: 10,
     features: [
       'Accès à tous les modules',
       'Quiz illimités',
@@ -117,10 +116,10 @@ export const plans: Plan[] = [
     id: 'premium-annual',
     name: 'Premium Annuel',
     description: 'Pour les militants dévoués',
-    price: 25000,
+    price: 100,
     features: [
       'Tous les avantages Premium',
-      'Économisez 30% par rapport au tarif mensuel',
+      'Économisez 17% par rapport au tarif mensuel',
       'Accès prioritaire aux nouvelles fonctionnalités',
       'Badge "Supporter Loyal"',
     ],
@@ -337,4 +336,3 @@ export const goToCustomerPortal = async (): Promise<void> => {
     throw error;
   }
 };
-

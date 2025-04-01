@@ -41,6 +41,21 @@ const PricingSection = () => {
     }
   };
 
+  const handleStripeButtonClick = (priceId?: string) => {
+    // Ouvrir le lien Stripe dans une popup
+    const width = 550;
+    const height = 650;
+    const left = window.innerWidth / 2 - width / 2;
+    const top = window.innerHeight / 2 - height / 2;
+    const STRIPE_DIRECT_LINK = "https://buy.stripe.com/14kcQa9Cx9ME1he3cA";
+    
+    window.open(
+      STRIPE_DIRECT_LINK, 
+      'StripeCheckout',
+      `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=${width}, height=${height}, top=${top}, left=${left}`
+    );
+  };
+
   return (
     <section className="py-12 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,6 +133,7 @@ const PricingSection = () => {
                       : ''
                   }`}
                   showIcon={true}
+                  onClick={() => handleStripeButtonClick(plan.priceId)}
                 >
                   {getButtonText(plan.planType)}
                 </StripeButton>

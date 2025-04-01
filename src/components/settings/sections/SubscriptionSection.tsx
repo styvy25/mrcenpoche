@@ -52,7 +52,22 @@ const SubscriptionSection = () => {
   };
   
   const handleDirectPurchase = () => {
-    window.open(STRIPE_DIRECT_LINK, '_blank');
+    // Ouvrir le lien Stripe dans une popup
+    const width = 550;
+    const height = 650;
+    const left = window.innerWidth / 2 - width / 2;
+    const top = window.innerHeight / 2 - height / 2;
+    
+    window.open(
+      STRIPE_DIRECT_LINK, 
+      'StripeCheckout',
+      `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=${width}, height=${height}, top=${top}, left=${left}`
+    );
+    
+    toast({
+      title: "Paiement Stripe",
+      description: "Une fenêtre de paiement Stripe s'est ouverte. Complétez votre achat pour activer l'abonnement.",
+    });
   };
 
   return (

@@ -44,7 +44,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     id: 'premium',
     name: 'Premium',
     description: 'Pour les militants actifs',
-    price: 3000,
+    price: 10,
     features: [
       'Accès à tous les modules',
       'Quiz illimités',

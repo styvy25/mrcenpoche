@@ -13,6 +13,7 @@ interface StripeButtonProps {
   showIcon?: boolean;
   size?: "default" | "sm" | "lg" | "xl" | "icon";
   directLink?: string;
+  onClick?: () => void;
 }
 
 const StripeButton: React.FC<StripeButtonProps> = ({ 
@@ -22,17 +23,18 @@ const StripeButton: React.FC<StripeButtonProps> = ({
   className = "",
   showIcon = true,
   size = "default",
-  directLink = "https://buy.stripe.com/14kcQa9Cx9ME1he3cA" // Updated official Stripe link
+  directLink = "https://buy.stripe.com/14kcQa9Cx9ME1he3cA", // Lien Stripe officiel
+  onClick
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const { subscription, currentPlan } = useSubscription();
   
-  // Check if the current button represents the active plan
+  // Vérifier si ce bouton représente le plan actif
   const isCurrentPlan = subscription && currentPlan?.priceId === priceId;
 
   const handleClick = async () => {
-    // If this is the free plan, don't proceed with Stripe
+    // Si c'est le plan gratuit, ne pas continuer avec Stripe
     if (priceId === 'price_free') {
       toast({
         title: "Plan gratuit",
@@ -41,7 +43,7 @@ const StripeButton: React.FC<StripeButtonProps> = ({
       return;
     }
     
-    // If this is already the user's current plan, don't do anything
+    // Si c'est déjà le plan actuel de l'utilisateur, ne rien faire
     if (isCurrentPlan) {
       toast({
         title: "Plan actuel",
@@ -55,14 +57,31 @@ const StripeButton: React.FC<StripeButtonProps> = ({
     setIsProcessing(true);
     
     try {
-      // Notify user about redirection
+      // Si une fonction onClick est fournie, l'utiliser
+      if (onClick) {
+        onClick();
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Notifier l'utilisateur de la redirection
       toast({
         title: "Redirection...",
         description: "Vous allez être redirigé vers la page de paiement sécurisée",
       });
       
-      // Use direct link instead of createCheckoutSession
-      window.location.href = directLink;
+      // Ouvrir dans une popup
+      const width = 550;
+      const height = 650;
+      const left = window.innerWidth / 2 - width / 2;
+      const top = window.innerHeight / 2 - height / 2;
+      
+      window.open(
+        directLink, 
+        'StripeCheckout',
+        `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=${width}, height=${height}, top=${top}, left=${left}`
+      );
+      
     } catch (error) {
       console.error("Payment error:", error);
       toast({
@@ -70,6 +89,7 @@ const StripeButton: React.FC<StripeButtonProps> = ({
         description: "Une erreur est survenue lors de l'initialisation du paiement",
         variant: "destructive",
       });
+    } finally {
       setIsProcessing(false);
     }
   };
