@@ -7,6 +7,7 @@ interface PlanLimitsResult {
   canUseFeature: (feature: Feature) => boolean;
   getRemainingUsage: (feature: Feature) => number;
   getMaxUsage: (feature: Feature) => number;
+  checkAndUseFeature?: (feature: Feature) => Promise<boolean>;
 }
 
 export const usePlanLimits = (): PlanLimitsResult => {
@@ -58,9 +59,23 @@ export const usePlanLimits = (): PlanLimitsResult => {
     return featureLimits[feature];
   };
 
+  // Function to check and track feature usage
+  const checkAndUseFeature = async (feature: Feature): Promise<boolean> => {
+    if (canUseFeature(feature)) {
+      // In a real implementation, this would call an API to increment usage
+      setUsageCounts(prev => ({
+        ...prev,
+        [feature]: prev[feature] + 1
+      }));
+      return true;
+    }
+    return false;
+  };
+
   return {
     canUseFeature,
     getRemainingUsage,
-    getMaxUsage
+    getMaxUsage,
+    checkAndUseFeature
   };
 };

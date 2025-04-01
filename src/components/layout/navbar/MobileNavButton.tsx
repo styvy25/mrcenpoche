@@ -1,19 +1,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { useNavigation } from "../navigation/NavigationContext";
 
 interface MobileNavButtonProps {
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  toggleMenu: () => void;
 }
 
-const MobileNavButton = ({ isOpen, setIsOpen }: MobileNavButtonProps) => {
+const MobileNavButton = ({ isOpen, toggleMenu }: MobileNavButtonProps) => {
   return (
     <div className="-mr-2 flex items-center sm:hidden">
       <Button 
         variant="ghost" 
         size="icon" 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleMenu}
         className="transition-all duration-300"
       >
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}

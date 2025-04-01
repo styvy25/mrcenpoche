@@ -8,6 +8,7 @@ interface PointsData {
   nextLevelPoints: number;
   percentToNextLevel: number;
   loading: boolean;
+  addPoints?: (amount: number) => Promise<void>;
 }
 
 export const usePoints = (): PointsData => {
@@ -41,11 +42,23 @@ export const usePoints = (): PointsData => {
     Math.floor((points / nextLevelPoints) * 100)
   );
 
+  // Add points function
+  const addPoints = async (amount: number) => {
+    setPoints(prev => prev + amount);
+    
+    // Check if level up is needed
+    const newPointsTotal = points + amount;
+    if (newPointsTotal >= nextLevelPoints) {
+      setLevel(prev => prev + 1);
+    }
+  };
+
   return {
     points,
     level,
     nextLevelPoints,
     percentToNextLevel,
-    loading
+    loading,
+    addPoints
   };
 };

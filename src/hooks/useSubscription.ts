@@ -10,6 +10,10 @@ interface SubscriptionHookResult {
   currentPlan: {
     planType: string;
     priceId?: string;
+    name?: string;
+    price?: number;
+    interval?: string;
+    features?: string[];
   } | null;
   userPoints: UserPoints;
   plan: string;
@@ -44,10 +48,16 @@ export const useSubscription = (): SubscriptionHookResult => {
   const isBasic = subscription?.planType === 'free' || !subscription?.isActive;
   const isPremium = subscription?.planType === 'premium' && subscription?.isActive;
 
-  // Current plan info
+  // Current plan info with additional properties to fix build errors
   const currentPlan = subscription ? {
     planType: subscription.planType || 'free',
-    priceId: subscription.priceId
+    priceId: subscription.priceId,
+    name: isPremium ? 'Premium' : 'Basic',
+    price: isPremium ? 1999 : 0,
+    interval: isPremium ? 'month' : '',
+    features: isPremium ? 
+      ['Exports PDF illimités', 'Assistant IA avancé', 'Modules premium', 'Analyse vidéo'] : 
+      ['Assistant IA basique']
   } : null;
 
   // Default to never-expiring free plan
@@ -65,6 +75,8 @@ export const useSubscription = (): SubscriptionHookResult => {
     userPoints,
     plan: subscription?.planType || 'free',
     expiresAt: expiresAtDate.toISOString(),
-    features: isPremium ? ['pdf_export', 'ai_chat', 'video_analysis', 'premium_modules'] : ['ai_chat_basic']
+    features: isPremium ? 
+      ['pdf_export', 'ai_chat', 'video_analysis', 'premium_modules'] : 
+      ['ai_chat_basic']
   };
 };

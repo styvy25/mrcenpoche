@@ -6,15 +6,21 @@ import DesktopNavLinks from "./navbar/DesktopNavLinks";
 import DesktopNavActions from "./navbar/DesktopNavActions";
 import MobileNavButton from "./navbar/MobileNavButton";
 import MobileNavMenu from "./navbar/MobileNavMenu";
+import { useNavigation } from "./navigation/NavigationContext";
 
 interface NavbarProps {
   navEndElement?: React.ReactNode;
 }
 
 const Navbar = ({ navEndElement }: NavbarProps) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
+  const { isOpen, toggleMenu, closeMenu } = useNavigation();
+  
+  // Close mobile menu when location changes
+  useEffect(() => {
+    closeMenu();
+  }, [location, closeMenu]);
   
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -38,7 +44,7 @@ const Navbar = ({ navEndElement }: NavbarProps) => {
           
           <MobileNavButton 
             isOpen={isOpen} 
-            setIsOpen={setIsOpen} 
+            toggleMenu={toggleMenu} 
           />
         </div>
       </div>
@@ -51,6 +57,6 @@ const Navbar = ({ navEndElement }: NavbarProps) => {
       />
     </nav>
   );
-}
+};
 
 export default Navbar;
