@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useSubscription } from './useSubscription';
-import { canUseFeature, incrementFeatureUsage } from '@/services/paymentService';
+import { canUseFeature, incrementFeatureUsage, Feature } from '@/services/paymentService';
 import { useToast } from './use-toast';
-import { Feature } from './api-keys/types';
 
 interface FeatureLimits {
   canUsePdfExport: boolean;

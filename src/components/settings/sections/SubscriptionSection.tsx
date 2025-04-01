@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Crown, CreditCard, Calendar, Check, Settings2, ExternalLink } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
-import { goToCustomerPortal, SUBSCRIPTION_PLANS } from '@/services/paymentService';
+import { SUBSCRIPTION_PLANS, goToCustomerPortal } from '@/services/paymentService';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { UserLevel } from '@/components/gamification/UserLevel';
@@ -21,7 +21,7 @@ const SubscriptionSection = () => {
   
   const formatDate = (date: Date | null) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString();
+    return date.toLocaleDateString();
   };
   
   const handleManageSubscription = async () => {
