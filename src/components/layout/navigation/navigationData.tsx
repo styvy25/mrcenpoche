@@ -36,3 +36,12 @@ export const navigationItems: NavigationItem[] = [
     getIcon: () => <Bot className="h-4 w-4 mr-2" />
   }
 ];
+
+// Export individual icons for expandable tabs
+export const navIcons = {
+  home: Home,
+  book: Book,
+  graduationCap: GraduationCap,
+  fileText: FileText,
+  bot: Bot
+};
