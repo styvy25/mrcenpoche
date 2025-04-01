@@ -1,6 +1,6 @@
 
 import { ReactNode } from 'react';
-import { Home, Book, FileText, Bot, Graduation } from 'lucide-react';
+import { Home, Book, FileText, Bot, GraduationCap } from 'lucide-react';
 
 export interface NavigationItem {
   path: string;
@@ -23,7 +23,7 @@ export const navigationItems: NavigationItem[] = [
   {
     path: "/training",
     label: "Formation",
-    getIcon: () => <Graduation className="h-4 w-4 mr-2" />
+    getIcon: () => <GraduationCap className="h-4 w-4 mr-2" />
   },
   {
     path: "/quiz",
