@@ -1,18 +1,20 @@
+
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import MainLayout from './components/layout/MainLayout';
-import HomePage from './pages/HomePage';
+import { useAuth } from './hooks/useAuth';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import ModulesPage from './pages/ModulesPage';
 import ModuleQuizPage from './pages/ModuleQuizPage';
 import AssistantPage from './pages/AssistantPage';
 import SettingsPage from './pages/SettingsPage';
-import PricingPage from './pages/PricingPage';
 import AuthPage from './pages/AuthPage';
-import { useAuth } from './contexts/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+
+// Import Index as HomePage
+import Index from './pages/Index';
 
 const LazyTrainingModulePage = lazy(() => import("./pages/TrainingModulePage"));
 
@@ -37,7 +39,7 @@ function App() {
           element={
             <ProtectedRoute isLoggedIn={isLoggedIn}>
               <MainLayout>
-                <HomePage />
+                <Index />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -93,11 +95,11 @@ function App() {
           }
         />
         <Route
-          path="/pricing"
+          path="/chat"
           element={
             <ProtectedRoute isLoggedIn={isLoggedIn}>
               <MainLayout>
-                <PricingPage />
+                <AssistantPage />
               </MainLayout>
             </ProtectedRoute>
           }

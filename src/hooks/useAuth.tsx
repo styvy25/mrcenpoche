@@ -1,100 +1,92 @@
 
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-// User type definition
-export interface User {
-  id: string;
-  email: string;
-  username?: string;
-  role?: 'user' | 'admin' | 'moderator';
-  lastLogin?: Date;
-  profileImage?: string;
-}
-
-// Define authentication context type
-export interface AuthContextType {
-  isAuthenticated: boolean;
-  user: User | null;
+interface AuthContextType {
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  user: any | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  register?: (email: string, password: string, username: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
-// Create context with default values
-const AuthContext = createContext<AuthContextType>({
-  isAuthenticated: false,
-  user: null,
-  login: async () => {},
-  logout: () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // For testing purposes
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<any | null>(null);
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-
-  // Check if user is already authenticated on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('auth_user');
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('auth_user');
-      }
-    }
+    // This would normally check if a user is logged in
+    setIsLoggedIn(true);
+    setUser({ id: 'user1', email: 'test@example.com' });
   }, []);
 
-  // Login function
   const login = async (email: string, password: string) => {
-    // For demo purposes, simulate a successful login
-    const userData: User = {
-      id: '123456',
-      email,
-      username: email.split('@')[0],
-      role: 'user',
-      lastLogin: new Date(),
-    };
-
-    setUser(userData);
-    setIsAuthenticated(true);
-    localStorage.setItem('auth_user', JSON.stringify(userData));
+    setIsLoading(true);
+    try {
+      // This would normally authenticate the user
+      setIsLoggedIn(true);
+      setUser({ id: 'user1', email });
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Register function
-  const register = async (email: string, password: string, username: string) => {
-    // For demo purposes, simulate a successful registration
-    const userData: User = {
-      id: '123456',
-      email,
-      username,
-      role: 'user',
-      lastLogin: new Date(),
-    };
-
-    setUser(userData);
-    setIsAuthenticated(true);
-    localStorage.setItem('auth_user', JSON.stringify(userData));
+  const register = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      // This would normally register the user
+      setIsLoggedIn(true);
+      setUser({ id: 'user1', email });
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Logout function
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('auth_user');
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      // This would normally sign out the user
+      setIsLoggedIn(false);
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, register }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        isLoading,
+        user,
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export default useAuth;

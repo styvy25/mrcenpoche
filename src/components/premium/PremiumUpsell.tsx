@@ -1,111 +1,61 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Crown, Star, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export interface PremiumUpsellProps {
   title: string;
   description: string;
-  buttonText?: string;
-  feature?: string;
-  variant?: 'default' | 'minimal' | 'inline';
-  className?: string;
+  featureList?: string[];
+  actionText?: string;
+  onAction?: () => void;
 }
 
 const PremiumUpsell: React.FC<PremiumUpsellProps> = ({
   title,
   description,
-  buttonText = "Passer à Premium",
-  feature,
-  variant = 'default',
-  className = ""
+  featureList = [],
+  actionText = "Passer à Premium",
+  onAction,
 }) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleUpgrade = async () => {
-    try {
-      toast({
-        title: "Redirection vers le paiement",
-        description: "Vous allez être redirigé vers notre plateforme de paiement sécurisée.",
-      });
-      
-      navigate('/payment');
-    } catch (error) {
-      console.error('Error navigating to premium checkout:', error);
-      navigate('/payment');
-    }
-  };
-
-  if (variant === 'minimal') {
-    return (
-      <div className={`flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-lg ${className}`}>
-        <div className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-yellow-500" />
-          <p className="text-sm font-medium text-amber-800">{description}</p>
-        </div>
-        <Button size="sm" onClick={handleUpgrade} className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600">
-          {buttonText}
-        </Button>
-      </div>
-    );
-  }
-
-  if (variant === 'inline') {
-    return (
-      <div className={`inline-flex items-center gap-2 ${className}`}>
-        <span className="text-sm text-amber-800">{description}</span>
-        <Button size="sm" variant="outline" onClick={handleUpgrade} className="h-7 px-2 border-amber-300 text-amber-700 hover:bg-amber-50">
-          <Crown className="h-3 w-3 mr-1 text-yellow-500" />
-          {buttonText}
-        </Button>
-      </div>
-    );
-  }
-
-  // Default variant
   return (
-    <Card className={`w-full border-2 border-yellow-400 bg-gradient-to-br from-amber-50 to-yellow-50 ${className}`}>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-xl text-amber-800">
-          <Crown className="h-5 w-5 text-yellow-500" />
-          {title}
-        </CardTitle>
-        <CardDescription className="text-amber-700">
-          {description}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="py-2">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm">
-            <Star className="h-4 w-4 text-yellow-500" />
-            <span>Accès à toutes les fonctionnalités premium</span>
-          </div>
-          {feature && (
-            <div className="flex items-center gap-2 text-sm">
-              <Zap className="h-4 w-4 text-yellow-500" />
-              <span>{feature}</span>
-            </div>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-gradient-to-br from-amber-900/40 via-amber-800/40 to-amber-700/40 border border-amber-600/30 rounded-lg p-4 md:p-6 shadow-lg"
+    >
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
+        <div className="flex-1">
+          <h3 className="text-lg md:text-xl font-semibold text-amber-300 mb-2">
+            {title}
+          </h3>
+          <p className="text-sm md:text-base text-gray-300 mb-3">
+            {description}
+          </p>
+          
+          {featureList.length > 0 && (
+            <ul className="space-y-1.5">
+              {featureList.map((feature, index) => (
+                <li key={index} className="flex items-center text-sm text-gray-300">
+                  <CheckCircle className="h-4 w-4 text-amber-500 mr-2 flex-shrink-0" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
           )}
-          <div className="flex items-center gap-2 text-sm">
-            <Star className="h-4 w-4 text-yellow-500" />
-            <span>Support prioritaire</span>
-          </div>
         </div>
-      </CardContent>
-      <CardFooter>
-        <Button 
-          onClick={handleUpgrade}
-          className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600"
-        >
-          <Crown className="mr-2 h-4 w-4" />
-          {buttonText}
-        </Button>
-      </CardFooter>
-    </Card>
+        
+        <div className="w-full md:w-auto">
+          <Button 
+            onClick={onAction} 
+            className="w-full md:w-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white border-0"
+          >
+            {actionText}
+          </Button>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 

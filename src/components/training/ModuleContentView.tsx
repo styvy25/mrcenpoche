@@ -20,7 +20,10 @@ const ModuleContentView: React.FC<ModuleContentViewProps> = ({ content }) => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="prose prose-invert max-w-full prose-headings:text-gray-100 prose-p:text-gray-300 prose-a:text-blue-400 prose-strong:text-white prose-code:text-blue-300 prose-li:text-gray-300"
+      className="prose prose-invert max-w-full p-6"
+      style={{
+        color: "#e2e8f0" // text-gray-200 equivalent
+      }}
     >
       <ReactMarkdown>{content}</ReactMarkdown>
     </motion.div>

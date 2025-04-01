@@ -1,12 +1,10 @@
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Award, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import AdaptiveModuleService from '@/services/adaptiveModuleService';
+import * as adaptiveModuleService from '@/services/adaptiveModuleService';
 import { usePoints } from '@/hooks/usePoints';
 
 interface Question {
@@ -73,7 +71,7 @@ const ModuleQuizView: React.FC<ModuleQuizViewProps> = ({ quiz, moduleId }) => {
       const earnedPoints = Math.round(score / 10);
       await addPoints(earnedPoints);
       
-      const result = await AdaptiveModuleService.submitQuizResult({
+      const result = await adaptiveModuleService.submitQuizResult({
         moduleId,
         quizId: quiz.id,
         score,
@@ -125,14 +123,71 @@ const ModuleQuizView: React.FC<ModuleQuizViewProps> = ({ quiz, moduleId }) => {
     const isPassed = score >= quiz.passingScore;
     
     return (
-      <QuizResult 
-        score={score}
-        totalQuestions={quiz.questions.length}
-        passingScore={quiz.passingScore}
-        passed={isPassed}
-        earnedBadges={earnedBadges}
-        onRestart={restartQuiz}
-      />
+      <div className="bg-gray-800 rounded-lg p-6">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center">
+            {isPassed ? (
+              <CheckCircle className="w-16 h-16 text-green-500" />
+            ) : (
+              <AlertCircle className="w-16 h-16 text-amber-500" />
+            )}
+          </div>
+          
+          <h2 className="text-2xl font-bold mb-2">
+            {isPassed ? 'Félicitations!' : 'Essayez encore!'}
+          </h2>
+          
+          <p className="text-gray-400 mb-4">
+            {isPassed
+              ? 'Vous avez réussi le quiz.'
+              : `Vous avez besoin de ${quiz.passingScore}% pour réussir.`}
+          </p>
+          
+          <div className="flex justify-center items-center gap-2 mb-2">
+            <span className="text-3xl font-bold">
+              {Math.round((score / 100) * quiz.questions.length)}
+            </span>
+            <span className="text-gray-400">/</span>
+            <span className="text-gray-400">{quiz.questions.length}</span>
+            <span className="ml-2 text-2xl font-bold">
+              {score}%
+            </span>
+          </div>
+        </div>
+        
+        {earnedBadges.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-center text-lg font-semibold mb-4">Badges obtenus</h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {earnedBadges.map((badge, index) => (
+                <motion.div
+                  key={badge.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.2 }}
+                  className="bg-gradient-to-b from-gray-700 to-gray-800 p-4 rounded-lg border border-gray-700 text-center"
+                >
+                  <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 p-0.5">
+                    <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center">
+                      <Award className="h-8 w-8 text-yellow-500" />
+                    </div>
+                  </div>
+                  
+                  <h4 className="font-semibold">{badge.name}</h4>
+                  <p className="text-sm text-gray-400">{badge.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        <div className="flex justify-center">
+          <Button onClick={restartQuiz}>
+            Recommencer le quiz
+          </Button>
+        </div>
+      </div>
     );
   }
   
@@ -149,13 +204,7 @@ const ModuleQuizView: React.FC<ModuleQuizViewProps> = ({ quiz, moduleId }) => {
       </div>
       
       <div className="p-6">
-        <motion.div
-          key={currentQuestion.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="mb-6"
-        >
+        <div className="mb-6">
           <h3 className="text-lg font-medium mb-4">{currentQuestion.text}</h3>
           
           <div className="space-y-3 mb-6">
@@ -223,7 +272,7 @@ const ModuleQuizView: React.FC<ModuleQuizViewProps> = ({ quiz, moduleId }) => {
               </div>
             </motion.div>
           )}
-        </motion.div>
+        </div>
         
         <div className="flex justify-end">
           <Button
@@ -238,96 +287,6 @@ const ModuleQuizView: React.FC<ModuleQuizViewProps> = ({ quiz, moduleId }) => {
         </div>
       </div>
     </div>
-  );
-};
-
-interface QuizResultProps {
-  score: number;
-  totalQuestions: number;
-  passingScore: number;
-  passed: boolean;
-  earnedBadges: any[];
-  onRestart: () => void;
-}
-
-const QuizResult: React.FC<QuizResultProps> = ({
-  score,
-  totalQuestions,
-  passingScore,
-  passed,
-  earnedBadges = [],
-  onRestart
-}) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="bg-gray-800 rounded-lg p-6"
-    >
-      <div className="text-center mb-8">
-        <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center">
-          {passed ? (
-            <CheckCircle className="w-16 h-16 text-green-500" />
-          ) : (
-            <AlertCircle className="w-16 h-16 text-amber-500" />
-          )}
-        </div>
-        
-        <h2 className="text-2xl font-bold mb-2">
-          {passed ? 'Félicitations!' : 'Essayez encore!'}
-        </h2>
-        
-        <p className="text-gray-400 mb-4">
-          {passed
-            ? 'Vous avez réussi le quiz.'
-            : `Vous avez besoin de ${passingScore}% pour réussir.`}
-        </p>
-        
-        <div className="flex justify-center items-center gap-2 mb-2">
-          <span className="text-3xl font-bold">
-            {Math.round((score / 100) * totalQuestions)}
-          </span>
-          <span className="text-gray-400">/</span>
-          <span className="text-gray-400">{totalQuestions}</span>
-          <span className="ml-2 text-2xl font-bold">
-            {score}%
-          </span>
-        </div>
-      </div>
-      
-      {earnedBadges.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-center text-lg font-semibold mb-4">Badges obtenus</h3>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {earnedBadges.map((badge, index) => (
-              <motion.div
-                key={badge.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.2 }}
-                className="bg-gradient-to-b from-gray-700 to-gray-800 p-4 rounded-lg border border-gray-700 text-center"
-              >
-                <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 p-0.5">
-                  <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center">
-                    <Award className="h-8 w-8 text-yellow-500" />
-                  </div>
-                </div>
-                
-                <h4 className="font-semibold">{badge.name}</h4>
-                <p className="text-sm text-gray-400">{badge.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      <div className="flex justify-center">
-        <Button onClick={onRestart}>
-          Recommencer le quiz
-        </Button>
-      </div>
-    </motion.div>
   );
 };
 
