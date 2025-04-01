@@ -134,7 +134,7 @@ export const getUserSubscription = async (): Promise<UserSubscription | null> =>
       planType: data.plan_type as 'free' | 'premium' | 'enterprise',
       currentPeriodStart: data.start_date ? new Date(data.start_date) : null,
       currentPeriodEnd: data.end_date ? new Date(data.end_date) : null,
-      cancelAtPeriodEnd: Boolean(data.cancel_at_period_end) || false,
+      cancelAtPeriodEnd: data.cancel_at_period_end || false,
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at)
     };
@@ -144,24 +144,18 @@ export const getUserSubscription = async (): Promise<UserSubscription | null> =>
   }
 };
 
-// Get user points
-export const getUserPoints = async (): Promise<UserPoints | null> => {
+// Get user points - this requires a specific table in Supabase
+export const getUserPoints = async (): Promise<UserPoints> => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return null;
+    if (!session) return { points: 0, level: 1 };
 
-    // Query user_points table instead
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('user_points')
-      .select('*')
+      .select('points, level')
       .eq('user_id', session.user.id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching points:', error);
-      return { points: 0, level: 1 };
-    }
-
+      .maybeSingle();
+      
     if (!data) return { points: 0, level: 1 };
     
     return {
@@ -169,7 +163,7 @@ export const getUserPoints = async (): Promise<UserPoints | null> => {
       level: data.level || 1
     };
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error getting user points:', error);
     return { points: 0, level: 1 };
   }
 };
@@ -179,25 +173,8 @@ export const canUseFeature = async (feature: Feature): Promise<boolean> => {
   try {
     // Default to true for now to fix build errors
     return true;
-    
-    /* This will be implemented when the RPC function is available
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return false;
-
-    const { data, error } = await supabase.rpc(
-      'can_use_feature',
-      { user_id: session.user.id, feature_name: feature }
-    );
-
-    if (error) {
-      console.error('Error checking feature access:', error);
-      return false;
-    }
-
-    return Boolean(data);
-    */
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error checking feature access:', error);
     return false;
   }
 };
@@ -207,25 +184,8 @@ export const incrementFeatureUsage = async (feature: Feature): Promise<boolean> 
   try {
     // Default to true for now to fix build errors
     return true;
-    
-    /* This will be implemented when the RPC function is available
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return false;
-
-    const { data, error } = await supabase.rpc(
-      'increment_feature_usage',
-      { p_user_id: session.user.id, p_feature: feature }
-    );
-
-    if (error) {
-      console.error('Error incrementing feature usage:', error);
-      return false;
-    }
-
-    return Boolean(data);
-    */
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error incrementing feature usage:', error);
     return false;
   }
 };

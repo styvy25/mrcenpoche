@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStripe } from '@stripe/react-stripe-js';
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +13,7 @@ export const useStripePayment = (priceId: string) => {
   const [isApiKeySet, setIsApiKeySet] = useState(false);
   
   // Check if API key is set
-  useState(() => {
+  useEffect(() => {
     const checkApiKey = async () => {
       // Try to get from localStorage
       try {
