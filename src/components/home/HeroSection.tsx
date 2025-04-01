@@ -20,7 +20,7 @@ const HeroSection = () => {
                 </Button>
               </Link>
               <Link to="/assistant">
-                <Button variant="outline" className="w-full sm:w-auto border-white hover:bg-white/10 text-white mt-3 sm:mt-0">
+                <Button variant="outline" className="w-full sm:w-auto border-white hover:bg-white/10 mt-3 sm:mt-0 text-zinc-950 rounded-sm my-px">
                   Poser une question à Styvy237
                 </Button>
               </Link>
