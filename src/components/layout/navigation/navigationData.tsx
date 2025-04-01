@@ -39,9 +39,10 @@ export const navigationItems: NavigationItem[] = [
 
 // Export individual icons for expandable tabs
 export const navIcons = {
+  '': Home, // for root path
   home: Home,
-  book: Book,
-  graduationCap: GraduationCap,
-  fileText: FileText,
-  bot: Bot
+  modules: Book,
+  training: GraduationCap,
+  quiz: FileText,
+  chat: Bot
 };
