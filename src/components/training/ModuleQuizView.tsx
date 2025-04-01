@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, Award, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as ModuleServices from '@/services/modules';
 import { usePoints } from '@/hooks/usePoints';
+import QuizQuestion from './quiz/QuizQuestion';
+import QuizResults from './quiz/QuizResults';
+import QuizHeader from './quiz/QuizHeader';
 
 interface Question {
   id: string;
@@ -40,7 +40,6 @@ const ModuleQuizView: React.FC<ModuleQuizViewProps> = ({ quiz, moduleId }) => {
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === quiz.questions.length - 1;
   const selectedOptionId = selectedAnswers[currentQuestion?.id];
-  const isCorrect = selectedOptionId === currentQuestion?.correctOptionId;
   
   const handleSelectOption = (optionId: string) => {
     if (showExplanation || quizCompleted) return;
@@ -123,168 +122,34 @@ const ModuleQuizView: React.FC<ModuleQuizViewProps> = ({ quiz, moduleId }) => {
     const isPassed = score >= quiz.passingScore;
     
     return (
-      <div className="bg-gray-800 rounded-lg p-6">
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center">
-            {isPassed ? (
-              <CheckCircle className="w-16 h-16 text-green-500" />
-            ) : (
-              <AlertCircle className="w-16 h-16 text-amber-500" />
-            )}
-          </div>
-          
-          <h2 className="text-2xl font-bold mb-2">
-            {isPassed ? 'Félicitations!' : 'Essayez encore!'}
-          </h2>
-          
-          <p className="text-gray-400 mb-4">
-            {isPassed
-              ? 'Vous avez réussi le quiz.'
-              : `Vous avez besoin de ${quiz.passingScore}% pour réussir.`}
-          </p>
-          
-          <div className="flex justify-center items-center gap-2 mb-2">
-            <span className="text-3xl font-bold">
-              {Math.round((score / 100) * quiz.questions.length)}
-            </span>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-400">{quiz.questions.length}</span>
-            <span className="ml-2 text-2xl font-bold">
-              {score}%
-            </span>
-          </div>
-        </div>
-        
-        {earnedBadges.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-center text-lg font-semibold mb-4">Badges obtenus</h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {earnedBadges.map((badge, index) => (
-                <motion.div
-                  key={badge.id}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.2 }}
-                  className="bg-gradient-to-b from-gray-700 to-gray-800 p-4 rounded-lg border border-gray-700 text-center"
-                >
-                  <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 p-0.5">
-                    <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center">
-                      <Award className="h-8 w-8 text-yellow-500" />
-                    </div>
-                  </div>
-                  
-                  <h4 className="font-semibold">{badge.name}</h4>
-                  <p className="text-sm text-gray-400">{badge.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        <div className="flex justify-center">
-          <Button onClick={restartQuiz}>
-            Recommencer le quiz
-          </Button>
-        </div>
-      </div>
+      <QuizResults 
+        score={score}
+        totalQuestions={quiz.questions.length}
+        isPassed={isPassed}
+        onRestart={restartQuiz}
+        earnedBadges={earnedBadges}
+      />
     );
   }
   
   return (
     <div className="bg-gray-800 rounded-lg overflow-hidden">
-      <div className="p-4 bg-gray-900 border-b border-gray-700">
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold">{quiz.title}</h3>
-          <div className="text-sm">
-            Question {currentQuestionIndex + 1} / {quiz.questions.length}
-          </div>
-        </div>
-        <p className="text-sm text-gray-400">{quiz.description}</p>
-      </div>
+      <QuizHeader
+        title={quiz.title}
+        description={quiz.description}
+        currentIndex={currentQuestionIndex}
+        totalQuestions={quiz.questions.length}
+      />
       
       <div className="p-6">
-        <div className="mb-6">
-          <h3 className="text-lg font-medium mb-4">{currentQuestion.text}</h3>
-          
-          <div className="space-y-3 mb-6">
-            {currentQuestion.options.map((option) => {
-              const isSelected = selectedOptionId === option.id;
-              const isCorrectOption = option.id === currentQuestion.correctOptionId;
-              let optionClass = "border-gray-700 hover:border-gray-600";
-              
-              if (showExplanation) {
-                if (isCorrectOption) {
-                  optionClass = "border-green-500 bg-green-500/10";
-                } else if (isSelected && !isCorrectOption) {
-                  optionClass = "border-red-500 bg-red-500/10";
-                }
-              } else if (isSelected) {
-                optionClass = "border-blue-500";
-              }
-              
-              return (
-                <div
-                  key={option.id}
-                  onClick={() => handleSelectOption(option.id)}
-                  className={`cursor-pointer p-4 border rounded-lg transition-all ${optionClass} ${
-                    !showExplanation ? 'hover:bg-gray-700' : ''
-                  }`}
-                >
-                  <div className="flex justify-between items-center">
-                    <span>{option.text}</span>
-                    
-                    {showExplanation && isCorrectOption && (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    )}
-                    
-                    {showExplanation && isSelected && !isCorrectOption && (
-                      <XCircle className="h-5 w-5 text-red-500" />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {showExplanation && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="bg-gray-700 p-4 rounded-lg mb-6"
-            >
-              <div className="flex items-start gap-2">
-                <div className="mt-0.5">
-                  {isCorrect ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5 text-amber-500" />
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium mb-1">
-                    {isCorrect ? 'Bonne réponse!' : 'Pas tout à fait...'}
-                  </p>
-                  <p className="text-sm text-gray-300">
-                    {currentQuestion.explanation}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
-        
-        <div className="flex justify-end">
-          <Button
-            onClick={handleNextQuestion}
-            disabled={!selectedOptionId}
-            className={`${
-              isLastQuestion ? 'bg-green-600 hover:bg-green-700' : ''
-            }`}
-          >
-            {isLastQuestion ? 'Terminer le quiz' : 'Question suivante'}
-          </Button>
-        </div>
+        <QuizQuestion
+          question={currentQuestion}
+          selectedOptionId={selectedOptionId}
+          showExplanation={showExplanation}
+          onSelectOption={handleSelectOption}
+          onNext={handleNextQuestion}
+          isLastQuestion={isLastQuestion}
+        />
       </div>
     </div>
   );
