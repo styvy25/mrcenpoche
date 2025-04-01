@@ -1,0 +1,24 @@
+
+/* Sidebar custom styles */
+[data-sidebar="sidebar"] {
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 64px;
+}
+
+.dark [data-sidebar="sidebar"] {
+  --sidebar-bg: hsl(222.2 84% 4.9%);
+  --sidebar-border-color: hsl(217.2 32.6% 17.5%);
+}
+
+[data-sidebar="sidebar"] {
+  --sidebar-bg: white;
+  --sidebar-border-color: hsl(214.3 31.8% 91.4%);
+}
+
+[data-sidebar="menu-button"]:hover svg {
+  @apply text-mrc-blue;
+}
+
+[data-active="true"][data-sidebar="menu-button"] {
+  @apply bg-mrc-blue/10 text-mrc-blue;
+}
