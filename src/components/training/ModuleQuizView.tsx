@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Award, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import * as adaptiveModuleService from '@/services/adaptiveModuleService';
+import * as ModuleServices from '@/services/modules';
 import { usePoints } from '@/hooks/usePoints';
 
 interface Question {
@@ -71,7 +71,7 @@ const ModuleQuizView: React.FC<ModuleQuizViewProps> = ({ quiz, moduleId }) => {
       const earnedPoints = Math.round(score / 10);
       await addPoints(earnedPoints);
       
-      const result = await adaptiveModuleService.submitQuizResult({
+      const result = await ModuleServices.submitQuizResult({
         moduleId,
         quizId: quiz.id,
         score,

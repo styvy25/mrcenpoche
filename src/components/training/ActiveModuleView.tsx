@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, BookOpen, Video, FileText, Badge, Award, Download } from 'lucide-react';
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Module } from '@/components/training/types';
-import AdaptiveModuleService from '@/services/adaptiveModuleService';
+import * as ModuleServices from '@/services/modules';
 import YoutubeEmbed from './YoutubeEmbed';
 import ModuleContentView from './ModuleContentView';
 import ModuleQuizView from './ModuleQuizView';
@@ -30,12 +29,12 @@ const ActiveModuleView: React.FC<ActiveModuleViewProps> = ({ module, onBack }) =
     const loadModuleContent = async () => {
       try {
         setLoading(true);
-        const moduleData = await AdaptiveModuleService.getModuleContent(module.id);
+        const moduleData = await ModuleServices.getModuleContent(module.id);
         setContent(moduleData);
         
         // If the user has completed this module, load certificates
         if (module.progress === 100) {
-          const certificateData = await AdaptiveModuleService.getModuleCertificates(module.id);
+          const certificateData = await ModuleServices.getModuleCertificates(module.id);
           setCertificates(certificateData);
         }
       } catch (error) {
@@ -68,7 +67,7 @@ const ActiveModuleView: React.FC<ActiveModuleViewProps> = ({ module, onBack }) =
         description: "Votre PDF est en cours de génération...",
       });
       
-      const pdfUrl = await AdaptiveModuleService.generateModulePDF(module.id);
+      const pdfUrl = await ModuleServices.generateModulePDF(module.id);
       
       // Open the PDF in a new tab
       window.open(pdfUrl, '_blank');

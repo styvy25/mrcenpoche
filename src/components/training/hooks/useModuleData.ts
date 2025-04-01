@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Module, ModuleCategory } from '@/components/training/types';
-import * as AdaptiveModuleService from '@/services/adaptiveModuleService';
+import * as ModuleServices from '@/services/modules';
 import { usePoints } from '@/hooks/usePoints';
 
 export const useModuleData = () => {
@@ -20,8 +20,8 @@ export const useModuleData = () => {
     const loadModules = async () => {
       try {
         setLoading(true);
-        const moduleData = await AdaptiveModuleService.getModules(level, isPremium);
-        const moduleCategories = await AdaptiveModuleService.getCategories();
+        const moduleData = await ModuleServices.getModules(level, isPremium);
+        const moduleCategories = await ModuleServices.getCategories();
         
         setModules(moduleData.modules);
         setCategories(moduleCategories);
