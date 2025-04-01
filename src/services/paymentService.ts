@@ -1,9 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { loadStripe } from "@stripe/stripe-js";
 
 // Types
-interface Plan {
+export interface Plan {
   id: string;
   name: string;
   description: string;
@@ -13,7 +12,17 @@ interface Plan {
   stripePriceId: string;
 }
 
-interface SubscriptionStatus {
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  features: string[];
+  interval: 'month' | 'year';
+  planType: 'free' | 'premium' | 'enterprise';
+}
+
+export interface UserSubscription {
   isActive: boolean;
   plan: string | null;
   interval: string | null;
@@ -23,7 +32,43 @@ interface SubscriptionStatus {
   subscriptionId: string | null;
   priceId: string | null;
   status: string | null;
+  planType?: 'free' | 'premium' | 'enterprise';
 }
+
+export interface UserPoints {
+  points: number;
+  level: number;
+}
+
+export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
+  {
+    id: 'free',
+    name: 'Gratuit',
+    description: 'Pour les sympathisants',
+    price: 0,
+    features: [
+      'Accès aux modules de base',
+      'Quiz limités',
+      'Contenu du MRC limité',
+    ],
+    interval: 'month',
+    planType: 'free'
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    description: 'Pour les militants actifs',
+    price: 3000,
+    features: [
+      'Accès à tous les modules',
+      'Quiz illimités',
+      'Contenu exclusif du MRC',
+      'Support prioritaire',
+    ],
+    interval: 'month',
+    planType: 'premium'
+  }
+];
 
 export const plans: Plan[] = [
   {
@@ -70,64 +115,9 @@ export const plans: Plan[] = [
   },
 ];
 
-// Function to create a Stripe checkout session
-export const createCheckoutSession = async (priceId: string): Promise<string | null> => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
-      console.error('User is not authenticated');
-      return null;
-    }
-    
-    // Create checkout session through Supabase Edge Function
-    const { data, error } = await supabase.functions.invoke('stripe-checkout', {
-      body: {
-        priceId,
-        userId: session.user.id,
-        customerEmail: session.user.email,
-      },
-    });
-    
-    if (error) {
-      console.error('Error creating checkout session:', error);
-      return null;
-    }
-    
-    return data.sessionId || null;
-  } catch (error) {
-    console.error('Unexpected error creating checkout session:', error);
-    return null;
-  }
-};
-
-// Function to redirect to Stripe checkout
-export const redirectToCheckout = async (priceId: string): Promise<void> => {
-  try {
-    const sessionId = await createCheckoutSession(priceId);
-    if (!sessionId) {
-      throw new Error('Failed to create checkout session');
-    }
-    
-    const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
-    const stripe = await stripePromise;
-    
-    if (!stripe) {
-      throw new Error('Failed to load Stripe');
-    }
-    
-    const { error } = await stripe.redirectToCheckout({ sessionId });
-    
-    if (error) {
-      console.error('Error redirecting to checkout:', error);
-    }
-  } catch (error) {
-    console.error('Checkout error:', error);
-  }
-};
-
 // Function to get current subscription status
-export const getSubscriptionStatus = async (): Promise<SubscriptionStatus> => {
-  const defaultStatus: SubscriptionStatus = {
+export const getSubscriptionStatus = async (): Promise<UserSubscription> => {
+  const defaultStatus: UserSubscription = {
     isActive: false,
     plan: null,
     interval: null,
@@ -137,6 +127,7 @@ export const getSubscriptionStatus = async (): Promise<SubscriptionStatus> => {
     subscriptionId: null,
     priceId: null,
     status: null,
+    planType: 'free',
   };
   
   try {
@@ -153,8 +144,14 @@ export const getSubscriptionStatus = async (): Promise<SubscriptionStatus> => {
       .maybeSingle();
     
     if (error || !data) {
-      console.error('Error fetching subscription:', error);
-      return defaultStatus;
+      console.log('No subscription found, using default free plan');
+      return {
+        ...defaultStatus,
+        isActive: true,
+        plan: 'free',
+        status: 'active',
+        planType: 'free'
+      };
     }
     
     return {
@@ -167,6 +164,7 @@ export const getSubscriptionStatus = async (): Promise<SubscriptionStatus> => {
       subscriptionId: data.stripe_subscription_id || null,
       priceId: data.stripe_price_id || null,
       status: data.status || null,
+      planType: data.plan_type as 'free' | 'premium' | 'enterprise'
     };
   } catch (error) {
     console.error('Error getting subscription status:', error);
@@ -174,8 +172,8 @@ export const getSubscriptionStatus = async (): Promise<SubscriptionStatus> => {
   }
 };
 
-// Function to get user points and level
-export const getUserPoints = async (): Promise<{ points: number; level: number }> => {
+// Function to get user points
+export const getUserPoints = async (): Promise<UserPoints> => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
@@ -188,17 +186,27 @@ export const getUserPoints = async (): Promise<{ points: number; level: number }
       .eq('user_id', session.user.id)
       .maybeSingle();
     
-    if (error || !data) {
+    if (error) {
       console.error('Error fetching user points:', error);
       return { points: 0, level: 1 };
     }
     
     return {
-      points: data.points || 0,
-      level: data.level || 1,
+      points: data?.points || 0,
+      level: data?.level || 1,
     };
   } catch (error) {
     console.error('Error getting user points:', error);
     return { points: 0, level: 1 };
+  }
+};
+
+// Function to get user subscription
+export const getUserSubscription = async (): Promise<UserSubscription | null> => {
+  try {
+    return await getSubscriptionStatus();
+  } catch (error) {
+    console.error('Error getting user subscription:', error);
+    return null;
   }
 };

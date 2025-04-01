@@ -6,6 +6,7 @@ import { Trophy, Star, Award, Zap } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { usePoints } from '@/hooks/usePoints';
 
 interface UserLevelProps {
   showCard?: boolean;
@@ -16,16 +17,10 @@ export const UserLevel: React.FC<UserLevelProps> = ({
   showCard = true,
   className = ""
 }) => {
-  const { userPoints, loading, isPremium } = useSubscription();
+  const { subscription, loading, isPremium } = useSubscription();
+  const { points, level, nextLevelPoints, percentToNextLevel } = usePoints();
   
-  if (!userPoints && !loading) return null;
-  
-  // Calculate progress to next level
-  const currentPoints = userPoints?.points || 0;
-  const currentLevel = userPoints?.level || 1;
-  const pointsToNextLevel = currentLevel * 100;
-  const previousLevelPoints = (currentLevel - 1) * 100;
-  const progress = Math.floor(((currentPoints - previousLevelPoints) / (pointsToNextLevel - previousLevelPoints)) * 100);
+  if (!subscription && !loading) return null;
   
   const content = (
     <div className={className}>
@@ -40,7 +35,7 @@ export const UserLevel: React.FC<UserLevelProps> = ({
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Trophy className={`h-5 w-5 ${isPremium ? 'text-yellow-500' : 'text-gray-400'}`} />
-              <div className="font-semibold">Niveau {currentLevel}</div>
+              <div className="font-semibold">Niveau {level}</div>
             </div>
             <Badge variant={isPremium ? "default" : "outline"} className={isPremium ? "bg-gradient-to-r from-yellow-500 to-amber-500" : ""}>
               {isPremium ? (
@@ -53,17 +48,17 @@ export const UserLevel: React.FC<UserLevelProps> = ({
           </div>
           
           <div className="flex justify-between text-xs mb-1">
-            <span>{currentPoints} points</span>
-            <span>{pointsToNextLevel} points pour niveau {currentLevel + 1}</span>
+            <span>{points} points</span>
+            <span>{nextLevelPoints} points pour niveau {level + 1}</span>
           </div>
           
-          <Progress value={progress} className="h-2" />
+          <Progress value={percentToNextLevel} className="h-2" />
           
           <div className="flex justify-between items-center mt-3">
             <div className="flex items-center gap-1">
               <Award className="h-4 w-4 text-mrc-blue" />
               <span className="text-xs">
-                {Math.max(0, pointsToNextLevel - currentPoints)} points restants
+                {Math.max(0, nextLevelPoints - points)} points restants
               </span>
             </div>
             {isPremium && (
