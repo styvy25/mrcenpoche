@@ -20,15 +20,7 @@ import Index from './pages/Index';
 const LazyTrainingModulePage = lazy(() => import("./pages/TrainingModulePage"));
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin" />
-      </div>
-    );
-  }
+  const { isAuthenticated } = useAuth();
 
   return (
     <Router>
@@ -38,7 +30,7 @@ function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <MainLayout>
                 <Index />
               </MainLayout>
@@ -48,7 +40,7 @@ function App() {
         <Route
           path="/modules"
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <MainLayout>
                 <ModulesPage />
               </MainLayout>
@@ -58,7 +50,7 @@ function App() {
         <Route
           path="/modules/quiz"
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <MainLayout>
                 <ModuleQuizPage />
               </MainLayout>
@@ -68,7 +60,7 @@ function App() {
         <Route
           path="/modules/quiz/:moduleId"
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <MainLayout>
                 <ModuleQuizPage />
               </MainLayout>
@@ -78,7 +70,7 @@ function App() {
         <Route
           path="/assistant"
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <MainLayout>
                 <AssistantPage />
               </MainLayout>
@@ -88,7 +80,7 @@ function App() {
         <Route
           path="/settings"
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <MainLayout>
                 <SettingsPage />
               </MainLayout>
@@ -98,7 +90,7 @@ function App() {
         <Route
           path="/chat"
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <MainLayout>
                 <AssistantPage />
               </MainLayout>
@@ -108,7 +100,7 @@ function App() {
         <Route 
           path="/training" 
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-12 w-12 animate-spin" /></div>}>
                 <LazyTrainingModulePage />
               </Suspense>
@@ -118,7 +110,7 @@ function App() {
         <Route
           path="/quiz"
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <QuizPage />
             </ProtectedRoute>
           }
@@ -126,7 +118,7 @@ function App() {
         <Route
           path="/quiz/:moduleId"
           element={
-            <ProtectedRoute isLoggedIn={isAuthenticated}>
+            <ProtectedRoute>
               <QuizPage />
             </ProtectedRoute>
           }

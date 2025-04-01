@@ -17,10 +17,10 @@ export const UserLevel: React.FC<UserLevelProps> = ({
   showCard = true,
   className = ""
 }) => {
-  const { subscription, loading, isPremium } = useSubscription();
+  const { isPremium, loading, plan } = useSubscription();
   const { points, level, nextLevelPoints, percentToNextLevel } = usePoints();
   
-  if (!subscription && !loading) return null;
+  if (!plan && !loading) return null;
   
   const content = (
     <div className={className}>

@@ -28,10 +28,10 @@ const StripeButton: React.FC<StripeButtonProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const { subscription, currentPlan } = useSubscription();
+  const { isPremium, plan, currentPlan } = useSubscription();
   
   // Vérifier si ce bouton représente le plan actif
-  const isCurrentPlan = subscription && currentPlan?.priceId === priceId;
+  const isCurrentPlan = currentPlan?.priceId === priceId;
 
   const handleClick = async () => {
     // Si c'est le plan gratuit, ne pas continuer avec Stripe

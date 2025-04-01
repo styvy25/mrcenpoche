@@ -1,38 +1,70 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
+import { getUserSubscription, getUserPoints, UserSubscription, UserPoints } from '../services/paymentService';
 
-export interface UserSubscription {
+interface SubscriptionHookResult {
+  subscription: UserSubscription | null;
+  loading: boolean;
+  isBasic: boolean;
   isPremium: boolean;
+  currentPlan: {
+    planType: string;
+    priceId?: string;
+  } | null;
+  userPoints: UserPoints;
   plan: string;
-  expiresAt: string | null;
+  expiresAt: string;
   features: string[];
 }
 
-export const useSubscription = () => {
-  const { isLoggedIn, user } = useAuth();
-  const [subscription, setSubscription] = useState<UserSubscription>({
-    isPremium: false,
-    plan: 'free',
-    expiresAt: null,
-    features: ['basic_access']
-  });
-  
+export const useSubscription = (): SubscriptionHookResult => {
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
+  const [userPoints, setUserPoints] = useState<UserPoints>({ points: 0, level: 1 });
+  const [loading, setLoading] = useState<boolean>(true);
+
   useEffect(() => {
-    if (isLoggedIn && user) {
-      // This would normally fetch the user's subscription status from an API
-      // For demo purposes, we'll just set a mock subscription
-      setSubscription({
-        isPremium: false,
-        plan: 'free',
-        expiresAt: null,
-        features: ['basic_access', 'quiz_access']
-      });
-    }
-  }, [isLoggedIn, user]);
-  
+    const fetchSubscription = async () => {
+      try {
+        const sub = await getUserSubscription();
+        setSubscription(sub);
+        
+        const points = await getUserPoints();
+        setUserPoints(points);
+      } catch (error) {
+        console.error('Error fetching subscription:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubscription();
+  }, []);
+
+  // Determine if user is on basic or premium plan
+  const isBasic = subscription?.planType === 'free' || !subscription?.isActive;
+  const isPremium = subscription?.planType === 'premium' && subscription?.isActive;
+
+  // Current plan info
+  const currentPlan = subscription ? {
+    planType: subscription.planType || 'free',
+    priceId: subscription.priceId
+  } : null;
+
+  // Default to never-expiring free plan
+  const expiresAtDate = subscription?.currentPeriodEnd 
+    ? new Date(subscription.currentPeriodEnd)
+    : new Date(2099, 11, 31);
+
+  // For compatibility with components expecting certain fields
   return {
-    ...subscription,
-    isBasic: subscription.plan === 'free',
+    subscription,
+    loading,
+    isBasic,
+    isPremium,
+    currentPlan,
+    userPoints,
+    plan: subscription?.planType || 'free',
+    expiresAt: expiresAtDate.toISOString(),
+    features: isPremium ? ['pdf_export', 'ai_chat', 'video_analysis', 'premium_modules'] : ['ai_chat_basic']
   };
 };

@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 interface ProtectedRouteProps {
-  isLoggedIn?: boolean; // Make this optional
+  isLoggedIn?: boolean;
   children: React.ReactNode;
 }
 

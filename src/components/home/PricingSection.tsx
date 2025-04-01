@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import StripeButton from "@/components/payment/StripeButton";
 
 const PricingSection = () => {
-  const { subscription, loading, currentPlan, isPremium } = useSubscription();
+  const { isPremium, loading, currentPlan, plan } = useSubscription();
 
   const getPlanIcon = (planType: string) => {
     switch (planType) {
@@ -25,7 +25,7 @@ const PricingSection = () => {
   const getButtonText = (planType: string) => {
     if (loading) return "Chargement...";
     
-    if (currentPlan?.planType === planType && subscription?.status === 'active') {
+    if (currentPlan?.planType === planType) {
       return "Plan actuel";
     }
     
@@ -75,18 +75,18 @@ const PricingSection = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {SUBSCRIPTION_PLANS.map((plan) => (
+          {SUBSCRIPTION_PLANS.map((planItem) => (
             <Card 
-              key={plan.id} 
+              key={planItem.id} 
               className={`border-t-4 relative ${
-                plan.isPopular 
+                planItem.isPopular 
                   ? 'border-t-mrc-blue shadow-xl lg:scale-105 z-10' 
-                  : plan.planType === 'free' 
+                  : planItem.planType === 'free' 
                     ? 'border-t-gray-500' 
                     : 'border-t-mrc-green'
               }`}
             >
-              {plan.isPopular && (
+              {planItem.isPopular && (
                 <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2 bg-mrc-blue text-white text-xs py-1 px-2 rounded">
                   Populaire
                 </div>
@@ -94,27 +94,27 @@ const PricingSection = () => {
               
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  {getPlanIcon(plan.planType)}
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  {getPlanIcon(planItem.planType)}
+                  <CardTitle className="text-xl">{planItem.name}</CardTitle>
                 </div>
                 <div className="mt-4">
                   {loading ? (
                     <Skeleton className="h-8 w-24" />
                   ) : (
                     <>
-                      <span className="text-4xl font-bold">{plan.price}€</span>
+                      <span className="text-4xl font-bold">{planItem.price}€</span>
                       <span className="text-gray-500 ml-2">/ mois</span>
                     </>
                   )}
                 </div>
                 <CardDescription className="mt-2">
-                  {plan.description}
+                  {planItem.description}
                 </CardDescription>
               </CardHeader>
               
               <CardContent>
                 <ul className="space-y-3">
-                  {plan.features.map((feature, index) => (
+                  {planItem.features.map((feature, index) => (
                     <li key={index} className="flex items-start">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
                       <span>{feature}</span>
@@ -125,17 +125,17 @@ const PricingSection = () => {
               
               <CardFooter>
                 <StripeButton 
-                  priceId={plan.priceId}
-                  variant={plan.isPopular ? "default" : "outline"}
+                  priceId={planItem.priceId}
+                  variant={planItem.isPopular ? "default" : "outline"}
                   className={`w-full ${
-                    plan.isPopular 
+                    planItem.isPopular 
                       ? 'bg-mrc-blue hover:bg-blue-700' 
                       : ''
                   }`}
                   showIcon={true}
-                  onClick={() => handleStripeButtonClick(plan.priceId)}
+                  onClick={() => handleStripeButtonClick(planItem.priceId)}
                 >
-                  {getButtonText(plan.planType)}
+                  {getButtonText(planItem.planType)}
                 </StripeButton>
               </CardFooter>
             </Card>
