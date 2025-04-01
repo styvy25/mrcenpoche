@@ -1,11 +1,10 @@
-
 import { useState, useCallback } from "react";
 import { Message } from "../types/message";
 import { useMessageHandler } from "./useMessageHandler";
 import { useYouTubeSearch } from "./useYouTubeSearch";
 import { useOfflineMode } from "./useOfflineMode";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
-import { Feature } from "@/hooks/api-keys/types";
+import { Feature } from "@/services/paymentService"; // Updated import path
 import { useToast } from "@/hooks/use-toast";
 
 export const useChatState = () => {

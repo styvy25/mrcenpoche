@@ -1,10 +1,7 @@
 
-export enum Feature {
-  PDF_EXPORT = "PDF_EXPORT",
-  AI_CHAT = "AI_CHAT",
-  VIDEO_ANALYSIS = "VIDEO_ANALYSIS",
-  PREMIUM_MODULES = "PREMIUM_MODULES"
-}
+import { Feature } from "@/services/paymentService";
+
+export { Feature };
 
 export interface ApiKeys {
   perplexity?: string;
