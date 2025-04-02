@@ -15,7 +15,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-lg text-mrc-blue">MRC Formation</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Plateforme d'apprentissage et d'éducation politique pour les membres et sympathisants du MRC.
+              Plateforme d&apos;apprentissage et d&apos;éducation politique pour les membres et sympathisants du MRC.
             </p>
             <div className="flex space-x-4">
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-mrc-blue transition-colors">
@@ -89,7 +89,7 @@ const Footer = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                   </svg>
                   Site officiel du MRC
-                </Link>
+                </a>
               </li>
               <li>
                 <Link to="/help" className="text-gray-600 dark:text-gray-400 hover:text-mrc-blue dark:hover:text-mrc-blue flex items-center">
@@ -107,7 +107,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/terms" className="text-gray-600 dark:text-gray-400 hover:text-mrc-blue dark:hover:text-mrc-blue">
-                  Conditions d'utilisation
+                  Conditions d&apos;utilisation
                 </Link>
               </li>
               <li>
