@@ -59,7 +59,7 @@ const Navbar = ({
       <div className="container h-full mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <NavbarLogo />
-          <MobileNavButton isOpen={isOpen} onToggle={toggleMenu} />
+          <MobileNavButton isOpen={isOpen} onClick={toggleMenu} />
         </div>
         
         <div className="hidden md:flex items-center">
@@ -71,7 +71,7 @@ const Navbar = ({
           {navEndElement}
         </div>
         
-        <MobileNavMenu isOpen={isOpen} onCloseMenu={closeMenu} />
+        <MobileNavMenu isOpen={isOpen} onClose={closeMenu} />
       </div>
     </header>
   );

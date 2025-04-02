@@ -65,6 +65,63 @@ Le Mouvement pour la Renaissance du Cameroun (MRC) est un parti politique camero
       ],
       passingScore: 70
     }
+  },
+  'mod2': {
+    content: `# Stratégies de communication politique
+
+La communication politique est essentielle pour mobiliser les électeurs et diffuser efficacement les idées du MRC. Ce module explore les méthodes de communication les plus efficaces.
+
+## Communication numérique
+
+- **Réseaux sociaux**: Utilisation stratégique de Facebook, Twitter et WhatsApp
+- **Contenu vidéo**: Création de vidéos explicatives et de discours
+- **Site web**: Maintien d'une présence en ligne informative et actualisée
+
+## Communication sur le terrain
+
+- Réunions publiques et assemblées communautaires
+- Distribution de tracts et de brochures
+- Porte-à-porte et conversations directes avec les électeurs
+
+## Message politique
+
+- Développement d'un message clair et cohérent
+- Adaptation du message aux différents publics
+- Réponse efficace aux critiques et aux attaques politiques`,
+    videos: [
+      {
+        videoId: 'dQw4w9WgXcQ',
+        title: 'Techniques de communication politique',
+        description: 'Comment communiquer efficacement les idées du MRC'
+      }
+    ],
+    quiz: null
+  },
+  'mod3': {
+    content: `# Organisation d'événements politiques
+
+Les événements politiques sont essentiels pour renforcer la visibilité du MRC et mobiliser les militants. Ce module vous apprend à organiser des événements réussis.
+
+## Types d'événements
+
+- **Meetings politiques**: Rassemblements à grande échelle
+- **Conférences thématiques**: Focus sur des sujets spécifiques
+- **Événements communautaires**: Activités au niveau local
+
+## Planification d'événements
+
+1. Définir les objectifs clairs de l'événement
+2. Choisir un lieu et une date appropriés
+3. Préparer la logistique (son, éclairage, sièges)
+4. Assurer la sécurité et le respect des autorisations
+
+## Promotion des événements
+
+- Création et distribution de matériel promotionnel
+- Utilisation des médias sociaux pour créer un buzz
+- Engagement des relais communautaires locaux`,
+    videos: null,
+    quiz: null
   }
 };
 
@@ -76,7 +133,10 @@ export const getModuleContent = async (moduleId: string): Promise<ModuleContent>
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    return mockContent[moduleId] || { content: undefined };
+    // On renvoie le contenu du module ou un contenu d'exemple si le module n'existe pas
+    return mockContent[moduleId] || { 
+      content: `# Module d'exemple\n\nCeci est un contenu d'exemple pour le module ${moduleId}.\n\n## Section 1\n\nLe contenu réel de ce module sera disponible prochainement.\n\n## Section 2\n\nMerci pour votre patience.` 
+    };
   } catch (error) {
     console.error("Error getting module content:", error);
     throw error;

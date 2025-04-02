@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle, BookOpen } from 'lucide-react';
 
 interface ModuleContentViewProps {
   content?: string;
@@ -11,22 +12,43 @@ interface ModuleContentViewProps {
 const ModuleContentView: React.FC<ModuleContentViewProps> = ({ content }) => {
   if (!content) {
     return (
-      <div className="p-8 text-center text-gray-400">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="space-y-4"
-        >
-          <div className="mx-auto w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="p-8 text-center bg-gray-800/30 rounded-lg"
+      >
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-gray-800/70 flex items-center justify-center">
+            <BookOpen className="h-8 w-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium">Aucun contenu disponible</h3>
-          <p className="text-sm text-gray-500">Ce module n'a pas encore de contenu disponible.</p>
-        </motion.div>
-      </div>
+          <h3 className="text-lg font-medium text-gray-300">Aucun contenu disponible</h3>
+          <p className="text-sm text-gray-400 max-w-md">
+            Ce module n'a pas encore de contenu disponible. Veuillez choisir un autre module ou revenir ultérieurement.
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (typeof content !== 'string' || content.trim() === '') {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="p-8 text-center bg-gray-800/30 rounded-lg"
+      >
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-gray-800/70 flex items-center justify-center">
+            <AlertCircle className="h-8 w-8 text-amber-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-300">Erreur de chargement du contenu</h3>
+          <p className="text-sm text-gray-400 max-w-md">
+            Le contenu de ce module n'a pas pu être chargé correctement. Veuillez réessayer ou contacter l'assistance.
+          </p>
+        </div>
+      </motion.div>
     );
   }
 

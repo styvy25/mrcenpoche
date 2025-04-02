@@ -8,7 +8,7 @@ import TrainingProgress from '@/components/training/TrainingProgress';
 import { useSubscription } from '@/hooks/useSubscription';
 import PremiumUpsell from '@/components/premium/PremiumUpsell';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Certificates } from "lucide-react";
+import { Award } from "lucide-react";
 
 const LoadingFallback = () => (
   <div className="space-y-4 p-6">
@@ -25,7 +25,7 @@ const CertificatesTab = () => (
   <div className="p-6 text-center">
     <div className="py-12 flex flex-col items-center justify-center">
       <div className="bg-gray-800/40 p-4 rounded-full mb-4">
-        <Certificates className="h-12 w-12 text-yellow-500" />
+        <Award className="h-12 w-12 text-yellow-500" />
       </div>
       <h3 className="text-xl font-semibold mb-2">Certificats disponibles après formation</h3>
       <p className="text-gray-400 max-w-md mx-auto">
