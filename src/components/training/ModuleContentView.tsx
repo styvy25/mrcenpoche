@@ -7,9 +7,14 @@ import { AlertCircle, BookOpen } from 'lucide-react';
 
 interface ModuleContentViewProps {
   content?: string;
+  isLoading?: boolean;
 }
 
-const ModuleContentView: React.FC<ModuleContentViewProps> = ({ content }) => {
+const ModuleContentView: React.FC<ModuleContentViewProps> = ({ content, isLoading }) => {
+  if (isLoading) {
+    return <ModuleContentViewSkeleton />;
+  }
+  
   if (!content) {
     return (
       <motion.div

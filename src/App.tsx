@@ -1,6 +1,6 @@
 
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import MainLayout from './components/layout/MainLayout';
 import { useAuth } from './components/auth/AuthContext';
@@ -11,7 +11,6 @@ import AssistantPage from './pages/AssistantPage';
 import SettingsPage from './pages/SettingsPage';
 import AuthPage from './pages/AuthPage';
 import NotFound from './pages/NotFound';
-import TrainingPage from './pages/TrainingPage';
 import QuizPage from './pages/QuizPage';
 
 // Import Index as HomePage
@@ -106,6 +105,14 @@ function App() {
               </Suspense>
             </ProtectedRoute>
           } 
+        />
+        <Route
+          path="/modules/training"
+          element={
+            <ProtectedRoute>
+              <Navigate to="/training" replace />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/quiz"

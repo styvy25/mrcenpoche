@@ -8,7 +8,7 @@ import TrainingProgress from '@/components/training/TrainingProgress';
 import { useSubscription } from '@/hooks/useSubscription';
 import PremiumUpsell from '@/components/premium/PremiumUpsell';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Award } from "lucide-react";
+import { Award, Book } from "lucide-react";
 
 const LoadingFallback = () => (
   <div className="space-y-4 p-6">
@@ -19,6 +19,11 @@ const LoadingFallback = () => (
       ))}
     </div>
   </div>
+);
+
+// Lazy loaded immersive training component
+const ImmersiveTraining = React.lazy(() => 
+  import('@/components/modules/training/ImmersiveTrainingSpace')
 );
 
 const CertificatesTab = () => (
@@ -38,7 +43,7 @@ const CertificatesTab = () => (
 
 const TrainingModulePage: React.FC = () => {
   const { isPremium } = useSubscription();
-  const [activeTab, setActiveTab] = useState<'modules' | 'progress' | 'certificates'>('modules');
+  const [activeTab, setActiveTab] = useState<'modules' | 'immersive' | 'progress' | 'certificates'>('modules');
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
@@ -50,7 +55,7 @@ const TrainingModulePage: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
   
-  const handleTabChange = (tab: 'modules' | 'progress' | 'certificates') => {
+  const handleTabChange = (tab: 'modules' | 'immersive' | 'progress' | 'certificates') => {
     setIsLoading(true);
     setActiveTab(tab);
     
@@ -109,6 +114,11 @@ const TrainingModulePage: React.FC = () => {
                   className="no-flicker"
                 >
                   {activeTab === 'modules' && <AdaptiveModuleContent />}
+                  {activeTab === 'immersive' && (
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ImmersiveTraining />
+                    </Suspense>
+                  )}
                   {activeTab === 'progress' && <TrainingProgress />}
                   {activeTab === 'certificates' && <CertificatesTab />}
                 </motion.div>

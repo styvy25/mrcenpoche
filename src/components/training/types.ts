@@ -3,24 +3,33 @@ export interface Module {
   id: string;
   title: string;
   description: string;
+  icon?: string;
   image?: string;
+  coverImage?: string;
   duration: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  level?: string;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
   category: string;
   categoryName?: string;
-  type: 'core' | 'advanced' | 'special' | 'exam';
+  type?: 'core' | 'advanced' | 'special' | 'exam';
   locked: boolean;
   isNew?: boolean;
   progress: number;
   rating?: number;
   completed?: boolean;
   requiredLevel?: number;
+  featured?: boolean;
+  isPdfAvailable?: boolean;
+  isCompleted?: boolean;
+  lessons?: any[];
 }
 
 export interface ModuleCategory {
   id: string;
   name: string;
-  color: string;
+  label?: string;
+  color?: string;
+  icon?: string;
   iconName?: string;
 }
 

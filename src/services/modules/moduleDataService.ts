@@ -7,7 +7,6 @@ const mockModules: Module[] = [
     id: 'mod1',
     title: 'Fondamentaux du MRC',
     description: 'Découvrez les principes fondateurs et les valeurs du Mouvement pour la Renaissance du Cameroun.',
-    icon: '📜',
     category: 'fondamentaux',
     duration: '45 min',
     level: 'Débutant',
@@ -20,7 +19,6 @@ const mockModules: Module[] = [
     id: 'mod2',
     title: 'Stratégies de communication politique',
     description: 'Apprenez à communiquer efficacement les idées et valeurs du MRC aux électeurs potentiels.',
-    icon: '📢',
     category: 'communication',
     duration: '60 min',
     level: 'Intermédiaire',
@@ -33,7 +31,6 @@ const mockModules: Module[] = [
     id: 'mod3',
     title: 'Organisation d\'événements politiques',
     description: 'Guide pratique pour organiser des meetings, des conférences et des événements communautaires.',
-    icon: '🎪',
     category: 'organisation',
     duration: '75 min',
     level: 'Intermédiaire',
@@ -46,7 +43,6 @@ const mockModules: Module[] = [
     id: 'mod4',
     title: 'Mobilisation des électeurs',
     description: 'Techniques efficaces pour mobiliser les électeurs et les encourager à voter pour le MRC.',
-    icon: '👥',
     category: 'mobilisation',
     duration: '90 min',
     level: 'Avancé',
@@ -59,7 +55,6 @@ const mockModules: Module[] = [
     id: 'mod5',
     title: 'Droit électoral camerounais',
     description: 'Comprendre le cadre juridique des élections au Cameroun et les droits des candidats et électeurs.',
-    icon: '⚖️',
     category: 'juridique',
     duration: '120 min',
     level: 'Avancé',
@@ -71,12 +66,12 @@ const mockModules: Module[] = [
 ];
 
 const mockCategories: ModuleCategory[] = [
-  { id: 'all', label: 'Tous', icon: '🔍' },
-  { id: 'fondamentaux', label: 'Fondamentaux', icon: '📜' },
-  { id: 'communication', label: 'Communication', icon: '📢' },
-  { id: 'organisation', label: 'Organisation', icon: '🎪' },
-  { id: 'mobilisation', label: 'Mobilisation', icon: '👥' },
-  { id: 'juridique', label: 'Juridique', icon: '⚖️' }
+  { id: 'all', name: 'Tous', icon: '🔍' },
+  { id: 'fondamentaux', name: 'Fondamentaux', icon: '📜' },
+  { id: 'communication', name: 'Communication', icon: '📢' },
+  { id: 'organisation', name: 'Organisation', icon: '🎪' },
+  { id: 'mobilisation', name: 'Mobilisation', icon: '👥' },
+  { id: 'juridique', name: 'Juridique', icon: '⚖️' }
 ];
 
 /**
