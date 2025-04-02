@@ -9,6 +9,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import PremiumUpsell from '@/components/premium/PremiumUpsell';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Award, Book } from "lucide-react";
+import CertificatesView from '@/components/training/CertificatesView';
 
 const LoadingFallback = () => (
   <div className="space-y-4 p-6">
@@ -24,21 +25,6 @@ const LoadingFallback = () => (
 // Lazy loaded immersive training component
 const ImmersiveTraining = React.lazy(() => 
   import('@/components/modules/training/ImmersiveTrainingSpace')
-);
-
-const CertificatesTab = () => (
-  <div className="p-6 text-center">
-    <div className="py-12 flex flex-col items-center justify-center">
-      <div className="bg-gray-800/40 p-4 rounded-full mb-4">
-        <Award className="h-12 w-12 text-yellow-500" />
-      </div>
-      <h3 className="text-xl font-semibold mb-2">Certificats disponibles après formation</h3>
-      <p className="text-gray-400 max-w-md mx-auto">
-        Complétez les modules de formation pour obtenir des certificats officiels du MRC. 
-        Votre progression sera enregistrée et les certificats seront débloqués automatiquement.
-      </p>
-    </div>
-  </div>
 );
 
 const TrainingModulePage: React.FC = () => {
@@ -63,6 +49,29 @@ const TrainingModulePage: React.FC = () => {
     setTimeout(() => {
       setIsLoading(false);
     }, 200);
+  };
+  
+  const renderTabContent = () => {
+    if (isLoading) {
+      return <LoadingFallback />;
+    }
+    
+    switch (activeTab) {
+      case 'modules':
+        return <AdaptiveModuleContent />;
+      case 'immersive':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <ImmersiveTraining />
+          </Suspense>
+        );
+      case 'progress':
+        return <TrainingProgress />;
+      case 'certificates':
+        return <CertificatesView />;
+      default:
+        return <AdaptiveModuleContent />;
+    }
   };
   
   return (
@@ -90,39 +99,21 @@ const TrainingModulePage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-gray-900 rounded-xl border border-gray-800 shadow-xl overflow-hidden no-flicker"
+            className="bg-gray-900 rounded-xl border border-gray-800 shadow-xl overflow-hidden"
           >
             <AnimatePresence mode="wait" initial={false}>
-              {isLoading ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="no-flicker"
-                >
-                  <LoadingFallback />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="no-flicker"
-                >
-                  {activeTab === 'modules' && <AdaptiveModuleContent />}
-                  {activeTab === 'immersive' && (
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ImmersiveTraining />
-                    </Suspense>
-                  )}
-                  {activeTab === 'progress' && <TrainingProgress />}
-                  {activeTab === 'certificates' && <CertificatesTab />}
-                </motion.div>
-              )}
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ 
+                  duration: 0.3,
+                  ease: "easeInOut"
+                }}
+              >
+                {renderTabContent()}
+              </motion.div>
             </AnimatePresence>
           </motion.div>
         </div>

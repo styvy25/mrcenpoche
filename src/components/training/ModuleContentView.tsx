@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, BookOpen } from 'lucide-react';
+import LoadingState from './module-view/LoadingState';
 
 interface ModuleContentViewProps {
   content?: string;
@@ -12,7 +13,7 @@ interface ModuleContentViewProps {
 
 const ModuleContentView: React.FC<ModuleContentViewProps> = ({ content, isLoading }) => {
   if (isLoading) {
-    return <ModuleContentViewSkeleton />;
+    return <LoadingState />;
   }
   
   if (!content) {
@@ -62,31 +63,71 @@ const ModuleContentView: React.FC<ModuleContentViewProps> = ({ content, isLoadin
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="prose prose-invert max-w-full p-6 animate-reveal"
-      style={{
-        color: "#e2e8f0" // text-gray-200 equivalent
-      }}
+      className="prose prose-invert max-w-full p-6"
     >
-      <ReactMarkdown>{content}</ReactMarkdown>
+      <ReactMarkdown
+        components={{
+          h1: ({ children }) => (
+            <motion.h1 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4 }}
+              className="text-2xl font-bold mb-4 text-white"
+            >
+              {children}
+            </motion.h1>
+          ),
+          h2: ({ children }) => (
+            <motion.h2
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="text-xl font-semibold mt-6 mb-3 text-blue-300"
+            >
+              {children}
+            </motion.h2>
+          ),
+          p: ({ children }) => (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+              className="mb-4 text-gray-200"
+            >
+              {children}
+            </motion.p>
+          ),
+          ul: ({ children }) => (
+            <motion.ul
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+              className="list-disc pl-6 mb-4 space-y-1 text-gray-200"
+            >
+              {children}
+            </motion.ul>
+          ),
+          ol: ({ children }) => (
+            <motion.ol
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+              className="list-decimal pl-6 mb-4 space-y-1 text-gray-200"
+            >
+              {children}
+            </motion.ol>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </motion.div>
   );
 };
 
 // Loading placeholder for ModuleContentView
 export const ModuleContentViewSkeleton = () => {
-  return (
-    <div className="p-6 space-y-4">
-      <Skeleton className="h-8 w-3/4" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-4/5" />
-      <div className="py-2"></div>
-      <Skeleton className="h-6 w-1/2" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-3/4" />
-    </div>
-  );
+  return <LoadingState />;
 };
 
 export default React.memo(ModuleContentView);
