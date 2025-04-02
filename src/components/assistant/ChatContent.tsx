@@ -37,8 +37,8 @@ const ChatContent: React.FC<ChatContentProps> = ({
     return (index + 1) % 3 === 0 && index !== messages.length - 1;
   };
   return <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar py-0">
-      {messages.length === 0 ? <div className="flex h-full items-center justify-center">
-          <motion.div className="text-center max-w-md p-6 rounded-lg bg-gray-800/30 backdrop-blur-sm border border-gray-700" initial={{
+      {messages.length === 0 ? <div className="flex h-full items-center justify-center bg-zinc-50 rounded">
+          <motion.div initial={{
         opacity: 0,
         y: 10
       }} animate={{
@@ -46,7 +46,7 @@ const ChatContent: React.FC<ChatContentProps> = ({
         y: 0
       }} transition={{
         duration: 0.6
-      }}>
+      }} className="text-center max-w-md p-6 rounded-lg bg-gray-800/30 backdrop-blur-sm border border-gray-700 py-0">
             <motion.div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-mrc-blue via-purple-600 to-mrc-green p-0.5" animate={{
           boxShadow: ["0 0 0 rgba(59, 130, 246, 0)", "0 0 20px rgba(59, 130, 246, 0.5)", "0 0 0 rgba(59, 130, 246, 0)"]
         }} transition={{
