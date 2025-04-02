@@ -20,6 +20,7 @@ export interface QuizQuestion {
   answers?: any[];
   category?: string;
   difficulty?: string;
+  imageSrc?: string;
 }
 
 export interface QuizResultData {
@@ -29,4 +30,15 @@ export interface QuizResultData {
   categoryName: string;
   timeSpent: number;
   earnedBadges: string[];
+}
+
+// Add a Question type alias for backward compatibility
+export type Question = QuizQuestion;
+
+// Add a QuizResult type for badgeUtils
+export interface QuizResult {
+  score: number;
+  total: number;
+  category: string;
+  timeSpent: number;
 }

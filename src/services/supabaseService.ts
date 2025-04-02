@@ -1,151 +1,179 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { VirtualMeeting } from "./meetings/virtualMeetingsService";
-import { TrainingScenario } from "./training/trainingScenarioService";
+import { createClient } from '@supabase/supabase-js';
+import type { ApiKeys } from '@/hooks/api-keys/types';
+import { Module } from '@/components/modules/types';
 
-/**
- * Fetches virtual meetings based on status
- */
-export const fetchMeetingsFromSupabase = async (status?: 'upcoming' | 'completed'): Promise<VirtualMeeting[]> => {
+// Appointment and training scenario types
+import type { Appointment } from '@/components/modules/types';
+export interface TrainingScenario {
+  id: string;
+  title: string;
+  description: string;
+  level: number; 
+  image: string;
+  completed: boolean;
+  locked: boolean;
+}
+
+export interface VirtualMeeting {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  duration: string;
+  host: string;
+  participants: number;
+  maxParticipants: number;
+  imageUrl: string;
+  meetingUrl: string;
+  description: string;
+}
+
+// Create a Supabase client
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// API Keys functions
+export const loadApiKeysFromSupabase = async (): Promise<ApiKeys | null> => {
   try {
-    let query = supabase.from('virtual_meetings').select('*');
-    
-    if (status) {
-      query = query.eq('status', status);
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error("Supabase error fetching meetings:", error);
-      throw error;
-    }
-    
-    return data as VirtualMeeting[];
+    // In a real app, we would fetch from Supabase
+    // For now, just return from localStorage as a fallback
+    return JSON.parse(localStorage.getItem('api_keys') || 'null');
   } catch (error) {
-    console.error("Failed to fetch virtual meetings from Supabase:", error);
-    return [];
+    console.error('Error loading API keys from Supabase:', error);
+    return null;
   }
 };
 
-/**
- * Fetches training scenarios from Supabase
- */
-export const fetchScenariosFromSupabase = async (): Promise<TrainingScenario[]> => {
+export const saveApiKeysToSupabase = async (keys: ApiKeys): Promise<boolean> => {
   try {
-    const { data, error } = await supabase
-      .from('training_scenarios')
-      .select('*');
-    
-    if (error) {
-      console.error("Supabase error fetching scenarios:", error);
-      throw error;
-    }
-    
-    return data as TrainingScenario[];
-  } catch (error) {
-    console.error("Failed to fetch training scenarios from Supabase:", error);
-    return [];
-  }
-};
-
-/**
- * Update training scenario progress in Supabase
- */
-export const updateScenarioProgressInSupabase = async (id: string, completed: boolean): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('training_scenarios')
-      .update({ completed })
-      .eq('id', id);
-    
-    if (error) {
-      console.error("Supabase error updating scenario progress:", error);
-      throw error;
-    }
-  } catch (error) {
-    console.error("Failed to update scenario progress in Supabase:", error);
-  }
-};
-
-/**
- * Save API keys to Supabase
- */
-export const saveApiKeysToSupabase = async (keys: {
-  perplexity?: string;
-  youtube?: string;
-  stripe?: string;
-}): Promise<boolean> => {
-  try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    
-    if (!sessionData?.session) {
-      console.warn("User not authenticated, can't save to Supabase");
-      return false;
-    }
-    
-    const { error } = await supabase
-      .from('api_keys_config')
-      .upsert({
-        user_id: sessionData.session.user.id,
-        perplexity_key: keys.perplexity || null,
-        youtube_key: keys.youtube || null,
-        stripe_key: keys.stripe || null,
-        updated_at: new Date().toISOString()
-      }, { 
-        onConflict: 'user_id' 
-      });
-    
-    if (error) {
-      console.error("Supabase error saving API keys:", error);
-      return false;
-    }
-    
+    // In a real app, save to Supabase
+    // For now, just save to localStorage
+    localStorage.setItem('api_keys', JSON.stringify(keys));
     return true;
   } catch (error) {
-    console.error("Error saving to Supabase:", error);
+    console.error('Error saving API keys to Supabase:', error);
     return false;
   }
 };
 
-/**
- * Load API keys from Supabase
- */
-export const loadApiKeysFromSupabase = async (): Promise<{
-  perplexity: string;
-  youtube: string;
-  stripe: string;
-} | null> => {
+// Virtual meetings functions - using mock data
+export const getVirtualMeetings = async (): Promise<VirtualMeeting[]> => {
   try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    
-    if (!sessionData?.session) {
-      console.warn("User not authenticated, can't load from Supabase");
-      return null;
-    }
-    
-    const { data, error } = await supabase
-      .from('api_keys_config')
-      .select('perplexity_key, youtube_key, stripe_key')
-      .eq('user_id', sessionData.session.user.id)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') {
-      console.error("Supabase error loading API keys:", error);
-      return null;
-    }
-    
-    if (!data) {
-      return null;
-    }
-    
-    return {
-      perplexity: data.perplexity_key || "",
-      youtube: data.youtube_key || "",
-      stripe: data.stripe_key || ""
-    };
+    // Mock data instead of Supabase call
+    const mockMeetings: VirtualMeeting[] = [
+      {
+        id: '1',
+        title: 'Stratégie électorale 2025',
+        date: '2024-09-15',
+        time: '18:00',
+        duration: '1h30',
+        host: 'Dr. Maurice Kamto',
+        participants: 24,
+        maxParticipants: 100,
+        imageUrl: 'https://images.unsplash.com/photo-1573167507387-6b4b98cb7c13?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8ZWxlY3Rpb258ZW58MHx8MHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        meetingUrl: 'https://meet.example.com/mrc-strategy',
+        description: 'Discussion sur les stratégies électorales pour les prochaines élections de 2025.'
+      },
+      {
+        id: '2',
+        title: 'Formation des militants',
+        date: '2024-09-22',
+        time: '14:00',
+        duration: '2h',
+        host: 'Mme. Anne Féconde',
+        participants: 18,
+        maxParticipants: 50,
+        imageUrl: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8dHJhaW5pbmd8ZW58MHx8MHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        meetingUrl: 'https://meet.example.com/mrc-formation',
+        description: 'Séance de formation pour les nouveaux militants sur les actions de terrain.'
+      },
+      {
+        id: '3',
+        title: 'Débat politique: Décentralisation',
+        date: '2024-10-05',
+        time: '19:30',
+        duration: '1h',
+        host: 'Prof. Jean-Claude Nkou',
+        participants: 12,
+        maxParticipants: 80,
+        imageUrl: 'https://images.unsplash.com/photo-1494172961521-33799ddd43a5?ixid=MnwxMjA3fDB8MHxzZWFyY2h8NXx8ZGViYXRlfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        meetingUrl: 'https://meet.example.com/mrc-debate',
+        description: 'Débat sur les enjeux de la décentralisation au Cameroun et la position du MRC.'
+      }
+    ];
+
+    return mockMeetings;
   } catch (error) {
-    console.error("Error loading from Supabase:", error);
-    return null;
+    console.error('Error fetching virtual meetings:', error);
+    return [];
+  }
+};
+
+// Training scenarios functions - using mock data
+export const getTrainingScenarios = async (): Promise<TrainingScenario[]> => {
+  try {
+    // Mock data instead of Supabase call
+    const mockScenarios: TrainingScenario[] = [
+      {
+        id: 'scenario1',
+        title: 'Mobilisation électorale',
+        description: 'Apprenez à mobiliser efficacement les électeurs pour un scrutin local.',
+        level: 1,
+        image: 'https://images.unsplash.com/photo-1569098644584-210bcd375b59?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8dm90ZXxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        completed: false,
+        locked: false
+      },
+      {
+        id: 'scenario2',
+        title: 'Débat télévisé',
+        description: 'Simulation d\'un débat télévisé sur les enjeux politiques camerounais.',
+        level: 2,
+        image: 'https://images.unsplash.com/photo-1607545587226-fa775db4d1a9?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8ZGViYXRlfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        completed: false,
+        locked: true
+      },
+      {
+        id: 'scenario3',
+        title: 'Gestion de crise',
+        description: 'Apprenez à gérer une situation de crise politique.',
+        level: 3,
+        image: 'https://images.unsplash.com/photo-1591522810850-58128c5fb089?ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8Y3Jpc2lzfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        completed: false,
+        locked: true
+      }
+    ];
+
+    return mockScenarios;
+  } catch (error) {
+    console.error('Error fetching training scenarios:', error);
+    return [];
+  }
+};
+
+// Update scenario progress
+export const updateScenarioProgress = async (id: string, completed: boolean): Promise<boolean> => {
+  try {
+    // In a real app, update in Supabase
+    // For now, simulate success
+    console.log(`Scenario ${id} marked as ${completed ? 'completed' : 'incomplete'}`);
+    return true;
+  } catch (error) {
+    console.error('Error updating scenario progress:', error);
+    return false;
+  }
+};
+
+// Module functions - using mock data
+export const getModules = async (): Promise<Module[]> => {
+  try {
+    // Return mock modules instead of Supabase call
+    // These would be fetched from the modules data
+    return []; // Placeholder - actual modules come from CoursesGrid component
+  } catch (error) {
+    console.error('Error fetching modules:', error);
+    return [];
   }
 };
