@@ -2,19 +2,10 @@
 import { createClient } from '@supabase/supabase-js';
 import type { ApiKeys } from '@/hooks/api-keys/types';
 import { Module } from '@/components/modules/types';
+import { TrainingScenario } from './training/trainingScenarioService';
 
 // Appointment and training scenario types
-import type { Appointment } from '@/components/modules/types';
-export interface TrainingScenario {
-  id: string;
-  title: string;
-  description: string;
-  level: number; 
-  image: string;
-  completed: boolean;
-  locked: boolean;
-}
-
+import type { Appointment } from '@/components/quiz/types';
 export interface VirtualMeeting {
   id: string;
   title: string;
@@ -153,7 +144,7 @@ export const getTrainingScenarios = async (): Promise<TrainingScenario[]> => {
   }
 };
 
-// Update scenario progress
+// Export the function to update scenario progress
 export const updateScenarioProgress = async (id: string, completed: boolean): Promise<boolean> => {
   try {
     // In a real app, update in Supabase
@@ -163,6 +154,39 @@ export const updateScenarioProgress = async (id: string, completed: boolean): Pr
   } catch (error) {
     console.error('Error updating scenario progress:', error);
     return false;
+  }
+};
+
+// Add function to fetch meetings from Supabase (mock implementation)
+export const fetchMeetingsFromSupabase = async (status?: 'upcoming' | 'completed'): Promise<VirtualMeeting[]> => {
+  try {
+    // In a real implementation, we would fetch from Supabase
+    // For now, just return mock data
+    const mockMeetings = await getVirtualMeetings();
+    
+    if (status) {
+      // Filter by status (would be done at database level in real implementation)
+      return mockMeetings.filter(meeting => 
+        status === 'upcoming' ? new Date(meeting.date) > new Date() : new Date(meeting.date) <= new Date()
+      );
+    }
+    
+    return mockMeetings;
+  } catch (error) {
+    console.error('Error fetching meetings from Supabase:', error);
+    return [];
+  }
+};
+
+// Add function to fetch scenarios from Supabase (mock implementation)
+export const fetchScenariosFromSupabase = async (): Promise<TrainingScenario[]> => {
+  try {
+    // In a real implementation, we would fetch from Supabase
+    // For now, just return mock data
+    return getTrainingScenarios();
+  } catch (error) {
+    console.error('Error fetching scenarios from Supabase:', error);
+    return [];
   }
 };
 

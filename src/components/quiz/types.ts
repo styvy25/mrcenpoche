@@ -41,4 +41,47 @@ export interface QuizResult {
   total: number;
   category: string;
   timeSpent: number;
+  correctAnswers?: number;
+  totalQuestions?: number;
+}
+
+// Appointment-related types
+export interface Appointment {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  duration: string;
+  location: string;
+  type: string;
+  description?: string;
+  attendees?: number;
+  maxAttendees?: number;
+  host?: string;
+  status?: 'scheduled' | 'cancelled' | 'completed';
+  imageUrl?: string;
+}
+
+export interface AppointmentRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  appointmentId: string;
+  date: string;
+  time: string;
+  message?: string;
+}
+
+// Badge types
+export interface BadgeProps {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  earned: boolean;
+  progress?: number;
+  total?: number;
+  dateEarned?: string;
+  category?: string;
 }

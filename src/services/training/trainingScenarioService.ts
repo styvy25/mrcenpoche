@@ -1,4 +1,5 @@
-import { fetchScenariosFromSupabase, updateScenarioProgressInSupabase } from "../supabaseService";
+import { supabase } from '@/integrations/supabase/client';
+import { getTrainingScenarios, updateScenarioProgress } from "../supabaseService";
 
 export interface TrainingScenario {
   id: string;
@@ -62,7 +63,7 @@ const staticTrainingScenarios: TrainingScenario[] = [
 export const fetchTrainingScenarios = async (): Promise<TrainingScenario[]> => {
   try {
     // Try to fetch from Supabase first
-    const supabaseScenarios = await fetchScenariosFromSupabase();
+    const supabaseScenarios = await getTrainingScenarios();
     
     // If we got scenarios from Supabase, return those
     if (supabaseScenarios && supabaseScenarios.length > 0) {
@@ -81,10 +82,10 @@ export const fetchTrainingScenarios = async (): Promise<TrainingScenario[]> => {
   }
 };
 
-export const updateScenarioProgress = async (id: string, completed: boolean): Promise<void> => {
+export const updateScenarioProgressInSupabase = async (id: string, completed: boolean): Promise<void> => {
   try {
-    // Try to update in Supabase first
-    await updateScenarioProgressInSupabase(id, completed);
+    // Try to update in Supabase using the existing function
+    await updateScenarioProgress(id, completed);
     
     // Always log what would happen
     console.log(`Scenario ${id} marked as ${completed ? 'completed' : 'incomplete'}`);
