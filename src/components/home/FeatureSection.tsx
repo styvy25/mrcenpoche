@@ -30,7 +30,7 @@ const FeatureSection = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => <Card key={index} className="border-t-4 border-t-mrc-blue hover:shadow-lg transition-shadow">
+          {features.map((feature, index) => <Card key={index} className="border-t-4 border-t-mrc-blue hover:shadow-lg transition-shadow py-0 my-0 mx-0 px-0 rounded-sm">
               <CardHeader className="pb-2 flex flex-col items-center">
                 <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
                   {feature.icon}

@@ -48,12 +48,6 @@ const Navbar = ({
       navigate(navigationItems[index].path);
     }
   };
-  return <nav className="bg-white/80 dark:bg-mrc-dark/80 border-b border-gray-200 dark:border-gray-700 fixed w-full z-50 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-      </div>
-
-      <MobileNavMenu isOpen={isOpen} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} navEndElement={navEndElement} />
-    </nav>;
+  return;
 };
 export default Navbar;
