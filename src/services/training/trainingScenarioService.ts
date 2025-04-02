@@ -1,3 +1,4 @@
+import { fetchScenariosFromSupabase, updateScenarioProgressInSupabase } from "../supabaseService";
 
 export interface TrainingScenario {
   id: string;
@@ -9,7 +10,7 @@ export interface TrainingScenario {
   locked: boolean;
 }
 
-// Static data for training scenarios
+// Static data for training scenarios as fallback
 const staticTrainingScenarios: TrainingScenario[] = [
   {
     id: "1",
@@ -60,28 +61,33 @@ const staticTrainingScenarios: TrainingScenario[] = [
 
 export const fetchTrainingScenarios = async (): Promise<TrainingScenario[]> => {
   try {
-    // Simulating a network request
+    // Try to fetch from Supabase first
+    const supabaseScenarios = await fetchScenariosFromSupabase();
+    
+    // If we got scenarios from Supabase, return those
+    if (supabaseScenarios && supabaseScenarios.length > 0) {
+      return supabaseScenarios;
+    }
+    
+    // Otherwise, fall back to static data
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(staticTrainingScenarios);
-      }, 500);
+      }, 300);
     });
   } catch (error) {
     console.error("Failed to fetch training scenarios:", error);
-    return [];
+    return staticTrainingScenarios;
   }
 };
 
 export const updateScenarioProgress = async (id: string, completed: boolean): Promise<void> => {
   try {
-    // Simulating a network request
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // In a real app, this would update the database
-        console.log(`Scenario ${id} marked as ${completed ? 'completed' : 'incomplete'}`);
-        resolve();
-      }, 300);
-    });
+    // Try to update in Supabase first
+    await updateScenarioProgressInSupabase(id, completed);
+    
+    // Always log what would happen
+    console.log(`Scenario ${id} marked as ${completed ? 'completed' : 'incomplete'}`);
   } catch (error) {
     console.error("Failed to update scenario progress:", error);
   }

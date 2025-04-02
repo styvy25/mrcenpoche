@@ -1,5 +1,5 @@
 
-import { ReactNode, useRef, useEffect } from "react";
+import { ReactNode, useRef, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -11,22 +11,19 @@ interface PageTransitionProps {
 const pageVariants = {
   initial: {
     opacity: 0,
-    y: 10,
   },
   in: {
     opacity: 1,
-    y: 0,
     transition: {
-      duration: 0.4,
-      ease: [0.16, 1, 0.3, 1], // Custom ease function (Expo-like)
+      duration: 0.3,
+      ease: "easeInOut",
     },
   },
   out: {
     opacity: 0,
-    y: -10,
     transition: {
-      duration: 0.3,
-      ease: [0.16, 1, 0.3, 1],
+      duration: 0.2,
+      ease: "easeInOut",
     },
   },
 };
@@ -35,20 +32,25 @@ const pageVariants = {
 export const PageTransition = ({ children }: PageTransitionProps) => {
   const location = useLocation();
   const prevPathRef = useRef<string>(location.pathname);
-
+  const [renderKey, setRenderKey] = useState(location.pathname);
+  
+  // Update the render key when the path changes
   useEffect(() => {
-    prevPathRef.current = location.pathname;
+    if (prevPathRef.current !== location.pathname) {
+      prevPathRef.current = location.pathname;
+      setRenderKey(location.pathname);
+    }
   }, [location.pathname]);
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={location.pathname}
+        key={renderKey}
         initial="initial"
         animate="in"
         exit="out"
         variants={pageVariants}
-        className="min-h-[calc(100vh-5rem)]"
+        className="min-h-[calc(100vh-5rem)] w-full"
       >
         {children}
       </motion.div>

@@ -8,7 +8,8 @@ import CategoryButtons from './module-content/CategoryButtons';
 import ModulesList from './module-content/ModulesList';
 import FeaturedModuleSection from './module-content/FeaturedModuleSection';
 import { useModuleData } from './hooks/useModuleData';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import PageTransitionWrapper from '@/components/ui/page-transition-wrapper';
 
 const AdaptiveModuleContent: React.FC = () => {
   const { toast } = useToast();
@@ -71,32 +72,20 @@ const AdaptiveModuleContent: React.FC = () => {
   
   // If a module is active, display that instead
   if (activeModule) {
-    return <ActiveModuleView module={activeModule} onBack={handleBackToModules} />;
+    return (
+      <PageTransitionWrapper>
+        <ActiveModuleView module={activeModule} onBack={handleBackToModules} />
+      </PageTransitionWrapper>
+    );
   }
   
   return (
-    <div className="p-6">
-      <AnimatePresence mode="wait">
+    <PageTransitionWrapper>
+      <div className="p-6">
         {loading ? (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="no-flicker"
-          >
-            <LoadingState />
-          </motion.div>
+          <LoadingState />
         ) : (
-          <motion.div
-            key="content"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="no-flicker"
-          >
+          <>
             {featuredModule && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -134,10 +123,10 @@ const AdaptiveModuleContent: React.FC = () => {
                 onResetCategory={handleResetCategory}
               />
             </motion.div>
-          </motion.div>
+          </>
         )}
-      </AnimatePresence>
-    </div>
+      </div>
+    </PageTransitionWrapper>
   );
 };
 

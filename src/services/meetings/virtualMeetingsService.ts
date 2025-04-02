@@ -1,3 +1,4 @@
+import { fetchMeetingsFromSupabase } from "../supabaseService";
 
 export interface VirtualMeeting {
   id: string;
@@ -13,7 +14,7 @@ export interface VirtualMeeting {
   recording?: string;
 }
 
-// Static data for virtual meetings
+// Static data for virtual meetings as fallback
 const staticVirtualMeetings: VirtualMeeting[] = [
   {
     id: "1",
@@ -81,7 +82,15 @@ const staticVirtualMeetings: VirtualMeeting[] = [
 
 export const fetchVirtualMeetings = async (status?: 'upcoming' | 'completed'): Promise<VirtualMeeting[]> => {
   try {
-    // Simulating a network request
+    // Try to fetch from Supabase first
+    const supabaseMeetings = await fetchMeetingsFromSupabase(status);
+    
+    // If we got meetings from Supabase, return those
+    if (supabaseMeetings && supabaseMeetings.length > 0) {
+      return supabaseMeetings;
+    }
+    
+    // Otherwise, fall back to static data
     return new Promise((resolve) => {
       setTimeout(() => {
         if (status) {
@@ -89,11 +98,16 @@ export const fetchVirtualMeetings = async (status?: 'upcoming' | 'completed'): P
         } else {
           resolve(staticVirtualMeetings);
         }
-      }, 500);
+      }, 300);
     });
   } catch (error) {
     console.error("Failed to fetch virtual meetings:", error);
-    return [];
+    
+    // On error, return filtered static data
+    if (status) {
+      return staticVirtualMeetings.filter(meeting => meeting.status === status);
+    }
+    return staticVirtualMeetings;
   }
 };
 

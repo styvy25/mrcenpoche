@@ -1,37 +1,29 @@
 
-export interface Lesson {
-  id: number;
-  title: string;
-  duration: string;
-  isCompleted: boolean;
-  videoUrl?: string;
-  content?: string;
-  isLocked?: boolean;
-}
-
 export interface Module {
-  id: string | number;
+  id: string;
   title: string;
   description: string;
-  progress: number;
+  cover: string;
+  author: string;
+  level: "Débutant" | "Intermédiaire" | "Avancé" | "Expert";
   duration: string;
-  level: "Débutant" | "Intermédiaire" | "Avancé";
-  isPdfAvailable: boolean;
-  isCompleted: boolean;
-  overview: string;
-  lessons: Lesson[];
-  quizLink?: string;
-  pdfUrl?: string;
-  questions?: QuizQuestion[];
+  lessonCount: number;
+  category?: string;
+  tag?: string;
+  progress?: number;
+  lessons?: Lesson[];
+  isLocked?: boolean;
+  isFeatured?: boolean;
+  icon?: string;
 }
 
-interface QuizQuestion {
-  id: number;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation: string;
-  category?: string;
-  difficulty?: string;
-  imageSrc?: string;
+export interface Lesson {
+  id: string;
+  title: string;
+  type: string;
+  completed: boolean;
+  contentType: string;
+  content?: any;
+  duration?: string;
+  videoUrl?: string;
 }

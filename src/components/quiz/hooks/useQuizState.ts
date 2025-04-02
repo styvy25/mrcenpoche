@@ -45,10 +45,16 @@ export const useQuizState = (categories: Category[]) => {
     } else {
       calculateResults();
     }
-  }, [currentQuestionIndex, currentCategory.questions.length]);
+  }, [currentQuestionIndex, currentCategory?.questions?.length]);
   
   const calculateResults = useCallback(() => {
     let correctAnswers = 0;
+    
+    if (!currentCategory || !currentCategory.questions) {
+      setQuizResults({ score: 0 });
+      return;
+    }
+    
     currentCategory.questions.forEach((question, index) => {
       // Convert correct answer to number if it's a string
       const correctAnswerIndex = typeof question.correctAnswer === 'string' 
@@ -63,7 +69,7 @@ export const useQuizState = (categories: Category[]) => {
     const score = Math.round((correctAnswers / currentCategory.questions.length) * 100);
     
     setQuizResults({ score });
-  }, [currentCategory.questions, selectedAnswers]);
+  }, [currentCategory, selectedAnswers]);
   
   const restartQuiz = useCallback(() => {
     setCurrentQuestionIndex(0);
