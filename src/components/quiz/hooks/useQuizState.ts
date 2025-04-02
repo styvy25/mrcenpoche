@@ -1,85 +1,78 @@
 
-import { useState, useEffect } from "react";
-import { Category } from "../types";
+import { useState, useCallback, useEffect } from "react";
+import { Category, QuizQuestion } from "../types";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 export const useQuizState = (categories: Category[]) => {
-  // Find the first category with questions
-  const initialCategory = categories.find(cat => 
-    cat.questions && cat.questions.length > 0
-  ) || categories[0];
-  
-  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(categories.indexOf(initialCategory));
+  // State
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<(number | undefined)[]>([]);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [quizResults, setQuizResults] = useState<{ score: number } | null>(null);
-  const [currentCategory, setCurrentCategory] = useState<Category | undefined>(initialCategory);
   const [isStarted, setIsStarted] = useState(false);
   const [isCategorySelectionOpen, setIsCategorySelectionOpen] = useState(false);
-  const isSmallScreen = useMediaQuery("(max-width: 640px)");
-
-  // Validate that we have a valid category
+  const [timeStarted, setTimeStarted] = useState<number | null>(null);
+  
+  // Derived state
+  const currentCategory = categories[currentCategoryIndex];
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  
+  // Track when the quiz is started
   useEffect(() => {
-    if (!currentCategory) {
-      setCurrentCategory(initialCategory);
+    if (isStarted && !timeStarted) {
+      setTimeStarted(Date.now());
     }
-  }, [currentCategory, initialCategory]);
-
-  const handleCategoryChange = (index: number) => {
+  }, [isStarted, timeStarted]);
+  
+  // Handlers
+  const handleCategoryChange = useCallback((index: number) => {
     setCurrentCategoryIndex(index);
-    setCurrentCategory(categories[index]);
     setCurrentQuestionIndex(0);
-    setSelectedAnswers([]);
+    setSelectedAnswers({});
     setQuizResults(null);
-    setIsStarted(false);
-  };
-
-  const handleAnswer = (answerIndex: number) => {
-    const category = categories[currentCategoryIndex];
-    if (!category?.questions) return;
-    
-    // Update the selected answers
-    const updatedAnswers = [...selectedAnswers];
-    updatedAnswers[currentQuestionIndex] = answerIndex;
-    setSelectedAnswers(updatedAnswers);
-
-    // Check if this is the last question
-    const isLastQuestion = currentQuestionIndex === category.questions.length - 1;
-
-    if (isLastQuestion) {
-      calculateResults();
+  }, []);
+  
+  const handleAnswer = useCallback((answerIndex: number) => {
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [currentQuestionIndex]: answerIndex
+    }));
+  }, [currentQuestionIndex]);
+  
+  const nextQuestion = useCallback(() => {
+    if (currentQuestionIndex < currentCategory.questions.length - 1) {
+      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     } else {
-      nextQuestion();
+      calculateResults();
     }
-  };
-
-  const nextQuestion = () => {
-    setCurrentQuestionIndex(currentQuestionIndex + 1);
-  };
-
-  const calculateResults = () => {
-    const category = categories[currentCategoryIndex];
-    if (!category?.questions) return;
-    
-    const questions = category.questions;
-    let score = 0;
-
-    questions.forEach((question, index) => {
-      if (question.correctAnswer === selectedAnswers[index]) {
-        score++;
+  }, [currentQuestionIndex, currentCategory.questions.length]);
+  
+  const calculateResults = useCallback(() => {
+    let correctAnswers = 0;
+    currentCategory.questions.forEach((question, index) => {
+      // Convert correct answer to number if it's a string
+      const correctAnswerIndex = typeof question.correctAnswer === 'string' 
+        ? parseInt(question.correctAnswer) 
+        : question.correctAnswer;
+        
+      if (selectedAnswers[index] === correctAnswerIndex) {
+        correctAnswers++;
       }
     });
-
-    setQuizResults({ score: score });
-  };
-
-  const restartQuiz = () => {
+    
+    const score = Math.round((correctAnswers / currentCategory.questions.length) * 100);
+    
+    setQuizResults({ score });
+  }, [currentCategory.questions, selectedAnswers]);
+  
+  const restartQuiz = useCallback(() => {
     setCurrentQuestionIndex(0);
-    setSelectedAnswers([]);
+    setSelectedAnswers({});
     setQuizResults(null);
     setIsStarted(false);
-  };
-
+    setTimeStarted(null);
+  }, []);
+  
   return {
     currentCategoryIndex,
     currentCategory,
@@ -89,6 +82,7 @@ export const useQuizState = (categories: Category[]) => {
     isStarted,
     isCategorySelectionOpen,
     isSmallScreen,
+    timeStarted,
     setIsCategorySelectionOpen,
     handleCategoryChange,
     handleAnswer,
