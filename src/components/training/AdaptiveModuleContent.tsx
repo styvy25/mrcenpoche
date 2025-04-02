@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import ActiveModuleView from '@/components/training/ActiveModuleView';
 import { Module } from '@/components/training/types';
@@ -8,6 +8,7 @@ import CategoryButtons from './module-content/CategoryButtons';
 import ModulesList from './module-content/ModulesList';
 import FeaturedModuleSection from './module-content/FeaturedModuleSection';
 import { useModuleData } from './hooks/useModuleData';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AdaptiveModuleContent: React.FC = () => {
   const { toast } = useToast();
@@ -22,7 +23,7 @@ const AdaptiveModuleContent: React.FC = () => {
     setSelectedCategory 
   } = useModuleData();
   
-  const handleModuleClick = (module: Module) => {
+  const handleModuleClick = useCallback((module: Module) => {
     if (module.locked) {
       toast({
         title: "Module Premium",
@@ -33,15 +34,15 @@ const AdaptiveModuleContent: React.FC = () => {
     }
     
     setActiveModule(module);
-  };
+  }, [toast]);
   
-  const handleBackToModules = () => {
+  const handleBackToModules = useCallback(() => {
     setActiveModule(null);
-  };
+  }, []);
 
-  const handleResetCategory = () => {
+  const handleResetCategory = useCallback(() => {
     setSelectedCategory('all');
-  };
+  }, [setSelectedCategory]);
   
   // If a module is active, display that instead
   if (activeModule) {
@@ -50,32 +51,48 @@ const AdaptiveModuleContent: React.FC = () => {
   
   return (
     <div className="p-6">
-      {loading ? (
-        <LoadingState />
-      ) : (
-        <>
-          {featuredModule && (
-            <FeaturedModuleSection 
-              featuredModule={featuredModule} 
-              onClick={handleModuleClick} 
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <LoadingState />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {featuredModule && (
+              <FeaturedModuleSection 
+                featuredModule={featuredModule} 
+                onClick={handleModuleClick} 
+              />
+            )}
+            
+            <CategoryButtons
+              selectedCategory={selectedCategory}
+              categories={categories}
+              onCategorySelect={setSelectedCategory}
             />
-          )}
-          
-          <CategoryButtons
-            selectedCategory={selectedCategory}
-            categories={categories}
-            onCategorySelect={setSelectedCategory}
-          />
-          
-          <ModulesList 
-            modules={modules}
-            onModuleClick={handleModuleClick}
-            onResetCategory={handleResetCategory}
-          />
-        </>
-      )}
+            
+            <ModulesList 
+              modules={modules}
+              onModuleClick={handleModuleClick}
+              onResetCategory={handleResetCategory}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-export default AdaptiveModuleContent;
+export default React.memo(AdaptiveModuleContent);

@@ -1,17 +1,38 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, Suspense } from 'react';
 import MainLayout from "@/components/layout/MainLayout";
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import TrainingModuleHeader from '@/components/training/TrainingModuleHeader';
 import AdaptiveModuleContent from '@/components/training/AdaptiveModuleContent';
 import TrainingProgress from '@/components/training/TrainingProgress';
 import { useSubscription } from '@/hooks/useSubscription';
 import PremiumUpsell from '@/components/premium/PremiumUpsell';
+import { Skeleton } from "@/components/ui/skeleton";
+
+const LoadingFallback = () => (
+  <div className="space-y-4 p-6">
+    <Skeleton className="h-12 w-3/4" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <Skeleton key={i} className="h-48 w-full rounded-lg" />
+      ))}
+    </div>
+  </div>
+);
 
 const TrainingModulePage: React.FC = () => {
   const { isPremium } = useSubscription();
   const [activeTab, setActiveTab] = useState<'modules' | 'progress' | 'certificates'>('modules');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    // Simulate page content loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   const handleTabChange = (tab: 'modules' | 'progress' | 'certificates') => {
     setActiveTab(tab);
@@ -39,13 +60,35 @@ const TrainingModulePage: React.FC = () => {
           )}
           
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
             className="bg-gray-900 rounded-xl border border-gray-800 shadow-xl overflow-hidden"
           >
-            {activeTab === 'modules' && <AdaptiveModuleContent />}
-            {activeTab === 'progress' && <TrainingProgress />}
+            <AnimatePresence mode="wait" initial={false}>
+              {isLoading ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <LoadingFallback />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {activeTab === 'modules' && <AdaptiveModuleContent />}
+                  {activeTab === 'progress' && <TrainingProgress />}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
       </div>
