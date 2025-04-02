@@ -82,7 +82,9 @@ export const categories: Category[] = [
     color: "bg-blue-500",
     label: "Histoire",
     icon: "BookOpen",
-    questions: histoireQuestions
+    questions: histoireQuestions,
+    badge: "Fondamental",
+    description: "Histoire et développement du Cameroun à travers les époques"
   },
   {
     id: "politique",
@@ -90,7 +92,9 @@ export const categories: Category[] = [
     color: "bg-red-500",
     label: "Politique",
     icon: "Award",
-    questions: politiqueQuestions
+    questions: politiqueQuestions,
+    badge: "Essentiel",
+    description: "Concepts politiques et applications au contexte camerounais"
   },
   {
     id: "geographie",
@@ -98,7 +102,9 @@ export const categories: Category[] = [
     color: "bg-green-500",
     label: "Géographie",
     icon: "Map",
-    questions: geographieQuestions
+    questions: geographieQuestions,
+    badge: "Découverte",
+    description: "Régions, ressources et caractéristiques territoriales du Cameroun"
   },
   {
     id: "culture",
@@ -106,7 +112,9 @@ export const categories: Category[] = [
     color: "bg-amber-500",
     label: "Culture",
     icon: "Music",
-    questions: cultureQuestions
+    questions: cultureQuestions,
+    badge: "Culturel",
+    description: "Arts, traditions et expressions culturelles du Cameroun"
   },
   {
     id: "economie",
@@ -114,7 +122,9 @@ export const categories: Category[] = [
     color: "bg-emerald-500",
     label: "Économie",
     icon: "TrendingUp",
-    questions: economieQuestions
+    questions: economieQuestions,
+    badge: "Avancé",
+    description: "Structure économique et développement du Cameroun"
   },
   {
     id: "strategie",
@@ -122,7 +132,9 @@ export const categories: Category[] = [
     color: "bg-indigo-500",
     label: "Stratégie",
     icon: "Target",
-    questions: strategieQuestions
+    questions: strategieQuestions,
+    badge: "Expert",
+    description: "Méthodes et stratégies pour l'action politique efficace"
   },
   {
     id: "test",
@@ -130,6 +142,8 @@ export const categories: Category[] = [
     color: "bg-purple-500",
     label: "Examen",
     icon: "FileText",
-    questions: testQuestions
+    questions: testQuestions,
+    badge: "Certification",
+    description: "Évaluation officielle des connaissances sur le MRC"
   }
 ];
