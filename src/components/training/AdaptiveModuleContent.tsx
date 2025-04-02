@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import ActiveModuleView from '@/components/training/ActiveModuleView';
 import { Module } from '@/components/training/types';
@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const AdaptiveModuleContent: React.FC = () => {
   const { toast } = useToast();
   const [activeModule, setActiveModule] = useState<Module | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   const { 
     loading, 
@@ -23,7 +24,19 @@ const AdaptiveModuleContent: React.FC = () => {
     setSelectedCategory 
   } = useModuleData();
   
+  // Prevent multiple rapid clicks
+  useEffect(() => {
+    if (isTransitioning) {
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isTransitioning]);
+  
   const handleModuleClick = useCallback((module: Module) => {
+    if (isTransitioning) return;
+    
     if (module.locked) {
       toast({
         title: "Module Premium",
@@ -33,12 +46,24 @@ const AdaptiveModuleContent: React.FC = () => {
       return;
     }
     
-    setActiveModule(module);
-  }, [toast]);
+    setIsTransitioning(true);
+    // Slight delay to allow for animation
+    setTimeout(() => {
+      setActiveModule(module);
+      setIsTransitioning(false);
+    }, 200);
+  }, [toast, isTransitioning]);
   
   const handleBackToModules = useCallback(() => {
-    setActiveModule(null);
-  }, []);
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+    // Slight delay to allow for animation
+    setTimeout(() => {
+      setActiveModule(null);
+      setIsTransitioning(false);
+    }, 200);
+  }, [isTransitioning]);
 
   const handleResetCategory = useCallback(() => {
     setSelectedCategory('all');
@@ -59,6 +84,7 @@ const AdaptiveModuleContent: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
+            className="no-flicker"
           >
             <LoadingState />
           </motion.div>
@@ -69,25 +95,45 @@ const AdaptiveModuleContent: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
+            className="no-flicker"
           >
             {featuredModule && (
-              <FeaturedModuleSection 
-                featuredModule={featuredModule} 
-                onClick={handleModuleClick} 
-              />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="mb-8"
+              >
+                <FeaturedModuleSection 
+                  featuredModule={featuredModule} 
+                  onClick={handleModuleClick} 
+                />
+              </motion.div>
             )}
             
-            <CategoryButtons
-              selectedCategory={selectedCategory}
-              categories={categories}
-              onCategorySelect={setSelectedCategory}
-            />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+            >
+              <CategoryButtons
+                selectedCategory={selectedCategory}
+                categories={categories}
+                onCategorySelect={setSelectedCategory}
+              />
+            </motion.div>
             
-            <ModulesList 
-              modules={modules}
-              onModuleClick={handleModuleClick}
-              onResetCategory={handleResetCategory}
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+            >
+              <ModulesList 
+                modules={modules}
+                onModuleClick={handleModuleClick}
+                onResetCategory={handleResetCategory}
+              />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

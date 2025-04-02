@@ -8,6 +8,7 @@ import TrainingProgress from '@/components/training/TrainingProgress';
 import { useSubscription } from '@/hooks/useSubscription';
 import PremiumUpsell from '@/components/premium/PremiumUpsell';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Certificates } from "lucide-react";
 
 const LoadingFallback = () => (
   <div className="space-y-4 p-6">
@@ -16,6 +17,21 @@ const LoadingFallback = () => (
       {[1, 2, 3, 4, 5, 6].map((i) => (
         <Skeleton key={i} className="h-48 w-full rounded-lg" />
       ))}
+    </div>
+  </div>
+);
+
+const CertificatesTab = () => (
+  <div className="p-6 text-center">
+    <div className="py-12 flex flex-col items-center justify-center">
+      <div className="bg-gray-800/40 p-4 rounded-full mb-4">
+        <Certificates className="h-12 w-12 text-yellow-500" />
+      </div>
+      <h3 className="text-xl font-semibold mb-2">Certificats disponibles après formation</h3>
+      <p className="text-gray-400 max-w-md mx-auto">
+        Complétez les modules de formation pour obtenir des certificats officiels du MRC. 
+        Votre progression sera enregistrée et les certificats seront débloqués automatiquement.
+      </p>
     </div>
   </div>
 );
@@ -35,7 +51,13 @@ const TrainingModulePage: React.FC = () => {
   }, []);
   
   const handleTabChange = (tab: 'modules' | 'progress' | 'certificates') => {
+    setIsLoading(true);
     setActiveTab(tab);
+    
+    // Add a small delay to simulate content loading and prevent flickering
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 200);
   };
   
   return (
@@ -63,7 +85,7 @@ const TrainingModulePage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-gray-900 rounded-xl border border-gray-800 shadow-xl overflow-hidden"
+            className="bg-gray-900 rounded-xl border border-gray-800 shadow-xl overflow-hidden no-flicker"
           >
             <AnimatePresence mode="wait" initial={false}>
               {isLoading ? (
@@ -73,6 +95,7 @@ const TrainingModulePage: React.FC = () => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
+                  className="no-flicker"
                 >
                   <LoadingFallback />
                 </motion.div>
@@ -83,9 +106,11 @@ const TrainingModulePage: React.FC = () => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
+                  className="no-flicker"
                 >
                   {activeTab === 'modules' && <AdaptiveModuleContent />}
                   {activeTab === 'progress' && <TrainingProgress />}
+                  {activeTab === 'certificates' && <CertificatesTab />}
                 </motion.div>
               )}
             </AnimatePresence>

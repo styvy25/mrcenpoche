@@ -13,7 +13,6 @@ import LoadingState from './module-view/LoadingState';
 import EmptyState from './module-view/EmptyState';
 import VideoTabContent from './module-view/VideoTabContent';
 import CertificateTabContent from './module-view/CertificateTabContent';
-import { TabsContent } from '@/components/ui/tabs';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ActiveModuleViewProps {
@@ -28,6 +27,7 @@ const ActiveModuleView: React.FC<ActiveModuleViewProps> = ({ module, onBack }) =
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState<any>(null);
   const [certificates, setCertificates] = useState<any[]>([]);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   useEffect(() => {
     let isMounted = true;
@@ -45,6 +45,11 @@ const ActiveModuleView: React.FC<ActiveModuleViewProps> = ({ module, onBack }) =
             const certificateData = await ModuleServices.getModuleCertificates(module.id);
             setCertificates(certificateData);
           }
+          
+          // Small delay to ensure smooth transition
+          setTimeout(() => {
+            if (isMounted) setLoading(false);
+          }, 300);
         }
       } catch (error) {
         console.error("Error loading module content:", error);
@@ -54,9 +59,6 @@ const ActiveModuleView: React.FC<ActiveModuleViewProps> = ({ module, onBack }) =
             description: "Impossible de charger le contenu du module.",
             variant: "destructive"
           });
-        }
-      } finally {
-        if (isMounted) {
           setLoading(false);
         }
       }
@@ -68,6 +70,22 @@ const ActiveModuleView: React.FC<ActiveModuleViewProps> = ({ module, onBack }) =
       isMounted = false;
     };
   }, [module.id, module.progress, toast]);
+  
+  const handleTabChange = (tab: string) => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+    setLoading(true);
+    
+    // Small delay to prevent flickering
+    setTimeout(() => {
+      setActiveTab(tab);
+      setTimeout(() => {
+        setLoading(false);
+        setIsTransitioning(false);
+      }, 200);
+    }, 100);
+  };
   
   const handleDownloadPDF = useCallback(async () => {
     if (!isPremium) {
@@ -105,21 +123,17 @@ const ActiveModuleView: React.FC<ActiveModuleViewProps> = ({ module, onBack }) =
   }, [isPremium, module.id, toast]);
 
   const renderTabContent = () => {
+    if (loading) {
+      return <LoadingState />;
+    }
+    
     switch(activeTab) {
       case 'content':
-        return loading ? (
-          <LoadingState />
-        ) : (
-          <ModuleContentView content={content?.content} />
-        );
+        return <ModuleContentView content={content?.content} />;
       case 'video':
-        return (
-          <VideoTabContent loading={loading} videos={content?.videos} />
-        );
+        return <VideoTabContent loading={false} videos={content?.videos} />;
       case 'quiz':
-        return loading ? (
-          <LoadingState />
-        ) : content?.quiz ? (
+        return content?.quiz ? (
           <ModuleQuizView quiz={content.quiz} moduleId={module.id} />
         ) : (
           <EmptyState 
@@ -129,9 +143,7 @@ const ActiveModuleView: React.FC<ActiveModuleViewProps> = ({ module, onBack }) =
           />
         );
       case 'certificate':
-        return (
-          <CertificateTabContent certificates={certificates} />
-        );
+        return <CertificateTabContent certificates={certificates} />;
       default:
         return null;
     }
@@ -147,17 +159,17 @@ const ActiveModuleView: React.FC<ActiveModuleViewProps> = ({ module, onBack }) =
       
       <ModuleTabs 
         activeTab={activeTab} 
-        onTabChange={setActiveTab} 
+        onTabChange={handleTabChange} 
         showCertificateTab={module.progress === 100}
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            key={activeTab}
+            key={activeTab + (loading ? "-loading" : "-content")}
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.2 }}
-            className="pt-2"
+            className="pt-2 no-flicker"
           >
             {renderTabContent()}
           </motion.div>

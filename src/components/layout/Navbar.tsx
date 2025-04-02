@@ -49,7 +49,7 @@ const Navbar = ({
   }
   
   const handleNavChange = (index: number | null) => {
-    if (index !== null) {
+    if (index !== null && index < navigationItems.length) {
       navigate(navigationItems[index].path);
     }
   };
@@ -59,7 +59,7 @@ const Navbar = ({
       <div className="container h-full mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <NavbarLogo />
-          <MobileNavButton isOpen={isOpen} onClick={toggleMenu} />
+          <MobileNavButton isOpen={isOpen} onToggle={toggleMenu} />
         </div>
         
         <div className="hidden md:flex items-center">
@@ -67,11 +67,11 @@ const Navbar = ({
         </div>
         
         <div className="flex items-center">
-          <DesktopNavActions isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} />
+          <DesktopNavActions isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
           {navEndElement}
         </div>
         
-        <MobileNavMenu isOpen={isOpen} onClose={closeMenu} />
+        <MobileNavMenu isOpen={isOpen} onCloseMenu={closeMenu} />
       </div>
     </header>
   );
