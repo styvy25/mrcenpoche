@@ -1,23 +1,52 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from "@/components/layout/MainLayout";
 import { useToast } from "@/hooks/use-toast";
 import { usePoints } from "@/hooks/usePoints";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Award, Calendar, Video } from "lucide-react";
+import { ArrowLeft, Award, Calendar, Video, Loader2 } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MeetingCard from "@/components/modules/reunions/MeetingCard";
 import CreateMeetingCard from "@/components/modules/reunions/CreateMeetingCard";
-import { UPCOMING_MEETINGS, PAST_MEETINGS } from "@/components/modules/reunions/meetingsData";
+import { VirtualMeeting, getUpcomingMeetings, getPastMeetings } from "@/services/meetings/virtualMeetingsService";
 
 const VirtualMeetingsPage: React.FC = () => {
   const { toast } = useToast();
   const { addPoints } = usePoints();
   const [activeTab, setActiveTab] = useState("upcoming");
+  const [upcomingMeetings, setUpcomingMeetings] = useState<VirtualMeeting[]>([]);
+  const [pastMeetings, setPastMeetings] = useState<VirtualMeeting[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  const handleJoinMeeting = (meetingId: number) => {
+  useEffect(() => {
+    const loadMeetings = async () => {
+      setLoading(true);
+      try {
+        if (activeTab === 'upcoming') {
+          const data = await getUpcomingMeetings();
+          setUpcomingMeetings(data);
+        } else {
+          const data = await getPastMeetings();
+          setPastMeetings(data);
+        }
+      } catch (error) {
+        console.error(`Error loading ${activeTab} meetings:`, error);
+        toast({
+          title: "Erreur de chargement",
+          description: `Impossible de charger les réunions ${activeTab === 'upcoming' ? 'à venir' : 'passées'}.`,
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadMeetings();
+  }, [activeTab, toast]);
+  
+  const handleJoinMeeting = (meetingId: string) => {
     toast({
       title: "Connexion à la réunion",
       description: "Vous allez être redirigé vers la plateforme de visioconférence",
@@ -25,7 +54,7 @@ const VirtualMeetingsPage: React.FC = () => {
     // In a real app, this would redirect to the actual meeting
   };
   
-  const handleWatchRecording = (meetingId: number) => {
+  const handleWatchRecording = (meetingId: string) => {
     toast({
       title: "Lecture de l'enregistrement",
       description: "Vous allez visionner l'enregistrement de la réunion",
@@ -41,6 +70,64 @@ const VirtualMeetingsPage: React.FC = () => {
       title: "Création de réunion",
       description: "La fonctionnalité sera disponible prochainement",
     });
+  };
+  
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-12 w-12 animate-spin text-mrc-blue" />
+          <span className="ml-3 text-gray-400">Chargement des réunions...</span>
+        </div>
+      );
+    }
+    
+    if (activeTab === 'upcoming') {
+      if (upcomingMeetings.length === 0) {
+        return (
+          <div className="text-center py-12">
+            <p className="text-gray-400">Aucune réunion à venir pour le moment.</p>
+            <Button variant="outline" className="mt-4" onClick={handleCreateMeeting}>
+              Créer une réunion
+            </Button>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {upcomingMeetings.map((meeting) => (
+            <MeetingCard 
+              key={meeting.id} 
+              meeting={meeting} 
+              onJoinMeeting={handleJoinMeeting} 
+            />
+          ))}
+          
+          <CreateMeetingCard onCreateMeeting={handleCreateMeeting} />
+        </div>
+      );
+    } else {
+      if (pastMeetings.length === 0) {
+        return (
+          <div className="text-center py-12">
+            <p className="text-gray-400">Aucun enregistrement de réunion disponible.</p>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {pastMeetings.map((meeting) => (
+            <MeetingCard 
+              key={meeting.id} 
+              meeting={meeting}
+              onWatchRecording={handleWatchRecording} 
+            />
+          ))}
+        </div>
+      );
+    }
   };
   
   return (
@@ -63,7 +150,7 @@ const VirtualMeetingsPage: React.FC = () => {
               <Calendar className="mr-2 h-4 w-4" />
               Mon calendrier
             </Button>
-            <Link to="/modules/training">
+            <Link to="/training">
               <Button variant="default" size="sm" className="bg-mrc-blue">
                 <Video className="mr-2 h-4 w-4" />
                 Formation immersive
@@ -83,29 +170,11 @@ const VirtualMeetingsPage: React.FC = () => {
           </TabsList>
           
           <TabsContent value="upcoming" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {UPCOMING_MEETINGS.map((meeting) => (
-                <MeetingCard 
-                  key={meeting.id} 
-                  meeting={meeting} 
-                  onJoinMeeting={handleJoinMeeting} 
-                />
-              ))}
-              
-              <CreateMeetingCard onCreateMeeting={handleCreateMeeting} />
-            </div>
+            {renderContent()}
           </TabsContent>
           
           <TabsContent value="past" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {PAST_MEETINGS.map((meeting) => (
-                <MeetingCard 
-                  key={meeting.id} 
-                  meeting={meeting}
-                  onWatchRecording={handleWatchRecording} 
-                />
-              ))}
-            </div>
+            {renderContent()}
           </TabsContent>
         </Tabs>
         

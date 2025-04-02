@@ -17,6 +17,8 @@ import QuizPage from './pages/QuizPage';
 import Index from './pages/Index';
 
 const LazyTrainingModulePage = lazy(() => import("./pages/TrainingModulePage"));
+const LazyImmersiveTrainingPage = lazy(() => import("./pages/ImmersiveTrainingPage"));
+const LazyVirtualMeetingsPage = lazy(() => import("./pages/VirtualMeetingsPage"));
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -106,13 +108,25 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        <Route
-          path="/modules/training"
+        <Route 
+          path="/modules/training" 
           element={
             <ProtectedRoute>
-              <Navigate to="/training" replace />
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-12 w-12 animate-spin" /></div>}>
+                <LazyImmersiveTrainingPage />
+              </Suspense>
             </ProtectedRoute>
-          }
+          } 
+        />
+        <Route 
+          path="/modules/reunions" 
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-12 w-12 animate-spin" /></div>}>
+                <LazyVirtualMeetingsPage />
+              </Suspense>
+            </ProtectedRoute>
+          } 
         />
         <Route
           path="/quiz"

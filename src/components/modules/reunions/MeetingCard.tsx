@@ -4,25 +4,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, Users, Video } from "lucide-react";
-
-export interface Meeting {
-  id: number;
-  title: string;
-  date: string;
-  time: string;
-  duration: string;
-  location: string;
-  organizer: string;
-  status: 'upcoming' | 'completed';
-  attendees: number;
-  description?: string;
-  recording?: string;
-}
+import { VirtualMeeting } from '@/services/meetings/virtualMeetingsService';
 
 interface MeetingCardProps {
-  meeting: Meeting;
-  onJoinMeeting?: (id: number) => void;
-  onWatchRecording?: (id: number) => void;
+  meeting: VirtualMeeting;
+  onJoinMeeting?: (id: string) => void;
+  onWatchRecording?: (id: string) => void;
 }
 
 const MeetingCard: React.FC<MeetingCardProps> = ({ 
@@ -31,6 +18,11 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
   onWatchRecording 
 }) => {
   const isUpcoming = meeting.status === 'upcoming';
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
   
   return (
     <Card className="bg-white dark:bg-gray-800 shadow-md">
@@ -55,7 +47,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
         <div className="space-y-3">
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
             <Calendar className="mr-2 h-4 w-4" />
-            <span>{new Date(meeting.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} • {meeting.time}</span>
+            <span>{formatDate(meeting.date)} • {meeting.time}</span>
           </div>
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
             <Clock className="mr-2 h-4 w-4" />
@@ -80,7 +72,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({
           >
             Rejoindre la réunion
           </Button>
-        ) : onWatchRecording ? (
+        ) : onWatchRecording && meeting.recording ? (
           <Button 
             variant="outline" 
             className="w-full"

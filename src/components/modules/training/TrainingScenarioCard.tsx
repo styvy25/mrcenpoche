@@ -5,20 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
 import { motion } from "framer-motion";
-
-export interface TrainingScenario {
-  id: number;
-  title: string;
-  level: number;
-  description: string;
-  image: string;
-  completed: boolean;
-  locked?: boolean;
-}
+import { TrainingScenario } from '@/services/training/trainingScenarioService';
 
 interface TrainingScenarioCardProps {
   scenario: TrainingScenario;
-  onStartScenario: (id: number) => void;
+  onStartScenario: (id: string) => void;
 }
 
 const TrainingScenarioCard: React.FC<TrainingScenarioCardProps> = ({ 
