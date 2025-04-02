@@ -80,7 +80,7 @@ const ChatInput = ({
           <Send size={18} className="mr-2" />
           <span>Envoyer</span>
         </Button>
-        <Button type="button" variant="outline" onClick={onGeneratePDF} title="Générer un PDF" className="bg-gray-800/70 border-white/20 hover:bg-gray-700/70 h-12 w-12 p-0 flex items-center justify-center rounded-xl transition-all duration-300 hover:scale-105">
+        <Button type="button" variant="outline" onClick={onGeneratePDF} title="Générer un PDF" className="bg-gray-800/70 border-white/20 hover:bg-gray-700/70 h-12 w-12 p-0 flex items-center justify-center rounded-xl transition-all duration-300 hover:scale-105 text-gray-100">
           <Download size={18} />
         </Button>
       </form>
