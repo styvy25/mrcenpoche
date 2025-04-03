@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ApiKeys } from "@/hooks/api-keys/types";
+import { TrainingScenario } from "./training/trainingScenarioService";
 
 export const loadApiKeysFromSupabase = async (): Promise<ApiKeys | null> => {
   try {
@@ -41,7 +41,7 @@ export const saveApiKeysToSupabase = async (keys: ApiKeys): Promise<boolean> => 
       youtube_key: keys.youtube,
       perplexity_key: keys.perplexity,
       stripe_key: keys.stripe,
-      updated_at: new Date()
+      updated_at: new Date().toISOString()
     });
     
     if (error) {
@@ -122,5 +122,79 @@ export const getYouTubeApiKey = async (): Promise<string | null> => {
   } catch (error) {
     console.error("Error getting YouTube API key:", error);
     return null;
+  }
+};
+
+// New functions for training scenarios
+
+export const fetchScenariosFromSupabase = async (): Promise<TrainingScenario[]> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log("No authenticated user found");
+      return [];
+    }
+    
+    const { data, error } = await supabase
+      .from('training_scenarios')
+      .select('*')
+      .eq('user_id', user.id);
+      
+    if (error) {
+      console.error("Error fetching scenarios:", error);
+      return [];
+    }
+    
+    return data as TrainingScenario[] || [];
+  } catch (error) {
+    console.error("Error in fetchScenariosFromSupabase:", error);
+    return [];
+  }
+};
+
+export const updateScenarioProgressInSupabase = async (
+  scenarioId: string, 
+  completed: boolean
+): Promise<void> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log("No authenticated user found");
+      return;
+    }
+    
+    const { error } = await supabase
+      .from('training_scenarios')
+      .update({ completed })
+      .eq('id', scenarioId)
+      .eq('user_id', user.id);
+      
+    if (error) {
+      console.error("Error updating scenario progress:", error);
+    }
+  } catch (error) {
+    console.error("Error in updateScenarioProgressInSupabase:", error);
+  }
+};
+
+// Function to fetch virtual meetings
+export const fetchMeetingsFromSupabase = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('virtual_meetings')
+      .select('*')
+      .order('date', { ascending: true });
+      
+    if (error) {
+      console.error("Error fetching meetings:", error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error in fetchMeetingsFromSupabase:", error);
+    return [];
   }
 };

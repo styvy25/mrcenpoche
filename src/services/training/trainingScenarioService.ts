@@ -1,3 +1,4 @@
+
 import { fetchScenariosFromSupabase, updateScenarioProgressInSupabase } from "../supabaseService";
 
 export interface TrainingScenario {
@@ -8,6 +9,7 @@ export interface TrainingScenario {
   image: string;
   completed: boolean;
   locked: boolean;
+  user_id?: string;
 }
 
 // Static data for training scenarios as fallback
