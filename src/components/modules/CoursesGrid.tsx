@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CourseCard from "./CourseCard";
@@ -16,7 +15,7 @@ const modulesData: Module[] = [
     level: "Débutant",
     isPdfAvailable: true,
     isCompleted: true,
-    cover: "/lovable-uploads/2f1f5377-df73-46bc-b7d2-0c3cafeb5dbb.png",
+    coverImage: "/lovable-uploads/2f1f5377-df73-46bc-b7d2-0c3cafeb5dbb.png",
     author: "Équipe de formation du MRC",
     lessonCount: 4,
     overview: "Ce module vous présente l'histoire complète du MRC, depuis sa création jusqu'à aujourd'hui. Vous découvrirez les valeurs fondamentales qui sont au cœur de notre mouvement, les événements clés qui ont marqué notre parcours, et les principes qui continuent de guider nos actions. À travers des leçons interactives, des témoignages de membres fondateurs et des études de cas, vous comprendrez mieux la mission et la vision du MRC pour le Cameroun.",
@@ -26,7 +25,9 @@ const modulesData: Module[] = [
       { id: "103", title: "Les figures historiques", duration: "45min", completed: true, type: "text", contentType: "text", isCompleted: true },
       { id: "104", title: "Évolution et perspectives", duration: "50min", completed: true, type: "text", contentType: "text", isCompleted: true }
     ],
-    quizLink: "/quiz"
+    quizLink: "/quiz",
+    category: "histoire",
+    locked: false
   },
   {
     id: "mod2",
@@ -37,7 +38,7 @@ const modulesData: Module[] = [
     level: "Intermédiaire",
     isPdfAvailable: true,
     isCompleted: false,
-    cover: "/lovable-uploads/13009c82-2883-46e9-8cda-afd9d8e16ade.jpg",
+    coverImage: "/lovable-uploads/13009c82-2883-46e9-8cda-afd9d8e16ade.jpg",
     author: "Département de mobilisation",
     lessonCount: 4,
     overview: "Ce module vous équipe des compétences nécessaires pour mobiliser efficacement les citoyens autour des idées et valeurs du MRC. Vous apprendrez à identifier les préoccupations des électeurs, à communiquer clairement les solutions proposées par notre parti, et à organiser des événements de sensibilisation. Des stratégies de porte-à-porte aux campagnes sur les réseaux sociaux, ce module couvre toutes les approches modernes de mobilisation politique.",
@@ -47,7 +48,9 @@ const modulesData: Module[] = [
       { id: "203", title: "Organisation d'événements", duration: "50min", completed: false, type: "text", contentType: "text", isCompleted: false },
       { id: "204", title: "Mobilisation numérique", duration: "65min", completed: false, type: "text", contentType: "text", isCompleted: false }
     ],
-    quizLink: "/quiz"
+    quizLink: "/quiz",
+    category: "mobilisation",
+    locked: false
   },
   {
     id: "mod3",
@@ -58,7 +61,7 @@ const modulesData: Module[] = [
     level: "Avancé",
     isPdfAvailable: false,
     isCompleted: false,
-    cover: "/lovable-uploads/5487bb9e-3a94-44a0-833d-8875f1665691.png",
+    coverImage: "/lovable-uploads/5487bb9e-3a94-44a0-833d-8875f1665691.png",
     author: "Équipe de communication",
     lessonCount: 4,
     overview: "La communication est l'une des compétences les plus cruciales en politique. Ce module vous enseigne les techniques avancées de communication politique utilisées par les professionnels. Vous apprendrez à formuler des messages percutants, à adapter votre discours à différents publics, et à gérer efficacement les situations de crise. Des exercices pratiques vous permettront de développer votre aisance à l'oral et d'affiner votre argumentaire pour défendre les positions du MRC.",
@@ -67,7 +70,9 @@ const modulesData: Module[] = [
       { id: "302", title: "Techniques de persuasion", duration: "60min", completed: false, type: "text", contentType: "text", isCompleted: false },
       { id: "303", title: "Gestion des médias", duration: "70min", completed: false, type: "text", contentType: "text", isCompleted: false },
       { id: "304", title: "Communication de crise", duration: "80min", completed: false, type: "text", contentType: "text", isCompleted: false }
-    ]
+    ],
+    category: "communication",
+    locked: false
   },
   {
     id: "mod4",
@@ -78,7 +83,7 @@ const modulesData: Module[] = [
     level: "Intermédiaire",
     isPdfAvailable: false,
     isCompleted: false,
-    cover: "/lovable-uploads/0a7e7325-0ab5-4f67-b830-1e1b22984ac8.png",
+    coverImage: "/lovable-uploads/0a7e7325-0ab5-4f67-b830-1e1b22984ac8.png",
     author: "Département d'analyse politique",
     lessonCount: 4,
     overview: "Ce module offre une analyse détaillée des défis actuels auxquels le Cameroun est confronté et présente les solutions proposées par le MRC. Vous étudierez les enjeux économiques, sociaux, environnementaux et de gouvernance qui façonnent notre pays. Chaque leçon examine un aspect spécifique de la situation nationale et explique comment les politiques du MRC visent à améliorer la vie des Camerounais et à construire un avenir plus prospère pour tous.",
@@ -87,7 +92,9 @@ const modulesData: Module[] = [
       { id: "402", title: "Défis sociaux et solutions", duration: "80min", completed: false, type: "text", contentType: "text", isCompleted: false },
       { id: "403", title: "Gouvernance et institutions", duration: "85min", completed: false, type: "text", contentType: "text", isCompleted: false },
       { id: "404", title: "Politique étrangère et coopération", duration: "90min", completed: false, type: "text", contentType: "text", isCompleted: false }
-    ]
+    ],
+    category: "politique",
+    locked: false
   },
   {
     id: "mod5",
@@ -98,7 +105,7 @@ const modulesData: Module[] = [
     level: "Avancé",
     isPdfAvailable: false,
     isCompleted: false,
-    cover: "/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png",
+    coverImage: "/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png",
     author: "Équipe de stratégie électorale",
     lessonCount: 4,
     overview: "Organiser une campagne politique efficace requiert une planification méticuleuse et une exécution précise. Ce module avancé vous guide à travers toutes les étapes d'une campagne réussie, de la constitution d'une équipe à la gestion des ressources, en passant par l'élaboration de stratégies de terrain. Vous apprendrez à définir des objectifs clairs, à cibler les électeurs clés, et à mettre en place un calendrier d'actions pour maximiser votre impact électoral.",
@@ -107,7 +114,9 @@ const modulesData: Module[] = [
       { id: "502", title: "Constitution et gestion d'équipe", duration: "80min", completed: false, type: "text", contentType: "text", isCompleted: false },
       { id: "503", title: "Gestion des ressources", duration: "95min", completed: false, type: "text", contentType: "text", isCompleted: false },
       { id: "504", title: "Jour J et suivi post-électoral", duration: "100min", completed: false, type: "text", contentType: "text", isCompleted: false }
-    ]
+    ],
+    category: "campagne",
+    locked: false
   },
 ];
 

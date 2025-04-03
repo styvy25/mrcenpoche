@@ -6,6 +6,7 @@ export interface Module {
   icon?: string;
   image?: string;
   coverImage?: string;
+  cover?: string; // Added for compatibility with CoursesGrid
   duration: string;
   level?: string;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
@@ -19,12 +20,19 @@ export interface Module {
   completed?: boolean;
   requiredLevel?: number;
   isFeatured?: boolean;
+  featured?: boolean; // Added for backward compatibility
   isPdfAvailable?: boolean;
   isCompleted?: boolean;
   lessons?: any[];
-  questions?: ModuleQuestion[]; // Add this for quiz functionality
+  questions?: ModuleQuestion[]; 
   pdfUrl?: string;
   quizLink?: string;
+  overview?: string; // For ModuleOverview
+  author?: string;
+  lessonCount?: number;
+  // Added for adaptive training
+  priority?: 'high' | 'medium' | 'low';
+  reason?: string;
 }
 
 export interface ModuleQuestion {
@@ -113,4 +121,16 @@ export interface TrainingProgressData {
     progress: number;
   }[];
   badges: Badge[];
+}
+
+export interface Lesson {
+  id: string | number;
+  title: string;
+  duration: string;
+  isCompleted: boolean;
+  type?: string;
+  contentType?: string;
+  videoUrl?: string;
+  content?: string;
+  isLocked?: boolean;
 }

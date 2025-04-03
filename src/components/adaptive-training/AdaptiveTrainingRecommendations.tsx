@@ -9,8 +9,8 @@ import { motion } from 'framer-motion';
 import { TrainingRecommendation } from '@/services/modules/adaptiveTrainingService';
 import { useAuth } from '@/components/auth/AuthContext';
 import { getPersonalizedTrainingPath } from '@/services/modules/adaptiveTrainingService';
-import { Module } from '@/components/training/types';
-import { QuizSubmission } from '@/components/training/types';
+import { Module } from '@/components/modules/types';
+import { QuizSubmission } from '@/components/modules/types';
 
 interface AdaptiveTrainingRecommendationsProps {
   quizResults?: QuizSubmission[];
@@ -50,7 +50,7 @@ const AdaptiveTrainingRecommendations: React.FC<AdaptiveTrainingRecommendationsP
               level: "débutant",
               progress: 0,
               locked: false,
-              priority: "high",
+              priority: "high" as const,
               reason: "Vos scores dans le domaine histoire sont insuffisants et nécessitent une attention particulière"
             },
             {
@@ -62,7 +62,7 @@ const AdaptiveTrainingRecommendations: React.FC<AdaptiveTrainingRecommendationsP
               level: "intermédiaire",
               progress: 0,
               locked: false,
-              priority: "medium",
+              priority: "medium" as const,
               reason: "Des améliorations sont nécessaires dans le domaine communication"
             },
             {
@@ -74,7 +74,7 @@ const AdaptiveTrainingRecommendations: React.FC<AdaptiveTrainingRecommendationsP
               level: "avancé",
               progress: 0,
               locked: false,
-              priority: "low",
+              priority: "low" as const,
               reason: "Vous avez de bonnes bases dans le domaine mobilisation, mais pouvez encore vous perfectionner"
             }
           ] as Module[];
@@ -106,7 +106,7 @@ const AdaptiveTrainingRecommendations: React.FC<AdaptiveTrainingRecommendationsP
     navigate(`/modules/training/${moduleId}`);
   };
   
-  const getPriorityIcon = (priority: string) => {
+  const getPriorityIcon = (priority?: string) => {
     switch (priority) {
       case 'high':
         return <AlertTriangle className="h-5 w-5 text-red-500" />;

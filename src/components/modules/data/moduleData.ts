@@ -1,4 +1,3 @@
-
 import { Module } from "../types";
 
 export const modules: Module[] = [
@@ -21,7 +20,7 @@ export const modules: Module[] = [
     rating: 4.8,
     completed: false,
     requiredLevel: 1,
-    featured: true,
+    isFeatured: true,
     isPdfAvailable: true,
     isCompleted: false,
     lessons: [
@@ -80,7 +79,6 @@ export const modules: Module[] = [
     rating: 4.5,
     completed: false,
     requiredLevel: 2,
-    featured: false,
     isPdfAvailable: true,
     lessons: [
       {
@@ -303,7 +301,7 @@ export const categories = [
   }
 ];
 
-export const featuredModule = modules.find(m => m.featured);
+export const featuredModule = modules.find(m => m.isFeatured);
 
 export const getModuleById = (id: string): Module | undefined => {
   return modules.find(m => m.id === id);

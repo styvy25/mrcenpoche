@@ -13,7 +13,7 @@ export const BADGES: BadgeProps[] = [
     id: "perfect-score",
     name: "Score Parfait",
     description: "Obtenir un score de 100%",
-    imageUrl: "/badges/perfect-score.png",
+    iconType: "trophy",
     threshold: 100,
     category: "achievement",
     icon: { icon: Trophy, className: "h-10 w-10 text-yellow-500" },
@@ -23,7 +23,7 @@ export const BADGES: BadgeProps[] = [
     id: "expert",
     name: "Expert",
     description: "Obtenir un score d'au moins 90%",
-    imageUrl: "/badges/expert.png",
+    iconType: "medal",
     threshold: 90,
     category: "achievement",
     icon: { icon: Medal, className: "h-10 w-10 text-blue-500" },
@@ -33,7 +33,7 @@ export const BADGES: BadgeProps[] = [
     id: "advanced",
     name: "Avancé",
     description: "Obtenir un score d'au moins 75%",
-    imageUrl: "/badges/advanced.png",
+    iconType: "star",
     threshold: 75,
     category: "achievement",
     icon: { icon: Star, className: "h-10 w-10 text-green-500" },
@@ -43,7 +43,7 @@ export const BADGES: BadgeProps[] = [
     id: "intermediate",
     name: "Intermédiaire",
     description: "Obtenir un score d'au moins 60%",
-    imageUrl: "/badges/intermediate.png",
+    iconType: "award",
     threshold: 60,
     category: "achievement",
     icon: { icon: Award, className: "h-10 w-10 text-purple-500" },
@@ -53,7 +53,7 @@ export const BADGES: BadgeProps[] = [
     id: "beginner",
     name: "Débutant",
     description: "Compléter un quiz",
-    imageUrl: "/badges/beginner.png",
+    iconType: "book",
     threshold: 0,
     category: "achievement",
     icon: { icon: BookOpen, className: "h-10 w-10 text-indigo-500" },
@@ -63,11 +63,11 @@ export const BADGES: BadgeProps[] = [
     id: "quick-thinker",
     name: "Esprit Rapide",
     description: "Terminer un quiz en moins de 2 minutes",
-    imageUrl: "/badges/quick-thinker.png",
+    iconType: "zap",
     threshold: 120,
     category: "speed",
     icon: { icon: Zap, className: "h-10 w-10 text-amber-500" },
-    condition: (result: QuizResult) => result.timeSpent < 120
+    condition: (result: QuizResult) => (result.timeSpent ?? 0) < 120
   }
 ];
 
@@ -78,7 +78,9 @@ export const calculateEarnedBadges = (score: number, totalQuestions: number): Ba
     totalQuestions: totalQuestions,
     score: (score / totalQuestions) * 100,
     timeSpent: 0, // We don't have actual time data here
-    date: new Date()
+    date: new Date(),
+    category: '',
+    incorrectAnswers: totalQuestions - score
   };
 
   // Filter badges that meet the condition

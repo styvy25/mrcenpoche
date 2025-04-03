@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Category } from "./types";
 import QuestionScreen from "./QuestionScreen";
@@ -72,12 +71,13 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
 
   // Render results screen if quiz is completed
   if (quizResults) {
+    const selectedAnswersArray = Object.values(selectedAnswers);
     const correctAnswersCount = currentCategory.questions.filter(
       (_, index) => {
         const correctAnswerIndex = typeof currentCategory.questions[index].correctAnswer === 'string'
           ? parseInt(currentCategory.questions[index].correctAnswer)
           : currentCategory.questions[index].correctAnswer;
-        return selectedAnswers[index] === correctAnswerIndex;
+        return selectedAnswersArray[index] === correctAnswerIndex;
       }
     ).length;
 
@@ -87,7 +87,7 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ categories }) => {
           score={quizResults.score}
           totalQuestions={currentCategory.questions.length}
           categoryName={currentCategory.label || currentCategory.name || ""}
-          selectedAnswers={selectedAnswers}
+          selectedAnswers={selectedAnswersArray}
           questions={currentCategory.questions}
           onRestart={restartQuiz}
           earnedBadges={calculateEarnedBadges(quizResults.score, currentCategory.questions.length)}

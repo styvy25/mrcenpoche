@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -177,7 +176,7 @@ const QuizResult: React.FC<QuizResultProps> = ({
                       ) : (
                         <XCircle className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
                       )}
-                      <span className="truncate">{question.question}</span>
+                      <span className="truncate">{question.text || question.question}</span>
                     </div>
                   );
                 })}
