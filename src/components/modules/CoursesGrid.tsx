@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,8 +34,6 @@ import {
   Trash2,
   Search,
   Filter,
-  GripVertical,
-  GripHorizontal,
   ArrowUp,
   ArrowDown,
   ExternalLink,
@@ -60,61 +59,21 @@ import {
   ArrowRight,
   ChevronsLeft,
   ChevronsRight,
-  Grip,
   Maximize2,
   Minimize2,
   Pause,
   Play,
   SkipForward,
   SkipBack,
-  Volume1,
-  Volume2,
+  Volume,
   VolumeX,
-  Volume0,
   Mic,
   MicOff,
   Camera,
   CameraOff,
-  ScreenShare,
-  Stop,
-  Record,
-  List,
-  Grid,
-  Columns,
-  Rows,
   Layout,
-  LayoutList,
-  LayoutGrid,
-  LayoutColumns,
-  LayoutRows,
-  LayoutSections,
-  LayoutDashboard as LayoutDashboardIcon,
-  LayoutList as LayoutListIcon,
-  LayoutGrid as LayoutGridIcon,
-  LayoutColumns as LayoutColumnsIcon,
-  LayoutRows as LayoutRowsIcon,
-  LayoutSections as LayoutSectionsIcon,
-  LayoutDashboard as LayoutDashboardIcon2,
-  LayoutList as LayoutListIcon2,
-  LayoutGrid as LayoutGridIcon2,
-  LayoutColumns as LayoutColumnsIcon2,
-  LayoutRows as LayoutRowsIcon2,
-  LayoutSections as LayoutSectionsIcon2,
-  LayoutDashboard as LayoutDashboardIcon3,
-  LayoutList as LayoutListIcon3,
-  LayoutGrid as LayoutGridIcon3,
-  LayoutColumns as LayoutColumnsIcon3,
-  LayoutRows as LayoutRowsIcon3,
-  LayoutSections as LayoutSectionsIcon3,
-  LayoutDashboard as LayoutDashboardIcon4,
-  LayoutList as LayoutListIcon4,
-  LayoutGrid as LayoutGridIcon4,
-  LayoutColumns as LayoutColumnsIcon4,
-  LayoutRows as LayoutRowsIcon4,
-  LayoutSections as LayoutSectionsIcon4,
-  LayoutDashboard as LayoutDashboardIcon5,
-  LayoutList as LayoutListIcon5,
-  LayoutGrid as LayoutGridIcon5,
+  List,
+  Grid
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Module } from "./types";
@@ -182,7 +141,7 @@ const CoursesGrid: React.FC<CoursesGridProps> = ({ modules }) => {
                   {React.createElement(getIcon(module.category), {
                     className: "w-4 h-4 mr-2 text-gray-600",
                   })}
-                  <span className="text-sm text-gray-600">{module.categoryName}</span>
+                  <span className="text-sm text-gray-600">{module.category}</span>
                 </div>
                 {module.level && (
                   <Badge variant="outline" className="uppercase text-xs">

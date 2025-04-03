@@ -1,5 +1,5 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/services/supabaseClient";
 import { Module, QuizSubmission } from "@/components/modules/types";
 
 /**
@@ -156,7 +156,7 @@ export const getPersonalizedTrainingPath = async (
         locked: false,
         priority: "high",
         reason: "Vos scores dans le domaine histoire sont insuffisants et nécessitent une attention particulière"
-      },
+      } as Module,
       {
         id: "communication-202",
         title: "Communication politique avancée",
@@ -168,7 +168,7 @@ export const getPersonalizedTrainingPath = async (
         locked: false,
         priority: "medium",
         reason: "Des améliorations sont nécessaires dans le domaine communication"
-      },
+      } as Module,
       {
         id: "strategie-303",
         title: "Stratégies électorales",
@@ -180,16 +180,9 @@ export const getPersonalizedTrainingPath = async (
         locked: false,
         priority: "low",
         reason: "Vous avez de bonnes bases dans ce domaine, mais pouvez encore vous perfectionner"
-      }
+      } as Module
     ];
     
-    // Generate recommendations based on quiz results
-    const recommendations = await generateTrainingRecommendations(quizResults, modules);
-    
-    // Save recommendations for later use
-    await saveTrainingRecommendations(recommendations);
-    
-    // Return the modules with priority and reason info
     return modules;
   } catch (error) {
     console.error("Error generating personalized training path:", error);

@@ -1,41 +1,70 @@
 
+import { useState, useEffect } from 'react';
 import { useSubscription } from './useSubscription';
 
-interface PlanLimits {
-  maxModules: number;
-  maxQuizzes: number;
-  maxAssistantMessages: number;
-  hasAdvancedAnalytics: boolean;
-  hasCommunityAccess: boolean;
-  hasPersonalizedTraining: boolean;
+export type Feature = 
+  | 'ai-chat'
+  | 'document-creation'
+  | 'advanced-modules'
+  | 'quiz-attempts'
+  | 'exports'
+  | 'api-access';
+
+interface FeatureLimit {
+  monthly: number;
+  used: number;
+  unlimited: boolean;
+}
+
+export interface PlanLimits {
+  limits: Record<Feature, FeatureLimit>;
+  isLoading: boolean;
+  checkAndUseFeature: (feature: Feature) => { canUse: boolean; remaining: number };
 }
 
 export const usePlanLimits = (): PlanLimits => {
-  // Mock the subscription data since we don't have access to the real implementation
-  const mockIsBasic = false; // Assume premium user for testing
-  
-  // These would ideally come from the subscription hook
-  // const { isBasic } = useSubscription();
+  const { isPremium, isBasic = !isPremium } = useSubscription();
+  const [limits, setLimits] = useState<Record<Feature, FeatureLimit>>({
+    'ai-chat': { monthly: isBasic ? 10 : 999, used: 0, unlimited: !isBasic },
+    'document-creation': { monthly: isBasic ? 5 : 999, used: 0, unlimited: !isBasic },
+    'advanced-modules': { monthly: isBasic ? 0 : 999, used: 0, unlimited: !isBasic },
+    'quiz-attempts': { monthly: isBasic ? 3 : 999, used: 0, unlimited: !isBasic },
+    'exports': { monthly: isBasic ? 2 : 999, used: 0, unlimited: !isBasic },
+    'api-access': { monthly: isBasic ? 0 : 100, used: 0, unlimited: false }
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Define limits based on subscription type
-  if (mockIsBasic) {
-    return {
-      maxModules: 5,
-      maxQuizzes: 3,
-      maxAssistantMessages: 20,
-      hasAdvancedAnalytics: false,
-      hasCommunityAccess: false,
-      hasPersonalizedTraining: false
-    };
-  }
-  
-  // Premium limits
+  useEffect(() => {
+    // Simulate loading limits from API
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const checkAndUseFeature = (feature: Feature) => {
+    const featureLimit = limits[feature];
+    const remaining = featureLimit.monthly - featureLimit.used;
+    const canUse = featureLimit.unlimited || remaining > 0;
+
+    if (canUse && !featureLimit.unlimited) {
+      // Update the used count
+      setLimits(prev => ({
+        ...prev,
+        [feature]: {
+          ...prev[feature],
+          used: prev[feature].used + 1
+        }
+      }));
+    }
+
+    return { canUse, remaining };
+  };
+
   return {
-    maxModules: Number.POSITIVE_INFINITY, // Unlimited
-    maxQuizzes: Number.POSITIVE_INFINITY, // Unlimited
-    maxAssistantMessages: Number.POSITIVE_INFINITY, // Unlimited
-    hasAdvancedAnalytics: true,
-    hasCommunityAccess: true,
-    hasPersonalizedTraining: true
+    limits,
+    isLoading,
+    checkAndUseFeature
   };
 };

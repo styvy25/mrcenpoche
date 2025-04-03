@@ -1,27 +1,44 @@
+import React from "react";
+import { motion } from "framer-motion";
+import CoursesGrid from "./CoursesGrid";
+import { Module } from "./types";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import PageTransitionWrapper from "@/components/ui/page-transition-wrapper";
-import { 
-  BookOpen, Award, FileText, Lightbulb, 
-  Settings, Bell, Video, Users, GraduationCap 
-} from "lucide-react";
-
-// Component imports
-import ModuleProgress from "@/components/modules/ModuleProgress";
-import UpcomingEventsWidget from "@/components/challenge/UpcomingEventsWidget";
-import DailyChallenge from "@/components/challenge/DailyChallenge";
-import CoursesGrid from "@/components/modules/CoursesGrid";
-import ModulesWelcome from "./ModulesWelcome";
-import ModuleActionButtons from "./ModuleActionButtons";
-import QuizGrid from "./QuizGrid";
-import ModulesHelp from "./ModulesHelp";
-import ModuleCategoryTabs from "./ModuleCategoryTabs";
-import ModulesFeaturedCard from "./ModulesFeaturedCard";
+// Mock modules data
+const mockModules: Module[] = [
+  {
+    id: "1",
+    title: "Histoire du MRC",
+    description: "Découvrez l'histoire et les fondements du Mouvement pour la Renaissance du Cameroun",
+    category: "histoire",
+    level: "Débutant",
+    duration: "1h 30min",
+    progress: 75,
+    locked: false,
+    coverImage: "/images/history.jpg",
+  },
+  {
+    id: "2",
+    title: "Communication politique",
+    description: "Maîtrisez l'art de communiquer efficacement les idées politiques",
+    category: "communication",
+    level: "Intermédiaire",
+    duration: "2h 15min",
+    progress: 30,
+    locked: false,
+    coverImage: "/images/communication.jpg",
+  },
+  {
+    id: "3",
+    title: "Mobilisation citoyenne",
+    description: "Apprenez à mobiliser et engager les citoyens dans l'action politique",
+    category: "mobilisation",
+    level: "Avancé",
+    duration: "3h 00min",
+    progress: 0,
+    locked: true,
+    coverImage: "/images/mobilization.jpg",
+  }
+];
 
 interface ModulesHomeViewProps {
   onChallengeClick: () => void;
@@ -30,211 +47,145 @@ interface ModulesHomeViewProps {
   onChallengeComplete: () => void;
 }
 
-const ModulesHomeView = ({ 
-  onChallengeClick, 
-  onChatClick, 
+const ModulesHomeView: React.FC<ModulesHomeViewProps> = ({
+  onChallengeClick,
+  onChatClick,
   onStartQuiz,
-  onChallengeComplete 
-}: ModulesHomeViewProps) => {
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [isStatsVisible, setIsStatsVisible] = useState(false);
-  const { toast } = useToast();
-  
-  const showAdminButton = () => {
-    const userRole = localStorage.getItem("user_role");
-    return userRole === "admin" || userRole === "superadmin";
-  };
-
-  useEffect(() => {
-    // Animation delay for stats
-    const timer = setTimeout(() => {
-      setIsStatsVisible(true);
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleNotification = () => {
-    toast({
-      title: "Notification activée",
-      description: "Vous recevrez des notifications pour les nouveaux contenus",
-      variant: "default",
-    });
-  };
-
+  onChallengeComplete
+}) => {
   return (
-    <PageTransitionWrapper>
-      <div className="space-y-6">
-        <ModulesWelcome />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <AnimatePresence>
-              {isStatsVisible && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <ModuleProgress 
-                    totalModules={5}
-                    completedModules={1}
-                    totalLessons={20}
-                    completedLessons={7}
-                    totalTime="5h 15m"
-                    rank="Sympathisant"
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <div>
-            <AnimatePresence>
-              {isStatsVisible && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  <UpcomingEventsWidget />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <ModulesFeaturedCard />
-            </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="mt-6"
-            >
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center">
-                <BookOpen className="mr-2 h-5 w-5 text-mrc-blue" />
-                Accès rapide aux formations
-              </h2>
-              
-              {/* Training options */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <Link to="/modules/training">
-                  <Card className="bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full">
-                    <div className="p-6 flex items-start">
-                      <div className="bg-mrc-blue rounded-full p-3 h-14 w-14 flex items-center justify-center">
-                        <Video className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <h3 className="font-semibold text-lg mb-1">Formation Immersive</h3>
-                        <p className="text-gray-300 text-sm">Scénarios interactifs et simulations de situations politiques</p>
-                      </div>
-                    </div>
-                    <div className="bg-blue-900/30 p-3 text-xs font-medium text-blue-300 flex justify-between">
-                      <span>3 scénarios disponibles</span>
-                      <span>Gagnez 50 XP par exercice</span>
-                    </div>
-                  </Card>
-                </Link>
-                
-                <Link to="/modules/reunions">
-                  <Card className="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white overflow-hidden rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full">
-                    <div className="p-6 flex items-start">
-                      <div className="bg-indigo-600 rounded-full p-3 h-14 w-14 flex items-center justify-center">
-                        <Users className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <h3 className="font-semibold text-lg mb-1">Réunions Virtuelles</h3>
-                        <p className="text-gray-300 text-sm">Participez à des réunions et formations en ligne</p>
-                      </div>
-                    </div>
-                    <div className="bg-indigo-900/50 p-3 text-xs font-medium text-indigo-300 flex justify-between">
-                      <span>3 réunions à venir</span>
-                      <span>Prochaine: 15 Sept. 18:00</span>
-                    </div>
-                  </Card>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-          
+    <div className="space-y-8">
+      {/* Featured Section */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Modules recommandés</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
+            whileHover={{ scale: 1.02 }}
+            className="bg-gradient-to-r from-mrc-blue to-blue-700 rounded-lg p-6 text-white"
           >
-            <div className="flex items-center mb-4">
-              <Lightbulb className="mr-2 h-5 w-5 text-yellow-500" />
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Défi Quotidien</h2>
+            <h3 className="text-lg font-medium mb-2">Formation politique</h3>
+            <p className="text-sm opacity-90 mb-4">
+              Approfondissez vos connaissances sur l'idéologie et les valeurs du MRC
+            </p>
+            <button
+              onClick={() => onStartQuiz("histoire")}
+              className="bg-white text-blue-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-50 transition-colors"
+            >
+              Commencer
+            </button>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-gradient-to-r from-purple-700 to-pink-600 rounded-lg p-6 text-white"
+          >
+            <h3 className="text-lg font-medium mb-2">Défis interactifs</h3>
+            <p className="text-sm opacity-90 mb-4">
+              Testez vos compétences avec des scénarios politiques réels
+            </p>
+            <button
+              onClick={onChallengeClick}
+              className="bg-white text-purple-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-purple-50 transition-colors"
+            >
+              Relever le défi
+            </button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Progress Section */}
+      <section>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Votre progression</h2>
+          <button
+            onClick={onChatClick}
+            className="text-sm text-mrc-blue hover:underline flex items-center gap-1"
+          >
+            <span>Assistance IA</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Progression globale</span>
+            <span className="text-sm font-medium">35%</span>
+          </div>
+          <div className="w-full bg-gray-300 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+            <div
+              className="bg-mrc-blue h-full rounded-full"
+              style={{ width: "35%" }}
+            ></div>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Complétez plus de modules pour débloquer des badges et certificats
+          </p>
+        </div>
+      </section>
+
+      {/* Modules Grid */}
+      <section>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Modules de formation</h2>
+          <button className="text-sm text-mrc-blue hover:underline">
+            Voir tout
+          </button>
+        </div>
+        <CoursesGrid modules={mockModules} />
+      </section>
+
+      {/* Challenges Section */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Défis hebdomadaires</h2>
+        <div className="bg-gradient-to-r from-green-700 to-emerald-600 rounded-lg p-6 text-white">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-medium mb-2">
+                Défi: Organisation d'une réunion locale
+              </h3>
+              <p className="text-sm opacity-90 mb-4">
+                Apprenez à planifier et exécuter une réunion politique efficace dans votre localité
+              </p>
+              <button
+                onClick={onChallengeComplete}
+                className="bg-white text-green-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-green-50 transition-colors"
+              >
+                Commencer le défi
+              </button>
             </div>
-            <DailyChallenge onComplete={onChallengeComplete} />
-          </motion.div>
-        </div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <div className="mb-6 flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 flex items-center">
-              <GraduationCap className="mr-2 h-5 w-5 text-mrc-blue" />
-              Tous les modules
-            </h2>
-            <ModuleActionButtons 
-              onChallengeClick={onChallengeClick} 
-              onChatClick={onChatClick} 
-            />
+            <div className="bg-white bg-opacity-20 rounded-full p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+            </div>
           </div>
-          
-          <ModuleCategoryTabs 
-            activeCategory={activeCategory} 
-            setActiveCategory={setActiveCategory} 
-          />
-          
-          <CoursesGrid />
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
-        >
-          <QuizGrid onStartQuiz={onStartQuiz} />
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-        >
-          <ModulesHelp />
-        </motion.div>
-        
-        {showAdminButton() && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.9 }}
-            className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700"
-          >
-            <Link to="/settings">
-              <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white">
-                <Settings className="mr-2 h-4 w-4" />
-                Paramètres Admin (Configuration API)
-              </Button>
-            </Link>
-          </motion.div>
-        )}
-      </div>
-    </PageTransitionWrapper>
+        </div>
+      </section>
+    </div>
   );
 };
 

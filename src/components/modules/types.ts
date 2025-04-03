@@ -6,8 +6,12 @@ export interface ModuleQuestion {
   options: { id: string; text: string }[];
   answer: string;
   explanation?: string;
-  category?: string; // Ajout pour compatibilité
-  correctAnswer?: string; // Ajout pour compatibilité
+  category?: string;
+  correctAnswer?: string;
+  question?: string;
+  correctOptionId?: string;
+  difficulty?: string;
+  imageSrc?: string;
 }
 
 export interface Lesson {
@@ -16,6 +20,9 @@ export interface Lesson {
   content: string;
   videoUrl?: string;
   completed: boolean;
+  isCompleted?: boolean;
+  isLocked?: boolean;
+  duration?: string;
 }
 
 export interface Module {
@@ -33,14 +40,36 @@ export interface Module {
   coverImage?: string;
   overview?: string;
   isFeatured?: boolean;
-  featured?: boolean; // Pour compatibilité avec le code existant
-  cover?: string; // Pour compatibilité avec le code existant
+  featured?: boolean;
+  cover?: string;
+  isPdfAvailable?: boolean;
+  pdfUrl?: string;
+  isCompleted?: boolean;
+  isNew?: boolean;
+  categoryName?: string;
+  quizLink?: string;
+  priority?: 'high' | 'medium' | 'low';
+  reason?: string;
 }
 
 export interface QuizQuestion {
-  id: number; // This should be a number to match the imported type
+  id: string | number;
   text: string;
   options: { id: string; text: string }[];
-  answer: string;
-  question?: string; // Added for compatibility
+  answer?: string;
+  question?: string;
+  correctAnswer?: string | number;
+  answers?: any[];
+  explanation?: string;
+  category?: string;
+  difficulty?: string;
+  imageSrc?: string;
+}
+
+// Define QuizSubmission interface for the adaptive training
+export interface QuizSubmission {
+  moduleId: string;
+  score: number;
+  answers: Record<string, string>;
+  timestamp?: Date;
 }

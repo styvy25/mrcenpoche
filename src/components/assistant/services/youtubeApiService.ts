@@ -1,112 +1,109 @@
 
-/**
- * Service for managing YouTube API keys
- */
+import { getApiKeysWithDefaults } from '@/services/supabaseService';
 
-import { supabase } from "@/integrations/supabase/client";
-import { getApiKeysWithDefaults } from "@/services/supabaseService";
+// Mock data structure for YouTube search results
+interface YouTubeVideo {
+  id: {
+    videoId: string;
+  };
+  snippet: {
+    title: string;
+    description: string;
+    thumbnails: {
+      default: { url: string; width: number; height: number };
+      medium: { url: string; width: number; height: number };
+      high: { url: string; width: number; height: number };
+    };
+    channelTitle: string;
+    publishedAt: string;
+  };
+}
 
-// Get the YouTube API key from Supabase or localStorage with fallback to default
-export const getYouTubeApiKey = async (): Promise<string> => {
+interface YouTubeSearchResponse {
+  items: YouTubeVideo[];
+  nextPageToken?: string;
+}
+
+// Mock YouTube search function
+export const searchYouTubeVideos = async (
+  query: string,
+  maxResults: number = 5,
+  pageToken?: string
+): Promise<YouTubeSearchResponse> => {
   try {
-    // Try to get the key from localStorage first
-    const localApiKeys = localStorage.getItem("api_keys");
-    if (localApiKeys) {
-      const { youtube } = JSON.parse(localApiKeys);
-      if (youtube) return youtube;
-    }
-
-    // If not in localStorage, try to get from Supabase if user is logged in
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (sessionData?.session) {
-      const { data, error } = await supabase
-        .from('api_keys_config')
-        .select('youtube_key')
-        .eq('user_id', sessionData.session.user.id)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching YouTube API key:", error);
-      } else if (data && data.youtube_key) {
-        // Update localStorage for faster access next time
-        updateLocalStorageApiKey('youtube', data.youtube_key);
-        return data.youtube_key;
+    const apiKeys = getApiKeysWithDefaults();
+    const YOUTUBE_API_KEY = apiKeys.YOUTUBE_API_KEY;
+    
+    // For now, return mock data instead of making actual API calls
+    console.log(`Mock YouTube search for: "${query}" with max results: ${maxResults}`);
+    
+    // Mock search results
+    const mockResults: YouTubeVideo[] = [
+      {
+        id: { videoId: 'video1' },
+        snippet: {
+          title: `Résultats pour: ${query} - Video 1`,
+          description: 'Ceci est une vidéo de test pour simuler les résultats de YouTube.',
+          thumbnails: {
+            default: { url: 'https://via.placeholder.com/120x90', width: 120, height: 90 },
+            medium: { url: 'https://via.placeholder.com/320x180', width: 320, height: 180 },
+            high: { url: 'https://via.placeholder.com/480x360', width: 480, height: 360 }
+          },
+          channelTitle: 'MRC Officiel',
+          publishedAt: new Date().toISOString()
+        }
+      },
+      {
+        id: { videoId: 'video2' },
+        snippet: {
+          title: `Résultats pour: ${query} - Video 2`,
+          description: 'Une autre vidéo de test pour la recherche YouTube.',
+          thumbnails: {
+            default: { url: 'https://via.placeholder.com/120x90', width: 120, height: 90 },
+            medium: { url: 'https://via.placeholder.com/320x180', width: 320, height: 180 },
+            high: { url: 'https://via.placeholder.com/480x360', width: 480, height: 360 }
+          },
+          channelTitle: 'Politique Camerounaise',
+          publishedAt: new Date().toISOString()
+        }
       }
-    }
+    ];
     
-    // Fallback to default key
-    const defaultKey = 'AIzaSyAHw1PVqxAZV9P2pOYKafPjzWuQSDq6U0w';
-    updateLocalStorageApiKey('youtube', defaultKey);
-    return defaultKey;
+    return {
+      items: mockResults,
+      nextPageToken: 'mock_next_page_token'
+    };
   } catch (error) {
-    console.error("Error retrieving YouTube API key:", error);
-    // Fallback to default key if any error occurs
-    return 'AIzaSyAHw1PVqxAZV9P2pOYKafPjzWuQSDq6U0w';
+    console.error('Error searching YouTube videos:', error);
+    return { items: [] };
   }
 };
 
-// Save YouTube API key to both Supabase and localStorage
-export const saveYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
+// Mock function to get video details
+export const getYouTubeVideoDetails = async (videoId: string): Promise<YouTubeVideo | null> => {
   try {
-    // Always save to localStorage
-    updateLocalStorageApiKey('youtube', apiKey);
+    const apiKeys = getApiKeysWithDefaults();
+    const YOUTUBE_API_KEY = apiKeys.YOUTUBE_API_KEY;
     
-    // Save to Supabase if user is logged in
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData?.session) {
-      // If not logged in, just save to localStorage is enough
-      return true;
-    }
+    console.log(`Mock YouTube video details for ID: ${videoId}`);
     
-    // Check if record exists
-    const { data: existingData } = await supabase
-      .from('api_keys_config')
-      .select('id')
-      .eq('user_id', sessionData.session.user.id)
-      .single();
-    
-    let result;
-    
-    if (existingData) {
-      // Update existing record
-      result = await supabase
-        .from('api_keys_config')
-        .update({ youtube_key: apiKey })
-        .eq('user_id', sessionData.session.user.id);
-    } else {
-      // Insert new record
-      result = await supabase
-        .from('api_keys_config')
-        .insert({ 
-          user_id: sessionData.session.user.id,
-          youtube_key: apiKey 
-        });
-    }
-    
-    if (result.error) {
-      console.error("Error saving YouTube API key:", result.error);
-      return false;
-    }
-    
-    return true;
+    // Return mock video details
+    return {
+      id: { videoId },
+      snippet: {
+        title: `Vidéo ${videoId}`,
+        description: 'Description détaillée de cette vidéo.',
+        thumbnails: {
+          default: { url: 'https://via.placeholder.com/120x90', width: 120, height: 90 },
+          medium: { url: 'https://via.placeholder.com/320x180', width: 320, height: 180 },
+          high: { url: 'https://via.placeholder.com/480x360', width: 480, height: 360 }
+        },
+        channelTitle: 'MRC Officiel',
+        publishedAt: new Date().toISOString()
+      }
+    };
   } catch (error) {
-    console.error("Error saving YouTube API key:", error);
-    return false;
+    console.error('Error getting YouTube video details:', error);
+    return null;
   }
-};
-
-// Helper to update API keys in localStorage
-const updateLocalStorageApiKey = (service: string, value: string) => {
-  try {
-    const apiKeys = JSON.parse(localStorage.getItem("api_keys") || "{}");
-    apiKeys[service] = value;
-    localStorage.setItem("api_keys", JSON.stringify(apiKeys));
-  } catch (error) {
-    console.error("Error updating localStorage API key:", error);
-  }
-};
-
-// Get all API keys with default fallbacks
-export const getApiKeys = async () => {
-  return getApiKeysWithDefaults();
 };

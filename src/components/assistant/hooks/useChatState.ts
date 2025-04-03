@@ -1,122 +1,80 @@
-import { useState, useCallback } from "react";
-import { Message } from "../types/message";
-import { useMessageHandler } from "./useMessageHandler";
-import { useYouTubeSearch } from "./useYouTubeSearch";
-import { useOfflineMode } from "./useOfflineMode";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
-import { Feature } from "@/services/paymentService"; // Updated import path
-import { useToast } from "@/hooks/use-toast";
 
-export const useChatState = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+import { useState, useCallback } from 'react';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+
+// Mock chat message types
+interface ChatMessage {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date;
+}
+
+interface UseChatStateReturn {
+  messages: ChatMessage[];
+  isLoading: boolean;
+  error: Error | null;
+  sendMessage: (content: string) => Promise<void>;
+  resetChat: () => void;
+}
+
+export const useChatState = (): UseChatStateReturn => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { isOnline } = useOfflineMode();
-  const { 
-    youtubeResults, 
-    isSearchingYouTube, 
-    downloadLinks,
-    handleYouTubeSearch, 
-    handleVideoSelect,
-    setYoutubeResults,
-    setDownloadLinks
-  } = useYouTubeSearch();
+  const [error, setError] = useState<Error | null>(null);
   const { checkAndUseFeature } = usePlanLimits();
-  const { toast } = useToast();
-  const messageHandler = useMessageHandler();
 
-  const handleSendMessage = useCallback(async (content: string) => {
-    // Check if user can use AI Chat feature
-    const canUse = await checkAndUseFeature(Feature.AI_CHAT);
-    if (!canUse) {
-      return;
-    }
-
-    // Clear YouTube results
-    setYoutubeResults([]);
-    
-    // Add user message
-    const userMessage: Message = {
-      role: "user",
-      content,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    
-    // Check for YouTube search commands
-    if (content.toLowerCase().startsWith("/youtube ")) {
-      const query = content.substring(9).trim();
-      if (query) {
-        await handleYouTubeSearch(query, isOnline);
-        return;
-      }
-    }
-    
-    // Check for YouTube URL
-    const youtubeUrlRegex = /(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)[a-zA-Z0-9_-]+/i;
-    if (youtubeUrlRegex.test(content)) {
-      await handleYouTubeSearch(content, isOnline);
-      return;
-    }
-    
-    // Check if this is a video analysis request
-    const videoAnalysisRegex = /analyser?\s+(?:la|cette)?\s*vidéo|analyse\s+(?:de|cette|la)?\s*vidéo/i;
-    if (videoAnalysisRegex.test(content) && youtubeResults.length > 0) {
-      // If user asks to analyze a video and we have YouTube results, 
-      // analyze the first video
-      await handleVideoSelect(
-        youtubeResults[0].id,
-        isOnline,
-        setIsLoading,
-        setMessages
-      );
-      return;
-    }
-    
-    // Process regular message
-    setIsLoading(true);
+  const sendMessage = useCallback(async (content: string) => {
     try {
-      await messageHandler.handleSendMessage(content, isOnline, handleYouTubeSearch);
-      // Use the messages from messageHandler instead of directly setting
-      setMessages([...messageHandler.messages]);
-    } catch (error) {
-      console.error("Error processing message:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur s'est produite lors du traitement de votre message",
-        variant: "destructive"
-      });
-    } finally {
+      // Check if user can use the AI chat feature
+      const { canUse, remaining } = checkAndUseFeature('ai-chat');
+      
+      if (!canUse) {
+        throw new Error(`Vous avez atteint votre limite de messages AI. Passez à Premium pour continuer.`);
+      }
+      
+      setIsLoading(true);
+      setError(null);
+      
+      // Add user message
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        content,
+        role: 'user',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, userMessage]);
+      
+      // Simulate AI response
+      setTimeout(() => {
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          content: `Voici une réponse à votre message: "${content}". Il vous reste ${remaining - 1} messages ce mois-ci.`,
+          role: 'assistant',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+        setIsLoading(false);
+      }, 1500);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
       setIsLoading(false);
     }
-  }, [
-    messageHandler,
-    isOnline, 
-    youtubeResults, 
-    handleYouTubeSearch, 
-    handleVideoSelect,
-    setYoutubeResults,
-    setDownloadLinks,
-    checkAndUseFeature,
-    toast
-  ]);
-
-  const handleClearMessages = useCallback(() => {
+  }, [checkAndUseFeature]);
+  
+  const resetChat = useCallback(() => {
     setMessages([]);
-    setYoutubeResults([]);
-    setDownloadLinks(null);
-    messageHandler.clearConversation();
-  }, [setYoutubeResults, setDownloadLinks, messageHandler]);
-
+    setError(null);
+  }, []);
+  
   return {
     messages,
     isLoading,
-    youtubeResults,
-    isSearchingYouTube,
-    downloadLinks,
-    handleSendMessage,
-    handleClearMessages,
-    handleVideoSelect: (videoId: string) => 
-      handleVideoSelect(videoId, isOnline, setIsLoading, setMessages)
+    error,
+    sendMessage,
+    resetChat
   };
 };

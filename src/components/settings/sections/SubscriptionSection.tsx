@@ -1,193 +1,153 @@
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useSubscription } from "@/hooks/useSubscription";
-import { useUser } from "@/hooks/useUser";
-import { SubscriptionBadge } from "@/components/subscription/SubscriptionBadge";
-import { pricingPlans } from "@/components/home/PricingSection";
-import { LightningBolt, Star, Check, Crown } from "lucide-react";
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useUser } from '@/hooks/useUser';
+import SubscriptionBadge from '@/components/subscription/SubscriptionBadge';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle, CheckCircle, Zap } from 'lucide-react';
 
-export const SubscriptionSection = () => {
-  // Create mock subscription data for now
-  const mockSubscription = {
-    subscription: {
-      name: "Premium",
-      priceId: "price_1HEOLoJ919dC0tpDHcvKjXMe",
-      planType: "premium",
-      price: 9.99,
-      interval: "month",
-      features: [
-        "Accès complet à MRC en Poche",
-        "Formations personnalisées",
-        "Toutes les ressources",
-        "Recommandations adaptatives",
-        "Sessions prioritaires avec Styvy-237",
-        "Accès à la communauté"
-      ]
-    },
-    userPoints: 150
-  };
-  
-  const [userSubscription, setUserSubscription] = useState(mockSubscription);
-  const [isLoading, setIsLoading] = useState(false);
-  const subscription = useSubscription();
+// Mock pricing plans for local use
+const pricingPlans = [
+  {
+    name: "Basique",
+    priceId: "basic",
+    price: "Gratuit",
+    description: "Pour les membres du parti débutant leur engagement",
+    features: [
+      "Accès aux modules d'apprentissage de base",
+      "Participation aux forums de discussion",
+      "Réception des newsletters mensuelles"
+    ]
+  },
+  {
+    name: "Premium",
+    priceId: "premium",
+    price: "2000 FCFA/mois",
+    description: "Pour les militants actifs cherchant à approfondir leur engagement",
+    features: [
+      "Tout ce qui est inclus dans le plan Basique",
+      "Accès aux modules avancés de formation",
+      "Invitation aux séminaires virtuels exclusifs",
+      "Support prioritaire"
+    ]
+  },
+  {
+    name: "Enterprise",
+    priceId: "enterprise",
+    price: "Sur devis",
+    description: "Pour les sections locales et les délégations",
+    features: [
+      "Tout ce qui est inclus dans le plan Premium",
+      "Formation personnalisée pour votre équipe",
+      "Outils d'analyse et de reporting",
+      "Gestion d'équipe avancée",
+      "Manager dédié"
+    ]
+  }
+];
+
+const SubscriptionSection = () => {
+  const { isPremium } = useSubscription();
   const { user } = useUser();
   
-  useEffect(() => {
-    const loadSubscriptionData = async () => {
-      setIsLoading(true);
-      try {
-        // Normally we'd load real data here
-        setUserSubscription(mockSubscription);
-      } catch (error) {
-        console.error("Failed to load subscription data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    if (user) {
-      loadSubscriptionData();
-    }
-  }, [user]);
+  // Mock data since we don't have the actual implementation
+  const subscriptionData = {
+    planType: isPremium ? 'premium' : 'basic',
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+  };
   
-  const handleSubscribe = async (priceId: string) => {
-    // Mock subscription logic
-    console.log("Subscribing to plan with price ID:", priceId);
+  const handleSubscribe = (priceId: string) => {
+    console.log(`Subscribing to plan: ${priceId}`);
     // Implementation would go here
   };
   
-  const handleUnsubscribe = async () => {
-    // Mock unsubscribe logic
-    console.log("Unsubscribing from current plan");
+  const handleUnsubscribe = () => {
+    console.log('Unsubscribing from current plan');
     // Implementation would go here
   };
 
-  const getCurrentPlan = () => {
-    return userSubscription?.subscription || null;
-  };
-  
-  const currentPlan = getCurrentPlan();
-  
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-32 w-full" />
-      </div>
-    );
-  }
-  
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Abonnement</h2>
-        {currentPlan && (
-          <SubscriptionBadge 
-            type={currentPlan.planType || "basic"} 
-            className="text-xs"
-          />
-        )}
-      </div>
-      
-      <div className="grid gap-6 mt-4 md:grid-cols-2">
-        {pricingPlans.map((plan) => {
-          const isCurrentPlan = currentPlan?.priceId === plan.priceId;
-          const isPremium = plan.planType === "premium";
-          
-          return (
-            <Card
-              key={plan.priceId}
-              className={`relative overflow-hidden ${
-                isPremium
-                  ? "border-blue-500 dark:border-blue-400"
-                  : "border-gray-200 dark:border-gray-700"
-              }`}
-            >
-              {isPremium && (
-                <div className="absolute top-0 right-0">
-                  <div className="bg-blue-500 text-white px-3 py-1 text-xs font-medium transform rotate-0 origin-top-right">
-                    Recommandé
-                  </div>
-                </div>
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Abonnement</CardTitle>
+          {subscriptionData && (
+            <SubscriptionBadge planType={subscriptionData.planType as 'basic' | 'premium' | 'enterprise'} />
+          )}
+        </div>
+        <CardDescription>Gérez votre abonnement et accédez à plus de fonctionnalités</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
+            <div className="flex items-start gap-3">
+              {isPremium ? (
+                <CheckCircle className="text-green-500 mt-1 h-5 w-5 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="text-yellow-500 mt-1 h-5 w-5 flex-shrink-0" />
               )}
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      {isPremium && <Crown className="h-5 w-5 text-blue-500" />}
-                      {plan.name}
-                    </h3>
-                    <div className="mt-2 flex items-baseline text-gray-900 dark:text-gray-100">
-                      <span className="text-2xl font-bold tracking-tight">
-                        {plan.price === 0 ? "Gratuit" : `${plan.price} €`}
-                      </span>
-                      {plan.interval && (
-                        <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">
-                          /{plan.interval}
-                        </span>
-                      )}
+              <div>
+                <h4 className="font-medium text-sm">
+                  {isPremium ? 'Abonnement Premium actif' : 'Compte Basique'}
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {isPremium
+                    ? `Votre abonnement expire le ${subscriptionData.expires.toLocaleDateString()}`
+                    : 'Passez à Premium pour accéder à toutes les fonctionnalités'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {!isPremium && (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {pricingPlans.filter(plan => plan.priceId !== 'basic').map((plan) => (
+                <Card key={plan.priceId} className="border-2 hover:border-primary">
+                  <CardHeader>
+                    <CardTitle>{plan.name}</CardTitle>
+                    <div className="mt-2">
+                      <span className="text-2xl font-bold">{plan.price}</span>
                     </div>
-                  </div>
-                </div>
-                
-                <div className="mt-4">
-                  <ul className="space-y-2">
-                    {plan.features?.map((feature) => (
-                      <li key={feature} className="flex items-start">
-                        <Check className="h-4 w-4 text-green-500 mt-1 mr-2" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div className="mt-6">
-                  {isCurrentPlan ? (
+                    <CardDescription>{plan.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2 text-sm">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-center">
+                          <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
                     <Button
-                      variant="outline"
                       className="w-full"
-                      onClick={handleUnsubscribe}
-                    >
-                      Gérer l'abonnement
-                    </Button>
-                  ) : (
-                    <Button
-                      variant={isPremium ? "default" : "outline"}
-                      className={`w-full ${
-                        isPremium ? "bg-blue-500 hover:bg-blue-600" : ""
-                      }`}
                       onClick={() => handleSubscribe(plan.priceId)}
                     >
-                      {isPremium ? "Passer Premium" : "Choisir Basic"}
+                      <Zap className="mr-2 h-4 w-4" />
+                      S'abonner
                     </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-      
-      {userSubscription?.userPoints && (
-        <div className="mt-8">
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
-                Points Styvy
-              </h3>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                Vous avez accumulé <span className="font-medium text-blue-600">{userSubscription.userPoints}</span> points.
-                Continuez à apprendre et à participer pour en gagner davantage !
-              </p>
-            </CardContent>
-          </Card>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {isPremium && (
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={handleUnsubscribe}
+            >
+              Annuler l'abonnement
+            </Button>
+          )}
         </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
