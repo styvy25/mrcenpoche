@@ -1,150 +1,38 @@
-
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
-import MainLayout from './components/layout/MainLayout';
-import { useAuth } from './components/auth/AuthContext';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import HomePage from './pages/HomePage';
 import ModulesPage from './pages/ModulesPage';
-import ModuleQuizPage from './pages/ModuleQuizPage';
-import AssistantPage from './pages/AssistantPage';
-import SettingsPage from './pages/SettingsPage';
-import AuthPage from './pages/AuthPage';
-import NotFound from './pages/NotFound';
 import QuizPage from './pages/QuizPage';
-
-// Import Index as HomePage
-import Index from './pages/Index';
-
-const LazyTrainingModulePage = lazy(() => import("./pages/TrainingModulePage"));
-const LazyImmersiveTrainingPage = lazy(() => import("./pages/ImmersiveTrainingPage"));
-const LazyVirtualMeetingsPage = lazy(() => import("./pages/VirtualMeetingsPage"));
+import NotFoundPage from './pages/NotFoundPage';
+import { AuthProvider } from './contexts/AuthContext';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/ProfilePage';
+import PrivateRoute from './components/PrivateRoute';
+import { PointsProvider } from './contexts/PointsContext';
+import { SubscriptionProvider } from './hooks/useSubscription';
+import ImmersiveTrainingPage from './pages/ImmersiveTrainingPage';
+import VirtualMeetingsPage from './pages/VirtualMeetingsPage';
+import DocumentsPage from './pages/DocumentsPage';
+import ConfigurationPage from './pages/ConfigurationPage';
 
 function App() {
-  const { isAuthenticated } = useAuth();
+  const isLoggedIn = !!localStorage.getItem('authToken');
 
   return (
     <Router>
       <Routes>
-        <Route path="/auth" element={<AuthPage />} />
-        
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Index />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/modules"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <ModulesPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/modules/quiz"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <ModuleQuizPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/modules/quiz/:moduleId"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <ModuleQuizPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/assistant"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <AssistantPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <SettingsPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/chat"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <AssistantPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route 
-          path="/training" 
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-12 w-12 animate-spin" /></div>}>
-                <LazyTrainingModulePage />
-              </Suspense>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/modules/training" 
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-12 w-12 animate-spin" /></div>}>
-                <LazyImmersiveTrainingPage />
-              </Suspense>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/modules/reunions" 
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-12 w-12 animate-spin" /></div>}>
-                <LazyVirtualMeetingsPage />
-              </Suspense>
-            </ProtectedRoute>
-          } 
-        />
-        <Route
-          path="/quiz"
-          element={
-            <ProtectedRoute>
-              <QuizPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/quiz/:moduleId"
-          element={
-            <ProtectedRoute>
-              <QuizPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<NotFound />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/modules" element={<ModulesPage />} />
+        <Route path="/quiz" element={<QuizPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/modules/training" element={<ImmersiveTrainingPage />} />
+        <Route path="/modules/reunions" element={<VirtualMeetingsPage />} />
+        <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/configuration" element={<ConfigurationPage />} />
       </Routes>
     </Router>
   );
