@@ -22,9 +22,6 @@ const QuizQuestion = ({
   const [showImage, setShowImage] = useState(false);
   const [animateQuestion, setAnimateQuestion] = useState(false);
   
-  // Get the display question text (handle both text and question properties)
-  const displayQuestion = question.text || question.question || "";
-  
   useEffect(() => {
     // Animate the question when it first loads
     setAnimateQuestion(true);
@@ -42,7 +39,7 @@ const QuizQuestion = ({
       <div className="flex items-start gap-2">
         <HelpCircle className="h-5 w-5 text-blue-500 mt-1 flex-shrink-0" />
         <h3 className={`${isSmallScreen ? 'text-lg' : 'text-xl'} font-semibold mb-4 text-gray-800`}>
-          {displayQuestion}
+          {question.question}
         </h3>
       </div>
       
@@ -50,7 +47,7 @@ const QuizQuestion = ({
         <div className="mb-4 transition-all duration-500 transform animate-scale-in">
           <img
             src={question.imageSrc}
-            alt={`Illustration pour ${displayQuestion}`}
+            alt={`Illustration pour ${question.question}`}
             className="rounded-lg w-full max-h-48 mx-auto object-cover shadow-lg border border-gray-200 hover:scale-[1.02] transition-transform duration-300"
             loading="lazy"
           />
@@ -60,9 +57,7 @@ const QuizQuestion = ({
       <div className="space-y-2.5">
         {question.options.map((option, index) => {
           const isSelected = selectedAnswer === index;
-          const correctAnswer = typeof question.correctAnswer === 'string' ? 
-            parseInt(question.correctAnswer) : question.correctAnswer;
-          const isCorrect = correctAnswer === index;
+          const isCorrect = question.correctAnswer === index;
           const isIncorrect = isSelected && !isCorrect;
           
           return (
@@ -95,9 +90,7 @@ const QuizQuestion = ({
                 )}>
                   {String.fromCharCode(65 + index)}
                 </span>
-                <span className={`${isSmallScreen ? 'text-sm' : 'text-base'}`}>
-                  {typeof option === 'string' ? option : option.text}
-                </span>
+                <span className={`${isSmallScreen ? 'text-sm' : 'text-base'}`}>{option}</span>
               </div>
               
               {showFeedback && isSelected && (

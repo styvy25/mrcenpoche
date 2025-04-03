@@ -1,44 +1,77 @@
 
 import { Appointment } from "@/components/quiz/types";
 
+// Format date to string
+const formatDate = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
+// Helper to create dates relative to the current date
+const createRelativeDate = (daysFromNow: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return formatDate(date);
+};
+
 export const UPCOMING_APPOINTMENTS: Appointment[] = [
   {
-    id: "apt1",
-    title: "Formation stratégie de campagne",
-    date: new Date(new Date().setDate(new Date().getDate() + 2)),
-    time: "10:00",
-    type: "formation",
-    description: "Apprenez à élaborer une stratégie de campagne efficace pour la prochaine élection locale",
-    location: "Siège MRC Yaoundé",
-    isVirtual: false,
-    participantsCount: 12,
-    maxParticipants: 20,
-    duration: "120"
-  },
-  {
-    id: "apt2",
-    title: "Session questions-réponses avec Me Kamto",
-    date: new Date(new Date().setDate(new Date().getDate() + 7)),
-    time: "18:00",
-    type: "reunion",
-    description: "Session virtuelle avec le président du MRC pour répondre à vos questions",
+    id: "event-1",
+    title: "Formation politique MRC",
+    description: "Session d'introduction aux valeurs et principes du MRC",
+    date: createRelativeDate(2),
+    startTime: "14:00",
+    endTime: "16:00",
+    location: "En ligne",
+    participant: {
+      name: "Styvy-237",
+      email: "styvy237@example.com"
+    },
+    status: "confirmed",
     isVirtual: true,
-    link: "https://meet.google.com/mrc-session",
-    participantsCount: 45,
-    maxParticipants: 100,
-    duration: "90"
+    link: "https://meet.google.com/abc-defg-hij",
+    duration: 120,
+    participantsCount: 0,
+    maxParticipants: 20,
+    type: "public"
   },
   {
-    id: "apt3",
-    title: "Atelier mobilisation de terrain",
-    date: new Date(new Date().setDate(new Date().getDate() + 14)),
-    time: "09:30",
-    type: "formation",
-    description: "Techniques pratiques pour mobiliser les électeurs à l'échelle locale",
-    location: "Bureau régional MRC Douala",
-    isVirtual: false,
-    participantsCount: 8,
+    id: "event-2",
+    title: "Stratégies de mobilisation",
+    description: "Comment mobiliser efficacement dans votre localité",
+    date: createRelativeDate(4),
+    startTime: "10:00",
+    endTime: "12:00",
+    location: "En ligne",
+    participant: {
+      name: "Styvy-237",
+      email: "styvy237@example.com"
+    },
+    status: "confirmed",
+    isVirtual: true,
+    link: "https://meet.google.com/abc-defg-hij",
+    duration: 120,
+    participantsCount: 5,
     maxParticipants: 15,
-    duration: "180"
+    type: "public"
+  },
+  {
+    id: "event-3",
+    title: "Communication politique",
+    description: "Techniques de communication politique efficace",
+    date: createRelativeDate(7),
+    startTime: "15:00",
+    endTime: "17:00",
+    location: "En ligne",
+    participant: {
+      name: "Styvy-237",
+      email: "styvy237@example.com"
+    },
+    status: "confirmed",
+    isVirtual: true,
+    link: "https://meet.google.com/abc-defg-hij",
+    duration: 120,
+    participantsCount: 2,
+    maxParticipants: 20,
+    type: "public"
   }
 ];

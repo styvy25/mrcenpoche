@@ -1,14 +1,17 @@
 
-project_id = "vxufufmoysfrrkxeedbi"
+project_id = "ppdcwerrsmnngmmdgrcp"
 
-[functions.stripe-subscription]
-verify_jwt = true
+[api]
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
 
-[functions.perplexity-service]
-verify_jwt = true
+[[api.cors.origins]]
+origin = "http://localhost:3000"
 
-[functions.youtube-service]
-verify_jwt = true
+[[api.cors.origins]]
+origin = "http://localhost:5173" # For Vite
 
-[functions.manage-api-keys]
-verify_jwt = false
+[[api.cors.origins]]
+origin = "*" # Allow all origins for testing purposes

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Appointment, AppointmentRequest, AppointmentType } from "@/components/quiz/types";
+import { Appointment, AppointmentRequest } from "@/components/quiz/types";
 
 // Define topics manually since TOPICS is not exported
 const APPOINTMENT_TOPICS = [
@@ -51,14 +51,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       return;
     }
     
-    // Format appointment object with correct types
+    // Format date and create appointment object
+    const dateString = selectedDate.toISOString().split('T')[0];
+    const [hours, minutes] = selectedTime.split(':');
+    
     const appointment: Appointment = {
       id: `appt-${Date.now()}`,
       title: `Formation: ${formData.topic || ''}`,
       description: formData.message || "Pas de notes additionnelles",
-      date: selectedDate,
+      date: dateString,
       startTime: selectedTime,
-      endTime: `${Number(selectedTime.split(':')[0]) + 1}:${selectedTime.split(':')[1]}`,
+      endTime: `${Number(hours) + 1}:${minutes}`,
       location: "En ligne (lien envoyé par email)",
       participant: {
         name: formData.name || '',
@@ -68,11 +71,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       status: "pending",
       isVirtual: true,
       link: "https://meet.google.com/abc-defg-hij",
-      duration: "60",
+      duration: 60,
       participantsCount: 1,
       maxParticipants: 1,
-      type: "formation",
-      time: selectedTime
+      type: "private"
     };
 
     onSubmit(appointment);

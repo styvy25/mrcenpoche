@@ -1,5 +1,4 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import { fetchScenariosFromSupabase, updateScenarioProgressInSupabase } from "../supabaseService";
 
 export interface TrainingScenario {
   id: string;
@@ -60,26 +59,10 @@ const staticTrainingScenarios: TrainingScenario[] = [
   }
 ];
 
-// Function to get training scenarios from Supabase
-export const getTrainingScenarios = async (): Promise<TrainingScenario[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('training_scenarios')
-      .select('*');
-    
-    if (error) throw error;
-    
-    return data as TrainingScenario[] || [];
-  } catch (error) {
-    console.error('Failed to fetch training scenarios from Supabase:', error);
-    return [];
-  }
-};
-
 export const fetchTrainingScenarios = async (): Promise<TrainingScenario[]> => {
   try {
     // Try to fetch from Supabase first
-    const supabaseScenarios = await getTrainingScenarios();
+    const supabaseScenarios = await fetchScenariosFromSupabase();
     
     // If we got scenarios from Supabase, return those
     if (supabaseScenarios && supabaseScenarios.length > 0) {
@@ -100,13 +83,8 @@ export const fetchTrainingScenarios = async (): Promise<TrainingScenario[]> => {
 
 export const updateScenarioProgress = async (id: string, completed: boolean): Promise<void> => {
   try {
-    // Update scenario progress in Supabase
-    const { error } = await supabase
-      .from('training_scenarios')
-      .update({ completed })
-      .eq('id', id);
-    
-    if (error) throw error;
+    // Try to update in Supabase first
+    await updateScenarioProgressInSupabase(id, completed);
     
     // Always log what would happen
     console.log(`Scenario ${id} marked as ${completed ? 'completed' : 'incomplete'}`);
@@ -114,6 +92,3 @@ export const updateScenarioProgress = async (id: string, completed: boolean): Pr
     console.error("Failed to update scenario progress:", error);
   }
 };
-
-// Exporting updateScenarioProgress to fix the error
-export { updateScenarioProgress as updateScenarioProgressInSupabase };

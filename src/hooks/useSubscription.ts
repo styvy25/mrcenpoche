@@ -1,107 +1,82 @@
 
 import { useState, useEffect } from 'react';
-import { useUser } from './useUser';
+import { getUserSubscription, getUserPoints, UserSubscription, UserPoints } from '../services/paymentService';
 
-export interface UseSubscriptionReturn {
-  isPremium: boolean;
+interface SubscriptionHookResult {
+  subscription: UserSubscription | null;
+  loading: boolean;
   isBasic: boolean;
-  subscribe: (plan: string) => Promise<void>;
-  cancelSubscription: () => Promise<void>;
-  isLoading: boolean;
-  subscriptionPlan: {
-    name: string;
-    priceId: string;
-    expires?: Date;
+  isPremium: boolean;
+  currentPlan: {
+    planType: string;
+    priceId?: string;
+    name?: string;
+    price?: number;
+    interval?: string;
+    features?: string[];
   } | null;
+  userPoints: UserPoints;
+  plan: string;
+  expiresAt: string;
+  features: string[];
 }
 
-export const useSubscription = (): UseSubscriptionReturn => {
-  const { user } = useUser();
-  const [isPremium, setIsPremium] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [subscriptionPlan, setSubscriptionPlan] = useState<{
-    name: string;
-    priceId: string;
-    expires?: Date;
-  } | null>(null);
+export const useSubscription = (): SubscriptionHookResult => {
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
+  const [userPoints, setUserPoints] = useState<UserPoints>({ points: 0, level: 1 });
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const checkSubscription = async () => {
-      setIsLoading(true);
+    const fetchSubscription = async () => {
       try {
-        // In a real app, we would check the subscription status from Supabase or your backend
-        // For now, let's mock a response based on local storage
-        const hasSubscription = localStorage.getItem('isPremium') === 'true';
-        setIsPremium(hasSubscription);
+        const sub = await getUserSubscription();
+        setSubscription(sub);
         
-        if (hasSubscription) {
-          setSubscriptionPlan({
-            name: 'Premium',
-            priceId: 'premium',
-            expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-          });
-        } else {
-          setSubscriptionPlan({
-            name: 'Basic',
-            priceId: 'basic'
-          });
-        }
+        const points = await getUserPoints();
+        setUserPoints(points);
       } catch (error) {
-        console.error('Error checking subscription:', error);
-        setSubscriptionPlan({
-          name: 'Basic',
-          priceId: 'basic'
-        });
+        console.error('Error fetching subscription:', error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    checkSubscription();
-  }, [user]);
+    fetchSubscription();
+  }, []);
 
-  const subscribe = async (plan: string) => {
-    setIsLoading(true);
-    try {
-      // In a real app, we would handle the subscription process with Stripe or another provider
-      // For demo purposes, we'll just update local storage
-      localStorage.setItem('isPremium', 'true');
-      setIsPremium(true);
-      setSubscriptionPlan({
-        name: 'Premium',
-        priceId: plan,
-        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-      });
-    } catch (error) {
-      console.error('Error subscribing to plan:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Determine if user is on basic or premium plan
+  const isBasic = subscription?.planType === 'free' || !subscription?.isActive;
+  const isPremium = subscription?.planType === 'premium' && subscription?.isActive;
 
-  const cancelSubscription = async () => {
-    setIsLoading(true);
-    try {
-      // In a real app, we would handle the cancellation process
-      localStorage.setItem('isPremium', 'false');
-      setIsPremium(false);
-      setSubscriptionPlan({
-        name: 'Basic',
-        priceId: 'basic'
-      });
-    } catch (error) {
-      console.error('Error cancelling subscription:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Current plan info with additional properties to fix build errors
+  const currentPlan = subscription ? {
+    planType: subscription.planType || 'free',
+    priceId: subscription.priceId,
+    name: isPremium ? 'Premium' : 'Basic',
+    price: isPremium ? 1999 : 0,
+    interval: isPremium ? 'month' : '',
+    features: isPremium ? 
+      ['Exports PDF illimités', 'Assistant IA avancé', 'Modules premium', 'Analyse vidéo'] : 
+      ['Assistant IA basique']
+  } : null;
 
+  // Default to never-expiring free plan
+  const expiresAtDate = subscription?.currentPeriodEnd 
+    ? new Date(subscription.currentPeriodEnd)
+    : new Date(2099, 11, 31);
+
+  // For compatibility with components expecting certain fields
   return {
+    subscription,
+    loading,
+    isBasic,
     isPremium,
-    isBasic: !isPremium,
-    subscribe,
-    cancelSubscription,
-    isLoading,
-    subscriptionPlan
+    currentPlan,
+    userPoints,
+    plan: subscription?.planType || 'free',
+    expiresAt: expiresAtDate.toISOString(),
+    features: isPremium ? 
+      ['pdf_export', 'ai_chat', 'video_analysis', 'premium_modules'] : 
+      ['ai_chat_basic']
   };
 };

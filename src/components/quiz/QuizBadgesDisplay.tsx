@@ -15,15 +15,12 @@ const QuizBadgesDisplay: React.FC<QuizBadgesDisplayProps> = ({ badges }) => {
       <div className="flex flex-wrap justify-center gap-4">
         {badges.map((badge) => {
           const IconComponent = badge.icon && badge.icon.icon ? badge.icon.icon : null;
-          
           return (
             <div
               key={badge.id}
               className="flex flex-col items-center bg-white rounded-lg p-3 shadow-sm w-28"
             >
-              {IconComponent && (
-                <IconComponent className={badge.icon?.className ?? "h-6 w-6 text-gray-500"} />
-              )}
+              {IconComponent && <IconComponent className={badge.icon && badge.icon.className ? badge.icon.className : ""} />}
               <span className="text-sm font-medium mt-1 text-center">
                 {badge.name}
               </span>

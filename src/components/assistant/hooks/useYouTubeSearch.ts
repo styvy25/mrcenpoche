@@ -1,141 +1,192 @@
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { searchMRCVideos, getVideoInfo } from "../services/youtubeService";
+import { extractVideoId, generateDownloadLinks } from "../services/youtube/videoDownloader";
+import { Message } from "../types/message";
 
-import { useState, useCallback } from 'react';
-import * as youtubeApiService from '../services/youtubeApiService';
+export function useYouTubeSearch() {
+  const [youtubeResults, setYoutubeResults] = useState<any[]>([]);
+  const [isSearchingYouTube, setIsSearchingYouTube] = useState(false);
+  const [downloadLinks, setDownloadLinks] = useState<any>(null);
+  const { toast } = useToast();
 
-interface YouTubeSearchResult {
-  id: {
-    videoId: string;
-  };
-  snippet: {
-    title: string;
-    description: string;
-    thumbnails: {
-      medium: {
-        url: string;
-      };
-    };
-    channelTitle: string;
-    publishedAt: string;
-  };
-}
-
-export interface VideoDetails {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  channelName: string;
-  publishDate: string;
-  statistics?: {
-    viewCount?: string;
-    likeCount?: string;
-  };
-}
-
-export interface UseYouTubeSearchReturn {
-  results: VideoDetails[];
-  isLoading: boolean;
-  error: string | null;
-  searchYouTube: (query: string) => Promise<VideoDetails[]>;
-  getVideoDetails: (videoId: string) => Promise<VideoDetails | null>;
-}
-
-export const useYouTubeSearch = (): UseYouTubeSearchReturn => {
-  const [results, setResults] = useState<VideoDetails[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const searchYouTube = useCallback(async (query: string): Promise<VideoDetails[]> => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Check if API key is available
-      const apiKey = youtubeApiService.getYouTubeApiKey();
-      if (!apiKey) {
-        throw new Error('YouTube API key is not available');
-      }
-      
-      const searchResults = await youtubeApiService.searchYouTube(query);
-      
-      if ('error' in searchResults) {
-        throw new Error(searchResults.error?.message || 'Failed to search YouTube');
-      }
-      
-      // Convert to our format
-      const formattedResults: VideoDetails[] = searchResults.map((item: YouTubeSearchResult) => ({
-        id: item.id.videoId,
-        title: item.snippet.title,
-        description: item.snippet.description,
-        thumbnail: item.snippet.thumbnails.medium.url,
-        channelName: item.snippet.channelTitle,
-        publishDate: item.snippet.publishedAt
-      }));
-      
-      setResults(formattedResults);
-      return formattedResults;
-    } catch (err: any) {
-      const errorMessage = err.message || 'An error occurred during YouTube search';
-      setError(errorMessage);
-      console.error('YouTube search error:', err);
-      return [];
-    } finally {
-      setIsLoading(false);
+  const handleYouTubeSearch = async (query: string, isOnline: boolean) => {
+    if (!isOnline) {
+      toast({
+        title: "Fonctionnalité non disponible",
+        description: "La recherche YouTube n'est pas disponible en mode hors-ligne.",
+        variant: "destructive",
+      });
+      return;
     }
-  }, []);
-
-  const getVideoDetails = useCallback(async (videoId: string): Promise<VideoDetails | null> => {
-    setIsLoading(true);
-    setError(null);
     
-    try {
-      // Check if API key is available
-      const apiKey = youtubeApiService.getYouTubeApiKey();
-      if (!apiKey) {
-        throw new Error('YouTube API key is not available');
-      }
-      
-      const videoDetails = await youtubeApiService.getVideoDetails(videoId);
-      
-      if ('error' in videoDetails || !videoDetails) {
-        throw new Error(
-          'error' in videoDetails ? 
-          videoDetails.error?.message || 'Failed to get video details' : 
-          'Video details not found'
-        );
-      }
-      
-      const details: VideoDetails = {
-        id: videoDetails.id,
-        title: videoDetails.snippet.title,
-        description: videoDetails.snippet.description,
-        thumbnail: videoDetails.snippet.thumbnails?.maxres?.url || 
-                  videoDetails.snippet.thumbnails?.high?.url || 
-                  videoDetails.snippet.thumbnails?.medium?.url,
-        channelName: videoDetails.snippet.channelTitle,
-        publishDate: videoDetails.snippet.publishedAt,
-        statistics: {
-          viewCount: videoDetails.statistics?.viewCount,
-          likeCount: videoDetails.statistics?.likeCount
+    // Check if input looks like a YouTube URL
+    const videoId = extractVideoId(query);
+    if (videoId) {
+      // Process as direct video URL
+      try {
+        const { getYouTubeApiKey } = await import("../services/youtubeApiService");
+        const apiKey = await getYouTubeApiKey();
+        
+        if (!apiKey) {
+          toast({
+            title: "Configuration requise",
+            description: "Veuillez d'abord configurer votre clé API YouTube dans les paramètres.",
+            variant: "destructive",
+          });
+          return;
         }
-      };
+        
+        setIsSearchingYouTube(true);
+        
+        // Get video details
+        const videoInfo = await getVideoInfo(apiKey, videoId);
+        
+        // Create a single result with the video
+        const video = {
+          id: videoId,
+          title: videoInfo.title,
+          description: videoInfo.description,
+          thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+          publishedAt: new Date().toISOString()
+        };
+        
+        setYoutubeResults([video]);
+        
+        // Generate download links
+        const links = generateDownloadLinks(videoId);
+        setDownloadLinks(links);
+        
+        toast({
+          title: "Vidéo trouvée",
+          description: "Les liens de téléchargement sont disponibles",
+        });
+      } catch (error) {
+        console.error("Error processing video URL:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de traiter cette URL vidéo",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSearchingYouTube(false);
+      }
+      return;
+    }
+    
+    // Regular search query
+    const { getYouTubeApiKey } = await import("../services/youtubeApiService");
+    const apiKey = await getYouTubeApiKey();
+    
+    if (!apiKey) {
+      toast({
+        title: "Configuration requise",
+        description: "Veuillez configurer votre clé API YouTube dans les paramètres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSearchingYouTube(true);
+    try {
+      const videos = await searchMRCVideos(apiKey, query);
+      setYoutubeResults(videos);
+      setDownloadLinks(null); // Reset download links for regular search
+    } catch (error) {
+      toast({
+        title: "Erreur YouTube",
+        description: "Impossible de récupérer les vidéos. Vérifiez votre clé API YouTube.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearchingYouTube(false);
+    }
+  };
+
+  const handleVideoSelect = async (videoId: string, isOnline: boolean, setIsLoading: (value: boolean) => void, setMessages: React.Dispatch<React.SetStateAction<Message[]>>) => {
+    if (!isOnline) {
+      toast({
+        title: "Fonctionnalité non disponible",
+        description: "L'analyse de vidéos n'est pas disponible en mode hors-ligne.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const { getYouTubeApiKey } = await import("../services/youtubeApiService");
+    const youtubeKey = await getYouTubeApiKey();
+    
+    if (!youtubeKey) {
+      toast({
+        title: "Configuration requise",
+        description: "Veuillez configurer votre clé API YouTube dans les paramètres.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const apiKeys = localStorage.getItem("api_keys");
+    if (!apiKeys) return;
+
+    const { perplexity } = JSON.parse(apiKeys);
+    if (!perplexity) {
+      toast({
+        title: "Clé Perplexity manquante",
+        description: "Veuillez configurer votre clé API Perplexity dans les paramètres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const videoInfo = await getVideoInfo(youtubeKey, videoId);
       
-      return details;
-    } catch (err: any) {
-      const errorMessage = err.message || 'An error occurred while getting video details';
-      setError(errorMessage);
-      console.error('YouTube video details error:', err);
-      return null;
+      // Generate download links
+      const links = generateDownloadLinks(videoId);
+      setDownloadLinks(links);
+      
+      const systemMessage: Message = {
+        role: "assistant",
+        content: `Analyse de la vidéo: "${videoInfo.title}"\n\nJe suis en train d'examiner le contenu de cette vidéo...`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, systemMessage]);
+
+      const prompt = `Analyse cette vidéo YouTube du MRC intitulée "${videoInfo.title}". 
+                     Description: ${videoInfo.description}
+                     ${videoInfo.transcript ? `Transcription: ${videoInfo.transcript}` : ''}
+                     
+                     Fais un résumé des points clés, identifie les messages politiques principaux et explique comment cette vidéo s'inscrit dans la stratégie de communication du MRC.`;
+      
+      const { getPerplexityResponse } = await import("../services/perplexityService");
+      const analysisContent = await getPerplexityResponse(perplexity, prompt);
+      
+      const analysisMessage: Message = {
+        role: "assistant",
+        content: analysisContent,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, analysisMessage]);
+    } catch (error) {
+      toast({
+        title: "Erreur d'analyse",
+        description: "Impossible d'analyser cette vidéo. Veuillez réessayer.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
   return {
-    results,
-    isLoading,
-    error,
-    searchYouTube,
-    getVideoDetails
+    youtubeResults,
+    isSearchingYouTube,
+    downloadLinks,
+    handleYouTubeSearch,
+    handleVideoSelect,
+    setYoutubeResults,
+    setDownloadLinks
   };
-};
+}

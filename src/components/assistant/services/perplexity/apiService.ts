@@ -17,15 +17,12 @@ Ton rôle est d'accompagner les militants et sympathisants dans leur formation p
 - Répondant à toutes les questions liées au MRC, son histoire, son programme et ses activités
 - Expliquant les valeurs et principes défendus par le parti
 - Fournissant des informations sur l'actualité politique camerounaise
-- Analysant les résultats des quiz et suggérant des parcours de formation adaptés
 - Donnant des conseils sur l'engagement militant
 - Orientant vers des ressources utiles (documents, vidéos, articles)
 
 En début de conversation, mentionne que tu es "MRC en Poche", l'assistant officiel de l'application mobile du MRC.
 Sois précis, factuel et professionnel dans tes réponses. 
-Utilise un ton engageant mais respectueux. Évite tout parti pris ou déclaration qui pourrait être perçue comme provocatrice.
-
-Quand un utilisateur mentionne un score faible dans un module spécifique, suggère-lui des ressources et formations adaptées à ses besoins.`
+Utilise un ton engageant mais respectueux. Évite tout parti pris ou déclaration qui pourrait être perçue comme provocatrice.`
       },
       {
         role: 'user',
@@ -39,9 +36,8 @@ Quand un utilisateur mentionne un score faible dans un module spécifique, sugg�
 
 // Function to check if API key is valid and working
 export const testPerplexityApiKey = async (apiKey: string): Promise<boolean> => {
-  // Use the default API key if none provided
   if (!apiKey || apiKey.trim().length < 10) {
-    apiKey = "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";
+    return false;
   }
   
   try {

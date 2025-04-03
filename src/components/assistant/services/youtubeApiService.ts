@@ -1,68 +1,112 @@
 
-import { getApiKeysWithDefaults } from '@/services/supabaseService';
+/**
+ * Service for managing YouTube API keys
+ */
 
-// YouTube API Key Management
-export const getYouTubeApiKey = (): string => {
+import { supabase } from "@/integrations/supabase/client";
+
+// Get the YouTube API key from Supabase or localStorage
+export const getYouTubeApiKey = async (): Promise<string | null> => {
   try {
-    const keys = getApiKeysWithDefaults();
-    return keys.YOUTUBE_API_KEY || '';
+    // Try to get the key from localStorage first
+    const localApiKeys = localStorage.getItem("api_keys");
+    if (localApiKeys) {
+      const { youtube } = JSON.parse(localApiKeys);
+      if (youtube) return youtube;
+    }
+
+    // If not in localStorage, try to get from Supabase if user is logged in
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session) {
+      const { data, error } = await supabase
+        .from('api_keys_config')
+        .select('youtube_key')
+        .eq('user_id', sessionData.session.user.id)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching YouTube API key:", error);
+        return null;
+      }
+      
+      if (data && data.youtube_key) {
+        // Update localStorage for faster access next time
+        updateLocalStorageApiKey('youtube', data.youtube_key);
+        return data.youtube_key;
+      }
+    }
+    
+    // Fallback to default key
+    const defaultKey = '4e63f34b-ce2e-b148-452d-5f6ad73e9f1a';
+    if (defaultKey) {
+      updateLocalStorageApiKey('youtube', defaultKey);
+      return defaultKey;
+    }
+    
+    return null;
   } catch (error) {
-    console.error('Error retrieving YouTube API key:', error);
-    return '';
+    console.error("Error retrieving YouTube API key:", error);
+    return null;
   }
 };
 
-// Base YouTube API URL
-const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
-
-// Search YouTube videos
-export const searchYouTube = async (query: string, maxResults = 5) => {
-  const apiKey = getYouTubeApiKey();
-  if (!apiKey) {
-    return { error: 'No YouTube API key available' };
-  }
-
+// Save YouTube API key to both Supabase and localStorage
+export const saveYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
   try {
-    const searchUrl = `${YOUTUBE_API_BASE_URL}/search?part=snippet&q=${encodeURIComponent(
-      query
-    )}&maxResults=${maxResults}&type=video&key=${apiKey}`;
-
-    const response = await fetch(searchUrl);
-    const data = await response.json();
-
-    if (data.error) {
-      console.error('YouTube API error:', data.error);
-      return { error: data.error };
+    // Always save to localStorage
+    updateLocalStorageApiKey('youtube', apiKey);
+    
+    // Save to Supabase if user is logged in
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      // If not logged in, just save to localStorage is enough
+      return true;
     }
-
-    return data.items || [];
+    
+    // Check if record exists
+    const { data: existingData } = await supabase
+      .from('api_keys_config')
+      .select('id')
+      .eq('user_id', sessionData.session.user.id)
+      .single();
+    
+    let result;
+    
+    if (existingData) {
+      // Update existing record
+      result = await supabase
+        .from('api_keys_config')
+        .update({ youtube_key: apiKey })
+        .eq('user_id', sessionData.session.user.id);
+    } else {
+      // Insert new record
+      result = await supabase
+        .from('api_keys_config')
+        .insert({ 
+          user_id: sessionData.session.user.id,
+          youtube_key: apiKey 
+        });
+    }
+    
+    if (result.error) {
+      console.error("Error saving YouTube API key:", result.error);
+      return false;
+    }
+    
+    return true;
   } catch (error) {
-    console.error('Error searching YouTube:', error);
-    return { error: 'Failed to search YouTube' };
+    console.error("Error saving YouTube API key:", error);
+    return false;
   }
 };
 
-// Get video details
-export const getVideoDetails = async (videoId: string) => {
-  const apiKey = getYouTubeApiKey();
-  if (!apiKey) {
-    return { error: 'No YouTube API key available' };
-  }
-
+// Helper to update API keys in localStorage
+const updateLocalStorageApiKey = (service: string, value: string) => {
   try {
-    const detailsUrl = `${YOUTUBE_API_BASE_URL}/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${apiKey}`;
-
-    const response = await fetch(detailsUrl);
-    const data = await response.json();
-
-    if (data.error) {
-      console.error('YouTube API error:', data.error);
-      return { error: data.error };
-    }
-
-    return data.items?.[0] || null;
+    const apiKeys = JSON.parse(localStorage.getItem("api_keys") || "{}");
+    apiKeys[service] = value;
+    localStorage.setItem("api_keys", JSON.stringify(apiKeys));
   } catch (error) {
-    console.error('Error fetching video details:', error);
-    return { error: 'Failed to fetch video details' };
+    console.error("Error updating localStorage API key:", error);
   }
 };

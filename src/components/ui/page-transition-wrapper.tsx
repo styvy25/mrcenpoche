@@ -10,33 +10,25 @@ interface PageTransitionWrapperProps {
 const PageTransitionWrapper: React.FC<PageTransitionWrapperProps> = ({ children, className = "" }) => {
   // State to track if page is ready to be shown
   const [isReady, setIsReady] = useState(false);
-  const [key, setKey] = useState(Date.now());
   
   // Set ready state after a short delay to ensure smooth transitions
   useEffect(() => {
-    // Reset key when children change to force re-render
-    setKey(Date.now());
-    setIsReady(false);
-    
     const timer = setTimeout(() => {
       setIsReady(true);
     }, 100);
     
     return () => clearTimeout(timer);
-  }, [children]);
+  }, []);
   
   return (
     <AnimatePresence mode="wait">
       {isReady && (
         <motion.div
-          key={`page-content-${key}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ 
-            duration: 0.3,
-            ease: "easeInOut"
-          }}
+          key="page-content"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
           className={`${className} no-flicker`}
         >
           {children}

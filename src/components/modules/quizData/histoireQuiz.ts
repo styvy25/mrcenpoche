@@ -1,73 +1,63 @@
 
-import { ModuleQuestion } from '../types';
+import { Module } from "../types";
 
-// Module quiz questions about histoire (history)
-const histoireQuiz: ModuleQuestion[] = [
-  {
-    id: "histoire-1",
-    text: "Quand le MRC a-t-il été fondé?",
-    answer: "2012",
-    options: [
-      { id: "a", text: "2008" },
-      { id: "b", text: "2010" },
-      { id: "c", text: "2012" },
-      { id: "d", text: "2015" }
-    ],
-    correctOptionId: "c",
-    explanation: "Le Mouvement pour la Renaissance du Cameroun (MRC) a été fondé en 2012 par Maurice Kamto."
-  },
-  {
-    id: "histoire-2",
-    text: "Qui est le fondateur du MRC?",
-    answer: "Maurice Kamto",
-    options: [
-      { id: "a", text: "John Fru Ndi" },
-      { id: "b", text: "Maurice Kamto" },
-      { id: "c", text: "Cabral Libii" },
-      { id: "d", text: "Joshua Osih" }
-    ],
-    correctOptionId: "b",
-    explanation: "Maurice Kamto est le fondateur et président du Mouvement pour la Renaissance du Cameroun (MRC)."
-  },
-  {
-    id: "histoire-3",
-    text: "Quel était le slogan principal du MRC lors des élections de 2018?",
-    answer: "La Solution",
-    options: [
-      { id: "a", text: "Le Changement" },
-      { id: "b", text: "L'Avenir" },
-      { id: "c", text: "La Solution" },
-      { id: "d", text: "Le Progrès" }
-    ],
-    correctOptionId: "c",
-    explanation: "Le slogan 'La Solution' était le principal message de campagne du MRC lors des élections présidentielles de 2018."
-  },
-  {
-    id: "histoire-4",
-    text: "En quelle année Maurice Kamto s'est-il présenté pour la première fois aux élections présidentielles?",
-    answer: "2018",
-    options: [
-      { id: "a", text: "2011" },
-      { id: "b", text: "2015" },
-      { id: "c", text: "2018" },
-      { id: "d", text: "2020" }
-    ],
-    correctOptionId: "c",
-    explanation: "Maurice Kamto s'est présenté pour la première fois aux élections présidentielles camerounaises en 2018."
-  },
-  {
-    id: "histoire-5",
-    text: "Quelle fonction gouvernementale Maurice Kamto a-t-il occupée avant de fonder le MRC?",
-    answer: "Ministre délégué à la Justice",
-    options: [
-      { id: "a", text: "Ministre de l'Éducation" },
-      { id: "b", text: "Ministre délégué à la Justice" },
-      { id: "c", text: "Ministre des Finances" },
-      { id: "d", text: "Ministre de la Défense" }
-    ],
-    correctOptionId: "b",
-    explanation: "Avant de fonder le MRC, Maurice Kamto a été Ministre délégué à la Justice du Cameroun."
-  }
-];
-
-export default histoireQuiz;
+export const histoireQuiz: Module = {
+  id: "histoire",
+  title: "Histoire et Valeurs du MRC",
+  description: "Testez vos connaissances sur l'histoire et les valeurs fondamentales du MRC",
+  progress: 0,
+  duration: "15 min",
+  level: "Débutant",
+  isPdfAvailable: false,
+  isCompleted: false,
+  overview: "Ce quiz teste vos connaissances sur l'histoire et les valeurs du MRC",
+  lessons: [],
+  questions: [
+    {
+      id: 101,
+      question: "En quelle année le MRC a-t-il été créé ?",
+      options: ["2008", "2010", "2012", "2013"],
+      correctAnswer: 2,
+      explanation: "Le Mouvement pour la Renaissance du Cameroun (MRC) a été créé en 2012 par Maurice Kamto et d'autres personnalités.",
+      category: "histoire",
+      difficulty: "facile"
+    },
+    {
+      id: 102,
+      question: "Qui est le fondateur principal du MRC ?",
+      options: ["Paul Biya", "Joshua Osih", "Maurice Kamto", "John Fru Ndi"],
+      correctAnswer: 2,
+      explanation: "Maurice Kamto est le fondateur principal et actuel président du MRC.",
+      category: "histoire",
+      difficulty: "facile",
+      imageSrc: "/lovable-uploads/0a7e7325-0ab5-4f67-b830-1e1b22984ac8.png"
+    },
+    {
+      id: 103,
+      question: "Quelle est la devise du MRC ?",
+      options: ["Le Peuple D'abord", "Unité, Progrès, Démocratie", "Liberté, Égalité, Fraternité", "Renaissance et Progrès"],
+      correctAnswer: 0,
+      explanation: "La devise du MRC est 'Le Peuple D'abord', reflétant son engagement envers les intérêts des citoyens camerounais.",
+      category: "histoire",
+      difficulty: "moyen"
+    },
+    {
+      id: 104,
+      question: "Quel est le symbole principal du MRC ?",
+      options: ["Un lion", "Un arbre", "Une étoile", "Une colombe"],
+      correctAnswer: 1,
+      explanation: "L'arbre est le symbole principal du MRC, représentant l'enracinement, la croissance et la renaissance.",
+      category: "histoire",
+      difficulty: "moyen"
+    },
+    {
+      id: 105,
+      question: "Quel poste gouvernemental Maurice Kamto a-t-il occupé avant de fonder le MRC ?",
+      options: ["Ministre de la Justice", "Ministre des Finances", "Ministre des Relations Extérieures", "Premier Ministre"],
+      correctAnswer: 0,
+      explanation: "Maurice Kamto a été Ministre Délégué à la Justice du Cameroun avant de fonder le MRC.",
+      category: "histoire",
+      difficulty: "difficile"
+    }
+  ]
+};

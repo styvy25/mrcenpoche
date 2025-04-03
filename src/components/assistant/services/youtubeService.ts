@@ -1,175 +1,198 @@
 
-import { getYouTubeApiKey } from './youtubeApiService';
-import { searchCacheByQuery, cacheSearchResults, getCachedVideoDetails, cacheVideoDetails } from './youtube/cacheManager';
-import { getOfflineSearchResults, getOfflineVideoDetails } from './youtube/offlineData';
-import { YouTubeSearchResult, YouTubeVideoDetails, VideoDownloadService } from './youtube/types';
+/**
+ * Service pour interagir avec l'API YouTube
+ */
 
-// YouTube API constants
-const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
-const DEFAULT_MAX_RESULTS = 5;
+import { 
+  searchMRCVideos as searchMRCVideosInternal, 
+  getVideoInfo as getVideoInfoDirect,
+  getVideoDetails,
+  getVideoTranscript,
+  retrieveVideoInfoFromCache,
+  cacheVideoInfo,
+  refreshCache,
+  YouTubeVideo, 
+  VideoInfo,
+  isOnline,
+  YouTubeErrorType
+} from "./youtube";
 
-// Mock implementation of video download service
-const videoDownloadService: VideoDownloadService = {
-  downloadVideo: async (videoId: string, format: string) => {
+// Re-export everything from the youtube module
+export * from './youtube';
+
+/**
+ * Recherche des vidéos du MRC sur YouTube avec gestion d'erreurs améliorée
+ */
+export const searchMRCVideos = async (apiKey: string, query: string): Promise<YouTubeVideo[]> => {
+  try {
+    // Check if online
+    if (!isOnline()) {
+      console.log("Device is offline. Using fallback videos.");
+      return (await import("./youtube/offlineData")).offlineVideos;
+    }
+
+    // If no API key is provided, try to get the default one
+    if (!apiKey) {
+      const { getYouTubeApiKey } = await import('./youtubeApiService');
+      const defaultKey = await getYouTubeApiKey();
+      if (!defaultKey) {
+        throw {
+          type: YouTubeErrorType.INVALID_API_KEY,
+          message: "Aucune clé API YouTube n'a été fournie"
+        };
+      }
+      apiKey = defaultKey;
+    }
+
+    return await searchMRCVideosInternal(apiKey, query);
+  } catch (error: any) {
+    console.error("Error searching MRC videos:", error);
+    
+    // Handle specific error types
+    if (error.type) {
+      switch (error.type) {
+        case YouTubeErrorType.NETWORK_ERROR:
+          console.log("Network error, falling back to offline content");
+          // Attempt to get offline content
+          return (await import("./youtube/offlineData")).offlineVideos;
+        default:
+          // For other errors, return empty array
+          return [];
+      }
+    }
+    
+    return [];
+  }
+};
+
+/**
+ * Récupère les informations d'une vidéo (title, description, transcript)
+ * avec gestion d'erreurs améliorée
+ */
+export const getVideoInfo = async (apiKey: string, videoId: string): Promise<VideoInfo> => {
+  try {
+    // Check if online
+    if (!isOnline()) {
+      console.log("Device is offline. Using fallback video info.");
+      return {
+        title: "Contenu MRC (Mode hors-ligne)",
+        description: "Ce contenu est disponible en mode hors-ligne. Connectez-vous à Internet pour accéder à plus de contenu.",
+        transcript: "Transcription non disponible en mode hors-ligne. Veuillez vous connecter à Internet pour accéder aux transcriptions."
+      };
+    }
+
+    // Check cache first
+    const cachedInfo = await retrieveVideoInfoFromCache(videoId);
+    if (cachedInfo) {
+      return cachedInfo;
+    }
+
+    // If not in cache, fetch from API
+    const videoDetails = await getVideoDetails(apiKey, videoId);
+    const transcript = await getVideoTranscript(apiKey, videoId);
+    
+    const videoInfo = {
+      title: videoDetails.title,
+      description: videoDetails.description,
+      transcript
+    };
+    
+    // Cache the result
+    await cacheVideoInfo(videoId, videoInfo);
+    
+    return videoInfo;
+  } catch (error: any) {
+    console.error("Error getting video info:", error);
+    
+    // Handle specific error types for better user experience
+    if (error.type) {
+      switch (error.type) {
+        case YouTubeErrorType.NETWORK_ERROR:
+          return {
+            title: "Mode hors-ligne",
+            description: "Vous êtes actuellement hors-ligne. Reconnectez-vous pour accéder à cette vidéo.",
+            transcript: "Transcription non disponible en mode hors-ligne."
+          };
+        case YouTubeErrorType.QUOTA_EXCEEDED:
+          return {
+            title: "Quota API dépassé",
+            description: "Le quota quotidien pour l'API YouTube a été dépassé. Veuillez réessayer plus tard.",
+            transcript: "Transcription non disponible."
+          };
+        case YouTubeErrorType.INVALID_API_KEY:
+          return {
+            title: "Clé API invalide",
+            description: "La clé API YouTube utilisée est invalide. Veuillez vérifier vos paramètres.",
+            transcript: "Transcription non disponible."
+          };
+        default:
+          return {
+            title: "Erreur de chargement",
+            description: "Une erreur s'est produite lors du chargement des informations de la vidéo.",
+            transcript: "Transcription non disponible suite à une erreur."
+          };
+      }
+    }
+    
     return {
-      success: true,
-      message: 'Video download simulation successful',
-      url: `https://example.com/download/${videoId}?format=${format}`
-    };
-  },
-  getDownloadFormats: async (videoId: string) => {
-    return ['mp4', 'mp3', 'webm'];
-  }
-};
-
-/**
- * Search YouTube videos
- */
-export const searchYouTube = async (
-  query: string,
-  options = { maxResults: DEFAULT_MAX_RESULTS, useCache: true, offlineMode: false }
-): Promise<{ results: YouTubeSearchResult[], error?: string }> => {
-  // Check for offline mode first
-  if (options.offlineMode) {
-    return { 
-      results: getOfflineSearchResults(query)
-    };
-  }
-  
-  // Check cache if enabled
-  if (options.useCache) {
-    const cachedResults = searchCacheByQuery(query);
-    if (cachedResults) {
-      return { results: cachedResults };
-    }
-  }
-
-  // Get API key
-  const apiKey = getYouTubeApiKey();
-  if (!apiKey) {
-    console.warn('YouTube API key not available, falling back to offline mode');
-    return { 
-      results: getOfflineSearchResults(query)
-    };
-  }
-
-  try {
-    const searchUrl = `${YOUTUBE_API_BASE_URL}/search?part=snippet&q=${encodeURIComponent(
-      query
-    )}&maxResults=${options.maxResults}&type=video&key=${apiKey}`;
-
-    const response = await fetch(searchUrl);
-    const data = await response.json();
-
-    if (data.error) {
-      console.error('YouTube API error:', data.error);
-      return { 
-        results: getOfflineSearchResults(query),
-        error: data.error.message || 'Failed to search YouTube'
-      };
-    }
-
-    const results: YouTubeSearchResult[] = (data.items || []).map((item: any) => ({
-      id: item.id.videoId,
-      title: item.snippet.title,
-      description: item.snippet.description,
-      thumbnail: item.snippet.thumbnails.default.url,
-      channelTitle: item.snippet.channelTitle,
-      publishedAt: item.snippet.publishedAt
-    }));
-
-    // Cache results if caching is enabled
-    if (options.useCache && results.length > 0) {
-      cacheSearchResults(query, results);
-    }
-
-    return { results };
-  } catch (error: any) {
-    console.error('Error searching YouTube:', error);
-    return { 
-      results: getOfflineSearchResults(query),
-      error: error.message || 'Failed to search YouTube'
+      title: "Video information unavailable",
+      description: "Could not retrieve video details",
+      transcript: "Transcript unavailable"
     };
   }
 };
 
 /**
- * Get YouTube video details
+ * Rafraîchit le cache YouTube avec gestion d'erreurs améliorée
  */
-export const getVideoDetails = async (
-  videoId: string,
-  options = { useCache: true, offlineMode: false }
-): Promise<{ details: YouTubeVideoDetails | null, error?: string }> => {
-  // Check for offline mode first
-  if (options.offlineMode) {
-    return { 
-      details: getOfflineVideoDetails(videoId)
-    };
-  }
-  
-  // Check cache if enabled
-  if (options.useCache) {
-    const cachedDetails = getCachedVideoDetails(videoId);
-    if (cachedDetails) {
-      return { details: cachedDetails };
-    }
-  }
-
-  // Get API key
-  const apiKey = getYouTubeApiKey();
-  if (!apiKey) {
-    console.warn('YouTube API key not available, falling back to offline mode');
-    return { 
-      details: getOfflineVideoDetails(videoId)
-    };
-  }
-
+export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
   try {
-    const detailsUrl = `${YOUTUBE_API_BASE_URL}/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${apiKey}`;
-
-    const response = await fetch(detailsUrl);
-    const data = await response.json();
-
-    if (data.error) {
-      console.error('YouTube API error:', data.error);
-      return { 
-        details: getOfflineVideoDetails(videoId),
-        error: data.error.message || 'Failed to fetch video details'
-      };
+    // Check connection status first
+    if (!isOnline()) {
+      console.log("Cannot refresh cache while offline");
+      return false;
     }
-
-    if (!data.items || data.items.length === 0) {
-      return { details: null, error: 'Video not found' };
+    
+    // If no API key is provided, try to get the default one
+    if (!apiKey) {
+      const { getYouTubeApiKey } = await import('./youtubeApiService');
+      const defaultKey = await getYouTubeApiKey();
+      if (!defaultKey) {
+        throw {
+          type: YouTubeErrorType.INVALID_API_KEY,
+          message: "Aucune clé API YouTube n'a été fournie"
+        };
+      }
+      apiKey = defaultKey;
     }
-
-    const item = data.items[0];
-    const details: YouTubeVideoDetails = {
-      id: item.id,
-      title: item.snippet.title,
-      description: item.snippet.description,
-      publishedAt: item.snippet.publishedAt,
-      channelTitle: item.snippet.channelTitle,
-      viewCount: item.statistics.viewCount || '0',
-      likeCount: item.statistics.likeCount || '0',
-      dislikeCount: item.statistics.dislikeCount || '0',
-      duration: item.contentDetails.duration,
-      tags: item.snippet.tags || []
-    };
-
-    // Cache details if caching is enabled
-    if (options.useCache) {
-      cacheVideoDetails(videoId, details);
-    }
-
-    return { details };
-  } catch (error: any) {
-    console.error('Error fetching video details:', error);
-    return { 
-      details: getOfflineVideoDetails(videoId),
-      error: error.message || 'Failed to fetch video details'
-    };
+    
+    await refreshCache(apiKey);
+    return true;
+  } catch (error) {
+    console.error("Error refreshing YouTube cache:", error);
+    return false;
   }
 };
 
-// Export the video download service
-export { videoDownloadService };
+// Test the YouTube API key to validate it works
+export const testYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
+  try {
+    if (!apiKey) return false;
+    
+    // Make a simple request to validate the key
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&maxResults=1&key=${apiKey}`
+    );
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("YouTube API key validation failed:", errorData);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error testing YouTube API key:", error);
+    return false;
+  }
+};
