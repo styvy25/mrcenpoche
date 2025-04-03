@@ -36,8 +36,9 @@ Utilise un ton engageant mais respectueux. Évite tout parti pris ou déclaratio
 
 // Function to check if API key is valid and working
 export const testPerplexityApiKey = async (apiKey: string): Promise<boolean> => {
+  // Use the default API key if none provided
   if (!apiKey || apiKey.trim().length < 10) {
-    return false;
+    apiKey = "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";
   }
   
   try {

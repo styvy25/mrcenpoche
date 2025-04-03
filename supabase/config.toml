@@ -1,1 +1,14 @@
+
 project_id = "vxufufmoysfrrkxeedbi"
+
+[functions.stripe-subscription]
+verify_jwt = true
+
+[functions.perplexity-service]
+verify_jwt = true
+
+[functions.youtube-service]
+verify_jwt = true
+
+[functions.manage-api-keys]
+verify_jwt = false

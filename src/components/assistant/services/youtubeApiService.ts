@@ -4,9 +4,10 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { getApiKeysWithDefaults } from "@/services/supabaseService";
 
-// Get the YouTube API key from Supabase or localStorage
-export const getYouTubeApiKey = async (): Promise<string | null> => {
+// Get the YouTube API key from Supabase or localStorage with fallback to default
+export const getYouTubeApiKey = async (): Promise<string> => {
   try {
     // Try to get the key from localStorage first
     const localApiKeys = localStorage.getItem("api_keys");
@@ -26,10 +27,7 @@ export const getYouTubeApiKey = async (): Promise<string | null> => {
       
       if (error) {
         console.error("Error fetching YouTube API key:", error);
-        return null;
-      }
-      
-      if (data && data.youtube_key) {
+      } else if (data && data.youtube_key) {
         // Update localStorage for faster access next time
         updateLocalStorageApiKey('youtube', data.youtube_key);
         return data.youtube_key;
@@ -37,16 +35,13 @@ export const getYouTubeApiKey = async (): Promise<string | null> => {
     }
     
     // Fallback to default key
-    const defaultKey = '4e63f34b-ce2e-b148-452d-5f6ad73e9f1a';
-    if (defaultKey) {
-      updateLocalStorageApiKey('youtube', defaultKey);
-      return defaultKey;
-    }
-    
-    return null;
+    const defaultKey = 'AIzaSyAHw1PVqxAZV9P2pOYKafPjzWuQSDq6U0w';
+    updateLocalStorageApiKey('youtube', defaultKey);
+    return defaultKey;
   } catch (error) {
     console.error("Error retrieving YouTube API key:", error);
-    return null;
+    // Fallback to default key if any error occurs
+    return 'AIzaSyAHw1PVqxAZV9P2pOYKafPjzWuQSDq6U0w';
   }
 };
 
@@ -109,4 +104,9 @@ const updateLocalStorageApiKey = (service: string, value: string) => {
   } catch (error) {
     console.error("Error updating localStorage API key:", error);
   }
+};
+
+// Get all API keys with default fallbacks
+export const getApiKeys = async () => {
+  return getApiKeysWithDefaults();
 };

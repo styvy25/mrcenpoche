@@ -10,6 +10,12 @@ export interface UseSubscriptionReturn {
   loading: boolean;
   error: string | null;
   refreshStatus: () => Promise<void>;
+  plan?: string;
+  currentPlan?: {
+    name: string;
+    priceId: string;
+    expires?: Date;
+  };
 }
 
 export const useSubscription = (): UseSubscriptionReturn => {
@@ -55,11 +61,21 @@ export const useSubscription = (): UseSubscriptionReturn => {
     };
   }, [user?.id]);
   
+  // Extract plan information from the subscription status
+  const plan = subscriptionStatus?.plan || 'free';
+  const currentPlan = subscriptionStatus?.status === 'active' ? {
+    name: subscriptionStatus.plan || 'Premium',
+    priceId: subscriptionStatus.subscriptionId || 'price_free',
+    expires: subscriptionStatus.currentPeriodEnd
+  } : undefined;
+  
   return {
     isPremium: subscriptionStatus?.status === 'active',
     subscriptionStatus,
     loading,
     error,
-    refreshStatus: fetchSubscriptionStatus
+    refreshStatus: fetchSubscriptionStatus,
+    plan,
+    currentPlan
   };
 };
