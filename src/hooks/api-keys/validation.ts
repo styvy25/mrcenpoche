@@ -1,5 +1,6 @@
 
 import { ApiKeys, ApiKeyStatus } from "./types";
+import { testPerplexityApiKey } from "@/components/assistant/services/perplexity/apiService";
 
 // Check a Perplexity API Key format
 const isValidPerplexityKey = (key: string): boolean => {
@@ -32,10 +33,14 @@ export const validateApiKeys = async (
     const isYouTubeValid = isValidYouTubeKey(youtubeKey);
     const isStripeValid = stripeKey ? isValidStripeKey(stripeKey) : false;
 
-    // Server validation (optional, can be added later)
-    // For now, just return the local validation results
+    // Server validation for Perplexity API key
+    let isPerplexityServerValid = false;
+    if (isPerplexityValid) {
+      isPerplexityServerValid = await testPerplexityApiKey(perplexityKey);
+    }
+
     return {
-      perplexity: isPerplexityValid,
+      perplexity: isPerplexityServerValid,
       youtube: isYouTubeValid,
       stripe: isStripeValid,
     };

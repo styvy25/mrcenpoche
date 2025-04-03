@@ -79,6 +79,71 @@ export function useMessageHandler() {
 
     const { perplexity, youtube } = JSON.parse(apiKeys);
     
+    // Check if the message is about quiz results analysis
+    const quizKeywords = ["quiz", "score", "résultat", "obtenu", "note", "test", "évaluation"];
+    const lowerInput = input.toLowerCase();
+    const isQuizQuery = quizKeywords.some(keyword => lowerInput.includes(keyword.toLowerCase()));
+    
+    const trainingNeeds = {
+      économie: false,
+      histoire: false,
+      communication: false,
+      mobilisation: false,
+      idéologie: false
+    };
+    
+    if (isQuizQuery) {
+      // Analyse du message pour détecter les domaines à améliorer
+      if (lowerInput.includes('économie') || lowerInput.includes('financ')) {
+        trainingNeeds.économie = true;
+      }
+      if (lowerInput.includes('histoire') || lowerInput.includes('origine') || lowerInput.includes('créat')) {
+        trainingNeeds.histoire = true;
+      }
+      if (lowerInput.includes('communic') || lowerInput.includes('express') || lowerInput.includes('parler')) {
+        trainingNeeds.communication = true;
+      }
+      if (lowerInput.includes('mobilis') || lowerInput.includes('terrain') || lowerInput.includes('organis')) {
+        trainingNeeds.mobilisation = true;
+      }
+      if (lowerInput.includes('idéologie') || lowerInput.includes('princip') || lowerInput.includes('valeur')) {
+        trainingNeeds.idéologie = true;
+      }
+      
+      try {
+        // Envoyer la requête à l'API avec les informations sur les besoins de formation
+        const adaptivePrompt = `L'utilisateur a partagé les résultats suivants de son quiz: "${input}". 
+        Analyse ses points forts et ses faiblesses. 
+        Propose-lui un parcours de formation adapté qui inclut des modules spécifiques aux domaines suivants: 
+        ${trainingNeeds.économie ? "- Économie et finances publiques du Cameroun" : ""} 
+        ${trainingNeeds.histoire ? "- Histoire du MRC et contexte politique camerounais" : ""} 
+        ${trainingNeeds.communication ? "- Communication politique efficace et prise de parole" : ""} 
+        ${trainingNeeds.mobilisation ? "- Techniques de mobilisation et d'organisation" : ""} 
+        ${trainingNeeds.idéologie ? "- Idéologie et valeurs du MRC" : ""}
+        
+        Pour chaque domaine, suggère un module spécifique disponible dans l'application MRC en Poche et comment y accéder.`;
+        
+        const responseContent = await getPerplexityResponse(perplexity, adaptivePrompt);
+        
+        const aiMessage: Message = {
+          role: "assistant",
+          content: responseContent,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+      } catch (error) {
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de l'analyse de vos résultats.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     // Check if the message is about generating a rugby XV
     const rugbyKeywords = ["xv", "équipe", "composition", "rugby", "joueurs", "team"];
     const isRugbyRequest = rugbyKeywords.some(keyword => input.toLowerCase().includes(keyword.toLowerCase()));
