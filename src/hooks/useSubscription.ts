@@ -1,81 +1,107 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { getSubscriptionStatus, SubscriptionStatus } from '@/services/stripe/stripeService';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useUser } from './useUser';
 
 export interface UseSubscriptionReturn {
   isPremium: boolean;
-  subscriptionStatus: SubscriptionStatus | null;
-  loading: boolean;
-  error: string | null;
-  refreshStatus: () => Promise<void>;
-  plan?: string;
-  currentPlan?: {
+  isBasic: boolean;
+  subscribe: (plan: string) => Promise<void>;
+  cancelSubscription: () => Promise<void>;
+  isLoading: boolean;
+  subscriptionPlan: {
     name: string;
     priceId: string;
     expires?: Date;
-  };
+  } | null;
 }
 
 export const useSubscription = (): UseSubscriptionReturn => {
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
-  
-  const fetchSubscriptionStatus = async () => {
-    if (!user) {
-      setSubscriptionStatus(null);
-      setLoading(false);
-      return;
-    }
-    
+  const { user } = useUser();
+  const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<{
+    name: string;
+    priceId: string;
+    expires?: Date;
+  } | null>(null);
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      setIsLoading(true);
+      try {
+        // In a real app, we would check the subscription status from Supabase or your backend
+        // For now, let's mock a response based on local storage
+        const hasSubscription = localStorage.getItem('isPremium') === 'true';
+        setIsPremium(hasSubscription);
+        
+        if (hasSubscription) {
+          setSubscriptionPlan({
+            name: 'Premium',
+            priceId: 'premium',
+            expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+          });
+        } else {
+          setSubscriptionPlan({
+            name: 'Basic',
+            priceId: 'basic'
+          });
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+        setSubscriptionPlan({
+          name: 'Basic',
+          priceId: 'basic'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSubscription();
+  }, [user]);
+
+  const subscribe = async (plan: string) => {
+    setIsLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-      const status = await getSubscriptionStatus();
-      setSubscriptionStatus(status);
-    } catch (err) {
-      console.error('Error fetching subscription status:', err);
-      setError("Erreur lors de la vérification de l'abonnement");
+      // In a real app, we would handle the subscription process with Stripe or another provider
+      // For demo purposes, we'll just update local storage
+      localStorage.setItem('isPremium', 'true');
+      setIsPremium(true);
+      setSubscriptionPlan({
+        name: 'Premium',
+        priceId: plan,
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+      });
+    } catch (error) {
+      console.error('Error subscribing to plan:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-  
-  useEffect(() => {
-    fetchSubscriptionStatus();
-    
-    // Set up subscription to auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        fetchSubscriptionStatus();
-      } else if (event === 'SIGNED_OUT') {
-        setSubscriptionStatus(null);
-      }
-    });
-    
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, [user?.id]);
-  
-  // Extract plan information from the subscription status
-  const plan = subscriptionStatus?.plan || 'free';
-  const currentPlan = subscriptionStatus?.status === 'active' ? {
-    name: subscriptionStatus.plan || 'Premium',
-    priceId: subscriptionStatus.subscriptionId || 'price_free',
-    expires: subscriptionStatus.currentPeriodEnd
-  } : undefined;
-  
+
+  const cancelSubscription = async () => {
+    setIsLoading(true);
+    try {
+      // In a real app, we would handle the cancellation process
+      localStorage.setItem('isPremium', 'false');
+      setIsPremium(false);
+      setSubscriptionPlan({
+        name: 'Basic',
+        priceId: 'basic'
+      });
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
-    isPremium: subscriptionStatus?.status === 'active',
-    subscriptionStatus,
-    loading,
-    error,
-    refreshStatus: fetchSubscriptionStatus,
-    plan,
-    currentPlan
+    isPremium,
+    isBasic: !isPremium,
+    subscribe,
+    cancelSubscription,
+    isLoading,
+    subscriptionPlan
   };
 };

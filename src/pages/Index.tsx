@@ -12,12 +12,7 @@ const PricingSection = ({ subscribe, isSubscriptionLoading, subscriptionPlan }) 
 );
 
 const Index = () => {
-  const { isPremium, subscribe, isLoading: isSubscriptionLoading } = useSubscription();
-  
-  // Mock subscription plan
-  const subscriptionPlan = isPremium 
-    ? { name: 'Premium', priceId: 'premium', expires: new Date() }
-    : { name: 'Basic', priceId: 'basic' };
+  const { isPremium, subscribe, isLoading: isSubscriptionLoading, subscriptionPlan } = useSubscription();
   
   return (
     <div>

@@ -1,44 +1,16 @@
-import React from "react";
-import { motion } from "framer-motion";
-import CoursesGrid from "./CoursesGrid";
-import { Module } from "./types";
 
-// Mock modules data
-const mockModules: Module[] = [
-  {
-    id: "1",
-    title: "Histoire du MRC",
-    description: "Découvrez l'histoire et les fondements du Mouvement pour la Renaissance du Cameroun",
-    category: "histoire",
-    level: "Débutant",
-    duration: "1h 30min",
-    progress: 75,
-    locked: false,
-    coverImage: "/images/history.jpg",
-  },
-  {
-    id: "2",
-    title: "Communication politique",
-    description: "Maîtrisez l'art de communiquer efficacement les idées politiques",
-    category: "communication",
-    level: "Intermédiaire",
-    duration: "2h 15min",
-    progress: 30,
-    locked: false,
-    coverImage: "/images/communication.jpg",
-  },
-  {
-    id: "3",
-    title: "Mobilisation citoyenne",
-    description: "Apprenez à mobiliser et engager les citoyens dans l'action politique",
-    category: "mobilisation",
-    level: "Avancé",
-    duration: "3h 00min",
-    progress: 0,
-    locked: true,
-    coverImage: "/images/mobilization.jpg",
-  }
-];
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sparkles, BookOpen, Users, UserPlus, Rocket, Trophy, Clock } from "lucide-react";
+import CoursesGrid from "./CoursesGrid";
+import ModulesWelcome from "./ModulesWelcome";
+import ModulesTabs from "./ModulesTabs";
+import ModulesTrainingPath from "./ModulesTrainingPath";
+import ModulesHelp from "./ModulesHelp";
+import { useToast } from "@/hooks/use-toast";
+import moduleData from "./data/moduleData";
 
 interface ModulesHomeViewProps {
   onChallengeClick: () => void;
@@ -53,138 +25,133 @@ const ModulesHomeView: React.FC<ModulesHomeViewProps> = ({
   onStartQuiz,
   onChallengeComplete
 }) => {
+  const { toast } = useToast();
+  
+  const handleStartTraining = () => {
+    toast({
+      title: "Formation lancée",
+      description: "Votre parcours de formation commence maintenant.",
+    });
+  };
+
+  const handleQuickStart = () => {
+    onStartQuiz("1");
+    toast({
+      title: "Quiz rapide",
+      description: "Testez vos connaissances avec ce quiz rapide.",
+    });
+  };
+  
   return (
     <div className="space-y-8">
-      {/* Featured Section */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Modules recommandés</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-r from-mrc-blue to-blue-700 rounded-lg p-6 text-white"
-          >
-            <h3 className="text-lg font-medium mb-2">Formation politique</h3>
-            <p className="text-sm opacity-90 mb-4">
-              Approfondissez vos connaissances sur l'idéologie et les valeurs du MRC
-            </p>
-            <button
-              onClick={() => onStartQuiz("histoire")}
-              className="bg-white text-blue-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-50 transition-colors"
-            >
-              Commencer
-            </button>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-r from-purple-700 to-pink-600 rounded-lg p-6 text-white"
-          >
-            <h3 className="text-lg font-medium mb-2">Défis interactifs</h3>
-            <p className="text-sm opacity-90 mb-4">
-              Testez vos compétences avec des scénarios politiques réels
-            </p>
-            <button
-              onClick={onChallengeClick}
-              className="bg-white text-purple-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-purple-50 transition-colors"
-            >
-              Relever le défi
-            </button>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Progress Section */}
-      <section>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Votre progression</h2>
-          <button
-            onClick={onChatClick}
-            className="text-sm text-mrc-blue hover:underline flex items-center gap-1"
-          >
-            <span>Assistance IA</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Progression globale</span>
-            <span className="text-sm font-medium">35%</span>
-          </div>
-          <div className="w-full bg-gray-300 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-            <div
-              className="bg-mrc-blue h-full rounded-full"
-              style={{ width: "35%" }}
-            ></div>
-          </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Complétez plus de modules pour débloquer des badges et certificats
-          </p>
-        </div>
-      </section>
-
-      {/* Modules Grid */}
-      <section>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Modules de formation</h2>
-          <button className="text-sm text-mrc-blue hover:underline">
-            Voir tout
-          </button>
-        </div>
-        <CoursesGrid modules={mockModules} />
-      </section>
-
-      {/* Challenges Section */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Défis hebdomadaires</h2>
-        <div className="bg-gradient-to-r from-green-700 to-emerald-600 rounded-lg p-6 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-medium mb-2">
-                Défi: Organisation d'une réunion locale
-              </h3>
-              <p className="text-sm opacity-90 mb-4">
-                Apprenez à planifier et exécuter une réunion politique efficace dans votre localité
+      <ModulesWelcome />
+      
+      <ModulesTabs />
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="col-span-1 md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BookOpen className="h-5 w-5 mr-2 text-mrc-blue" />
+              Modules de formation
+            </CardTitle>
+            <CardDescription>
+              Parcourez nos modules de formation pour approfondir vos connaissances
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CoursesGrid modules={moduleData} onModuleClick={(module) => onStartQuiz(module.id)} />
+          </CardContent>
+          <CardFooter>
+            <Button variant="outline" className="w-full" onClick={handleStartTraining}>
+              <Clock className="h-4 w-4 mr-2" />
+              Reprendre la formation
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Trophy className="h-5 w-5 mr-2 text-amber-500" />
+                Défis quotidiens
+              </CardTitle>
+              <CardDescription>
+                Relevez des défis pour gagner des points
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Complétez des défis quotidiens pour améliorer vos compétences et gagner des récompenses.
               </p>
-              <button
-                onClick={onChallengeComplete}
-                className="bg-white text-green-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-green-50 transition-colors"
-              >
-                Commencer le défi
-              </button>
-            </div>
-            <div className="bg-white bg-opacity-20 rounded-full p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                />
-              </svg>
-            </div>
-          </div>
+              <div className="bg-muted p-3 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">Quiz du jour</span>
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">+50 pts</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Répondez à 5 questions sur l'histoire du MRC</p>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={onChallengeClick} className="w-full">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Voir les défis
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Users className="h-5 w-5 mr-2 text-indigo-500" />
+                Communauté
+              </CardTitle>
+              <CardDescription>
+                Interagissez avec d'autres membres
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex items-center justify-between py-1">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center mr-2">
+                    <UserPlus className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">Groupe d'étude</span>
+                </div>
+                <span className="text-xs text-muted-foreground">12 membres</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center mr-2">
+                    <Rocket className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">Discussion politique</span>
+                </div>
+                <span className="text-xs text-muted-foreground">24 membres</span>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" onClick={onChatClick} className="w-full">
+                Rejoindre une discussion
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
-      </section>
+      </div>
+      
+      <Tabs defaultValue="training-path">
+        <TabsList className="grid grid-cols-2">
+          <TabsTrigger value="training-path">Parcours d'apprentissage</TabsTrigger>
+          <TabsTrigger value="help">Besoin d'aide ?</TabsTrigger>
+        </TabsList>
+        <TabsContent value="training-path" className="p-4 border rounded-md mt-2">
+          <ModulesTrainingPath />
+        </TabsContent>
+        <TabsContent value="help" className="p-4 border rounded-md mt-2">
+          <ModulesHelp />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

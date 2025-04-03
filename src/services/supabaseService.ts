@@ -3,7 +3,7 @@
 export const supabase = {
   from: (table: string) => ({
     select: () => ({
-      eq: () => ({
+      eq: (column: string, value: any) => ({
         single: async () => ({ data: null, error: null }),
         order: () => ({
           data: [],

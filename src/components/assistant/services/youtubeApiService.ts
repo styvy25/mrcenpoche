@@ -1,109 +1,68 @@
 
 import { getApiKeysWithDefaults } from '@/services/supabaseService';
 
-// Mock data structure for YouTube search results
-interface YouTubeVideo {
-  id: {
-    videoId: string;
-  };
-  snippet: {
-    title: string;
-    description: string;
-    thumbnails: {
-      default: { url: string; width: number; height: number };
-      medium: { url: string; width: number; height: number };
-      high: { url: string; width: number; height: number };
-    };
-    channelTitle: string;
-    publishedAt: string;
-  };
-}
-
-interface YouTubeSearchResponse {
-  items: YouTubeVideo[];
-  nextPageToken?: string;
-}
-
-// Mock YouTube search function
-export const searchYouTubeVideos = async (
-  query: string,
-  maxResults: number = 5,
-  pageToken?: string
-): Promise<YouTubeSearchResponse> => {
+// YouTube API Key Management
+export const getYouTubeApiKey = (): string => {
   try {
-    const apiKeys = getApiKeysWithDefaults();
-    const YOUTUBE_API_KEY = apiKeys.YOUTUBE_API_KEY;
-    
-    // For now, return mock data instead of making actual API calls
-    console.log(`Mock YouTube search for: "${query}" with max results: ${maxResults}`);
-    
-    // Mock search results
-    const mockResults: YouTubeVideo[] = [
-      {
-        id: { videoId: 'video1' },
-        snippet: {
-          title: `Résultats pour: ${query} - Video 1`,
-          description: 'Ceci est une vidéo de test pour simuler les résultats de YouTube.',
-          thumbnails: {
-            default: { url: 'https://via.placeholder.com/120x90', width: 120, height: 90 },
-            medium: { url: 'https://via.placeholder.com/320x180', width: 320, height: 180 },
-            high: { url: 'https://via.placeholder.com/480x360', width: 480, height: 360 }
-          },
-          channelTitle: 'MRC Officiel',
-          publishedAt: new Date().toISOString()
-        }
-      },
-      {
-        id: { videoId: 'video2' },
-        snippet: {
-          title: `Résultats pour: ${query} - Video 2`,
-          description: 'Une autre vidéo de test pour la recherche YouTube.',
-          thumbnails: {
-            default: { url: 'https://via.placeholder.com/120x90', width: 120, height: 90 },
-            medium: { url: 'https://via.placeholder.com/320x180', width: 320, height: 180 },
-            high: { url: 'https://via.placeholder.com/480x360', width: 480, height: 360 }
-          },
-          channelTitle: 'Politique Camerounaise',
-          publishedAt: new Date().toISOString()
-        }
-      }
-    ];
-    
-    return {
-      items: mockResults,
-      nextPageToken: 'mock_next_page_token'
-    };
+    const keys = getApiKeysWithDefaults();
+    return keys.YOUTUBE_API_KEY || '';
   } catch (error) {
-    console.error('Error searching YouTube videos:', error);
-    return { items: [] };
+    console.error('Error retrieving YouTube API key:', error);
+    return '';
   }
 };
 
-// Mock function to get video details
-export const getYouTubeVideoDetails = async (videoId: string): Promise<YouTubeVideo | null> => {
+// Base YouTube API URL
+const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
+
+// Search YouTube videos
+export const searchYouTube = async (query: string, maxResults = 5) => {
+  const apiKey = getYouTubeApiKey();
+  if (!apiKey) {
+    return { error: 'No YouTube API key available' };
+  }
+
   try {
-    const apiKeys = getApiKeysWithDefaults();
-    const YOUTUBE_API_KEY = apiKeys.YOUTUBE_API_KEY;
-    
-    console.log(`Mock YouTube video details for ID: ${videoId}`);
-    
-    // Return mock video details
-    return {
-      id: { videoId },
-      snippet: {
-        title: `Vidéo ${videoId}`,
-        description: 'Description détaillée de cette vidéo.',
-        thumbnails: {
-          default: { url: 'https://via.placeholder.com/120x90', width: 120, height: 90 },
-          medium: { url: 'https://via.placeholder.com/320x180', width: 320, height: 180 },
-          high: { url: 'https://via.placeholder.com/480x360', width: 480, height: 360 }
-        },
-        channelTitle: 'MRC Officiel',
-        publishedAt: new Date().toISOString()
-      }
-    };
+    const searchUrl = `${YOUTUBE_API_BASE_URL}/search?part=snippet&q=${encodeURIComponent(
+      query
+    )}&maxResults=${maxResults}&type=video&key=${apiKey}`;
+
+    const response = await fetch(searchUrl);
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('YouTube API error:', data.error);
+      return { error: data.error };
+    }
+
+    return data.items || [];
   } catch (error) {
-    console.error('Error getting YouTube video details:', error);
-    return null;
+    console.error('Error searching YouTube:', error);
+    return { error: 'Failed to search YouTube' };
+  }
+};
+
+// Get video details
+export const getVideoDetails = async (videoId: string) => {
+  const apiKey = getYouTubeApiKey();
+  if (!apiKey) {
+    return { error: 'No YouTube API key available' };
+  }
+
+  try {
+    const detailsUrl = `${YOUTUBE_API_BASE_URL}/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${apiKey}`;
+
+    const response = await fetch(detailsUrl);
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('YouTube API error:', data.error);
+      return { error: data.error };
+    }
+
+    return data.items?.[0] || null;
+  } catch (error) {
+    console.error('Error fetching video details:', error);
+    return { error: 'Failed to fetch video details' };
   }
 };
