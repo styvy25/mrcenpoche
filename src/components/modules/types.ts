@@ -9,7 +9,7 @@ export interface Module {
   cover?: string; // Added for compatibility with CoursesGrid
   duration: string;
   level?: string;
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: 'beginner' | 'intermediate' | 'advanced' | 'Débutant' | 'Intermédiaire' | 'Avancé' | 'Expert';
   category: string;
   categoryName?: string;
   type?: 'core' | 'advanced' | 'special' | 'exam';
@@ -36,11 +36,13 @@ export interface Module {
 }
 
 export interface ModuleQuestion {
-  id: string;
-  text: string;
-  options: { id: string; text: string }[];
-  correctOptionId: string;
+  id: string | number;
+  question: string;
+  options: { id: string; text: string; }[] | string[];
+  correctOptionId?: string;
+  correctAnswer?: string | number;
   explanation: string;
+  text?: string;
 }
 
 export interface ModuleCategory {
@@ -75,7 +77,7 @@ export interface ModuleContent {
     questions: {
       id: string;
       text: string;
-      options: { id: string; text: string }[];
+      options: { id: string; text: string; }[];
       correctOptionId: string;
       explanation: string;
     }[];

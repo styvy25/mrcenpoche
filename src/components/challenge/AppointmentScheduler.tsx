@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Appointment, AppointmentRequest } from "../quiz/types";
+import { Appointment, AppointmentRequest, AppointmentType } from "../quiz/types";
 import CalendarStep from "./appointment/CalendarStep";
 import AppointmentForm from "./appointment/AppointmentForm";
 import ConfirmationStep from "./appointment/ConfirmationStep";
@@ -21,7 +21,7 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
     name: "",
     email: "",
     phone: "",
-    type: "private"
+    type: "formation" // Using a valid AppointmentType value
   });
   const { toast } = useToast();
 
@@ -39,7 +39,9 @@ const AppointmentScheduler = ({ onClose }: AppointmentSchedulerProps) => {
 
   const handleAppointmentTypeChange = (value: "private" | "public") => {
     setAppointmentType(value);
-    setFormData(prev => ({ ...prev, type: value }));
+    // Convert to a valid AppointmentType value
+    const appointmentTypeValue: AppointmentType = value === "private" ? "formation" : "reunion";
+    setFormData(prev => ({ ...prev, type: appointmentTypeValue }));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

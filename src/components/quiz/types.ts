@@ -33,7 +33,7 @@ export interface Category {
   description?: string;
   color?: string;
   questions: QuizQuestion[];
-  badge?: string; // Added to support badges in categories
+  badge?: string;
 }
 
 export interface QuizResult {
@@ -43,8 +43,8 @@ export interface QuizResult {
   correctAnswers: number;
   incorrectAnswers: number;
   timestamp?: Date;
-  timeSpent?: number; // For tracking time spent on quiz
-  date?: Date; // For tracking when quiz was taken
+  timeSpent?: number;
+  date?: Date;
 }
 
 export interface BadgeProps {
@@ -55,7 +55,7 @@ export interface BadgeProps {
   earned?: boolean;
   date?: string;
   gradient?: string;
-  imageUrl?: string; // For badge images
+  imageUrl?: string;
   threshold?: number;
   category?: string;
   earnedAt?: Date;
@@ -71,11 +71,13 @@ export interface BadgeSummary {
   available: BadgeProps[];
 }
 
-// Add Appointment types to fix related errors
+// Updated AppointmentType to include "private" and "public"
+export type AppointmentType = 'reunion' | 'formation' | 'evenement' | 'autre' | 'private' | 'public';
+
 export interface Appointment {
   id: string;
   title: string;
-  date: Date;
+  date: Date | string;
   time: string;
   type: AppointmentType;
   description?: string;
@@ -86,9 +88,15 @@ export interface Appointment {
   participantsCount?: number;
   maxParticipants?: number;
   duration?: string;
+  startTime?: string;
+  endTime?: string;
+  participant?: {
+    name: string;
+    email: string;
+    phone?: string;
+  };
+  status?: string;
 }
-
-export type AppointmentType = 'reunion' | 'formation' | 'evenement' | 'autre';
 
 export interface AppointmentRequest {
   name: string;
