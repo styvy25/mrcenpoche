@@ -32,7 +32,7 @@ export const useSubscription = (): UseSubscriptionReturn => {
       setSubscriptionStatus(status);
     } catch (err) {
       console.error('Error fetching subscription status:', err);
-      setError('Erreur lors de la vérification de l'abonnement');
+      setError("Erreur lors de la vérification de l'abonnement");
     } finally {
       setLoading(false);
     }
