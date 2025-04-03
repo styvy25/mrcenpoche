@@ -1,47 +1,55 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/services/supabaseClient';
+import { supabase } from '@/services/supabaseService';
 
-export interface User {
+interface User {
   id: string;
   email: string;
-  name?: string;
-  avatar_url?: string;
-  created_at?: string;
+  username: string;
+  isAdmin: boolean;
+  createdAt: string;
 }
 
 export const useUser = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
-      setIsLoading(true);
+      setLoading(true);
       try {
+        // In a real app, this would fetch the user from Supabase auth
         const { data, error } = await supabase.auth.getUser();
         
         if (error) {
-          throw error;
+          throw new Error(error.message);
         }
         
         if (data?.user) {
+          // Mock user data for development
           setUser({
-            id: data.user.id,
-            email: data.user.email || '',
-            name: data.user.user_metadata?.name,
-            avatar_url: data.user.user_metadata?.avatar_url,
-            created_at: data.user.created_at
+            id: '1',
+            email: 'user@example.com',
+            username: 'Demo User',
+            isAdmin: false,
+            createdAt: new Date().toISOString()
           });
+        } else {
+          setUser(null);
         }
-      } catch (error) {
-        console.error('Error fetching user:', error);
+      } catch (err: any) {
+        console.error('Error fetching user:', err);
+        setError(err);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-    
+
     fetchUser();
   }, []);
 
-  return { user, isLoading };
+  return { user, loading, error };
 };
+
+export default useUser;

@@ -1,43 +1,33 @@
 
-/**
- * Types related to YouTube service functionality
- */
-
-export interface VideoInfo {
-  title: string;
-  description: string;
-  transcript?: string;
-}
-
-export interface YouTubeVideo {
+export interface YouTubeSearchResult {
   id: string;
   title: string;
   description: string;
   thumbnail: string;
+  channelTitle: string;
   publishedAt: string;
 }
 
-export interface YouTubeSearchParams {
-  key: string;
-  q: string;
-  part: string;
-  type: string;
-  maxResults: number;
-  channelId?: string;
+export interface YouTubeVideoDetails {
+  id: string;
+  title: string;
+  description: string;
+  publishedAt: string;
+  channelTitle: string;
+  viewCount: string;
+  likeCount: string;
+  dislikeCount: string;
+  duration: string;
+  tags?: string[];
 }
 
-// Error types for better error handling
-export enum YouTubeErrorType {
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  API_ERROR = 'API_ERROR',
-  QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
-  INVALID_API_KEY = 'INVALID_API_KEY',
-  CACHE_ERROR = 'CACHE_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+export interface VideoDownloadService {
+  downloadVideo: (videoId: string, format: string) => Promise<{ success: boolean, message: string, url?: string }>;
+  getDownloadFormats: (videoId: string) => Promise<string[]>;
 }
 
-export interface YouTubeError {
-  type: YouTubeErrorType;
-  message: string;
-  originalError?: any;
+export interface YouTubeAPIConfig {
+  apiKey: string;
+  maxResults?: number;
+  useCache?: boolean;
 }

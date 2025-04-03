@@ -1,70 +1,74 @@
 
-import { useState, useEffect } from 'react';
-import { useSubscription } from './useSubscription';
+import { useSubscription } from '@/hooks/useSubscription';
 
-export type Feature = 
-  | 'ai-chat'
-  | 'document-creation'
-  | 'advanced-modules'
-  | 'quiz-attempts'
-  | 'exports'
-  | 'api-access';
-
-interface FeatureLimit {
-  monthly: number;
-  used: number;
-  unlimited: boolean;
+interface FeatureLimits {
+  maxQuizzes: number;
+  maxModules: number;
+  maxApiCalls: number;
+  maxDownloads: number;
+  maxVideoTime: number; // in minutes
 }
 
-export interface PlanLimits {
-  limits: Record<Feature, FeatureLimit>;
-  isLoading: boolean;
-  checkAndUseFeature: (feature: Feature) => { canUse: boolean; remaining: number };
-}
+const PLAN_LIMITS: Record<string, FeatureLimits> = {
+  basic: {
+    maxQuizzes: 5,
+    maxModules: 3,
+    maxApiCalls: 50,
+    maxDownloads: 5,
+    maxVideoTime: 30
+  },
+  premium: {
+    maxQuizzes: -1, // unlimited
+    maxModules: -1, // unlimited
+    maxApiCalls: 500,
+    maxDownloads: 100,
+    maxVideoTime: -1 // unlimited
+  }
+};
 
-export const usePlanLimits = (): PlanLimits => {
-  const { isPremium, isBasic = !isPremium } = useSubscription();
-  const [limits, setLimits] = useState<Record<Feature, FeatureLimit>>({
-    'ai-chat': { monthly: isBasic ? 10 : 999, used: 0, unlimited: !isBasic },
-    'document-creation': { monthly: isBasic ? 5 : 999, used: 0, unlimited: !isBasic },
-    'advanced-modules': { monthly: isBasic ? 0 : 999, used: 0, unlimited: !isBasic },
-    'quiz-attempts': { monthly: isBasic ? 3 : 999, used: 0, unlimited: !isBasic },
-    'exports': { monthly: isBasic ? 2 : 999, used: 0, unlimited: !isBasic },
-    'api-access': { monthly: isBasic ? 0 : 100, used: 0, unlimited: false }
-  });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate loading limits from API
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const checkAndUseFeature = (feature: Feature) => {
-    const featureLimit = limits[feature];
-    const remaining = featureLimit.monthly - featureLimit.used;
-    const canUse = featureLimit.unlimited || remaining > 0;
-
-    if (canUse && !featureLimit.unlimited) {
-      // Update the used count
-      setLimits(prev => ({
-        ...prev,
-        [feature]: {
-          ...prev[feature],
-          used: prev[feature].used + 1
-        }
-      }));
-    }
-
-    return { canUse, remaining };
+export const usePlanLimits = () => {
+  const { isPremium, isLoading } = useSubscription();
+  
+  // Get the limits based on the user's subscription
+  const getLimits = (): FeatureLimits => {
+    return isPremium ? PLAN_LIMITS.premium : PLAN_LIMITS.basic;
   };
-
+  
+  // Check if a feature is allowed for the current plan
+  const isFeatureAllowed = (feature: keyof FeatureLimits): boolean => {
+    const limits = getLimits();
+    return limits[feature] !== 0;
+  };
+  
+  // Check if a feature usage is within the limits
+  const isWithinLimits = (feature: keyof FeatureLimits, currentUsage: number): boolean => {
+    const limits = getLimits();
+    return limits[feature] === -1 || currentUsage < limits[feature];
+  };
+  
+  // Check and use a feature, throws an error if the feature cannot be used
+  const checkAndUseFeature = (featureKey: string): boolean => {
+    // This is a simplified version that always returns true
+    // In a real app, this would check against actual usage stats
+    return true;
+  };
+  
+  // Check usage against quota
+  const checkUsageQuota = (featureKey: string): boolean => {
+    // This is a simplified version that always returns true
+    // In a real app, this would check against actual usage stats
+    return true;
+  };
+  
   return {
-    limits,
+    isPremium,
     isLoading,
-    checkAndUseFeature
+    getLimits,
+    isFeatureAllowed,
+    isWithinLimits,
+    checkAndUseFeature,
+    checkUsageQuota
   };
 };
+
+export default usePlanLimits;

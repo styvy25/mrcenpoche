@@ -1,80 +1,66 @@
 
 import { useState, useCallback } from 'react';
+import { Message } from '../types/message';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 
-// Mock chat message types
-interface ChatMessage {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-}
-
-interface UseChatStateReturn {
-  messages: ChatMessage[];
+export interface UseChatStateReturn {
+  messages: Message[];
+  addMessage: (message: Message) => void;
+  updateLastMessage: (content: string) => void;
+  clearMessages: () => void;
   isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
   error: Error | null;
-  sendMessage: (content: string) => Promise<void>;
-  resetChat: () => void;
+  setError: (error: Error | null) => void;
 }
 
 export const useChatState = (): UseChatStateReturn => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
-  const { checkAndUseFeature } = usePlanLimits();
+  const planLimits = usePlanLimits();
 
-  const sendMessage = useCallback(async (content: string) => {
-    try {
-      // Check if user can use the AI chat feature
-      const { canUse, remaining } = checkAndUseFeature('ai-chat');
-      
-      if (!canUse) {
-        throw new Error(`Vous avez atteint votre limite de messages AI. Passez à Premium pour continuer.`);
+  const addMessage = useCallback((message: Message) => {
+    if (message.role === 'user') {
+      // Use this for tracking usage limits if implemented
+      try {
+        planLimits.checkUsageQuota?.('chat_messages');
+      } catch (error) {
+        console.error('Error checking usage quota:', error);
       }
+    }
+    
+    setMessages((prevMessages) => [...prevMessages, message]);
+  }, [planLimits]);
+
+  const updateLastMessage = useCallback((content: string) => {
+    setMessages((prevMessages) => {
+      if (prevMessages.length === 0) return prevMessages;
       
-      setIsLoading(true);
-      setError(null);
-      
-      // Add user message
-      const userMessage: ChatMessage = {
-        id: `user-${Date.now()}`,
-        content,
-        role: 'user',
-        timestamp: new Date()
+      const newMessages = [...prevMessages];
+      newMessages[newMessages.length - 1] = {
+        ...newMessages[newMessages.length - 1],
+        content
       };
       
-      setMessages(prev => [...prev, userMessage]);
-      
-      // Simulate AI response
-      setTimeout(() => {
-        const assistantMessage: ChatMessage = {
-          id: `assistant-${Date.now()}`,
-          content: `Voici une réponse à votre message: "${content}". Il vous reste ${remaining - 1} messages ce mois-ci.`,
-          role: 'assistant',
-          timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, assistantMessage]);
-        setIsLoading(false);
-      }, 1500);
-      
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-      setIsLoading(false);
-    }
-  }, [checkAndUseFeature]);
-  
-  const resetChat = useCallback(() => {
-    setMessages([]);
-    setError(null);
+      return newMessages;
+    });
   }, []);
-  
+
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+  }, []);
+
   return {
     messages,
+    addMessage,
+    updateLastMessage,
+    clearMessages,
     isLoading,
+    setIsLoading,
     error,
-    sendMessage,
-    resetChat
+    setError
   };
 };
+
+export default useChatState;

@@ -48,17 +48,18 @@ export async function fetchFromSupabase<T>(
     let query = supabase.from(tableName).select();
     
     if (condition) {
-      query = query.eq(condition.column, condition.value);
+      const response = query.eq(condition.column, condition.value);
+      const { data, error } = await response;
+      
+      if (error) {
+        console.error(`Error fetching from ${tableName}:`, error);
+        return [];
+      }
+      
+      return data as T[];
     }
     
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error(`Error fetching from ${tableName}:`, error);
-      return [];
-    }
-    
-    return data as T[];
+    return [];
   } catch (err) {
     console.error(`Error in fetchFromSupabase (${tableName}):`, err);
     return [];

@@ -1,157 +1,199 @@
-
-import React from "react";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, BookOpen, Users, UserPlus, Rocket, Trophy, Clock } from "lucide-react";
-import CoursesGrid from "./CoursesGrid";
-import ModulesWelcome from "./ModulesWelcome";
-import ModulesTabs from "./ModulesTabs";
-import ModulesTrainingPath from "./ModulesTrainingPath";
-import ModulesHelp from "./ModulesHelp";
-import { useToast } from "@/hooks/use-toast";
-import moduleData from "./data/moduleData";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Sparkles, HelpCircle } from "lucide-react";
+import CoursesGrid from "@/components/modules/CoursesGrid";
+import ModuleProgressView from './ModuleProgressView';
+import ModulesTrainingPath from './ModulesTrainingPath';
+import { Module } from './types';
+import { moduleData } from './data/modules';
 
-interface ModulesHomeViewProps {
-  onChallengeClick: () => void;
-  onChatClick: () => void;
-  onStartQuiz: (moduleId: string) => void;
-  onChallengeComplete: () => void;
-}
+const ModulesWelcome = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-lg font-semibold">Bienvenue sur la plateforme de formation du MRC</CardTitle>
+      <CardDescription>Découvrez les modules de formation disponibles et suivez votre progression.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <p>Commencez votre parcours d'apprentissage et développez vos compétences politiques.</p>
+    </CardContent>
+  </Card>
+);
 
-const ModulesHomeView: React.FC<ModulesHomeViewProps> = ({
-  onChallengeClick,
-  onChatClick,
-  onStartQuiz,
-  onChallengeComplete
+const ModulesTabs = ({ 
+  activeTab, 
+  setActiveTab,
+  modulesContent,
+  progressContent,
+  showCompletedModules,
+  setShowCompletedModules
+}) => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-md font-semibold">Vue d'ensemble</CardTitle>
+      <CardDescription>Suivez votre progression et découvrez les modules complétés.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="flex items-center justify-between mb-4">
+        <Button 
+          variant={activeTab === 'progress' ? 'default' : 'outline'}
+          onClick={() => setActiveTab('progress')}
+        >
+          Progression
+        </Button>
+        <Button 
+          variant={activeTab === 'modules' ? 'default' : 'outline'}
+          onClick={() => setActiveTab('modules')}
+        >
+          Modules
+        </Button>
+      </div>
+      
+      {activeTab === 'progress' && (
+        <div className="space-y-2">
+          <p>Modules complétés: {progressContent.completedModules} / {progressContent.totalModules}</p>
+          <p>Points: {progressContent.points} / Prochain niveau: {progressContent.nextLevel}</p>
+          <p>Niveau actuel: {progressContent.level}</p>
+        </div>
+      )}
+      
+      {activeTab === 'modules' && (
+        <div className="space-y-2">
+          <label className="inline-flex items-center">
+            <input 
+              type="checkbox" 
+              className="form-checkbox h-5 w-5 text-blue-600"
+              checked={showCompletedModules}
+              onChange={() => setShowCompletedModules(!showCompletedModules)}
+            />
+            <span className="ml-2 text-gray-700 dark:text-gray-300">Afficher les modules complétés</span>
+          </label>
+          <ul>
+            {modulesContent.map(module => (
+              <li key={module.id}>
+                {module.title} - {module.progress}%
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const ModulesHelp = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-md font-semibold">Besoin d'aide ?</CardTitle>
+      <CardDescription>Contactez notre équipe de support pour toute question.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <p>
+        <Sparkles className="inline-block h-4 w-4 mr-1" />
+        Consultez notre FAQ ou contactez-nous directement.
+      </p>
+    </CardContent>
+    <CardFooter>
+      <Button variant="outline">
+        <HelpCircle className="h-4 w-4 mr-2" />
+        Support
+      </Button>
+    </CardFooter>
+  </Card>
+);
+
+const ModulesFeaturedCard = () => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-md font-semibold">Module en vedette</CardTitle>
+      <CardDescription>Découvrez notre module le plus populaire du moment.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <p>Explorez des sujets clés et approfondissez vos connaissances.</p>
+    </CardContent>
+    <CardFooter>
+      <Button>
+        <Sparkles className="h-4 w-4 mr-2" />
+        Découvrir
+      </Button>
+    </CardFooter>
+  </Card>
+);
+
+const ModulesHomeView = ({ 
+  onChallengeClick, 
+  onChatClick, 
+  onStartQuiz, 
+  onChallengeComplete 
 }) => {
-  const { toast } = useToast();
+  const [modules, setModules] = useState<Module[]>(moduleData.map(module => ({...module})));
+  const [activeTab, setActiveTab] = useState<string>('progress');
+  const [showCompletedModules, setShowCompletedModules] = useState<boolean>(false);
   
-  const handleStartTraining = () => {
-    toast({
-      title: "Formation lancée",
-      description: "Votre parcours de formation commence maintenant.",
-    });
+  // Mock data for module progress
+  const progressContent = {
+    completedModules: modules.filter(m => m.progress === 100).length,
+    totalModules: modules.length,
+    points: 250,
+    nextLevel: 500,
+    level: 2,
+  };
+  
+  // Mock data for adaptive training
+  const adaptiveTrainingData = {
+    nextModule: 'Module 3',
+    reason: 'Recommandé pour améliorer vos compétences en communication.'
+  };
+  
+  // Mock data for community challenges
+  const communityChallengesData = {
+    activeChallenges: 5,
+    participants: 120
+  };
+  
+  // Handle module click
+  const handleModuleClick = (module: Module) => {
+    console.log("Module clicked:", module);
+    // Implementation would go here
   };
 
-  const handleQuickStart = () => {
-    onStartQuiz("1");
-    toast({
-      title: "Quiz rapide",
-      description: "Testez vos connaissances avec ce quiz rapide.",
-    });
-  };
-  
   return (
     <div className="space-y-8">
-      <ModulesWelcome />
-      
-      <ModulesTabs />
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="col-span-1 md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <BookOpen className="h-5 w-5 mr-2 text-mrc-blue" />
-              Modules de formation
-            </CardTitle>
-            <CardDescription>
-              Parcourez nos modules de formation pour approfondir vos connaissances
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CoursesGrid modules={moduleData} onModuleClick={(module) => onStartQuiz(module.id)} />
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full" onClick={handleStartTraining}>
-              <Clock className="h-4 w-4 mr-2" />
-              Reprendre la formation
-            </Button>
-          </CardFooter>
-        </Card>
-        
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Trophy className="h-5 w-5 mr-2 text-amber-500" />
-                Défis quotidiens
-              </CardTitle>
-              <CardDescription>
-                Relevez des défis pour gagner des points
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Complétez des défis quotidiens pour améliorer vos compétences et gagner des récompenses.
-              </p>
-              <div className="bg-muted p-3 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">Quiz du jour</span>
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">+50 pts</span>
-                </div>
-                <p className="text-xs text-muted-foreground">Répondez à 5 questions sur l'histoire du MRC</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={onChallengeClick} className="w-full">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Voir les défis
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="h-5 w-5 mr-2 text-indigo-500" />
-                Communauté
-              </CardTitle>
-              <CardDescription>
-                Interagissez avec d'autres membres
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center justify-between py-1">
-                <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center mr-2">
-                    <UserPlus className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm">Groupe d'étude</span>
-                </div>
-                <span className="text-xs text-muted-foreground">12 membres</span>
-              </div>
-              <div className="flex items-center justify-between py-1">
-                <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center mr-2">
-                    <Rocket className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm">Discussion politique</span>
-                </div>
-                <span className="text-xs text-muted-foreground">24 membres</span>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" onClick={onChatClick} className="w-full">
-                Rejoindre une discussion
-              </Button>
-            </CardFooter>
-          </Card>
+      <div className="flex flex-col md:flex-row gap-4 items-start">
+        <div className="w-full md:w-8/12 space-y-6">
+          <ModulesWelcome />
+          <ModulesTabs 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab}
+            modulesContent={modules}
+            progressContent={progressContent}
+            showCompletedModules={showCompletedModules}
+            setShowCompletedModules={setShowCompletedModules}
+          />
+        </div>
+        <div className="w-full md:w-4/12">
+          <ModulesHelp />
         </div>
       </div>
       
-      <Tabs defaultValue="training-path">
-        <TabsList className="grid grid-cols-2">
-          <TabsTrigger value="training-path">Parcours d'apprentissage</TabsTrigger>
-          <TabsTrigger value="help">Besoin d'aide ?</TabsTrigger>
-        </TabsList>
-        <TabsContent value="training-path" className="p-4 border rounded-md mt-2">
-          <ModulesTrainingPath />
-        </TabsContent>
-        <TabsContent value="help" className="p-4 border rounded-md mt-2">
-          <ModulesHelp />
-        </TabsContent>
-      </Tabs>
+      <ModulesTrainingPath />
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <ModulesFeaturedCard />
+        <ModuleProgressView />
+      </div>
+      
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-xl font-semibold dark:text-white">Modules Recommandés</h3>
+          <Button variant="outline" size="sm">Voir tout</Button>
+        </div>
+        
+        <CoursesGrid 
+          modules={modules}
+          onModuleClick={handleModuleClick}
+        />
+      </div>
     </div>
   );
 };

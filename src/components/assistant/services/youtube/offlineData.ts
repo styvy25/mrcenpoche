@@ -1,43 +1,94 @@
 
-import { YouTubeVideo } from './types';
+import { YouTubeSearchResult, YouTubeVideoDetails } from './types';
+
+// Mock search results for offline mode
+const offlineSearchResults: Record<string, YouTubeSearchResult[]> = {
+  'cameroon politics': [
+    {
+      id: 'offline-video-1',
+      title: 'Overview of Cameroon Politics',
+      description: 'A complete analysis of Cameroon\'s political landscape',
+      thumbnail: 'https://via.placeholder.com/120x90',
+      publishedAt: '2023-01-15',
+      channelTitle: 'Africa Analysis'
+    },
+    {
+      id: 'offline-video-2',
+      title: 'Political Movements in Cameroon',
+      description: 'Exploring the major political movements in Cameroon',
+      thumbnail: 'https://via.placeholder.com/120x90',
+      publishedAt: '2023-02-20',
+      channelTitle: 'Political Insights'
+    }
+  ],
+  'mrc cameroon': [
+    {
+      id: 'offline-video-3',
+      title: 'MRC Movement in Cameroon',
+      description: 'History and current status of the MRC movement',
+      thumbnail: 'https://via.placeholder.com/120x90',
+      publishedAt: '2023-03-10',
+      channelTitle: 'Cameroon Today'
+    }
+  ],
+  'default': [
+    {
+      id: 'offline-video-4',
+      title: 'Politics of Central Africa',
+      description: 'Overview of political situations in Central African countries',
+      thumbnail: 'https://via.placeholder.com/120x90',
+      publishedAt: '2023-01-05',
+      channelTitle: 'Africa News Network'
+    }
+  ]
+};
+
+// Mock video details for offline mode
+const offlineVideoDetails: Record<string, YouTubeVideoDetails> = {
+  'offline-video-1': {
+    id: 'offline-video-1',
+    title: 'Overview of Cameroon Politics',
+    description: 'This video provides a comprehensive analysis of Cameroon\'s political landscape, including historical context and current developments.',
+    publishedAt: '2023-01-15T14:00:00Z',
+    channelTitle: 'Africa Analysis',
+    viewCount: '15420',
+    likeCount: '1205',
+    dislikeCount: '45',
+    duration: 'PT15M30S',
+    tags: ['Cameroon', 'politics', 'Africa', 'government']
+  },
+  'offline-video-2': {
+    id: 'offline-video-2',
+    title: 'Political Movements in Cameroon',
+    description: 'Exploring the major political movements in Cameroon and their impact on national politics.',
+    publishedAt: '2023-02-20T10:30:00Z',
+    channelTitle: 'Political Insights',
+    viewCount: '8750',
+    likeCount: '950',
+    dislikeCount: '30',
+    duration: 'PT12M45S',
+    tags: ['Cameroon', 'political movements', 'democracy', 'opposition']
+  }
+};
 
 /**
- * Fallback videos for offline mode
+ * Gets mock search results for offline mode
  */
-export const offlineVideos: YouTubeVideo[] = [
-  {
-    id: "dQw4w9WgXcQ",
-    title: "Discours de Maurice Kamto - Conférence du MRC",
-    description: "Discours du président du MRC concernant les enjeux politiques actuels au Cameroun et les positions du parti sur les réformes nécessaires.",
-    thumbnail: "/public/lovable-uploads/2f1f5377-df73-46bc-b7d2-0c3cafeb5dbb.png",
-    publishedAt: "2023-05-15T14:30:00Z"
-  },
-  {
-    id: "xvFZjo5PgG0",
-    title: "Mobilisation politique au Cameroun - Stratégies du MRC",
-    description: "Analyse des stratégies de mobilisation politique du MRC dans le contexte camerounais et des défis rencontrés sur le terrain.",
-    thumbnail: "/public/lovable-uploads/487ae071-af40-445e-b753-7fea7f39e90f.png",
-    publishedAt: "2023-06-22T09:15:00Z"
-  },
-  {
-    id: "Yh0AhrY9GjA",
-    title: "Formation MRC - Communication politique efficace",
-    description: "Module de formation sur les techniques de communication politique efficace pour les militants du MRC.",
-    thumbnail: "/public/lovable-uploads/e326c83f-f666-44e5-9da1-72639a1027e0.png",
-    publishedAt: "2023-07-10T16:45:00Z"
-  },
-  {
-    id: "V5sODh_b4aw",
-    title: "Enjeux électoraux au Cameroun - Position du MRC",
-    description: "Analyse des enjeux électoraux au Cameroun et présentation des positions du MRC sur les réformes du système électoral.",
-    thumbnail: "/public/lovable-uploads/5487bb9e-3a94-44a0-833d-8875f1665691.png",
-    publishedAt: "2023-08-05T11:20:00Z"
-  },
-  {
-    id: "MGh5TpGeBzE",
-    title: "Le MRC et la jeunesse camerounaise - Perspectives d'avenir",
-    description: "Discussion sur l'engagement de la jeunesse camerounaise dans le processus politique et le programme du MRC pour la jeunesse.",
-    thumbnail: "/public/lovable-uploads/13009c82-2883-46e9-8cda-afd9d8e16ade.jpg",
-    publishedAt: "2023-09-18T13:30:00Z"
+export const getOfflineSearchResults = (query: string): YouTubeSearchResult[] => {
+  const normalizedQuery = query.toLowerCase().trim();
+  
+  for (const key in offlineSearchResults) {
+    if (normalizedQuery.includes(key)) {
+      return offlineSearchResults[key];
+    }
   }
-];
+  
+  return offlineSearchResults.default;
+};
+
+/**
+ * Gets mock video details for offline mode
+ */
+export const getOfflineVideoDetails = (videoId: string): YouTubeVideoDetails | null => {
+  return offlineVideoDetails[videoId] || null;
+};

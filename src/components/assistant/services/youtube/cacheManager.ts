@@ -1,70 +1,78 @@
 
-import { YouTubeVideo, VideoInfo, YouTubeErrorType } from './types';
+import { YouTubeSearchResult, YouTubeVideoDetails } from './types';
 
-// Cache for video searches and information
-let videoSearchCache: Record<string, YouTubeVideo[]> = {};
-let videoInfoCache: Record<string, VideoInfo> = {};
+// In-memory cache for search results
+const searchCache = new Map<string, { results: YouTubeSearchResult[], timestamp: number }>();
 
-/**
- * Get cached search results if available
- */
-export const getCachedSearch = (query: string): YouTubeVideo[] | null => {
-  const cacheKey = query.toLowerCase().trim();
-  return videoSearchCache[cacheKey] || null;
-};
+// In-memory cache for video details
+const videoDetailsCache = new Map<string, { details: YouTubeVideoDetails, timestamp: number }>();
+
+// Cache expiration time (24 hours in milliseconds)
+const CACHE_EXPIRATION = 24 * 60 * 60 * 1000;
 
 /**
- * Cache search results for future use
+ * Searches the cache for results matching the given query
  */
-export const cacheSearchResults = (query: string, videos: YouTubeVideo[]): void => {
-  const cacheKey = query.toLowerCase().trim();
-  videoSearchCache[cacheKey] = videos;
-};
-
-/**
- * Get cached video info if available
- */
-export const getCachedVideoInfo = (videoId: string): VideoInfo | null => {
-  return videoInfoCache[videoId] || null;
-};
-
-/**
- * Cache video info for future use
- */
-export const cacheVideoInfo = (videoId: string, info: VideoInfo): void => {
-  videoInfoCache[videoId] = info;
-};
-
-/**
- * Refresh cache by clearing it
- * This will force new API calls to update data
- */
-export const refreshCache = async (apiKey: string): Promise<void> => {
-  clearCache();
-  console.log("YouTube cache refreshed");
-};
-
-/**
- * Clear all YouTube caches
- */
-export const clearCache = (): void => {
-  videoSearchCache = {};
-  videoInfoCache = {};
-  console.log("YouTube cache cleared");
-};
-
-/**
- * Retrieve video info from cache if available
- */
-export const retrieveVideoInfoFromCache = async (videoId: string): Promise<VideoInfo | null> => {
-  try {
-    return getCachedVideoInfo(videoId);
-  } catch (error) {
-    console.error("Error retrieving from cache:", error);
-    throw {
-      type: YouTubeErrorType.CACHE_ERROR,
-      message: "Erreur lors de la récupération des données du cache",
-      originalError: error
-    };
+export const searchCacheByQuery = (query: string): YouTubeSearchResult[] | null => {
+  const normalizedQuery = query.trim().toLowerCase();
+  const cachedData = searchCache.get(normalizedQuery);
+  
+  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_EXPIRATION) {
+    return cachedData.results;
   }
+  
+  return null;
+};
+
+/**
+ * Caches search results for a given query
+ */
+export const cacheSearchResults = (query: string, results: YouTubeSearchResult[]): void => {
+  const normalizedQuery = query.trim().toLowerCase();
+  searchCache.set(normalizedQuery, {
+    results,
+    timestamp: Date.now()
+  });
+};
+
+/**
+ * Gets cached video details by ID
+ */
+export const getCachedVideoDetails = (videoId: string): YouTubeVideoDetails | null => {
+  const cachedData = videoDetailsCache.get(videoId);
+  
+  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_EXPIRATION) {
+    return cachedData.details;
+  }
+  
+  return null;
+};
+
+/**
+ * Caches video details
+ */
+export const cacheVideoDetails = (videoId: string, details: YouTubeVideoDetails): void => {
+  videoDetailsCache.set(videoId, {
+    details,
+    timestamp: Date.now()
+  });
+};
+
+/**
+ * Clears expired cache entries
+ */
+export const clearExpiredCache = (): void => {
+  const now = Date.now();
+  
+  searchCache.forEach((value, key) => {
+    if (now - value.timestamp > CACHE_EXPIRATION) {
+      searchCache.delete(key);
+    }
+  });
+  
+  videoDetailsCache.forEach((value, key) => {
+    if (now - value.timestamp > CACHE_EXPIRATION) {
+      videoDetailsCache.delete(key);
+    }
+  });
 };

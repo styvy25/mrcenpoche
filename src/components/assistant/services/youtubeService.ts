@@ -1,178 +1,175 @@
 
-import * as youtubeApiService from './youtubeApiService';
-import { searchCacheByQuery, getCachedVideoDetails, cacheSearchResults, cacheVideoDetails } from './youtube/cacheManager';
+import { getYouTubeApiKey } from './youtubeApiService';
+import { searchCacheByQuery, cacheSearchResults, getCachedVideoDetails, cacheVideoDetails } from './youtube/cacheManager';
 import { getOfflineSearchResults, getOfflineVideoDetails } from './youtube/offlineData';
-import type { VideoDownloadService } from './youtube/types';
+import { YouTubeSearchResult, YouTubeVideoDetails, VideoDownloadService } from './youtube/types';
 
-export interface YouTubeSearchResult {
-  id: {
-    videoId: string;
-  };
-  snippet: {
-    title: string;
-    description: string;
-    thumbnails: {
-      default?: { url: string, width: number, height: number };
-      medium?: { url: string, width: number, height: number };
-      high?: { url: string, width: number, height: number };
+// YouTube API constants
+const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
+const DEFAULT_MAX_RESULTS = 5;
+
+// Mock implementation of video download service
+const videoDownloadService: VideoDownloadService = {
+  downloadVideo: async (videoId: string, format: string) => {
+    return {
+      success: true,
+      message: 'Video download simulation successful',
+      url: `https://example.com/download/${videoId}?format=${format}`
     };
-    channelTitle: string;
-    publishedAt: string;
-  };
-}
-
-export interface VideoDetail {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  channelTitle: string;
-  publishedAt: string;
-}
-
-// Check if online
-const isOnline = (): boolean => {
-  return navigator.onLine;
-};
-
-// Search YouTube
-export const searchYouTube = async (query: string, maxResults = 5): Promise<any[]> => {
-  try {
-    // First check cache for results
-    const cachedResults = await searchCacheByQuery(query);
-    if (cachedResults && cachedResults.length > 0) {
-      console.log('Using cached YouTube search results for:', query);
-      return cachedResults;
-    }
-
-    // If we're offline, use offline data
-    if (!isOnline()) {
-      console.log('Using offline YouTube search results for:', query);
-      return getOfflineSearchResults(query);
-    }
-
-    // Check if API key exists
-    const apiKey = youtubeApiService.getYouTubeApiKey();
-    if (!apiKey) {
-      console.warn('No YouTube API key available, using offline data');
-      return getOfflineSearchResults(query);
-    }
-
-    // Perform the search using the YouTube API
-    const searchResults = await youtubeApiService.searchYouTube(query, maxResults);
-    
-    if ('error' in searchResults) {
-      console.error('Error in YouTube search:', searchResults.error);
-      return getOfflineSearchResults(query);
-    }
-
-    // Cache the results
-    await cacheSearchResults(query, searchResults);
-    
-    return searchResults;
-  } catch (error) {
-    console.error('Error in searchYouTube:', error);
-    return getOfflineSearchResults(query);
+  },
+  getDownloadFormats: async (videoId: string) => {
+    return ['mp4', 'mp3', 'webm'];
   }
 };
 
-// Get video details
-export const getVideoDetails = async (videoId: string): Promise<any> => {
-  try {
-    // First check cache for details
-    const cachedDetails = await getCachedVideoDetails(videoId);
-    if (cachedDetails) {
-      console.log('Using cached video details for:', videoId);
-      return cachedDetails;
-    }
-
-    // If we're offline, use offline data
-    if (!isOnline()) {
-      console.log('Using offline video details for:', videoId);
-      return getOfflineVideoDetails(videoId);
-    }
-
-    // Check if API key exists
-    const apiKey = youtubeApiService.getYouTubeApiKey();
-    if (!apiKey) {
-      console.warn('No YouTube API key available, using offline data');
-      return getOfflineVideoDetails(videoId);
-    }
-
-    // Get details using the YouTube API
-    const videoDetails = await youtubeApiService.getVideoDetails(videoId);
-    
-    if ('error' in videoDetails) {
-      console.error('Error in getVideoDetails:', videoDetails.error);
-      return getOfflineVideoDetails(videoId);
-    }
-
-    // Cache the details
-    await cacheVideoDetails(videoId, videoDetails);
-    
-    return videoDetails;
-  } catch (error) {
-    console.error('Error in getVideoDetails:', error);
-    return getOfflineVideoDetails(videoId);
+/**
+ * Search YouTube videos
+ */
+export const searchYouTube = async (
+  query: string,
+  options = { maxResults: DEFAULT_MAX_RESULTS, useCache: true, offlineMode: false }
+): Promise<{ results: YouTubeSearchResult[], error?: string }> => {
+  // Check for offline mode first
+  if (options.offlineMode) {
+    return { 
+      results: getOfflineSearchResults(query)
+    };
   }
-};
-
-// Get video download services
-export const getVideoDownloadServices = (videoId: string): VideoDownloadService[] => {
-  return [
-    {
-      name: 'Y2mate',
-      url: `https://www.y2mate.com/youtube/${videoId}`
-    },
-    {
-      name: 'SaveFrom.net',
-      url: `https://en.savefrom.net/1-youtube-video-downloader-63/download-youtube-${videoId}`
-    },
-    {
-      name: 'ClipConverter',
-      url: `https://www.clipconverter.cc/2/?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D${videoId}`
+  
+  // Check cache if enabled
+  if (options.useCache) {
+    const cachedResults = searchCacheByQuery(query);
+    if (cachedResults) {
+      return { results: cachedResults };
     }
-  ];
-};
+  }
 
-// Format video download links
-export const getVideoDownloadLinks = (videoId: string) => {
-  return {
-    downloadServices: getVideoDownloadServices(videoId),
-    watchUrl: `https://www.youtube.com/watch?v=${videoId}`
-  };
-};
+  // Get API key
+  const apiKey = getYouTubeApiKey();
+  if (!apiKey) {
+    console.warn('YouTube API key not available, falling back to offline mode');
+    return { 
+      results: getOfflineSearchResults(query)
+    };
+  }
 
-// Refresh YouTube Cache
-export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
   try {
-    // Make a simple API call to verify the API key works
-    const testQuery = "test";
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${testQuery}&maxResults=1&key=${apiKey}`;
-    
-    const response = await fetch(url);
+    const searchUrl = `${YOUTUBE_API_BASE_URL}/search?part=snippet&q=${encodeURIComponent(
+      query
+    )}&maxResults=${options.maxResults}&type=video&key=${apiKey}`;
+
+    const response = await fetch(searchUrl);
     const data = await response.json();
-    
+
     if (data.error) {
-      console.error("API key validation failed:", data.error);
-      return false;
+      console.error('YouTube API error:', data.error);
+      return { 
+        results: getOfflineSearchResults(query),
+        error: data.error.message || 'Failed to search YouTube'
+      };
     }
-    
-    // API key is valid, clear existing cache
-    const localStorageKeys = Object.keys(localStorage);
-    let clearedCount = 0;
-    
-    for (const key of localStorageKeys) {
-      if (key.startsWith('yt-search-') || key.startsWith('yt-video-')) {
-        localStorage.removeItem(key);
-        clearedCount++;
-      }
+
+    const results: YouTubeSearchResult[] = (data.items || []).map((item: any) => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      description: item.snippet.description,
+      thumbnail: item.snippet.thumbnails.default.url,
+      channelTitle: item.snippet.channelTitle,
+      publishedAt: item.snippet.publishedAt
+    }));
+
+    // Cache results if caching is enabled
+    if (options.useCache && results.length > 0) {
+      cacheSearchResults(query, results);
     }
-    
-    console.log(`YouTube cache cleared: ${clearedCount} items removed`);
-    return true;
-  } catch (error) {
-    console.error("Error refreshing YouTube cache:", error);
-    return false;
+
+    return { results };
+  } catch (error: any) {
+    console.error('Error searching YouTube:', error);
+    return { 
+      results: getOfflineSearchResults(query),
+      error: error.message || 'Failed to search YouTube'
+    };
   }
 };
+
+/**
+ * Get YouTube video details
+ */
+export const getVideoDetails = async (
+  videoId: string,
+  options = { useCache: true, offlineMode: false }
+): Promise<{ details: YouTubeVideoDetails | null, error?: string }> => {
+  // Check for offline mode first
+  if (options.offlineMode) {
+    return { 
+      details: getOfflineVideoDetails(videoId)
+    };
+  }
+  
+  // Check cache if enabled
+  if (options.useCache) {
+    const cachedDetails = getCachedVideoDetails(videoId);
+    if (cachedDetails) {
+      return { details: cachedDetails };
+    }
+  }
+
+  // Get API key
+  const apiKey = getYouTubeApiKey();
+  if (!apiKey) {
+    console.warn('YouTube API key not available, falling back to offline mode');
+    return { 
+      details: getOfflineVideoDetails(videoId)
+    };
+  }
+
+  try {
+    const detailsUrl = `${YOUTUBE_API_BASE_URL}/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${apiKey}`;
+
+    const response = await fetch(detailsUrl);
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('YouTube API error:', data.error);
+      return { 
+        details: getOfflineVideoDetails(videoId),
+        error: data.error.message || 'Failed to fetch video details'
+      };
+    }
+
+    if (!data.items || data.items.length === 0) {
+      return { details: null, error: 'Video not found' };
+    }
+
+    const item = data.items[0];
+    const details: YouTubeVideoDetails = {
+      id: item.id,
+      title: item.snippet.title,
+      description: item.snippet.description,
+      publishedAt: item.snippet.publishedAt,
+      channelTitle: item.snippet.channelTitle,
+      viewCount: item.statistics.viewCount || '0',
+      likeCount: item.statistics.likeCount || '0',
+      dislikeCount: item.statistics.dislikeCount || '0',
+      duration: item.contentDetails.duration,
+      tags: item.snippet.tags || []
+    };
+
+    // Cache details if caching is enabled
+    if (options.useCache) {
+      cacheVideoDetails(videoId, details);
+    }
+
+    return { details };
+  } catch (error: any) {
+    console.error('Error fetching video details:', error);
+    return { 
+      details: getOfflineVideoDetails(videoId),
+      error: error.message || 'Failed to fetch video details'
+    };
+  }
+};
+
+// Export the video download service
+export { videoDownloadService };

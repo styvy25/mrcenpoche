@@ -1,28 +1,34 @@
 
-// Extend the current module type to include category field
+export interface Lesson {
+  id: number;
+  title: string;
+  description: string;
+  content?: string;
+  completed?: boolean;
+  isCompleted?: boolean; // Compatibility alias
+  isLocked?: boolean;
+  duration?: string;
+}
+
 export interface ModuleQuestion {
   id: string;
   text: string;
-  options: { id: string; text: string }[];
   answer: string;
+  // Backward compatibility
+  question?: string;
+  options?: { id: string; text: string; }[];
+  correctOptionId?: string;
   explanation?: string;
   category?: string;
-  correctAnswer?: string;
-  question?: string;
-  correctOptionId?: string;
   difficulty?: string;
   imageSrc?: string;
 }
 
-export interface Lesson {
-  id: string;
-  title: string;
-  content: string;
-  videoUrl?: string;
-  completed: boolean;
-  isCompleted?: boolean;
-  isLocked?: boolean;
-  duration?: string;
+export interface QuizSubmission {
+  moduleId: string;
+  score: number;
+  totalQuestions: number;
+  date: Date;
 }
 
 export interface Module {
@@ -30,46 +36,27 @@ export interface Module {
   title: string;
   description: string;
   category: string;
-  level: "Débutant" | "Intermédiaire" | "Avancé" | "Expert";
   duration: string;
+  level: "Débutant" | "Intermédiaire" | "Avancé" | "Expert";
   progress: number;
-  locked: boolean;
-  image?: string;
-  lessons?: Lesson[];
-  questions?: ModuleQuestion[];
-  coverImage?: string;
-  overview?: string;
-  isFeatured?: boolean;
-  featured?: boolean;
-  cover?: string;
+  lessons: Lesson[];
+  // Additional properties used throughout the app
+  isCompleted?: boolean;
+  locked?: boolean;
   isPdfAvailable?: boolean;
   pdfUrl?: string;
-  isCompleted?: boolean;
+  quizLink?: string;
   isNew?: boolean;
   categoryName?: string;
-  quizLink?: string;
-  priority?: 'high' | 'medium' | 'low';
+  // Fields for adaptive training
+  priority?: string;
   reason?: string;
 }
 
 export interface QuizQuestion {
-  id: string | number;
+  id: number;
   text: string;
-  options: { id: string; text: string }[];
-  answer?: string;
-  question?: string;
-  correctAnswer?: string | number;
-  answers?: any[];
-  explanation?: string;
-  category?: string;
-  difficulty?: string;
-  imageSrc?: string;
-}
-
-// Define QuizSubmission interface for the adaptive training
-export interface QuizSubmission {
-  moduleId: string;
-  score: number;
-  answers: Record<string, string>;
-  timestamp?: Date;
+  options: { id: string; text: string; }[];
+  correctAnswer: string;
+  explanation: string;
 }
