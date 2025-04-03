@@ -1,82 +1,65 @@
 
 import { useState, useEffect } from 'react';
-import { getUserSubscription, getUserPoints, UserSubscription, UserPoints } from '../services/paymentService';
+import { supabase } from '@/integrations/supabase/client';
+import { getSubscriptionStatus, SubscriptionStatus } from '@/services/stripe/stripeService';
+import { useAuth } from '@/components/auth/AuthContext';
 
-interface SubscriptionHookResult {
-  subscription: UserSubscription | null;
-  loading: boolean;
-  isBasic: boolean;
+export interface UseSubscriptionReturn {
   isPremium: boolean;
-  currentPlan: {
-    planType: string;
-    priceId?: string;
-    name?: string;
-    price?: number;
-    interval?: string;
-    features?: string[];
-  } | null;
-  userPoints: UserPoints;
-  plan: string;
-  expiresAt: string;
-  features: string[];
+  subscriptionStatus: SubscriptionStatus | null;
+  loading: boolean;
+  error: string | null;
+  refreshStatus: () => Promise<void>;
 }
 
-export const useSubscription = (): SubscriptionHookResult => {
-  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
-  const [userPoints, setUserPoints] = useState<UserPoints>({ points: 0, level: 1 });
+export const useSubscription = (): UseSubscriptionReturn => {
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  
+  const fetchSubscriptionStatus = async () => {
+    if (!user) {
+      setSubscriptionStatus(null);
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const status = await getSubscriptionStatus();
+      setSubscriptionStatus(status);
+    } catch (err) {
+      console.error('Error fetching subscription status:', err);
+      setError('Erreur lors de la vérification de l'abonnement');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    const fetchSubscription = async () => {
-      try {
-        const sub = await getUserSubscription();
-        setSubscription(sub);
-        
-        const points = await getUserPoints();
-        setUserPoints(points);
-      } catch (error) {
-        console.error('Error fetching subscription:', error);
-      } finally {
-        setLoading(false);
+    fetchSubscriptionStatus();
+    
+    // Set up subscription to auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        fetchSubscriptionStatus();
+      } else if (event === 'SIGNED_OUT') {
+        setSubscriptionStatus(null);
       }
+    });
+    
+    return () => {
+      authListener?.subscription.unsubscribe();
     };
-
-    fetchSubscription();
-  }, []);
-
-  // Determine if user is on basic or premium plan
-  const isBasic = subscription?.planType === 'free' || !subscription?.isActive;
-  const isPremium = subscription?.planType === 'premium' && subscription?.isActive;
-
-  // Current plan info with additional properties to fix build errors
-  const currentPlan = subscription ? {
-    planType: subscription.planType || 'free',
-    priceId: subscription.priceId,
-    name: isPremium ? 'Premium' : 'Basic',
-    price: isPremium ? 1999 : 0,
-    interval: isPremium ? 'month' : '',
-    features: isPremium ? 
-      ['Exports PDF illimités', 'Assistant IA avancé', 'Modules premium', 'Analyse vidéo'] : 
-      ['Assistant IA basique']
-  } : null;
-
-  // Default to never-expiring free plan
-  const expiresAtDate = subscription?.currentPeriodEnd 
-    ? new Date(subscription.currentPeriodEnd)
-    : new Date(2099, 11, 31);
-
-  // For compatibility with components expecting certain fields
+  }, [user?.id]);
+  
   return {
-    subscription,
+    isPremium: subscriptionStatus?.status === 'active',
+    subscriptionStatus,
     loading,
-    isBasic,
-    isPremium,
-    currentPlan,
-    userPoints,
-    plan: subscription?.planType || 'free',
-    expiresAt: expiresAtDate.toISOString(),
-    features: isPremium ? 
-      ['pdf_export', 'ai_chat', 'video_analysis', 'premium_modules'] : 
-      ['ai_chat_basic']
+    error,
+    refreshStatus: fetchSubscriptionStatus
   };
 };

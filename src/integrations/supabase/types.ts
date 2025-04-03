@@ -9,7 +9,123 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      api_keys_config: {
+        Row: {
+          created_at: string
+          id: string
+          perplexity_key: string | null
+          stripe_key: string | null
+          updated_at: string
+          user_id: string
+          youtube_key: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          perplexity_key?: string | null
+          stripe_key?: string | null
+          updated_at?: string
+          user_id: string
+          youtube_key?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          perplexity_key?: string | null
+          stripe_key?: string | null
+          updated_at?: string
+          user_id?: string
+          youtube_key?: string | null
+        }
+        Relationships: []
+      }
+      training_scenarios: {
+        Row: {
+          completed: boolean
+          created_at: string
+          description: string
+          id: string
+          image: string
+          level: number
+          locked: boolean
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          description: string
+          id?: string
+          image: string
+          level: number
+          locked?: boolean
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          image?: string
+          level?: number
+          locked?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      virtual_meetings: {
+        Row: {
+          created_at: string
+          date: string
+          description: string | null
+          duration: string
+          host: string
+          id: string
+          image_url: string | null
+          max_participants: number
+          meeting_url: string
+          participants: number
+          time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description?: string | null
+          duration: string
+          host: string
+          id?: string
+          image_url?: string | null
+          max_participants: number
+          meeting_url: string
+          participants?: number
+          time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          duration?: string
+          host?: string
+          id?: string
+          image_url?: string | null
+          max_participants?: number
+          meeting_url?: string
+          participants?: number
+          time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
