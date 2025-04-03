@@ -1,151 +1,126 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { VirtualMeeting } from "./meetings/virtualMeetingsService";
-import { TrainingScenario } from "./training/trainingScenarioService";
+import { ApiKeys } from "@/hooks/api-keys/types";
 
-/**
- * Fetches virtual meetings based on status
- */
-export const fetchMeetingsFromSupabase = async (status?: 'upcoming' | 'completed'): Promise<VirtualMeeting[]> => {
+export const loadApiKeysFromSupabase = async (): Promise<ApiKeys | null> => {
   try {
-    let query = supabase.from('virtual_meetings').select('*');
+    const { data: { user } } = await supabase.auth.getUser();
     
-    if (status) {
-      query = query.eq('status', status);
-    }
+    if (!user) return null;
     
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error("Supabase error fetching meetings:", error);
-      throw error;
-    }
-    
-    return data as VirtualMeeting[];
-  } catch (error) {
-    console.error("Failed to fetch virtual meetings from Supabase:", error);
-    return [];
-  }
-};
-
-/**
- * Fetches training scenarios from Supabase
- */
-export const fetchScenariosFromSupabase = async (): Promise<TrainingScenario[]> => {
-  try {
     const { data, error } = await supabase
-      .from('training_scenarios')
-      .select('*');
-    
-    if (error) {
-      console.error("Supabase error fetching scenarios:", error);
-      throw error;
-    }
-    
-    return data as TrainingScenario[];
-  } catch (error) {
-    console.error("Failed to fetch training scenarios from Supabase:", error);
-    return [];
-  }
-};
-
-/**
- * Update training scenario progress in Supabase
- */
-export const updateScenarioProgressInSupabase = async (id: string, completed: boolean): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('training_scenarios')
-      .update({ completed })
-      .eq('id', id);
-    
-    if (error) {
-      console.error("Supabase error updating scenario progress:", error);
-      throw error;
-    }
-  } catch (error) {
-    console.error("Failed to update scenario progress in Supabase:", error);
-  }
-};
-
-/**
- * Save API keys to Supabase
- */
-export const saveApiKeysToSupabase = async (keys: {
-  perplexity?: string;
-  youtube?: string;
-  stripe?: string;
-}): Promise<boolean> => {
-  try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    
-    if (!sessionData?.session) {
-      console.warn("User not authenticated, can't save to Supabase");
-      return false;
-    }
-    
-    const { error } = await supabase
       .from('api_keys_config')
-      .upsert({
-        user_id: sessionData.session.user.id,
-        perplexity_key: keys.perplexity || null,
-        youtube_key: keys.youtube || null,
-        stripe_key: keys.stripe || null,
-        updated_at: new Date().toISOString()
-      }, { 
-        onConflict: 'user_id' 
-      });
+      .select('youtube_key, perplexity_key, stripe_key')
+      .eq('user_id', user.id)
+      .single();
+      
+    if (error || !data) {
+      console.error("Error loading API keys from Supabase:", error);
+      return null;
+    }
+    
+    return {
+      youtube: data.youtube_key || null,
+      perplexity: data.perplexity_key || null,
+      stripe: data.stripe_key || null
+    };
+  } catch (error) {
+    console.error("Error in loadApiKeysFromSupabase:", error);
+    return null;
+  }
+};
+
+export const saveApiKeysToSupabase = async (keys: ApiKeys): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return false;
+    
+    const { error } = await supabase.from('api_keys_config').upsert({
+      user_id: user.id,
+      youtube_key: keys.youtube,
+      perplexity_key: keys.perplexity,
+      stripe_key: keys.stripe,
+      updated_at: new Date()
+    });
     
     if (error) {
-      console.error("Supabase error saving API keys:", error);
+      console.error("Error saving API keys to Supabase:", error);
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error("Error saving to Supabase:", error);
+    console.error("Error in saveApiKeysToSupabase:", error);
     return false;
   }
 };
 
-/**
- * Load API keys from Supabase
- */
-export const loadApiKeysFromSupabase = async (): Promise<{
-  perplexity: string;
-  youtube: string;
-  stripe: string;
-} | null> => {
-  try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    
-    if (!sessionData?.session) {
-      console.warn("User not authenticated, can't load from Supabase");
-      return null;
+export const getApiKeysWithDefaults = async () => {
+  const storedKeys = localStorage.getItem('api_keys');
+  let keys = storedKeys ? JSON.parse(storedKeys) : {};
+  
+  // Try to get from Supabase if not in localStorage
+  if (!keys.youtube || !keys.perplexity) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data, error } = await supabase
+          .from('api_keys_config')
+          .select('youtube_key, perplexity_key')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (data && !error) {
+          keys = {
+            ...keys,
+            youtube: keys.youtube || data.youtube_key,
+            perplexity: keys.perplexity || data.perplexity_key
+          };
+          
+          // Update localStorage
+          localStorage.setItem('api_keys', JSON.stringify(keys));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching API keys from Supabase:", error);
     }
+  }
+  
+  return keys;
+};
+
+export const getYouTubeApiKey = async (): Promise<string | null> => {
+  // First check local storage
+  const storedKeys = localStorage.getItem('api_keys');
+  if (storedKeys) {
+    const parsedKeys = JSON.parse(storedKeys);
+    if (parsedKeys.youtube) {
+      return parsedKeys.youtube;
+    }
+  }
+
+  // If not in local storage, try Supabase
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return null;
     
     const { data, error } = await supabase
       .from('api_keys_config')
-      .select('perplexity_key, youtube_key, stripe_key')
-      .eq('user_id', sessionData.session.user.id)
+      .select('youtube_key')
+      .eq('user_id', user.id)
       .single();
-    
-    if (error && error.code !== 'PGRST116') {
-      console.error("Supabase error loading API keys:", error);
+
+    if (error) {
+      console.error("Error fetching YouTube API key:", error);
       return null;
     }
-    
-    if (!data) {
-      return null;
-    }
-    
-    return {
-      perplexity: data.perplexity_key || "",
-      youtube: data.youtube_key || "",
-      stripe: data.stripe_key || ""
-    };
+
+    return data?.youtube_key || null;
   } catch (error) {
-    console.error("Error loading from Supabase:", error);
+    console.error("Error getting YouTube API key:", error);
     return null;
   }
 };

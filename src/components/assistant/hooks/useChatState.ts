@@ -1,13 +1,26 @@
+
 import { useState, useCallback } from "react";
 import { Message } from "../types/message";
 import { useMessageHandler } from "./useMessageHandler";
 import { useYouTubeSearch } from "./useYouTubeSearch";
 import { useOfflineMode } from "./useOfflineMode";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
-import { Feature } from "@/services/paymentService"; // Updated import path
-import { useToast } from "@/hooks/use-toast";
+import { Feature } from "@/services/paymentService";
+import { useToast } from "@/components/ui/use-toast";
+import { extractVideoId } from "../services/youtube/videoDownloader";
 
-export const useChatState = () => {
+export type UseChatStateReturn = {
+  messages: Message[];
+  isLoading: boolean;
+  youtubeResults: any[];
+  isSearchingYouTube: boolean;
+  downloadLinks: any;
+  handleSendMessage: (content: string) => Promise<void>;
+  handleClearMessages: () => void;
+  handleVideoSelect: (videoId: string) => void;
+};
+
+export const useChatState = (): UseChatStateReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { isOnline } = useOfflineMode();
@@ -56,6 +69,19 @@ export const useChatState = () => {
     const youtubeUrlRegex = /(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)[a-zA-Z0-9_-]+/i;
     if (youtubeUrlRegex.test(content)) {
       await handleYouTubeSearch(content, isOnline);
+      return;
+    }
+    
+    // Check for video download request
+    const videoDownloadRegex = /télécharger\s+(?:la|cette)?\s*vidéo|download\s+(?:this)?\s*video/i;
+    if (videoDownloadRegex.test(content) && youtubeResults.length > 0) {
+      const videoId = youtubeResults[0].id;
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: `Voici les liens de téléchargement pour la vidéo demandée : https://youtube.com/watch?v=${videoId}. Cliquez sur l'une des options de téléchargement ci-dessous.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, assistantMessage]);
       return;
     }
     

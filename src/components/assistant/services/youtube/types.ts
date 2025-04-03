@@ -1,12 +1,16 @@
 
-/**
- * Types related to YouTube service functionality
- */
+export enum YouTubeErrorType {
+  NETWORK_ERROR = "NETWORK_ERROR",
+  API_ERROR = "API_ERROR",
+  INVALID_API_KEY = "INVALID_API_KEY",
+  QUOTA_EXCEEDED = "QUOTA_EXCEEDED",
+  UNKNOWN_ERROR = "UNKNOWN_ERROR"
+}
 
-export interface VideoInfo {
-  title: string;
-  description: string;
-  transcript?: string;
+export interface YouTubeError {
+  type: YouTubeErrorType;
+  message: string;
+  originalError?: any;
 }
 
 export interface YouTubeVideo {
@@ -17,27 +21,23 @@ export interface YouTubeVideo {
   publishedAt: string;
 }
 
-export interface YouTubeSearchParams {
-  key: string;
-  q: string;
-  part: string;
-  type: string;
-  maxResults: number;
-  channelId?: string;
+export interface VideoInfo {
+  title: string;
+  description: string;
+  transcript: string;
 }
 
-// Error types for better error handling
-export enum YouTubeErrorType {
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  API_ERROR = 'API_ERROR',
-  QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
-  INVALID_API_KEY = 'INVALID_API_KEY',
-  CACHE_ERROR = 'CACHE_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+export interface DownloadLink {
+  quality: string;
+  url: string;
+  format: string;
 }
 
-export interface YouTubeError {
-  type: YouTubeErrorType;
-  message: string;
-  originalError?: any;
+export interface VideoDownloadLinks {
+  videoId: string;
+  downloadServices: Array<{
+    name: string;
+    url: string;
+  }>;
+  watchUrl: string;
 }

@@ -1,98 +1,72 @@
 
-/**
- * Service for managing YouTube API keys
- */
-
 import { supabase } from "@/integrations/supabase/client";
 
-// Get the YouTube API key from Supabase or localStorage
+const LOCAL_STORAGE_KEY = "api_keys";
+
+/**
+ * Get YouTube API key from local storage or Supabase
+ */
 export const getYouTubeApiKey = async (): Promise<string | null> => {
   try {
-    // Try to get the key from localStorage first
-    const localApiKeys = localStorage.getItem("api_keys");
-    if (localApiKeys) {
-      const { youtube } = JSON.parse(localApiKeys);
-      if (youtube) return youtube;
+    // First check local storage
+    const storedKeys = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedKeys) {
+      const parsedKeys = JSON.parse(storedKeys);
+      if (parsedKeys.youtube) {
+        return parsedKeys.youtube;
+      }
     }
 
-    // If not in localStorage, try to get from Supabase if user is logged in
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (sessionData?.session) {
-      const { data, error } = await supabase
-        .from('api_keys_config')
-        .select('youtube_key')
-        .eq('user_id', sessionData.session.user.id)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching YouTube API key:", error);
-        return null;
-      }
-      
-      if (data && data.youtube_key) {
-        // Update localStorage for faster access next time
-        updateLocalStorageApiKey('youtube', data.youtube_key);
-        return data.youtube_key;
-      }
+    // If not in local storage, try Supabase
+    const { data, error } = await supabase
+      .from('api_keys_config')
+      .select('youtube_key')
+      .single();
+
+    if (error || !data) {
+      console.error("Error fetching YouTube API key from Supabase:", error);
+      return null;
     }
-    
-    // Fallback to default key
-    const defaultKey = '4e63f34b-ce2e-b148-452d-5f6ad73e9f1a';
-    if (defaultKey) {
-      updateLocalStorageApiKey('youtube', defaultKey);
-      return defaultKey;
+
+    // Save to local storage for future use
+    if (data.youtube_key) {
+      const keys = storedKeys ? JSON.parse(storedKeys) : {};
+      keys.youtube = data.youtube_key;
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(keys));
+      return data.youtube_key;
     }
-    
+
     return null;
   } catch (error) {
-    console.error("Error retrieving YouTube API key:", error);
+    console.error("Error getting YouTube API key:", error);
     return null;
   }
 };
 
-// Save YouTube API key to both Supabase and localStorage
-export const saveYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
+/**
+ * Save YouTube API key to local storage and optionally to Supabase
+ */
+export const saveYouTubeApiKey = async (apiKey: string, saveToSupabase: boolean = false): Promise<boolean> => {
   try {
-    // Always save to localStorage
-    updateLocalStorageApiKey('youtube', apiKey);
-    
-    // Save to Supabase if user is logged in
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData?.session) {
-      // If not logged in, just save to localStorage is enough
-      return true;
+    // Save to local storage
+    const storedKeys = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const keys = storedKeys ? JSON.parse(storedKeys) : {};
+    keys.youtube = apiKey;
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(keys));
+
+    // Save to Supabase if requested
+    if (saveToSupabase) {
+      const { error } = await supabase.from('api_keys_config').upsert({
+        youtube_key: apiKey,
+        user_id: (await supabase.auth.getUser()).data.user?.id
+      });
+
+      if (error) {
+        console.error("Error saving YouTube API key to Supabase:", error);
+        return false;
+      }
     }
-    
-    // Check if record exists
-    const { data: existingData } = await supabase
-      .from('api_keys_config')
-      .select('id')
-      .eq('user_id', sessionData.session.user.id)
-      .single();
-    
-    let result;
-    
-    if (existingData) {
-      // Update existing record
-      result = await supabase
-        .from('api_keys_config')
-        .update({ youtube_key: apiKey })
-        .eq('user_id', sessionData.session.user.id);
-    } else {
-      // Insert new record
-      result = await supabase
-        .from('api_keys_config')
-        .insert({ 
-          user_id: sessionData.session.user.id,
-          youtube_key: apiKey 
-        });
-    }
-    
-    if (result.error) {
-      console.error("Error saving YouTube API key:", result.error);
-      return false;
-    }
-    
+
     return true;
   } catch (error) {
     console.error("Error saving YouTube API key:", error);
@@ -100,13 +74,35 @@ export const saveYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
   }
 };
 
-// Helper to update API keys in localStorage
-const updateLocalStorageApiKey = (service: string, value: string) => {
-  try {
-    const apiKeys = JSON.parse(localStorage.getItem("api_keys") || "{}");
-    apiKeys[service] = value;
-    localStorage.setItem("api_keys", JSON.stringify(apiKeys));
-  } catch (error) {
-    console.error("Error updating localStorage API key:", error);
+/**
+ * Get API keys with defaults
+ */
+export const getApiKeysWithDefaults = async () => {
+  const storedKeys = localStorage.getItem(LOCAL_STORAGE_KEY);
+  let keys = storedKeys ? JSON.parse(storedKeys) : {};
+  
+  // Try to get from Supabase if not in localStorage
+  if (!keys.youtube || !keys.perplexity) {
+    try {
+      const { data, error } = await supabase
+        .from('api_keys_config')
+        .select('youtube_key, perplexity_key')
+        .single();
+      
+      if (data && !error) {
+        keys = {
+          ...keys,
+          youtube: keys.youtube || data.youtube_key,
+          perplexity: keys.perplexity || data.perplexity_key
+        };
+        
+        // Update localStorage
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(keys));
+      }
+    } catch (error) {
+      console.error("Error fetching API keys from Supabase:", error);
+    }
   }
+  
+  return keys;
 };

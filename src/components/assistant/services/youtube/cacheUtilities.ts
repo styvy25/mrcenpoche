@@ -1,23 +1,15 @@
 
 import { YouTubeErrorType } from './types';
 import { clearCache } from './cacheManager';
-import { isOnline } from './searchService';
 
 /**
- * Refresh YouTube cache by clearing it and optionally prefetching common data
+ * Refresh the YouTube cache
  */
 export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
   try {
-    const online = isOnline();
-    if (!online) {
-      throw {
-        type: YouTubeErrorType.NETWORK_ERROR,
-        message: "Pas de connexion Internet disponible"
-      };
-    }
-
+    // In a real implementation, we might prefetch common searches
+    // For now, just clear the cache
     clearCache();
-    console.log("YouTube cache refreshed");
     return true;
   } catch (error) {
     console.error("Error refreshing YouTube cache:", error);
@@ -26,32 +18,31 @@ export const refreshYouTubeCache = async (apiKey: string): Promise<boolean> => {
 };
 
 /**
- * Clear YouTube cache
+ * Clear the YouTube cache
  */
 export const clearYouTubeCache = (): void => {
   clearCache();
 };
 
 /**
- * Test if the provided YouTube API key is valid
+ * Test the YouTube API key to validate it works
  */
 export const testYouTubeApiKey = async (apiKey: string): Promise<boolean> => {
   try {
-    const online = isOnline();
-    if (!online) {
-      throw {
-        type: YouTubeErrorType.NETWORK_ERROR,
-        message: "Pas de connexion Internet disponible"
-      };
-    }
-
-    // Try a simple API call to validate the key
-    const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&key=${apiKey}`;
-    const response = await fetch(url);
+    if (!apiKey) return false;
     
-    // Even an authentication error means the key format is valid
-    // The real validation happens on YouTube's side
-    return response.status !== 400; // 400 usually means invalid key format
+    // Make a simple request to validate the key
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&maxResults=1&key=${apiKey}`
+    );
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("YouTube API key validation failed:", errorData);
+      return false;
+    }
+    
+    return true;
   } catch (error) {
     console.error("Error testing YouTube API key:", error);
     return false;

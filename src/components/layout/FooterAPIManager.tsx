@@ -1,134 +1,165 @@
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Settings2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Key } from "lucide-react";
-import { testPerplexityApiKey } from "@/components/assistant/services/perplexityChat";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/use-toast";
+import { testYouTubeApiKey } from "@/components/assistant/services/youtubeService";
+import { testPerplexityApiKey } from "@/components/assistant/services/perplexityService";
 
 const FooterAPIManager = () => {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("api_keys") 
-    ? JSON.parse(localStorage.getItem("api_keys") || "{}").perplexity || ""
-    : "");
-  const [isKeyValid, setIsKeyValid] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [youtubeKey, setYoutubeKey] = useState("");
+  const [perplexityKey, setPerplexityKey] = useState("");
   const [isTesting, setIsTesting] = useState(false);
-  const { toast } = useToast();
 
-  const handleSaveKey = async () => {
-    if (!apiKey.trim()) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer une clé API valide",
-        variant: "destructive",
-      });
-      return;
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      // Load keys from localStorage
+      const storedKeys = localStorage.getItem('api_keys');
+      if (storedKeys) {
+        try {
+          const parsedKeys = JSON.parse(storedKeys);
+          setYoutubeKey(parsedKeys.youtube || "");
+          setPerplexityKey(parsedKeys.perplexity || "");
+        } catch (error) {
+          console.error("Error parsing stored keys:", error);
+        }
+      }
     }
+    setOpen(open);
+  };
 
+  const handleSave = async () => {
     setIsTesting(true);
-    try {
-      const isValid = await testPerplexityApiKey(apiKey);
-      setIsKeyValid(isValid);
-
-      if (isValid) {
-        // Save to localStorage
-        const existingKeys = JSON.parse(localStorage.getItem("api_keys") || "{}");
-        localStorage.setItem("api_keys", JSON.stringify({
-          ...existingKeys,
-          perplexity: apiKey
-        }));
-
+    
+    let youtubeValid = true;
+    let perplexityValid = true;
+    
+    // Test YouTube API key if provided
+    if (youtubeKey) {
+      youtubeValid = await testYouTubeApiKey(youtubeKey);
+      if (!youtubeValid) {
         toast({
-          title: "Clé API sauvegardée",
-          description: "Votre clé API Perplexity a été configurée avec succès.",
-          variant: "default",
-        });
-        
-        setIsEditing(false);
-      } else {
-        toast({
-          title: "Clé API invalide",
-          description: "La clé API fournie n'est pas valide ou ne peut pas être vérifiée.",
+          title: "Clé YouTube API invalide",
+          description: "La clé YouTube API fournie est invalide ou a expiré.",
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error("Error testing API key:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la vérification de la clé API.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsTesting(false);
     }
-  };
-
-  const toggleEdit = () => {
-    setIsEditing(!isEditing);
+    
+    // Test Perplexity API key if provided
+    if (perplexityKey) {
+      perplexityValid = await testPerplexityApiKey(perplexityKey);
+      if (!perplexityValid) {
+        toast({
+          title: "Clé Perplexity API invalide",
+          description: "La clé Perplexity API fournie est invalide ou a expiré.",
+          variant: "destructive",
+        });
+      }
+    }
+    
+    // Save keys if both are valid or empty
+    if ((youtubeValid || !youtubeKey) && (perplexityValid || !perplexityKey)) {
+      const apiKeys = {
+        youtube: youtubeKey || null,
+        perplexity: perplexityKey || null
+      };
+      
+      localStorage.setItem('api_keys', JSON.stringify(apiKeys));
+      
+      // Try to save to Supabase if user is authenticated
+      try {
+        const { saveApiKeysToSupabase } = await import('@/services/supabaseService');
+        await saveApiKeysToSupabase(apiKeys);
+      } catch (error) {
+        console.error("Error saving keys to Supabase:", error);
+        // Continue even if Supabase save fails, as we've already saved to localStorage
+      }
+      
+      toast({
+        title: "Configuration sauvegardée",
+        description: "Vos clés API ont été enregistrées avec succès.",
+      });
+      
+      setOpen(false);
+    }
+    
+    setIsTesting(false);
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      {!isEditing ? (
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Key className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">API Perplexity:</span>
-            {apiKey ? (
-              <Badge variant={isKeyValid ? "default" : "outline"} className="ml-2">
-                {isKeyValid ? (
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3 text-green-500" />
-                    <span>Connecté</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <XCircle className="h-3 w-3 text-red-500" />
-                    <span>Non vérifié</span>
-                  </div>
-                )}
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="ml-2 text-orange-500">Non configuré</Badge>
-            )}
+    <>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300"
+        onClick={() => handleOpenChange(true)}
+      >
+        <Settings2 size={16} />
+        <span>Configurer les API</span>
+      </Button>
+      
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configuration des API</DialogTitle>
+            <DialogDescription>
+              Entrez vos clés API pour débloquer toutes les fonctionnalités de la plateforme.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="youtube-key">Clé YouTube API</Label>
+              <Input
+                id="youtube-key"
+                placeholder="AIza..."
+                value={youtubeKey}
+                onChange={(e) => setYoutubeKey(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Utilisée pour la recherche de vidéos et l'intégration avec YouTube.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="perplexity-key">Clé Perplexity API</Label>
+              <Input
+                id="perplexity-key"
+                placeholder="pplx-..."
+                value={perplexityKey}
+                onChange={(e) => setPerplexityKey(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Utilisée pour l'assistant IA et la génération de contenu.
+              </p>
+            </div>
           </div>
-          <Button size="sm" variant="ghost" onClick={toggleEdit}>
-            {apiKey ? "Modifier" : "Configurer"}
-          </Button>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            <Input
-              type="password"
-              placeholder="Entrez votre clé API Perplexity"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="flex-1"
-            />
+          
+          <DialogFooter>
             <Button 
-              size="sm" 
-              disabled={isTesting} 
-              onClick={handleSaveKey}
-            >
-              {isTesting ? "Vérification..." : "Enregistrer"}
-            </Button>
-            <Button 
-              size="sm" 
+              type="button" 
               variant="ghost" 
-              onClick={toggleEdit}
+              onClick={() => setOpen(false)}
+              disabled={isTesting}
             >
               Annuler
             </Button>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Votre clé sera stockée localement dans votre navigateur et ne sera jamais partagée.
-          </p>
-        </div>
-      )}
-    </div>
+            <Button 
+              type="button" 
+              onClick={handleSave}
+              disabled={isTesting}
+            >
+              {isTesting ? "Test en cours..." : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
