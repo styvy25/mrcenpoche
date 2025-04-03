@@ -38,8 +38,8 @@ export const useChatState = (): UseChatStateReturn => {
   const messageHandler = useMessageHandler();
 
   const handleSendMessage = useCallback(async (content: string) => {
-    // Check if user can use AI Chat feature
-    const canUse = await checkAndUseFeature(Feature.AI_CHAT);
+    // Check if user can use AI Chat feature - using string literal instead of enum
+    const canUse = await checkAndUseFeature("ai_chat");
     if (!canUse) {
       return;
     }

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import ChatHistory from './ChatHistory';
 import ChatInput from './ChatInput';
@@ -18,6 +18,12 @@ const AIChat: React.FC = () => {
     handleClearMessages,
     handleVideoSelect
   } = useChatState();
+
+  // Function to handle PDF generation (empty for now)
+  const handleGeneratePDF = () => {
+    console.log("Generate PDF functionality");
+    // PDF generation logic would go here
+  };
 
   return (
     <Card className="relative h-full flex flex-col overflow-hidden bg-gray-950 border-gray-800">
@@ -47,6 +53,7 @@ const AIChat: React.FC = () => {
         <ChatInput 
           onSendMessage={handleSendMessage} 
           isLoading={isLoading}
+          onGeneratePDF={handleGeneratePDF} 
         />
       </CardContent>
     </Card>
