@@ -1,9 +1,9 @@
 
 import { ApiKeys } from "./types";
-import { loadApiKeysFromSupabase, saveApiKeysToSupabase } from "@/services/supabaseService";
+import { getApiKeys as getApiKeysService, saveApiKeys as saveApiKeysService } from "@/services/apiKeysService";
 
 export const loadFromSupabase = async (): Promise<ApiKeys | null> => {
-  return loadApiKeysFromSupabase();
+  return getApiKeysService();
 };
 
 export const loadFromLocalStorage = (): ApiKeys | null => {
@@ -20,7 +20,7 @@ export const loadFromLocalStorage = (): ApiKeys | null => {
 };
 
 export const saveToSupabase = async (keys: ApiKeys): Promise<boolean> => {
-  return saveApiKeysToSupabase(keys);
+  return saveApiKeysService(keys);
 };
 
 export const saveToLocalStorage = (keys: ApiKeys): void => {

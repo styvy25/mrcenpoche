@@ -1,48 +1,76 @@
-
-import { ReactNode } from 'react';
-import { Home, Book, FileText, Bot, GraduationCap } from 'lucide-react';
+import { LucideIcon, Home, Book, Trophy, MessageSquare, FileText, Calendar, Settings, Map } from "lucide-react";
 
 export interface NavigationItem {
-  path: string;
-  label: string;
-  getIcon: () => ReactNode;
-  mobileOnly?: boolean;
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  description?: string;
+  requiresAuth?: boolean;
+  isNew?: boolean;
+  isHot?: boolean;
+  isActive?: (pathname: string) => boolean;
 }
 
 export const navigationItems: NavigationItem[] = [
   {
-    path: "/",
-    label: "Accueil",
-    getIcon: () => <Home className="h-4 w-4 mr-2" />
+    title: "Accueil",
+    href: "/",
+    icon: Home,
+    description: "Retourner au tableau de bord principal",
   },
   {
-    path: "/modules",
-    label: "Modules",
-    getIcon: () => <Book className="h-4 w-4 mr-2" />
+    title: "Modules",
+    href: "/modules",
+    icon: Book,
+    description: "Accéder aux modules de formation",
+    requiresAuth: true,
+    isActive: (pathname: string) => pathname.startsWith("/modules"),
   },
   {
-    path: "/training",
-    label: "Formation",
-    getIcon: () => <GraduationCap className="h-4 w-4 mr-2" />
+    title: "Quiz",
+    href: "/quiz",
+    icon: Trophy,
+    description: "Tester vos connaissances",
+    requiresAuth: true,
   },
   {
-    path: "/quiz",
-    label: "Quiz",
-    getIcon: () => <FileText className="h-4 w-4 mr-2" />
+    title: "Assistant IA",
+    href: "/assistant",
+    icon: MessageSquare,
+    description: "Obtenir de l'aide de l'assistant IA",
+    requiresAuth: true,
+    isHot: true,
   },
   {
-    path: "/chat",
-    label: "Assistant IA",
-    getIcon: () => <Bot className="h-4 w-4 mr-2" />
-  }
+    title: "Actualités",
+    href: "/news",
+    icon: FileText,
+    description: "Suivre les dernières actualités",
+    requiresAuth: true,
+  },
+  {
+    title: "Agenda",
+    href: "/meetings",
+    icon: Calendar,
+    description: "Planifier et gérer vos événements",
+    requiresAuth: true,
+  },
+  {
+    title: "Paramètres",
+    href: "/settings",
+    icon: Settings,
+    description: "Configurer l'application",
+    requiresAuth: true,
+  },
+  {
+    title: "Carte politique",
+    href: "/political-map",
+    icon: Map,
+    description: "Analysez la répartition politique au Cameroun",
+    isNew: true,
+  },
 ];
 
-// Export individual icons for expandable tabs
-export const navIcons = {
-  '': Home, // for root path
-  home: Home,
-  modules: Book,
-  training: GraduationCap,
-  quiz: FileText,
-  chat: Bot
+export const getIsActive = (pathname: string, href: string): boolean => {
+  return pathname === href;
 };
