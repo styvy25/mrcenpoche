@@ -6,6 +6,7 @@ export interface QuizQuestion {
   correctAnswer: number | string;
   explanation?: string;
   imageSrc?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 export interface Category {
@@ -17,6 +18,7 @@ export interface Category {
   description?: string;
   color?: string;
   questions: QuizQuestion[];
+  badge?: string;
 }
 
 export interface QuizResult {
@@ -24,13 +26,22 @@ export interface QuizResult {
   percentage: number;
   correctCount: number;
   totalQuestions: number;
+  correctAnswers?: number;
+  timeSpent?: number;
+  date?: Date;
 }
 
 export interface BadgeProps {
+  id?: string;
   name: string;
-  icon: string;
+  icon: any;
   description: string;
   unlocked: boolean;
+  earnedAt?: Date;
+  threshold?: number;
+  category?: string;
+  imageUrl?: string;
+  condition?: (result: QuizResult) => boolean;
 }
 
 // Types for appointments and challenges
@@ -42,6 +53,12 @@ export interface Appointment {
   description: string;
   location?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
+  link?: string;
+  isVirtual?: boolean;
+  duration?: string;
+  maxParticipants?: number;
+  participantsCount?: number;
+  startTime?: string;
 }
 
 export interface AppointmentRequest {
@@ -50,4 +67,10 @@ export interface AppointmentRequest {
   time: string;
   description: string;
   location?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  topic?: string;
+  message?: string;
+  startTime?: string;
 }

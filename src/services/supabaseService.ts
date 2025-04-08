@@ -63,3 +63,72 @@ export const fetchMeetingsFromSupabase = async (): Promise<VirtualMeeting[]> => 
     return [];
   }
 };
+
+// Save API keys to Supabase
+export const saveApiKeysToSupabase = async (keys: { 
+  youtube?: string; 
+  perplexity?: string; 
+  stripe?: string; 
+}) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    
+    const { data, error } = await supabase
+      .from('api_keys_config')
+      .upsert({
+        user_id: user.id,
+        youtube_key: keys.youtube,
+        perplexity_key: keys.perplexity,
+        stripe_key: keys.stripe,
+        updated_at: new Date().toISOString()
+      })
+      .select();
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data?.[0] || null;
+  } catch (error) {
+    console.error('Error saving API keys to Supabase:', error);
+    return null;
+  }
+};
+
+// Load API keys from Supabase
+export const loadApiKeysFromSupabase = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return null;
+    }
+    
+    const { data, error } = await supabase
+      .from('api_keys_config')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+      
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No record found
+        return null;
+      }
+      throw error;
+    }
+    
+    return {
+      youtube: data.youtube_key,
+      perplexity: data.perplexity_key,
+      stripe: data.stripe_key
+    };
+  } catch (error) {
+    console.error('Error loading API keys from Supabase:', error);
+    return null;
+  }
+};
